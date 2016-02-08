@@ -1,0 +1,10 @@
+node_modules/**
+.**/*.*
+**/*.js.map
+**/*.js
+bin/Microsoft.NodejsTools.WebRole.dll
+typings/**/*.*
+obj/**/*.*
+**/*.js
+*.suo
+*.htm

@@ -1,0 +1,4 @@
+post on entity with partial schema required in request object
+controller fetch entity from db 
+apply schema required by application (add props , remove props)
+do above in nested object

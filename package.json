@@ -1,0 +1,30 @@
+{
+  "name": "nodehal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "postinstall": "tsd install"
+  },
+  "author": "pratikv",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "express": "^4.13.3",
+    "gulp": "^3.9.0",
+    "gulp-livereload": "^3.8.1",
+    "gulp-nodemon": "^2.0.6",
+    "mongodb": "^2.1.3",
+    "mongoose": "^4.3.5",
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "gulp-livereload": "^3.8.1",
+    "gulp-nodemon": "^2.0.6",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-typescript": "^2.10.0",
+    "reflect-metadata": "^0.1.3"
+  }
+}

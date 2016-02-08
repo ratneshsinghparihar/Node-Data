@@ -1,0 +1,60 @@
+search 
+ 
+ user {name , age , gender , {address}}
+ 
+ http://localhost/user  
+ 
+ search node 
+ 
+ http://localhost/user/search
+ 
+ 
+ immplementation 
+ 
+ findByName
+ 
+ 
+ http://localhost/user/search
+ 
+ findByName
+ 
+ http://localhost/user/search/findByName?name=pratik
+ 
+ QueryDsl
+ 
+ FindByNameAndAge
+ 
+ FindByNameOrAge
+ 
+ FinTop10yName
+ 
+ 
+ 
+ Count
+ 
+ user {name , age , gender , {address}}
+ 
+ http://localhost/user  
+ 
+ count node 
+ 
+ http://localhost/user/count
+ 
+ 
+ immplementation 
+ 
+ countdByName
+ 
+ http://localhost/user/count
+ 
+ countByName
+ 
+ http://localhost/user/search?name=pratik
+ 
+ QueryDsl
+ 
+ countByNameAndAge
+ 
+ countByNameOrAge
+ 
+ countTop10yName
