@@ -1,0 +1,1 @@
+{"version":3,"sources":["models/role.ts"],"names":["IRole"],"mappings":"AACA;IACEA,IAAIA,EAAGA,MAAMA,CAACA;AAChBA,CAACA;AAFe,aAAK,QAEpB,CAAA","file":"models/role.js","sourcesContent":["\r\nexport function IRole() {\r\n  name : String;\r\n}\r\n\r\n"],"sourceRoot":"/source/"}
