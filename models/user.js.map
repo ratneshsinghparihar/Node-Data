@@ -1,1 +1,0 @@
-{"version":3,"sources":["models/user.ts"],"names":[],"mappings":"AAUC,CAAC","file":"models/user.js","sourcesContent":["\r\n\r\nexport interface IUser{\r\n   _id: string;\r\n  name : string;\r\n  email : string;\r\n  password : string;\r\n  age : string;\r\n  roles: any;\r\n  \r\n};\r\n\r\n\r\n"],"sourceRoot":"/source/"}
