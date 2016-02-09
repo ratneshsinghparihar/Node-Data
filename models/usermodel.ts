@@ -19,7 +19,7 @@ export class UserModel {
     courses: Array<string>;
 
     @onetomany({ mappedBy: 'user', rel: 'roles'})
-    roles: Array<RoleModel>;
+    roles: RoleModel;
 
     @field()
     _links: any;  

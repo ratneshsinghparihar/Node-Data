@@ -50,7 +50,7 @@ export class InitRepo {
                 fn: this.mongooseSchemaMap[path].fn,
                 repo: new dr(this.mongooseSchemaMap[path].name,
                     this.mongooseSchemaMap[path].fn.prototype.model,
-                    this.mongooseSchemaMap[path].schema)
+                    null)
             };
         }
         //repositories.forEach((value, index) => {

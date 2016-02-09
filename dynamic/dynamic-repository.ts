@@ -24,12 +24,12 @@ export default class DynamicRepository1 {
     private model: any;
     private metaModel:any;
     private entityType:any;
-    constructor(path1: string, fn: Function, schema: any) {
+    constructor(path1: string, fn: Function, schema1: any) {
         this.path = path1;
         var modelName = this.path.substring(1);
         this.entityType=fn;
         //this.metaModel=new this.entityType();
-        repoList[this.path] = repoList[this.path] || Mongoose.model(path1, schema || new schema({}, { strict: false }));
+        repoList[this.path] = repoList[this.path] || Mongoose.model(path1, schema1 || new schema({}, { strict: false }));
         this.model = repoList[this.path];
     }
 
