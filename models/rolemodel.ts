@@ -12,6 +12,6 @@ export class RoleModel{
     @field()
     public name: string;
     
-    @manytoone({rel: 'users'})
-    public user: UserModel;
+    // @manytoone({rel: 'users'})
+    // public user: UserModel;
 }
