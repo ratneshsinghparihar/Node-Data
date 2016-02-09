@@ -15,7 +15,7 @@ export class InitializeRepositories {
     private initializeRepo(repositories: Array<Function>) {
         repositories.forEach((value, index) => {
             var a; //undefined
-            var schemaName = Utils.getAllMetaDataForDecorator(value.prototype.model.prototype, "document")[a].params['name']; // model name i.e. schema name
+            var schemaName = Utils.getMetaData(value.prototype.model.prototype, "document").params['name']; // model name i.e. schema name
             var mongooseSchema = new DynamicSchema(value.prototype.model.prototype);
             mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schemaName, fn: value };
             mongooseNameSchemaMap[schemaName] = mongooseSchema;
@@ -23,11 +23,10 @@ export class InitializeRepositories {
         //this.resolveMongooseRelation();
 
         for (var path in mongooseSchemaMap) {
+            var schemaMapVal = mongooseSchemaMap[path];
             mongooseRepoMap[path] = {
                 fn: mongooseSchemaMap[path].fn,
-                repo: new DynamicRepository(mongooseSchemaMap[path].name,
-                    mongooseSchemaMap[path].fn.prototype.model,
-                    null)
+                repo: new DynamicRepository(schemaMapVal.name, schemaMapVal.fn.prototype.model, schemaMapVal.schema)
             };
         }
 

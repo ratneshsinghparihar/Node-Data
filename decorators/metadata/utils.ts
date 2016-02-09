@@ -49,6 +49,7 @@ export function addMetaData(target: IMetaTarget, decorator: string, decoratorTyp
     if (arguments.length === 5 && !propertyKey) {
         throw TypeError;
     }
+    propertyKey = propertyKey || '__';
     target.decorators = target.decorators || {};
     target.decorators[decorator] = target.decorators[decorator] || {};
     if (getMetaData(target, decorator, propertyKey)) {
@@ -65,6 +66,7 @@ export function getMetaData(target: IMetaTarget, decorator: string, propertyKey?
     if (!target.decorators) {
         return null;
     }
+    propertyKey = propertyKey || '__';
     return target.decorators[decorator][propertyKey];
 }
 
