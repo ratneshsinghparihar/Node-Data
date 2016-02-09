@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "node-hal", "node-hal.njsproj", "{1E09D3F0-0F70-4A7A-A0D8-294A8663DEF6}"
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "node-data", "node-data.njsproj", "{1E09D3F0-0F70-4A7A-A0D8-294A8663DEF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

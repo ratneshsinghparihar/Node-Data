@@ -54,7 +54,9 @@ export class DynamicController {
             return this.repository.post(req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
-                });
+                },(e) => {
+                    console.log(e);
+                });;
         });
 
         router.put(this.path + "/:id", (req, res) => {
