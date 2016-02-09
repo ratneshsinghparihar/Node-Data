@@ -33,6 +33,10 @@
     <TypeScriptCompile Include="decorators\repository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-repository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic.ts" />
+    <TypeScriptCompile Include="dynamic\dynamic-schema.ts" />
+    <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
+    <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
+    <TypeScriptCompile Include="dynamic\initialize.ts" />
     <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="dynamic\baserepository.ts" />
     <TypeScriptCompile Include="repositories1\rolerepository.ts" />

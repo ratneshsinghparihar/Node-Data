@@ -19,7 +19,7 @@ var Reflect = require('reflect-metadata/Reflect');
 
 var repoList: { [key: string]: any } = {};
 
-export default class DynamicRepository1 {
+export class DynamicRepository {
     private path: string;
     private model: any;
     private metaModel:any;
