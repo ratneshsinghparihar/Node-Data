@@ -2,15 +2,15 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import repo from './dynamic-repository';
+import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 
 export class DynamicController {
-    private repository: repo;
+    private repository: DynamicRepository;
     private path: string;
 
-    constructor(path: string, repository: repo) {
+    constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
         this.path = path;
         this.addRoutes();
