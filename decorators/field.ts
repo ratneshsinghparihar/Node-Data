@@ -4,6 +4,6 @@ export function field(params?: {itemType?: any, isPrimary?: boolean, isAutogener
     return function (target: Object, propertyKey: string) {
 
         console.log('field - propertyKey: ', propertyKey, ', target:', target);
-        Utils.addMetaData(<Utils.IMetaTarget>target, "field", Utils.DecoratorType.PROPERTY, params, propertyKey);
+        Utils.addMetaData(target, "field", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }

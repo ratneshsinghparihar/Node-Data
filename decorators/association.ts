@@ -63,6 +63,7 @@ export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object
             });
         }
 
+        Utils.addMetaData(target, "onetomany", Utils.DecoratorType.PROPERTY, params, key);
 
         //console.log('onetomany - propertyKey: ', key, ', target:', target);
     }
@@ -71,14 +72,14 @@ export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object
 export function manytoone(params:{rel: string} = <any>{}) {
     return function (target:Object, propertyKey:string) {
         console.log('manytoone - propertyKey: ', propertyKey, ', target:', target);
-        Utils.addMetaData(<Utils.IMetaTarget>target, "manytoone", Utils.DecoratorType.PROPERTY, params, propertyKey);
+        Utils.addMetaData(target, "manytoone", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }
 
 export function manytomany(params:{rel: string} = <any>{}) {
-    return function (target:Object, propertyKey:string) {
-        console.log('manytomany - propertyKey: ', propertyKey, ', target:', target);
-        Utils.addMetaData(<Utils.IMetaTarget>target, "manytomany", Utils.DecoratorType.PROPERTY, params, propertyKey);
+    return function (target: Object, propertyKey: string) {
+        console.log('manytomany - propertyKey: ', propertyKey, ', target:', target.constructor);
+        Utils.addMetaData(target, "manytomany", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }
 
