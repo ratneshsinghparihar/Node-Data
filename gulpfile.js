@@ -3,7 +3,7 @@ var tsc = require("gulp-typescript");
 var sourcemaps = require("gulp-sourcemaps");
 var nodemon = require('gulp-nodemon');
 var livereload = require('gulp-livereload');
-
+var nodeDebug = require("gulp-node-debug");
 
 var tsProject = tsc.createProject('tsconfig.json', { sortOutput: true });
 
@@ -32,7 +32,6 @@ var tsProject = tsc.createProject('tsconfig.json', { sortOutput: true });
 //     stream.pipe(gulp.dest('output'));
 // });
 
-
 gulp.task('compile-ts', function() {
   var tsResult = tsProject.src()//gulp.src()
                        .pipe(sourcemaps.init())
@@ -42,6 +41,14 @@ gulp.task('compile-ts', function() {
         return tsResult.js
                         .pipe(sourcemaps.write('.'))
                         .pipe(gulp.dest("./"));
+});
+
+gulp.task('debug', ['compile-ts'], function () {
+  gulp
+    .src( ["server.js"])
+    .pipe(nodeDebug(
+      { debugBrk : true}
+    ));
 });
 
 gulp.task('live-reload', function() {
@@ -59,7 +66,7 @@ gulp.task("nodemon",["compile-ts"],function () {
 		ext: 'js'
 	}).on('start', function(){
 		// when the app has restarted, run livereload.
-		gulp.src(paths.server)
+		gulp.src("server.js")
 			.pipe(livereload());
 	})
 });
