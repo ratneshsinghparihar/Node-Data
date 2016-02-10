@@ -15,7 +15,7 @@ export class MetaData {
     target: Object;
     propertyKey: string;
     decorator: string;
-    propertyType: any;
+    propertyType: ParamTypeCustom;
     params: {};
     decoratorType: DecoratorType;
 
@@ -25,16 +25,19 @@ export class MetaData {
         this.decorator = decorator;
         this.decoratorType = decoratorType;
         this.params = params;
-        this.propertyType = Reflect.getMetadata("design:type", target, propertyKey);
+        var type = Reflect.getMetadata("design:type", target, propertyKey);
 
-        if (this.propertyType === Array && !params) {
+        if (type === Array && !params) {
             throw TypeError;
         }
-        // If it is not relation type/array type return
-        if (this.propertyType !== Array && !(params && (<any>params).rel)) {
-            return;
-        }
-        this.propertyType = new ParamTypeCustom((<any>params).rel, this.propertyType, (<any>params).itemType);
+        // If it is not relation type/array type
+        //if (type !== Array && !(params && (<any>params).rel)) {
+        //    this.propertyType = new ParamTypeCustom((<any>params).rel, this.propertyType, (<any>params).itemType);
+        //}
+        
+        this.propertyType = params
+            ? new ParamTypeCustom((<any>params).rel, (<any>params).itemType, type === Array)
+            : new ParamTypeCustom(null, type, type === Array);
     }
 }
 

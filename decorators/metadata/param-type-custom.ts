@@ -1,11 +1,11 @@
 ﻿
 export class ParamTypeCustom {
     rel: any;
-    type: any;
     itemType: any;
-    constructor(name: string, type: any, itemType: any){
-        this.rel = name;
-        this.type = type;
+    isArray: boolean;
+    constructor(rel: string, itemType: any, isArray: boolean){
+        this.rel = rel;
         this.itemType = itemType;
+        this.isArray = isArray;
     }
 }

@@ -54,7 +54,9 @@ export class DynamicController {
             return this.repository.post(req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
-                });
+                },(e) => {
+                    console.log(e);
+                });;
         });
 
         router.put(this.path + "/:id", (req, res) => {
@@ -90,6 +92,13 @@ export class DynamicController {
         return model;
     }
     
+    private getModelFromHalModel(model:any)
+    {
+        if(model["_lniks"])
+        {
+            delete model["_lniks"];
+        }
+    }
     
      
     private getHalModel1(model:any,resourceName:string,resourceType:any):any{

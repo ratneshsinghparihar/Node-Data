@@ -22,6 +22,9 @@
     },
     "mongoose/mongoose.d.ts": {
       "commit": "faa49cc68025118355b677b936892435b9be7247"
+    },
+    "linq/linq.3.0.3-Beta4.d.ts": {
+      "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
     }
   }
 }

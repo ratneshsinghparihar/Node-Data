@@ -3,8 +3,9 @@
 
 var Mongoose = require("mongoose");
 var Config = require('../config');
+Mongoose.connect(Config.DbConnection);
 //var Config = require('../repos');
-var schema = Mongoose.Schema;
+var MongooseSchema = Mongoose.Schema;
 var http = require("http");
 import * as Utils from "../decorators/metadata/utils";
 
@@ -16,7 +17,6 @@ var router = express.Router();
 var bodyParser = require("body-parser");
 var Reflect = require('reflect-metadata/Reflect');
 
-Mongoose.connect(Config.DbConnection);
 var repoList: { [key: string]: any } = {};
 
 export default class DynamicRepository1 {
@@ -24,13 +24,35 @@ export default class DynamicRepository1 {
     private model: any;
     private metaModel:any;
     private entityType:any;
-    constructor(path1: string, fn: Function, schema1: any) {
+    constructor(path1: string, fn: Function, schema: any) {
         this.path = path1;
         var modelName = this.path.substring(1);
         this.entityType=fn;
         //this.metaModel=new this.entityType();
-        repoList[this.path] = repoList[this.path] || Mongoose.model(path1, schema1 || new schema({}, { strict: false }));
+        repoList[this.path] = repoList[this.path] || Mongoose.model(path1, schema || new MongooseSchema({}, { strict: false }));
         this.model = repoList[this.path];
+    }
+
+    public getModel() {
+        return this.model;
+    }
+
+    public addRel() {
+        //var user1 = new this.model({"_id": Math.random() + new Date().toString() + this.path + "1", 'name': 'u1' });
+        //var user2 = new this.model({ "_id": Math.random() + new Date().toString() + this.path + "2", 'name': 'u2' });
+        //this.model.create([user1, user2]).then((msg) => {
+        //    console.log(msg);
+        //}, (e) => {
+        //    console.log(e);
+        //});
+    }
+
+    public saveObjs(objArr: Array<any>) {
+        return this.model.create(objArr).then((msg) => {
+            console.log(msg);
+        }, (e) => {
+            console.log(e);
+        });
     }
 
     public modelName(){

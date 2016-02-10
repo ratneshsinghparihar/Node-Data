@@ -18,15 +18,19 @@ export class UserModel {
     @field({ itemType: String })
     courses: Array<string>;
 
+<<<<<<< HEAD
     @onetomany({ mappedBy: 'user', rel: 'roles'})
-    roles: RoleModel;
+=======
+    @manytomany({ rel: 'roles'})
+>>>>>>> 5fc2b261a41232a283716ded13214b512fd51fa4
+    roles: Array<RoleModel>;
 
     @field()
     _links: any;  
     
     // constructor(){
     //     this._id=0;
-    //     this.name=""; 
+    //     this.name="";
     //     this.roles=new Array<RoleModel>();
     // }
     constructor(userDto: IUser) {
