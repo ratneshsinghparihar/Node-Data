@@ -1,5 +1,6 @@
 
-export function IRole() {
-  name : String;
+export interface IRole {
+  _id: string;
+  name : string;
 }
 

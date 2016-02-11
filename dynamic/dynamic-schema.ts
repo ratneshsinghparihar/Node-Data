@@ -10,17 +10,22 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 import * as Utils from "../decorators/metadata/utils";
 
 export class DynamicSchema {
-    constructor(target: Object) {
-        this.generate(target);    
+    
+    parsedSchema: any;
+    schemaName: string;
+    private target: Object;
+
+    constructor(target: Object, name: string) {
+        this.target = target;
+        this.schemaName = name;
+        this.parsedSchema = this.parse(target);
+    }
+    
+    public getSchema(): Mongoose.SchemaType {
+        return new MongooseSchema(this.parsedSchema, this.getMongooseOptions(this.target));
     }
 
-    private generate(target: Object): Mongoose.SchemaType  {
-        var parsedSchema = this.parse(target);
-
-        return new MongooseSchema(parsedSchema, this.getMongooseOptions(target));
-    }
-
-    public parse(target: Object) {
+    private parse(target: Object) {
         if (!target || !(target instanceof Object)) {
             throw TypeError;
         }
@@ -38,16 +43,16 @@ export class DynamicSchema {
             }
             var paramType = fieldMetadata.propertyType;
             if (fieldMetadata.decoratorType !== Utils.DecoratorType.PROPERTY) {
-                return;
+                continue;
             }
             if (paramType.rel) {
-                var relSchema = { type: String, ref: paramType.rel };
-                schema[field] = paramType.isArray ? [relSchema] : relSchema;
-                return;
+                var relSchema = { ref: paramType.rel, param: paramType };
+                schema[field] = relSchema;
+                continue;
             }
             if (paramType.isArray) {
                 schema[field] = paramType.itemType ? [paramType.itemType] : [];
-                return;
+                continue;
             }
             schema[field] = paramType.itemType;
         }
