@@ -9,7 +9,7 @@ export function document(params: { name: string, isStrict?: boolean} = <any>{}) 
         }
         
         // add metadata to prototype
-        Utils.addMetaData(<Utils.IMetaTarget>((<any>target).prototype || target), "document", Utils.DecoratorType.CLASS, params);
+        Utils.addMetaData(((<any>target).prototype || target), "document", Utils.DecoratorType.CLASS, params);
         
     }
 }

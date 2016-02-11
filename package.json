@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "gulp-livereload": "^3.8.1",
+    "gulp-node-debug": "0.0.3",
     "gulp-nodemon": "^2.0.6",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^2.10.0",

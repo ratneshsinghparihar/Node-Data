@@ -1,9 +1,25 @@
 ﻿/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
-import {ParamTypeCustom} from './param-type-custom';
+/// <reference path="../../typings/node/node.d.ts" />
 
-export interface IMetaTarget extends Object {
-    decorators: {};
+import {ParamTypeCustom} from './param-type-custom';
+//import * as node from require('node');
+
+interface FieldMetaData {
+    fields: { [key: string]: MetaData };
 }
+
+interface DecoratorMetaData {
+    decorator: { [key: string]: FieldMetaData };
+}
+
+export interface GlobalExtended extends NodeJS.Global {
+    models: { [key: string]: DecoratorMetaData };
+}
+
+
+//export interface IMetaTarget extends Object {
+//    decorators: {};
+//}
 
 export enum DecoratorType {
     CLASS,
@@ -41,7 +57,7 @@ export class MetaData {
     }
 }
 
-export function addMetaData(target: IMetaTarget, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string) {
+export function addMetaData(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string) {
     if (!target) {
         throw TypeError;
     }
@@ -50,50 +66,90 @@ export function addMetaData(target: IMetaTarget, decorator: string, decoratorTyp
         throw TypeError;
     }
     propertyKey = propertyKey || '__';
-    target.decorators = target.decorators || {};
-    target.decorators[decorator] = target.decorators[decorator] || {};
-    if (getMetaData(target, decorator, propertyKey)) {
-        // already added
-        return;
+
+    var gl: GlobalExtended = <any>global;
+    gl.models = gl.models || <any>{};
+
+    var name = (<any>target.constructor).name;
+    gl.models[name] = gl.models[name] || <any>{};
+    gl.models[name].decorator = gl.models[name].decorator || <any>{};
+    gl.models[name].decorator[decorator] = gl.models[name].decorator[decorator] || <any>{};
+    gl.models[name].decorator[decorator].fields = gl.models[name].decorator[decorator].fields || <any>{};
+
+    if (!gl.models[name].decorator[decorator].fields[propertyKey]) {
+        var metData: MetaData = new MetaData(target, decorator, decoratorType, params, propertyKey);
+        gl.models[name].decorator[decorator].fields[propertyKey] = metData;
     }
-    target.decorators[decorator][propertyKey] = new MetaData(target, decorator, decoratorType, params, propertyKey);
 }
 
-export function getMetaData(target: IMetaTarget, decorator: string, propertyKey?: string): MetaData {
+export function getMetaData(target: Object, decorator: string, propertyKey?: string): MetaData {
     if (!target || !decorator) {
         throw TypeError;
     }
-    if (!target.decorators) {
-        return null;
-    }
+
     propertyKey = propertyKey || '__';
-    return target.decorators[decorator][propertyKey];
+    var name = (<any>target.constructor).name;
+    var gl: GlobalExtended = <any>global;
+    if (gl.models[name]) {
+        if (gl.models[name].decorator[decorator]) {
+            return gl.models[name].decorator[decorator].fields[propertyKey];
+        }
+    }
+    return null;
 }
 
-export function getAllMetaDataForDecorator(target: IMetaTarget, decorator: string): {[key: string]: MetaData} {
-    if (!target || !decorator) {
-        throw TypeError;
-    }
-    if (!target.decorators) {
-        return null;
-    }
-    return target.decorators[decorator];
-}
-
-export function getAllMetaDataForAllDecorator(target: IMetaTarget): { [key: string]: Array<MetaData> } {
+export function getMetaDataForField(target: Object, propertyKey?: string): MetaData {
     if (!target) {
         throw TypeError;
     }
-    if (!target.decorators) {
-        return null;
-    }
-    var meta: { [key: string]: Array<MetaData> } = <any>{};
 
-    for (var prop in target.decorators) {
-        for (var prop1 in target.decorators[prop]) {
-            var metaData = <MetaData>target.decorators[prop][prop1];
-            meta[prop1] ? meta[prop1].push(metaData) : meta[prop1] = [metaData];
+    propertyKey = propertyKey || '__';
+    var name = (<any>target.constructor).name;
+    var gl: GlobalExtended = <any>global;
+    if (gl.models[name]) {
+        for (var dec in gl.models[name].decorator) {
+            for (var field in gl.models[name].decorator[dec].fields) {
+                if (field == propertyKey) {
+                    return gl.models[name].decorator[dec].fields[field];
+                }
+            }
         }
     }
+    return null;
+}
+
+export function getAllMetaDataForDecorator(target: Object, decorator: string): { [key: string]: MetaData } {
+    if (!target || !decorator) {
+        throw TypeError;
+    }
+
+    var name = (<any>target.constructor).name;
+    var gl: GlobalExtended = <any>global;
+
+    if (gl.models[name]) {
+        return gl.models[name].decorator[decorator].fields;
+    }
+
+    return null;
+}
+
+export function getAllMetaDataForAllDecorator(target: Object): { [key: string]: Array<MetaData> } {
+    if (!target) {
+        throw TypeError;
+    }
+
+    var meta: { [key: string]: Array<MetaData> } = <any>{};
+    var gl: GlobalExtended = <any>global;
+    var name = (<any>target.constructor).name;
+
+    if (gl.models[name]) {
+        for (var dec in gl.models[name].decorator) {
+            for (var field in gl.models[name].decorator[dec].fields) {
+                var metaData: MetaData = gl.models[name].decorator[dec].fields[field];
+                meta[field] ? meta[field].push(metaData) : meta[field] = [metaData];
+            }
+        }
+    }
+
     return meta;
 }
