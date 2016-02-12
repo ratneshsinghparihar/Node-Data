@@ -52,8 +52,8 @@ export class MetaData {
         //}
         
         this.propertyType = params
-            ? new ParamTypeCustom((<any>params).rel, (<any>params).itemType, type === Array)
-            : new ParamTypeCustom(null, type, type === Array);
+            ? new ParamTypeCustom((<any>params).rel, (<any>params).itemType, type === Array, (<any>params).embedded, ((<any>params).level ? (<any>params).level : -1))
+            : new ParamTypeCustom(null, type, type === Array, false, -1);
     }
 }
 
@@ -70,7 +70,7 @@ export function addMetaData(target: Object, decorator: string, decoratorType: De
     var gl: GlobalExtended = <any>global;
     gl.models = gl.models || <any>{};
 
-    var name = (<any>target.constructor).name;
+    var name = this.getModelNameFromObject(target);
     gl.models[name] = gl.models[name] || <any>{};
     gl.models[name].decorator = gl.models[name].decorator || <any>{};
     gl.models[name].decorator[decorator] = gl.models[name].decorator[decorator] || <any>{};
@@ -88,7 +88,7 @@ export function getMetaData(target: Object, decorator: string, propertyKey?: str
     }
 
     propertyKey = propertyKey || '__';
-    var name = (<any>target.constructor).name;
+    var name = this.getModelNameFromObject(target);
     var gl: GlobalExtended = <any>global;
     if (gl.models[name]) {
         if (gl.models[name].decorator[decorator]) {
@@ -104,7 +104,7 @@ export function getMetaDataForField(target: Object, propertyKey?: string): MetaD
     }
 
     propertyKey = propertyKey || '__';
-    var name = (<any>target.constructor).name;
+    var name = this.getModelNameFromObject(target);
     var gl: GlobalExtended = <any>global;
     if (gl.models[name]) {
         for (var dec in gl.models[name].decorator) {
@@ -123,7 +123,7 @@ export function getAllMetaDataForDecorator(target: Object, decorator: string): {
         throw TypeError;
     }
 
-    var name = (<any>target.constructor).name;
+    var name = this.getModelNameFromObject(target);
     var gl: GlobalExtended = <any>global;
 
     if (gl.models[name]) {
@@ -140,7 +140,7 @@ export function getAllMetaDataForAllDecorator(target: Object): { [key: string]: 
 
     var meta: { [key: string]: Array<MetaData> } = <any>{};
     var gl: GlobalExtended = <any>global;
-    var name = (<any>target.constructor).name;
+    var name = this.getModelNameFromObject(target);
 
     if (gl.models[name]) {
         for (var dec in gl.models[name].decorator) {
@@ -152,4 +152,26 @@ export function getAllMetaDataForAllDecorator(target: Object): { [key: string]: 
     }
 
     return meta;
+}
+
+export function getPrimaryKeyOfModel(target: Object): string {
+    var gl: GlobalExtended = <any>global;
+    var modelName = this.getModelNameFromObject(target);
+
+    if (gl.models[modelName]) {
+        for (var dec in gl.models[modelName].decorator) {
+            for (var key in gl.models[modelName].decorator[dec].fields) {
+                var meta: MetaData = gl.models[modelName].decorator[dec].fields[key];
+                if ((<any>meta.params).isPrimary) {
+                    return key;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+export function getModelNameFromObject(object: Object): string {
+    var obj = (<any>object).prototype || object;
+    return (<any>obj.constructor).name;
 }

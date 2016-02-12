@@ -1,4 +1,5 @@
 ﻿/// <reference path="../typings/node/node.d.ts" />
+/// <reference path="../repositories1/userrepository.ts" />
 
 //var Config1 = require('../repos');
 var express = require('express');

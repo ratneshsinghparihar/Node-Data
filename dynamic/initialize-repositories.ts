@@ -2,6 +2,7 @@
 import {DynamicSchema} from './dynamic-schema';
 import * as Utils from "../decorators/metadata/utils";
 import {DynamicRepository} from './dynamic-repository';
+import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 
 export var mongooseRepoMap: { [key: string]: { fn: Function, repo: any } } = { };
 export var  mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
@@ -13,14 +14,26 @@ export class InitializeRepositories {
     }
 
     private initializeRepo(repositories: Array<Function>) {
+        var schemas: { [key: string]: DynamicSchema } = {};
+        var parsedSchema: { [key: string]: any } = {};
+
         repositories.forEach((value, index) => {
             var a; //undefined
             var schemaName = Utils.getMetaData(value.prototype.model.prototype, "document").params['name']; // model name i.e. schema name
-            var mongooseSchema = new DynamicSchema(value.prototype.model.prototype);
-            mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schemaName, fn: value };
-            mongooseNameSchemaMap[schemaName] = mongooseSchema;
+            var schema = new DynamicSchema(value.prototype.model.prototype, schemaName);
+            schemas[value.prototype.path] = schema;
+            parsedSchema[schema.schemaName] = schema;
         });
-        //this.resolveMongooseRelation();
+
+        this.resolveMongooseRelation(schemas, parsedSchema);
+
+        repositories.forEach((value, index) => {
+            var schema: DynamicSchema = schemas[value.prototype.path];
+            var mongooseSchema = schema.getSchema();
+            mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schema.schemaName, fn: value };
+            mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
+        });
+
 
         for (var path in mongooseSchemaMap) {
             var schemaMapVal = mongooseSchemaMap[path];
@@ -73,6 +86,51 @@ export class InitializeRepositories {
 
         //            });
         //    });
+    }
+
+    private resolveMongooseRelation(schemas: { [key: string]: DynamicSchema }, parsedSchema: { [key: string]: any }){
+        for (var key in schemas) {
+            schemas[key].parsedSchema = this.appendReltaion(schemas[key].parsedSchema, [schemas[key].schemaName], -1, 0, parsedSchema, true);
+        }
+    }
+
+    private appendReltaion(node: { [key: string]: any }, visited: [string], depth: number, level: number, models: { [key: string]: DynamicSchema }, rootNode: boolean): {} {
+        if (depth === level) {
+            return;
+        }
+        var schem = {};
+        for (var key in node) {
+            if (node[key].ref) {
+                var param = <ParamTypeCustom>node[key].param;
+                // do not continue if previous object is visited
+                if (visited.indexOf(param.rel) > -1)
+                    continue;
+
+                if (!param.embedded) {
+                    var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
+                    schem[key] = param.isArray ? [primaryKey] : primaryKey;
+                }
+                else {
+                    visited.push(param.rel);
+                    var ret = {};
+                    if (rootNode) {
+                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, param.level, 0, models, false);
+                    }
+                    else {
+                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, depth, level + 1, models, false);
+                    }
+
+                    // check if array
+                    schem[key] = param.isArray ? [ret] : ret;
+
+                    var name = visited.pop();
+                }
+            }
+            else {
+                schem[key] = node[key];
+            }
+        }
+        return schem;
     }
 
 }

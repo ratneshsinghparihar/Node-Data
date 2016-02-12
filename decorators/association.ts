@@ -2,7 +2,7 @@ import {ModelBase} from '../models/modelBase.ts';
 import * as Utils from "./metadata/utils";
 /// <reference path="../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 console.log('abc');
-export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object } = <any>{}) {
+export function onetomany(params: { biDirectional: boolean, rel: string, itemType: Object, embedded: boolean, level?: number } = <any>{}) {
 
     console.log('aa');
     return function (target:Object, key:string) {
@@ -18,30 +18,24 @@ export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object
         var getter = function () {
             console.log(`Get: ${key} => ${_val}`);
             //var Reflect = require('reflect-metadata/Reflect');
-            var propTypeName = (<any>global).Reflect.getMetadata("design:type", this, key);
-            if(!propTypeName){
-                propTypeName=key;
-            }
-            else
-            {
-                if(propTypeName.prototype.decorators.document.undefined.params.name)
-                propTypeName=propTypeName.prototype.decorators.document.undefined.params.name
-            }
+            var metaData: Utils.MetaData = Utils.getMetaDataForField(target, key);
+            var propTypeName = metaData.propertyType.rel;
             var selfLink = {};
             if ((<ModelBase>_val)._id) {
                 selfLink["href"] = "/" + propTypeName + "/" + (<ModelBase>_val)._id;
                 _val["_links"] = {};
                 _val["_links"]["self"] = selfLink;
             }
-            return _val;
+             return _val;
         };
 
         // property setter
         var setter = function (newVal) {
             console.log(`Set: ${key} => ${newVal}`);
             if (!(<ModelBase>this)._links) {
-                (<ModelBase>this)._links = {};
+                (<ModelBase>this)._links = <any>{};
             }
+            var links = newVal;
             var links = (<ModelBase>this)._links;
             var relLink = {};
             relLink["href"] = "/user/" + (<ModelBase>this)._id + "/" + key;
@@ -63,6 +57,8 @@ export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object
             });
         }
 
+        var name = (<any>target.constructor).name;
+        console.log('onetomany - propertyKey: ', key, ', target:', name);
         Utils.addMetaData(target, "onetomany", Utils.DecoratorType.PROPERTY, params, key);
 
         //console.log('onetomany - propertyKey: ', key, ', target:', target);
@@ -70,15 +66,17 @@ export function onetomany(params:{ mappedBy: string, rel: Object, extra?: Object
 }
 
 export function manytoone(params:{rel: string} = <any>{}) {
-    return function (target:Object, propertyKey:string) {
-        console.log('manytoone - propertyKey: ', propertyKey, ', target:', target);
+    return function (target: Object, propertyKey: string) {
+        var name = (<any>target.constructor).name;
+        console.log('manytoone - propertyKey: ', propertyKey, ', target:', name);
         Utils.addMetaData(target, "manytoone", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }
 
 export function manytomany(params:{rel: string} = <any>{}) {
     return function (target: Object, propertyKey: string) {
-        console.log('manytomany - propertyKey: ', propertyKey, ', target:', target.constructor);
+        var name = (<any>target.constructor).name;
+        console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);
         Utils.addMetaData(target, "manytomany", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }

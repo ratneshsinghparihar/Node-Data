@@ -109,8 +109,8 @@ export class DynamicController {
         var entityModel:any =new resourceType(dbModel);
         var selfUrl={};
         selfUrl["href"]="/"+resourceName+"/"+model._doc._id;
-        var selfObjec={};
-         selfObjec["self"]=selfUrl;      
+        //var selfObjec={};
+        // selfObjec["self"]=selfUrl;      
         entityModel["_links"]["self"]=selfUrl;
         model._doc=entityModel;
         return model;
