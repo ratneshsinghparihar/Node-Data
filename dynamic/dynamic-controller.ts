@@ -59,10 +59,22 @@ export class DynamicController {
                 });;
         });
 
+        //router.post(this.path + '/:id/:prop/:value', (req, res) => {
+        //    return this.sendresult(req, res, req.params);
+        //});
+
+        // delete any property value
+        router.delete(this.path + "/:id/:prop", (req, res) => {
+            return this.sendresult(req, res, req.params);
+        });
+
+        // add or update any property value
         router.put(this.path + "/:id", (req, res) => {
             return this.repository.put(req.params.id, req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
+                }, (e) => {
+                    console.log(e);
                 });
         });
 

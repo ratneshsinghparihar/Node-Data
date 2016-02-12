@@ -79,11 +79,7 @@ export class DynamicRepository {
     }
 
     public put(id: any, obj: any) {
-        return this.model.update({ '_id': id }, obj, { upsert: true });
-        //return this.delete(id)
-        //    .then(result => {
-        //        return this.post(obj);
-        //    });
+        return this.model.findOneAndUpdate({ '_id': id }, obj, { upsert: true });
     }
 
     public delete(id: any) {

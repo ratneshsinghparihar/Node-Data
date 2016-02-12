@@ -6,7 +6,7 @@ import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 
 export var mongooseRepoMap: { [key: string]: { fn: Function, repo: any } } = { };
 export var  mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
-export var  mongooseNameSchemaMap: { [key: string]: any } = { };
+export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
 export class InitializeRepositories {
     constructor(repositories: Array<Function>) {
@@ -101,30 +101,38 @@ export class InitializeRepositories {
         var schem = {};
         for (var key in node) {
             if (node[key].ref) {
-                var param = <ParamTypeCustom>node[key].param;
-                // do not continue if previous object is visited
-                if (visited.indexOf(param.rel) > -1)
-                    continue;
+                var metaData = <Utils.MetaData>node[key].metaData;
+                var param = metaData.propertyType;
+                var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
+                var primaryKeyType = Utils.getMetaDataForField(metaData.target, primaryKey).propertyType.itemType;
+                primaryKeyType = primaryKeyType ? primaryKeyType : String; // If undefined then use string
+                var isEmbedded = false;
 
-                if (!param.embedded) {
-                    var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
-                    schem[key] = param.isArray ? [primaryKey] : primaryKey;
+                // update schema with primary key if same object is encountered
+                if (visited.indexOf(param.rel) > -1) {
+                    schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
                 }
                 else {
-                    visited.push(param.rel);
-                    var ret = {};
-                    if (rootNode) {
-                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, param.level, 0, models, false);
+                    if (!param.embedded) {
+                        schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
                     }
                     else {
-                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, depth, level + 1, models, false);
+                        isEmbedded = true;
+                        visited.push(param.rel);
+                        var ret = {};
+                        if (rootNode) {
+                            ret = this.appendReltaion(models[param.rel].parsedSchema, visited, param.level, 0, models, false);
+                        }
+                        else {
+                            ret = this.appendReltaion(models[param.rel].parsedSchema, visited, depth, level + 1, models, false);
+                        }
+
+                        // check if array
+                        schem[key] = param.isArray ? [ret] : ret;
+                        var name = visited.pop();
                     }
-
-                    // check if array
-                    schem[key] = param.isArray ? [ret] : ret;
-
-                    var name = visited.pop();
                 }
+                //Utils.updateModelLinks(metaData, isEmbedded);
             }
             else {
                 schem[key] = node[key];
