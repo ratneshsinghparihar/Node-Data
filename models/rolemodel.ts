@@ -10,7 +10,7 @@ export class RoleModel{
     _id: any;
     
     @field()
-    name: string;
+    name: any;
     
     //@manytoone({rel: 'users'})
     //users: Array<UserModel>;

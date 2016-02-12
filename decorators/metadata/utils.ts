@@ -27,6 +27,18 @@ export enum DecoratorType {
     PROPERTY
 }
 
+export var modelLinks: { [key: string]: any } = {};
+
+export function updateModelLinks(metaData: MetaData, embedded: boolean) {
+    var param = <ParamTypeCustom><any>metaData.propertyType;
+    if (param.rel) {
+        var parent = getMetaData((<any>metaData.target).prototype || metaData.target, "document").params['name']
+        var child = getMetaData((<any>param.itemType).prototype || param.itemType, "document").params['name']
+        modelLinks[child] = modelLinks[child] || [];
+        modelLinks[child].push({ metaData: metaData, embedded: embedded });
+    }
+}
+
 export class MetaData {
     target: Object;
     propertyKey: string;

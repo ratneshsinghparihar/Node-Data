@@ -46,7 +46,7 @@ export class DynamicSchema {
                 continue;
             }
             if (paramType.rel) {
-                var relSchema = { ref: paramType.rel, param: paramType };
+                var relSchema = { ref: paramType.rel, metaData: fieldMetadata };
                 schema[field] = relSchema;
                 continue;
             }
@@ -54,7 +54,7 @@ export class DynamicSchema {
                 schema[field] = paramType.itemType ? [paramType.itemType] : [];
                 continue;
             }
-            schema[field] = paramType.itemType;
+            schema[field] = paramType.itemType ? paramType.itemType : {};
         }
         return schema;
     }
