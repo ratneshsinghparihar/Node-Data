@@ -2,15 +2,15 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import {DynamicRepository} from './dynamic-repository';
+import repo from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 
 export class DynamicController {
-    private repository: DynamicRepository;
+    private repository: repo;
     private path: string;
 
-    constructor(path: string, repository: DynamicRepository) {
+    constructor(path: string, repository: repo) {
         this.repository = repository;
         this.path = path;
         this.addRoutes();
@@ -51,6 +51,7 @@ export class DynamicController {
         });
 
         router.post(this.path, (req, res) => {
+            this.getModelFromHalModel(req.body);
             return this.repository.post(req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
@@ -58,6 +59,8 @@ export class DynamicController {
                     console.log(e);
                 });;
         });
+        
+        
 
         router.put(this.path + "/:id", (req, res) => {
             return this.repository.put(req.params.id, req.body)

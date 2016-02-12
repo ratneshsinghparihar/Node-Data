@@ -14,6 +14,9 @@ export class UserModel {
 
     @field()
     name: string;
+    
+    @field()
+    password: string;
 
     @field({ itemType: String })
     courses: Array<string>;

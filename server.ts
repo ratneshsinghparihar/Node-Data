@@ -1,6 +1,7 @@
 var http = require("http");
 var express = require("express");
 var bodyParser = require("body-parser");
+var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 require('reflect-metadata/Reflect');
 
 //import * as rolerepo from './repositories/rolerepository';
@@ -17,6 +18,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 })); 
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 //import controllers = require("./controllers");
 
