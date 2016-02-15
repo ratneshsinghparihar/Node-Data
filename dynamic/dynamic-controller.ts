@@ -31,7 +31,9 @@ export class DynamicController {
                 });
         });
         
-        router.get(this.path + '/:id', (req, res) => {
+        router.get(this.path + '/:id',
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.repository.findOne(req.params.id)
                 .then((result) => {
                     this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
@@ -39,7 +41,9 @@ export class DynamicController {
                 });
         });
 
-        router.get(this.path + '/:id/:prop', (req, res) => {
+        router.get(this.path + '/:id/:prop',
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.repository.findChild(req.params.id, req.params.prop)
                 .then((result) => {
                     //result=this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
@@ -55,7 +59,9 @@ export class DynamicController {
                 });
         });
 
-        router.post(this.path, (req, res) => {
+        router.post(this.path,
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             this.getModelFromHalModel(req.body);
             return this.repository.post(req.body)
                 .then((result) => {
@@ -72,12 +78,16 @@ export class DynamicController {
         //});
 
         // delete any property value
-        router.delete(this.path + "/:id/:prop", (req, res) => {
+        router.delete(this.path + "/:id/:prop",
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.sendresult(req, res, req.params);
         });
 
         // add or update any property value
-        router.put(this.path + "/:id", (req, res) => {
+        router.put(this.path + "/:id",
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.repository.put(req.params.id, req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
@@ -86,14 +96,18 @@ export class DynamicController {
                 });
         });
 
-        router.delete(this.path + "/:id", (req, res) => {
+        router.delete(this.path + "/:id",
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.repository.delete(req.params.id)
                 .then((result) => {
                     this.sendresult(req, res, result);
                 });
         });
 
-        router.patch(this.path + "/:id", (req, res) => {
+        router.patch(this.path + "/:id",
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
             return this.repository.patch(req.params.id, req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
