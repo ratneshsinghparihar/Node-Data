@@ -3,7 +3,7 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import {UserRepository} from '../repositories1/UserRepository';
+import {UserRepository} from '../repositories1/userrepository';
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 var Reflect = require('reflect-metadata');
 export var router = express.Router();

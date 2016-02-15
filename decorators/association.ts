@@ -9,7 +9,7 @@ export function onetomany(params: { biDirectional: boolean, rel: string, itemTyp
 
         // property value
 
-        Utils.addMetaData(<Utils.IMetaTarget>target, "onetomany", Utils.DecoratorType.PROPERTY, null, key);
+        Utils.addMetaData(<Utils.MetaData>target, "onetomany", Utils.DecoratorType.PROPERTY, null, key);
 
         var _val = this[key];
 
