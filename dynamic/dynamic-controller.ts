@@ -5,6 +5,7 @@ var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
+import {ISearchPropertyMap,GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
 var Config = require('../config');
 
 export class DynamicController {
@@ -14,6 +15,7 @@ export class DynamicController {
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
         this.path = path;
+        this.addSearchPaths();
         this.addRoutes();
     }
 
@@ -116,6 +118,33 @@ export class DynamicController {
 
     }
 
+    addSearchPaths(){
+        var modelRepo = this.repository.getModelRepo();
+        var searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
+        var links = {"self": { "href": "/search"} };
+        searchPropMap.forEach(map=>{
+            this.addRoutesForAllSearch(map);
+            links[map.key] = {"href": "/"+map.key , "params" : map.args};
+        });
+        router.get(this.path+"/search",function(req,res){
+            res.set("Content-Type", "application/json");
+            res.send(JSON.stringify(links,null,4));
+        });
+    }
+
+    private addRoutesForAllSearch(map : ISearchPropertyMap){
+        router.get(this.path + "/search/" + map.key, (req,res)=>{
+            var query = req.query;
+            return this.repository
+            .findWhere(query)
+            .then((result)=>{
+                this.sendresult(req,res,result);
+            });
+            
+        });
+    }
+    
+    
     private getHalModel(model:any,resourceName:string):any{
         var selfUrl={};
         selfUrl["href"]="/"+resourceName+"/"+model._id;

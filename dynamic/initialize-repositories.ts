@@ -49,7 +49,7 @@ export class InitializeRepositories {
             var schemaMapVal = mongooseSchemaMap[path];
             mongooseRepoMap[path] = {
                 fn: mongooseSchemaMap[path].fn,
-                repo: new DynamicRepository(schemaMapVal.name, schemaMapVal.fn.prototype.model, schemaMapVal.schema)
+                repo: new DynamicRepository(schemaMapVal.name, schemaMapVal.fn.prototype.model, schemaMapVal.schema,schemaMapVal.fn.prototype)
             };
         }
 

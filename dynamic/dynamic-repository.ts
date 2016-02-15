@@ -24,13 +24,19 @@ export class DynamicRepository {
     private model: any;
     private metaModel:any;
     private entityType:any;
-    constructor(repositoryPath: string, fn: Function, schema: any) {
+    private modelRepo : any;
+    constructor(repositoryPath: string, fn: Function, schema: any, modelRepo : any) {
         this.path = repositoryPath;
         var modelName = this.path.substring(1);
         this.entityType=fn;
         //this.metaModel=new this.entityType();
         repoList[this.path] = repoList[this.path] || Mongoose.model(repositoryPath, schema);
         this.model = repoList[this.path];
+        this.modelRepo = modelRepo;
+    }
+    
+    public getModelRepo(){
+        return this.modelRepo;
     }
 
     public getModel() {
@@ -76,6 +82,10 @@ export class DynamicRepository {
 
     public findChild(id, prop) {
         return this.model.findOne({ '_id': id });
+    }
+
+    public findWhere(query){
+        return this.model.find(query);
     }
 
     public post(obj: any) {

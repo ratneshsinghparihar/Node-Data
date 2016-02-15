@@ -16,6 +16,9 @@ export default  class UserRepository {
         //new BaseRepository1(this.path, User1);
     }
 
-   findByName(name:string){}
-
+    findByName(){
+    }
+    
+    findByNameAndAge(){
+    }
 }
