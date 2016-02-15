@@ -5,6 +5,7 @@ var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
+var Config = require('../config');
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -17,7 +18,11 @@ export class DynamicController {
     }
 
     addRoutes() {
-        router.get(this.path, (req, res) => {
+        router.get(this.path,
+        require('connect-ensure-login').ensureLoggedIn(),
+         (req, res) => {
+            if(Config.isAutheticationEnabled) 
+            
             return this.repository.findAll()
                 .then((result) => {
                     result=this.getHalModels(result,this.repository.modelName());

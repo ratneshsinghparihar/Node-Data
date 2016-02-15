@@ -3,24 +3,64 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import UserRepository from '../repositories1/userrepository';
+import {DynamicRepository} from './dynamic-repository';
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 var Reflect = require('reflect-metadata');
 import * as dc from './dynamic-controller';
 var router = dc.router;
-
+var userrepository: DynamicRepository;
 
 export class AuthController {
-    private userrepository: UserRepository;
+    
     private path: string;
 
-    constructor(path: string, repository: UserRepository) {
-        this.userrepository = repository;
+    constructor(path: string, repository: DynamicRepository) {
+        userrepository = repository;
         this.path = path;
         this.addRoutes();
+        
+        passport.use(new LocalStrategy(
+    function(username, password, done) {
+        userrepository.findByName(username).then(
+        (user) => {
+            
+            if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      if (user._doc.password!=password) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+            
+        },
+        (error) => {return done(error);});
+    
+    
+  }
+));
+
+  passport.serializeUser(function(user, cb) {
+  cb(null, user.id);
+});
+
+
+passport.deserializeUser(function(id, cb) {
+  userrepository.findOne(id).
+  then(
+      (user)=>
+        {
+            cb(null, user);
+        },
+      (err)=>
+        {
+            return cb(err);
+        }
+       );
+          
+    });
     }
     
-
+    
 
 addRoutes() {
         

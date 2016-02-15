@@ -69,6 +69,10 @@ export class DynamicRepository {
     public findOne(id) {
         return this.model.findOne({ '_id': id });
     }
+    
+    public findByName(name) {
+        return this.model.findOne({ 'name': name });
+    }
 
     public findChild(id, prop) {
         return this.model.findOne({ '_id': id });
