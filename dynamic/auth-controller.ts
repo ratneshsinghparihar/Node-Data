@@ -3,10 +3,11 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import {UserRepository} from '../repositories1/userrepository';
+import UserRepository from '../repositories1/userrepository';
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 var Reflect = require('reflect-metadata');
-export var router = express.Router();
+import * as dc from './dynamic-controller';
+var router = dc.router;
 
 
 export class AuthController {
@@ -16,46 +17,33 @@ export class AuthController {
     constructor(path: string, repository: UserRepository) {
         this.userrepository = repository;
         this.path = path;
-        this.addRoutes();       
-        
-         passport.use(this.localStrategy);
-         
-         passport.serializeUser(function(user, done) {
-  done(null, user.id);
-});
-
-passport.deserializeUser(function(id, done) {
-  this.userrepository.findById(id, function(err, user) {
-    done(err, user);
-  });
-});
+        this.addRoutes();
     }
+    
 
-    private localStrategy=
-    new LocalStrategy(
-  function(username, password, done) {
-    this.userrepository.findOne({ username: username }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if (user._doc.password!=password) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-)
 
-    addRoutes() {
-        router.post(this.path+"/login",
+addRoutes() {
+        
+        router.get('/', function(req, res) {
+    // Display the Login page with any flash message, if any
+    res.render('home', { message: req.flash('welcome') });
+  });
+  
+  router.get('/login',
+  function(req, res){
+    res.render('login');
+  });
+        
+        router.post('/login',
         passport.authenticate("local"),(req, res) => {
             res.redirect('/user/' + req.user._id);
         });
-    }    
-
-
-   
+        
+        router.get('/logout', function(req, res) {
+  req.logout();
+  res.redirect('/');
+});
+    }  
 
     
 }

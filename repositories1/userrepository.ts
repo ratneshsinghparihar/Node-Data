@@ -8,7 +8,7 @@ import * as decorator from "../decorators/repository";
 import {UserModel} from '../models/usermodel';
 
 @decorator.repository('/user', UserModel)
-export  class UserRepository {
+export default  class UserRepository {
     //public static path: string = '/user';
 
     constructor() {

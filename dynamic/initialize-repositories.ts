@@ -18,20 +18,30 @@ export class InitializeRepositories {
         var parsedSchema: { [key: string]: any } = {};
 
         repositories.forEach((value, index) => {
-            var a; //undefined
+            try {
+                var a; //undefined
             var schemaName = Utils.getMetaData(value.prototype.model.prototype, "document").params['name']; // model name i.e. schema name
             var schema = new DynamicSchema(value.prototype.model.prototype, schemaName);
             schemas[value.prototype.path] = schema;
             parsedSchema[schema.schemaName] = schema;
+            } catch (error) {
+                
+            }
+            
         });
 
         this.resolveMongooseRelation(schemas, parsedSchema);
 
         repositories.forEach((value, index) => {
-            var schema: DynamicSchema = schemas[value.prototype.path];
+            try {
+                 var schema: DynamicSchema = schemas[value.prototype.path];
             var mongooseSchema = schema.getSchema();
             mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schema.schemaName, fn: value };
             mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
+            } catch (error) {
+                
+            }
+           
         });
 
 
