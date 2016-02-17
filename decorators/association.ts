@@ -2,18 +2,11 @@ import {ModelBase} from '../models/modelBase.ts';
 import * as Utils from "./metadata/utils";
 /// <reference path="../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 console.log('abc');
-export function onetomany(params: { biDirectional: boolean, rel: string, itemType: Object, embedded: boolean, level?: number } = <any>{}) {
+export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
 
     console.log('aa');
     return function (target:Object, key:string) {
-
-        // property value
-
-       // Utils.addMetaData(<Utils.MetaData>target, "onetomany", Utils.DecoratorType.PROPERTY, null, key);
-
         var _val = this[key];
-
-
         // property getter
         var getter = function () {
             console.log(`Get: ${key} => ${_val}`);
@@ -65,7 +58,7 @@ export function onetomany(params: { biDirectional: boolean, rel: string, itemTyp
     }
 }
 
-export function manytoone(params:{rel: string} = <any>{}) {
+export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytoone - propertyKey: ', propertyKey, ', target:', name);
@@ -73,39 +66,10 @@ export function manytoone(params:{rel: string} = <any>{}) {
     }
 }
 
-export function manytomany(params:{rel: string} = <any>{}) {
+export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);
         Utils.addMetaData(target, "manytomany", Utils.DecoratorType.PROPERTY, params, propertyKey);
     }
 }
-
-// export function manytoone(){
-//     return function(target: Function, propertyKey: string, descriptor: TypedPropertyDescriptor<any>){
-//         var originalMethod = descriptor.value;
-//         console.log('manytoone - on method: ' + propertyKey);
-//         
-//          descriptor.value = function(...args: any[]) {
-//             console.log("The method args are: " + JSON.stringify(args)); // pre
-//             var result = originalMethod.apply(this, args);               // run and store the result
-//             console.log("The return value is: " + result);               // post
-//             return result;                                               // return the result of the original method
-//         }
-//         return descriptor;
-//     }
-// }
-// 
-// export function manytomany(){
-//     return function(target: Function, propertyKey: string, descriptor: TypedPropertyDescriptor<any>){
-//         var originalMethod = descriptor.value;
-//         console.log('manytomany - on method: ' + propertyKey);
-//         
-//          descriptor.value = function(...args: any[]) {
-//             console.log("The method args are: " + JSON.stringify(args)); // pre
-//             var result = originalMethod.apply(this, args);               // run and store the result
-//             console.log("The return value is: " + result);               // post
-//             return result;                                               // return the result of the original method
-//         };
-//     }
-// }

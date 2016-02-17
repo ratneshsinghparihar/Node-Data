@@ -18,11 +18,11 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export default class Dynamic {
     constructor() {
-        var files = fs.readdirSync('repositories1');
+        var files = fs.readdirSync('repositories');
         var aa = [];
         files.filter((value) => value.match(/[a-zA-Z0-9.]*ts$/))
             .forEach((file: string, index: number, array) => {
-                var route = path.resolve(process.cwd(), 'repositories1\\' + file.substring(0, file.lastIndexOf('.')));
+                var route = path.resolve(process.cwd(), 'repositories\\' + file.substring(0, file.lastIndexOf('.')));
                 var zz = require(route);
                 //var r = new zz.default();
                 //this.initRepo(zz.default.path, null);

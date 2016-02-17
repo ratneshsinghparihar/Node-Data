@@ -52,7 +52,7 @@ export class DynamicController {
                     //var propTypeName = Reflect.getMetadata("design:type", result.toObject()[req.params.prop], req.params.prop);
                     this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
                     
-                    var parent=result.toObject();
+                    var parent=(<any>result).toObject();
                     var association=parent[req.params.prop];
                     //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
                    // var resourceName= Reflect.getMetadata("design:type", association);

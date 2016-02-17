@@ -6,6 +6,7 @@ import Mongoose = require('mongoose');
 var MongooseSchema = Mongoose.Schema;
 import aa = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Types from '../datatypes/mongoose';
     
 import * as Utils from "../decorators/metadata/utils";
 
@@ -45,18 +46,37 @@ export class DynamicSchema {
             if (fieldMetadata.decoratorType !== Utils.DecoratorType.PROPERTY) {
                 continue;
             }
-            if (paramType.rel) {
-                var relSchema = { ref: paramType.rel, metaData: fieldMetadata };
-                schema[field] = relSchema;
-                continue;
-            }
-            if (paramType.isArray) {
-                schema[field] = paramType.itemType ? [paramType.itemType] : [];
-                continue;
-            }
-            schema[field] = paramType.itemType ? paramType.itemType : {};
+            schema[field] = this.getSchemaTypeForParam(paramType);
         }
         return schema;
+    }
+
+    private getSchemaTypeForParam(paramType) {
+        var schemaType = this.getSchemaTypeForType(paramType.itemType);
+        if (paramType.rel) {
+            //var metaData = Utils.getPrimaryKeyMetadata(paramType.itemType);
+            //var relSchema;
+            //if ((<any>fieldMetadata.params).embedded) {
+            //    schema[field] = paramType.isArray ? [Types.Mixed] : Mongoose.Schema.Types.Mixed;
+            //} else {
+            //    relSchema = { ref: paramType.rel, type: Mongoose.Schema.Types.ObjectId };
+            //    schema[field] = paramType.isArray ? [relSchema] : relSchema;
+            //}
+
+            // need to handle embedding vs foreign key refs
+            return paramType.isArray ? [schemaType] : schemaType;
+        }
+        return paramType.isArray ? [schemaType] : schemaType;
+    }
+
+    private getSchemaTypeForType(type?) {
+        if (!type) {
+            return Mongoose.Schema.Types.Mixed;
+        }
+        if (type === Mongoose.Types.ObjectId) {
+            return Mongoose.Schema.Types.ObjectId;
+        }
+        return type;
     }
 
     private getMongooseOptions(target: Object): any {

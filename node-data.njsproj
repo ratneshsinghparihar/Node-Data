@@ -27,6 +27,7 @@
     <Content Include="tsd.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="config.ts" />
+    <TypeScriptCompile Include="datatypes\mongoose.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
@@ -39,8 +40,8 @@
     <TypeScriptCompile Include="dynamic\initialize.ts" />
     <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="dynamic\baserepository.ts" />
-    <TypeScriptCompile Include="repositories1\rolerepository.ts" />
-    <TypeScriptCompile Include="repositories1\userrepository.ts" />
+    <TypeScriptCompile Include="repositories\rolerepository.ts" />
+    <TypeScriptCompile Include="repositories\userrepository.ts" />
     <TypeScriptCompile Include="server.ts" />
     <Compile Include="server.js" />
     <TypeScriptCompile Include="controllers\index.ts" />
@@ -60,7 +61,7 @@
     <Folder Include="decorators\metadata\" />
     <Folder Include="models" />
     <Folder Include="dynamic\" />
-    <Folder Include="repositories1\" />
+    <Folder Include="datatypes\" />
     <Folder Include="repositories\" />
     <Folder Include="schema" />
     <Folder Include="services" />

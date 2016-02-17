@@ -1,7 +1,7 @@
 ﻿var Mongoose = require("mongoose");
 var MongooseSchema = Mongoose.Schema;
 import {DynamicController} from './dynamic-controller';
-import UserRepository from '../repositories1/userrepository';
+import UserRepository from '../repositories/userrepository';
 import {AuthController} from '../dynamic/authcontroller'
 
 export class InitializeControllers {
