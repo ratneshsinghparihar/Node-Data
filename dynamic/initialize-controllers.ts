@@ -2,7 +2,7 @@
 var MongooseSchema = Mongoose.Schema;
 import {DynamicController} from './dynamic-controller';
 import UserRepository from '../repositories1/userrepository';
-import {AuthController} from '../dynamic/auth-Controller'
+import {AuthController} from '../dynamic/authcontroller'
 
 export class InitializeControllers {
     constructor(mongooseRepoMap: { [key: string]: { fn: Function, repo: any } }) {

@@ -29,7 +29,7 @@ export default class Dynamic {
                 console.log(file);
                 aa.push(zz.default);
             });
-        aa.forEach((value, index) => new Initalize(aa));
+        new Initalize(aa);
     }
 }
 
