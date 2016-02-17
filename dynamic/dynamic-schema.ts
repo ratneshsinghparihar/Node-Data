@@ -70,11 +70,17 @@ export class DynamicSchema {
     }
 
     private getSchemaTypeForType(type?) {
-        if (!type) {
-            return Mongoose.Schema.Types.Mixed;
-        }
-        if (type === Mongoose.Types.ObjectId) {
-            return Mongoose.Schema.Types.ObjectId;
+        switch (type) {
+            case Mongoose.Types.ObjectId: return Mongoose.Schema.Types.ObjectId;
+            case String: return String;
+            case Number: return Number;
+            case Buffer: return Buffer;
+            case Date: return Date;
+            case Boolean: return Boolean;
+            case Array: return Array;
+            // any or no types
+            case Object:
+            default: return Mongoose.Schema.Types.Mixed;
         }
         return type;
     }

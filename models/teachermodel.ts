@@ -22,10 +22,10 @@ export class TeacherModel {
     @field()
     gender: string;
 
-    @manytomany({ rel: 'courses', itemType: CourseModel, persist: true })
+    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
     courses: Array<CourseModel.CourseModel>;
 
-    @onetomany({ biDirectional: false, rel: 'students', itemType: StudentModel, embedded: true})
+    @onetomany({ biDirectional: false, rel: 'students', itemType: StudentModel, persist: true})
     students: Array<StudentModel>;
 }
 

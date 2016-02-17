@@ -84,7 +84,10 @@ export class DynamicRepository {
     }
 
     public findAll(): Q.Promise<any> {
-        return Q.nbind(this.model.find, this.model)({});
+        return Q.nbind(this.model.find, this.model)({})
+            .then(result => {
+                return this.toObject(result);
+            });;
     }
 
     public findWhere(query): Q.Promise<any> {
@@ -92,23 +95,28 @@ export class DynamicRepository {
     }
 
     public findOne(id) {
-        return Q.nbind(this.model.findOne, this.model)({ '_id': id });
+        return Q.nbind(this.model.findOne, this.model)({ '_id': id })
+            .then(result => {
+                return this.toObject(result);
+            });;
     }
-    
+
     public findByField(fieldName, value): Q.Promise<any> {
         var param = {};
         param[fieldName] = value;
         return Q.nbind(this.model.findOne, this.model)(param)
             .then(result => {
-                return result;//  this.toObject(result);
+                return this.toObject(result);
             });
     }
 
     public findMany(ids: Array<any>) {
-        return Q.nbind(this.model.findOne, this.model)({
+        return Q.nbind(this.model.find, this.model)({
             '_id': {
                 $in: ids
             }
+        }).then(result => {
+            return this.toObject(result);
         });
     }
 
@@ -182,7 +190,7 @@ export class DynamicRepository {
             var params = <Utils.IAssociationParams>relationDecoratorMeta[0].params;
             if (params.embedded) {
                 asyncCalls.push(this.embedChild(obj, prop, relationDecoratorMeta[0]));
-            } if (!params.persist) {
+            } else if (!params.persist) {
                 delete obj[prop];
                 continue;
             }
@@ -191,13 +199,13 @@ export class DynamicRepository {
     }
 
     private embedChild(obj, prop, relMetadata: Utils.MetaData): Q.Promise<any> {
-        if (!obj[prop]) {
+        if (!obj[prop] || (obj[prop] instanceof Array && obj[prop].length == 0)) {
             return Q.when();
         }
-        if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)){
+        if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
             throw 'Expected array, found non-array';
         }
-        if(!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
+        if (!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
             throw 'Expected single item, found array';
         }
         var params: Utils.IAssociationParams = <any>relMetadata.params;
@@ -206,28 +214,59 @@ export class DynamicRepository {
         if (!repo) {
             throw 'no repository found for relation';
         }
-        var promise: Q.Promise<any>;
-        if (obj[prop] instanceof Array) {
-            var primaryMetaDataForRelation = Utils.getPrimaryKeyMetadata(relMetadata.target);
-            if (primaryMetaDataForRelation) {
-                //var idType = primaryMetaDataForRelation.propertyType.itemType; 
-                //Enumerable.from(obj
-            }
-            promise = repo.findMany(obj[prop]);
-        } else {
-            promise = repo.findOne(obj[prop]);
-        }
-        return promise
+
+        return repo.findMany(this.castAndGetPrimaryKeys(obj, prop, relMetadata))
             .then(result => {
-                obj[prop] = result;
+                obj[prop] = obj[prop] instanceof Array ? result : result[0];
             }).catch(error => {
                 console.error(error);
                 return Q.reject(error);
             });
-    } 
+    }
 
-    private castPrimaryToProperType(obj, prop) {
+    private castAndGetPrimaryKeys(obj, prop, relMetaData: Utils.MetaData): Array<any> {
+        var primaryMetaDataForRelation = Utils.getPrimaryKeyMetadata(relMetaData.target);
 
+        if (!primaryMetaDataForRelation) {
+            throw 'primary key not found for relation';
+        }
+
+        var primaryType = primaryMetaDataForRelation.propertyType.itemType;
+        return obj[prop] instanceof Array
+            ? Enumerable.from(obj[prop]).select(x => this.castToMongooseType(x, primaryType)).toArray()
+            : [this.castToMongooseType(obj, primaryType)];
+    }
+
+    private castToMongooseType(value, schemaType) {
+        var newVal;
+        switch (schemaType) {
+            case Mongoose.Types.ObjectId:
+                if (value instanceof Mongoose.Types.ObjectId) {
+                    newVal = value;
+                } else if (typeof value === 'string') {
+                    newVal = new Mongoose.Types.ObjectId(value);
+                } else {
+                    throw 'cannot cast to primary key type';
+                }
+                break;
+            case String:
+                if (typeof value === 'string') {
+                    newVal = value;
+                }
+                newVal = value.toString();
+                break;
+            case Number:
+                if (typeof value === 'number') {
+                    newVal = value;
+                }
+                newVal = parseInt(value);
+                if (isNaN(newVal)) {
+                    throw 'cannot cast to primary key type';
+                }
+                break;
+            default: newVal = value; break;
+        }
+        return newVal;
     }
 
     private saveChildren(obj: any): Q.Promise<any> {

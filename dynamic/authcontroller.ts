@@ -37,20 +37,16 @@ export class AuthController {
         ));
 
         passport.serializeUser(function (user, cb) {
-            cb(null, user.id);
+            cb(null, user._id.toString());
         });
 
         passport.deserializeUser(function (id, cb) {
-            userrepository.findOne(id).
-                then(
-                (user) => {
+            userrepository.findOne(id)
+                .then((user) => {
                     cb(null, user);
-                },
-                (err) => {
+                }).catch(err => {
                     return cb(err);
-                }
-                );
-
+                });
         });
     }
 
