@@ -22,6 +22,9 @@ export class StudentModel {
     @field()
     gender: string;
 
+    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
+    course: CourseModel.CourseModel;
+
     @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true})
     courses: Array<CourseModel.CourseModel>;
 

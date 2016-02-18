@@ -90,13 +90,15 @@ export class DynamicController {
 
         // delete any property value
         router.delete(this.path + "/:id/:prop",
-        ensureLoggedIn(),
-        (req, res) => {
-            return this.repository.delete(req.params.id)
-                .then(result => {
-                    this.sendresult(req, res, result);
-                });
-        });
+            ensureLoggedIn(),
+            (req, res) => {
+                return this.repository.delete(req.params.id)
+                    .then(result => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        res.send(error)
+                    });
+            });
 
         // add or update any property value
         router.put(this.path + "/:id",
@@ -116,7 +118,9 @@ export class DynamicController {
             return this.repository.delete(req.params.id)
                 .then((result) => {
                     this.sendresult(req, res, result);
-                });
+                }).catch(error => {
+                    res.send(error)
+                });;
         });
 
         router.patch(this.path + "/:id",

@@ -180,9 +180,12 @@ export class DynamicRepository {
     }
 
     public delete(id: any) {
-        return Q.nbind(this.model.findOneAndRemove, this.model)({ '_id': id }).
-            then(result => {
-                this.updateEmbeddedOnEntityChange(EntityChange.delete, result);
+        return Q.nbind(this.model.findOneAndRemove, this.model)({ '_id': id })
+            .then((response: any) => {
+                if (!response) {
+                    return Q.reject('delete failed');
+                }
+                return this.updateEmbeddedOnEntityChange(EntityChange.delete, response);
             });
     }
 
@@ -198,13 +201,13 @@ export class DynamicRepository {
         //var updateProp = '"' + prop + '._id"';
         var cond = {};
         cond[prop + '._id'] = updateObj['_id'];
-        var newUpdateObj = {};
-        if (isArray) {
-            newUpdateObj[prop + '.$'] = updateObj;
-        } else {
-            newUpdateObj[prop] = updateObj;
-        }
-        if (entityChange == EntityChange.put) {
+        if (entityChange == EntityChange.put
+            || entityChange == EntityChange.patch
+            || (entityChange == EntityChange.delete && !isArray)) {
+            var newUpdateObj = {};
+            isArray
+                ? newUpdateObj[prop + '.$'] = updateObj
+                : newUpdateObj[prop] = updateObj;
             return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
                     console.log(result);
@@ -319,7 +322,7 @@ export class DynamicRepository {
         var primaryType = primaryMetaDataForRelation.propertyType.itemType;
         return obj[prop] instanceof Array
             ? Enumerable.from(obj[prop]).select(x => Utils.castToMongooseType(x, primaryType)).toArray()
-            : [Utils.castToMongooseType(obj, primaryType)];
+            : [Utils.castToMongooseType(obj[prop], primaryType)];
     }
 
 
