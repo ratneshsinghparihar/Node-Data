@@ -2,6 +2,7 @@
 /// <reference path="../../typings/node/node.d.ts" />
 
 import {ParamTypeCustom} from './param-type-custom';
+import * as Utils from '../../utils/utils';
 //import * as node from require('node');
 
 interface FieldMetaData {
@@ -245,4 +246,28 @@ export function getModelNameFromObject(obj: any): string {
         return (obj.constructor).name;
     }
     return obj.name;
+}
+
+
+export function getAllRelationsForTarget(target: Object): Array<MetaData> {
+    if (!target) {
+        throw TypeError;
+    }
+
+    var name = this.getModelNameFromObject(target);
+    if (!globalExt.models[name]) {
+        return null;
+    }
+
+    Enumerable.from(globalExt.models)
+        .forEach((keyVal, index) => {
+
+        });
+    var metadataArr: Array<MetaData> = [];
+    for (var dec in globalExt.models[name].decorator) {
+        for (var field in globalExt.models[name].decorator[dec].fields) {
+                metadataArr.push(globalExt.models[name].decorator[dec].fields[field]);
+        }
+    }
+    return metadataArr;
 }

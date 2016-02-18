@@ -6,7 +6,7 @@ import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 import {ISearchPropertyMap,GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
-var Config = require('../config');
+import * as Config from '../config';
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -21,17 +21,15 @@ export class DynamicController {
 
     addRoutes() {
         router.get(this.path,
-        require('connect-ensure-login').ensureLoggedIn(),
-         (req, res) => {
-            if(Config.isAutheticationEnabled) 
-            
-            return this.repository.findAll()
-                .then((result) => {
-                    result=this.getHalModels(result,this.repository.modelName());
-                    this.sendresult(req, res, result);
-                    
-                });
-        });
+            require('connect-ensure-login').ensureLoggedIn(),
+            (req, res) => {
+                return this.repository.findAll()
+                    .then((result) => {
+                        result = this.getHalModels(result, this.repository.modelName());
+                        this.sendresult(req, res, result);
+
+                    });
+            });
         
         router.get(this.path + '/:id',
         require('connect-ensure-login').ensureLoggedIn(),

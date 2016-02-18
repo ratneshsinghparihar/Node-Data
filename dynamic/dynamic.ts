@@ -10,7 +10,6 @@ import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 var Mongoose = require("mongoose");
 var schema = Mongoose.Schema;
 var Config = require('../config');
-//Mongoose.connect(Config.DbConnection);
 
 //import linq = require('../typings/linq/linq');
 var Enumerable: linqjs.EnumerableStatic = require('linq');

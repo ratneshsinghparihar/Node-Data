@@ -54,6 +54,7 @@
     <Compile Include="schema\userSchema.js" />
     <TypeScriptCompile Include="services\userService.ts" />
     <Compile Include="services\userService.js" />
+    <TypeScriptCompile Include="utils\utils.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="controllers" />
@@ -62,6 +63,7 @@
     <Folder Include="models" />
     <Folder Include="dynamic\" />
     <Folder Include="datatypes\" />
+    <Folder Include="utils\" />
     <Folder Include="repositories\" />
     <Folder Include="schema" />
     <Folder Include="services" />
