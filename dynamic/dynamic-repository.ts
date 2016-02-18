@@ -20,14 +20,22 @@ import * as Utils from "../utils/utils";
 var repoList: { [key: string]: any } = {};
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
 
+enum EntityChange{
+    put,
+    post,
+    patch,
+    delete
+}
+
 interface IDynamicRepository {
     getModel();
     addRel();
     modelName();
     put(id: any, obj: any): Q.Promise<any>;
     post(obj: any): Q.Promise<any>;
-    findOne(id: any);
-    findMany(ids: Array<any>);
+    findOne(id: any): Q.Promise<any>;
+    findMany(ids: Array<any>): Q.Promise<any>;
+    patchAllEmbedded(prop: string, obj: any, entityChange: EntityChange, targetPropArray: boolean): Q.Promise<any>;
 }
 
 export class DynamicRepository {
@@ -114,7 +122,12 @@ export class DynamicRepository {
             '_id': {
                 $in: ids
             }
-        }).then(result => {
+        }).then((result: any) => {
+            if (result.length !== ids.length) {
+                var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length;
+                console.error(error);
+                return Q.reject(error);
+            }
             return this.toObject(result);
         });
     }
@@ -152,19 +165,60 @@ export class DynamicRepository {
                     }
                 }
                 return Q.nbind(this.model.create, this.model)(new this.model(obj));
+            }).catch(error => {
+                console.error(error);
+                return Q.reject(error);
             });
     }
 
     public put(id: any, obj: any) {
-        return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id }, obj, { upsert: true });
+        return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id }, obj, { upsert: true, new: true })
+            .then(result => {
+                this.updateEmbeddedOnEntityChange(EntityChange.put, result);
+                return this.toObject(result);
+            });
     }
 
     public delete(id: any) {
-        return Q.nbind(this.model.findOneAndRemove, this.model)({ '_id': id });
+        return Q.nbind(this.model.findOneAndRemove, this.model)({ '_id': id }).
+            then(result => {
+                this.updateEmbeddedOnEntityChange(EntityChange.delete, result);
+            });
     }
 
     public patch(id: any, obj) {
-        return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id });
+        return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id }, { $set: obj })
+            .then(result => {
+                this.updateEmbeddedOnEntityChange(EntityChange.patch, result);
+            });
+    }
+
+    public patchAllEmbedded(prop: string, updateObj: any, entityChange: EntityChange, isArray?: boolean) {
+        //var compareropWithId = '"' + prop + '._id"';
+        //var updateProp = '"' + prop + '._id"';
+        var cond = {};
+        cond[prop + '._id'] = updateObj['_id'];
+        var newUpdateObj = {};
+        if (isArray) {
+            newUpdateObj[prop + '.$'] = updateObj;
+        } else {
+            newUpdateObj[prop] = updateObj;
+        }
+        if (entityChange == EntityChange.put) {
+            return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
+                .then(result => {
+                    console.log(result);
+                });
+        }
+        if (entityChange == EntityChange.delete) {
+            var pullObj = {};
+            pullObj[prop] = {};
+            pullObj[prop]['_id'] = updateObj['_id'];
+            return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
+                .then(result => {
+                    console.log(result);
+                });
+        }
     }
 
     private merge(source, dest) {
@@ -175,15 +229,39 @@ export class DynamicRepository {
         }
     }
 
-    private updateEmbeddedOnEntityChange() {
+    private updateEmbeddedOnEntityChange(entityChange: EntityChange, obj: any) {
+        var allReferencingEntities = MetaUtils.getAllRelationsForTarget(this.entityType);
+        var asyncCalls = [];
+        Enumerable.from(allReferencingEntities)
+            .forEach((x: MetaUtils.MetaData) => {
+                if ((<MetaUtils.IAssociationParams>x.params).embedded) {
+                    asyncCalls.push(this.updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, entityChange));
+                }
+            });
+        return Q.allSettled(asyncCalls);
+    }
 
+    private updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, entityChange: EntityChange): Q.Promise<any> {
+        var targetModelMeta = MetaUtils.getMetaDataForField(targetModel);
+        if (!targetModelMeta) {
+            throw 'Could not fetch metadata for target object';
+        }
+        var repoName = (<MetaUtils.IDocumentParams>targetModelMeta.params).name;
+        var repo = this.getRepositoryForName(repoName);
+        if (!repo) {
+            throw 'no repository found for relation';
+        }
+        return repo.patchAllEmbedded(propKey, updatedObject, entityChange, targetPropArray);
     }
 
     private processEmbedding(obj: any) {
         var asyncCalls = [];
         for (var prop in obj) {
             var metaArr = MetaUtils.getAllMetaDataForField(this.entityType, prop);
-            var relationDecoratorMeta: [MetaUtils.MetaData] = <any>Enumerable.from(metaArr).where((x: MetaUtils.MetaData) => Utils.isRelationDecorator(x.decorator)).toArray();
+            var relationDecoratorMeta: [MetaUtils.MetaData] = <any>Enumerable.from(metaArr)
+                .where((x: MetaUtils.MetaData) => Utils.isRelationDecorator(x.decorator))
+                .toArray();
+
             if (!relationDecoratorMeta || relationDecoratorMeta.length == 0) {
                 continue;
             }
@@ -198,7 +276,7 @@ export class DynamicRepository {
                 continue;
             }
         }
-        return Q.allSettled(asyncCalls);
+        return Q.all(asyncCalls);
     }
 
     private embedChild(obj, prop, relMetadata: MetaUtils.MetaData): Q.Promise<any> {
@@ -213,7 +291,7 @@ export class DynamicRepository {
         }
         var params: MetaUtils.IAssociationParams = <any>relMetadata.params;
 
-        var repo = modelNameRepoModelMap[params.rel];
+        var repo = this.getRepositoryForName(params.rel);
         if (!repo) {
             throw 'no repository found for relation';
         }
@@ -225,6 +303,10 @@ export class DynamicRepository {
                 console.error(error);
                 return Q.reject(error);
             });
+    }
+
+    private getRepositoryForName(name) {
+        return modelNameRepoModelMap[name]
     }
 
     private castAndGetPrimaryKeys(obj, prop, relMetaData: MetaUtils.MetaData): Array<any> {

@@ -8,6 +8,16 @@ export var router = express.Router();
 import {ISearchPropertyMap,GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
 import * as Config from '../config';
 
+var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+
+if (!Config.Security.isAutheticationEnabled) {
+    ensureLoggedIn = function () {
+        return function (req, res, next) {
+            next();
+        }
+    }
+}
+
 export class DynamicController {
     private repository: DynamicRepository;
     private path: string;
@@ -21,7 +31,7 @@ export class DynamicController {
 
     addRoutes() {
         router.get(this.path,
-            require('connect-ensure-login').ensureLoggedIn(),
+            ensureLoggedIn(),
             (req, res) => {
                 return this.repository.findAll()
                     .then((result) => {
@@ -32,7 +42,7 @@ export class DynamicController {
             });
         
         router.get(this.path + '/:id',
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             return this.repository.findOne(req.params.id)
                 .then((result) => {
@@ -42,7 +52,7 @@ export class DynamicController {
         });
 
         router.get(this.path + '/:id/:prop',
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             return this.repository.findChild(req.params.id, req.params.prop)
                 .then((result) => {
@@ -60,14 +70,15 @@ export class DynamicController {
         });
 
         router.post(this.path,
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             this.getModelFromHalModel(req.body);
             return this.repository.post(req.body)
                 .then((result) => {
                     this.sendresult(req, res, result);
-                },(e) => {
-                    console.log(e);
+                }).catch(error => {
+                    console.log(error);
+                    res.send(error);
                 });;
         });
         
@@ -79,14 +90,17 @@ export class DynamicController {
 
         // delete any property value
         router.delete(this.path + "/:id/:prop",
-        require('connect-ensure-login').ensureLoggedIn(),
-         (req, res) => {
-            return this.sendresult(req, res, req.params);
+        ensureLoggedIn(),
+        (req, res) => {
+            return this.repository.delete(req.params.id)
+                .then(result => {
+                    this.sendresult(req, res, result);
+                });
         });
 
         // add or update any property value
         router.put(this.path + "/:id",
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             return this.repository.put(req.params.id, req.body)
                 .then((result) => {
@@ -97,7 +111,7 @@ export class DynamicController {
         });
 
         router.delete(this.path + "/:id",
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             return this.repository.delete(req.params.id)
                 .then((result) => {
@@ -106,7 +120,7 @@ export class DynamicController {
         });
 
         router.patch(this.path + "/:id",
-        require('connect-ensure-login').ensureLoggedIn(),
+        ensureLoggedIn(),
          (req, res) => {
             return this.repository.patch(req.params.id, req.body)
                 .then((result) => {
