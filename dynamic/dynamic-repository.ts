@@ -198,13 +198,13 @@ export class DynamicRepository {
         //var updateProp = '"' + prop + '._id"';
         var cond = {};
         cond[prop + '._id'] = updateObj['_id'];
-        if (entityChange == EntityChange.put
-            || entityChange == EntityChange.patch
-            || (entityChange == EntityChange.delete && !isArray)) {
+        if (entityChange === EntityChange.put
+            || entityChange === EntityChange.patch
+            || (entityChange === EntityChange.delete && !isArray)) {
             var newUpdateObj = {};
             isArray
                 ? newUpdateObj[prop + '.$'] = updateObj
-                : newUpdateObj[prop] = EntityChange.delete ? null : updateObj;
+                : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
             return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
                     console.log(result);
