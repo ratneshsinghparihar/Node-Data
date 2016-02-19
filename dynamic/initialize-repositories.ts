@@ -1,6 +1,7 @@
-﻿
-import {DynamicSchema} from './dynamic-schema';
+﻿import {DynamicSchema} from './dynamic-schema';
 import * as Utils from "../decorators/metadata/utils";
+import {MetaData} from '../decorators/metadata/metadata';
+
 import {DynamicRepository} from './dynamic-repository';
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 
@@ -89,7 +90,7 @@ export class InitializeRepositories {
         var schem = {};
         for (var key in node) {
             if (node[key].ref) {
-                var metaData = <Utils.MetaData>node[key].metaData;
+                var metaData = <MetaData>node[key].metaData;
                 var param = metaData.propertyType;
                 var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
                 var primaryKeyType = Utils.getMetaDataForField(metaData.target, primaryKey).propertyType.itemType;

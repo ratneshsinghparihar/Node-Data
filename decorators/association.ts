@@ -1,5 +1,10 @@
 import {ModelBase} from '../models/modelBase.ts';
+import {Decorators} from '../constants/decorators';
+import {DecoratorType} from '../enums/decorator-type';
+
 import * as Utils from "./metadata/utils";
+import {MetaData} from './metadata/metadata';
+
 /// <reference path="../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 console.log('abc');
 export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
@@ -11,7 +16,7 @@ export function onetomany(params: { biDirectional?: boolean, rel: string, itemTy
         var getter = function () {
             console.log(`Get: ${key} => ${_val}`);
             //var Reflect = require('reflect-metadata/Reflect');
-            var metaData: Utils.MetaData = Utils.getMetaDataForField(target, key);
+            var metaData: MetaData = Utils.getMetaDataForField(target, key);
             var propTypeName = metaData.propertyType.rel;
             var selfLink = {};
             if ((<ModelBase>_val)._id) {
@@ -52,7 +57,7 @@ export function onetomany(params: { biDirectional?: boolean, rel: string, itemTy
 
         var name = (<any>target.constructor).name;
         console.log('onetomany - propertyKey: ', key, ', target:', name);
-        Utils.addMetaData(target, "onetomany", Utils.DecoratorType.PROPERTY, params, key);
+        Utils.addMetaData(target, Decorators.ONETOMANY, DecoratorType.PROPERTY, params, key);
 
         //console.log('onetomany - propertyKey: ', key, ', target:', target);
     }
@@ -62,7 +67,7 @@ export function manytoone(params: { biDirectional?: boolean, rel: string, itemTy
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytoone - propertyKey: ', propertyKey, ', target:', name);
-        Utils.addMetaData(target, "manytoone", Utils.DecoratorType.PROPERTY, params, propertyKey);
+        Utils.addMetaData(target, Decorators.MANYTOONE, DecoratorType.PROPERTY, params, propertyKey);
     }
 }
 
@@ -70,6 +75,6 @@ export function manytomany(params: { biDirectional?: boolean, rel: string, itemT
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);
-        Utils.addMetaData(target, "manytomany", Utils.DecoratorType.PROPERTY, params, propertyKey);
+        Utils.addMetaData(target, Decorators.MANYTOMANY, DecoratorType.PROPERTY, params, propertyKey);
     }
 }
