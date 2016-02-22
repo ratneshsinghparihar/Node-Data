@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1e09d3f0-0f70-4a7a-a0d8-294a8663def6}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.js</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -33,8 +33,20 @@
       <TestFramework>ExportRunner</TestFramework>
     </TypeScriptCompile>
     <TypeScriptCompile Include="datatypes\mongoose.ts" />
+    <TypeScriptCompile Include="decorators\association.ts" />
+    <TypeScriptCompile Include="decorators\document.ts" />
+    <TypeScriptCompile Include="decorators\field.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\association-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\decorator-metadata.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\document-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\field-metadata.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\field-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\metaroot.ts" />
+    <TypeScriptCompile Include="decorators\metadata\metadata.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
+    <TypeScriptCompile Include="decorators\metadata\searchUtils.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
+    <TypeScriptCompile Include="dynamic\authcontroller.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="decorators\repository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-repository.ts" />
@@ -46,9 +58,19 @@
     <TypeScriptCompile Include="enums\decorator-type.ts" />
     <TypeScriptCompile Include="enums\document-strict.ts" />
     <TypeScriptCompile Include="enums\entity-change.ts" />
+    <TypeScriptCompile Include="models\adress.ts" />
+    <TypeScriptCompile Include="models\coursemodel.ts" />
+    <TypeScriptCompile Include="models\modelBase.ts" />
     <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="dynamic\baserepository.ts" />
+    <TypeScriptCompile Include="models\rolemodel.ts" />
+    <TypeScriptCompile Include="models\studentmodel.ts" />
+    <TypeScriptCompile Include="models\teachermodel.ts" />
+    <TypeScriptCompile Include="models\usermodel.ts" />
+    <TypeScriptCompile Include="repositories\course-repository.ts" />
     <TypeScriptCompile Include="repositories\rolerepository.ts" />
+    <TypeScriptCompile Include="repositories\student-repository.ts" />
+    <TypeScriptCompile Include="repositories\teacher-repository.ts" />
     <TypeScriptCompile Include="repositories\userrepository.ts" />
     <TypeScriptCompile Include="server.ts" />
     <Compile Include="server.js" />
@@ -57,11 +79,8 @@
     <Compile Include="controllers\index.js" />
     <Compile Include="controllers\userController.js" />
     <TypeScriptCompile Include="models\user.ts" />
-    <Compile Include="models\user.js" />
     <TypeScriptCompile Include="schema\userSchema.ts" />
-    <Compile Include="schema\userSchema.js" />
     <TypeScriptCompile Include="services\userService.ts" />
-    <Compile Include="services\userService.js" />
     <TypeScriptCompile Include="utils\utils.ts" />
   </ItemGroup>
   <ItemGroup>
