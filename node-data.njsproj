@@ -27,6 +27,9 @@
     <Content Include="tsd.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="config.ts" />
+    <TypeScriptCompile Include="decorators\association.ts" />
+    <TypeScriptCompile Include="decorators\document.ts" />
+    <TypeScriptCompile Include="decorators\field.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
@@ -37,8 +40,12 @@
     <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
+    <TypeScriptCompile Include="models\adress.ts" />
+    <TypeScriptCompile Include="models\modelBase.ts" />
     <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="dynamic\baserepository.ts" />
+    <TypeScriptCompile Include="models\rolemodel.ts" />
+    <TypeScriptCompile Include="models\usermodel.ts" />
     <TypeScriptCompile Include="repositories1\rolerepository.ts" />
     <TypeScriptCompile Include="repositories1\userrepository.ts" />
     <TypeScriptCompile Include="server.ts" />
