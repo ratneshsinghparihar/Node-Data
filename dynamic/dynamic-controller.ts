@@ -6,6 +6,9 @@ import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 var Config = require('../config');
+import * as Utils from "../decorators/metadata/utils";
+var Enumerable: linqjs.EnumerableStatic = require('linq');
+import {SecurityConfig} from '../security-config';
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -17,11 +20,15 @@ export class DynamicController {
         this.addRoutes();
     }
 
+    
+
     addRoutes() {
         router.get(this.path,
         require('connect-ensure-login').ensureLoggedIn(),
          (req, res) => {
-            if(Config.isAutheticationEnabled) 
+            
+            if(!this.isAuthorize(req,1))                    
+            return res.send(401, 'unauthorize access for resource ' + this.path);
             
             return this.repository.findAll()
                 .then((result) => {
@@ -33,7 +40,9 @@ export class DynamicController {
         
         router.get(this.path + '/:id',
         require('connect-ensure-login').ensureLoggedIn(),
-         (req, res) => {
+         (req, res) => {                          
+            if(!this.isAuthorize(req,1))                    
+            return res.send(401, 'unauthorize access for resource ' + this.path);      
             return this.repository.findOne(req.params.id)
                 .then((result) => {
                     this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
@@ -163,4 +172,46 @@ export class DynamicController {
         
         res.send(JSON.stringify(result,null,4));
     }
+    
+    private isAuthorize(req:any, access: number):boolean
+    {
+        if(!Config.isAutheticationEnabled)
+        return true; 
+        var isAutherize:boolean=false;
+        //check for autherization
+             //1. get resource name
+             var resourceName=Utils.getResourceNameFromModelname(this.repository.getEntityType().name)
+             //2. get auth config from security config
+             var authCofig=Enumerable.from(SecurityConfig.ResourceAccess)
+                                     .where((resourceAccess:any) => {return resourceAccess.name==resourceName ;}  )
+                                     .firstOrDefault();
+             //if none found then carry on                                     
+             if(authCofig)
+             {
+                 
+                  //3. get user object in session
+                 var userInsession=req.user;
+                  //4. get roles for current user
+                  
+                  if(!userInsession._doc.rolenames) return false;
+                  
+                  var userRoles:string=userInsession._doc.rolenames;
+                 
+                 var rolesForRead:Array<any>=Enumerable.from(authCofig.acl)
+                                     .where((acl:any) => {return (acl.accessmask & 1)==1  ;})
+                                     .toArray();
+                 //5 match auth config and user roles 
+                 rolesForRead.forEach(element => {
+                     if( userRoles.indexOf(element.role) >= 0){
+                                isAutherize=true;
+                            }                   
+                    
+                       
+                 });
+                 return   isAutherize;
+             }  
+                 
+                 return true;                    
+    }
+    
 }

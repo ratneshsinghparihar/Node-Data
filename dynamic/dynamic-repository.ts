@@ -36,6 +36,8 @@ export class DynamicRepository {
     public getModel() {
         return this.model;
     }
+    
+    
 
     public addRel() {
         //var user1 = new this.model({"_id": Math.random() + new Date().toString() + this.path + "1", 'name': 'u1' });

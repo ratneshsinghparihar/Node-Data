@@ -2,7 +2,7 @@ import {RoleModel} from './rolemodel';
 import {onetomany, manytoone, manytomany} from '../decorators/association';
 import {document} from '../decorators/document'; 
 import {field} from '../decorators/field'; 
-import {IUser} from './user.ts';
+import {IUser} from './user';
 
 import * as r from './rolemodel';
 

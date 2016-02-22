@@ -1,4 +1,4 @@
-import {ModelBase} from '../models/modelBase.ts';
+import {ModelBase} from '../models/modelBase';
 import * as Utils from "./metadata/utils";
 /// <reference path="../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 console.log('abc');
