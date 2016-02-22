@@ -6,4 +6,6 @@
   public static isAutheticationByToken:boolean =true;
 }
 
-export = Config;
+export class Security{
+    public static isAutheticationEnabled: boolean = false;
+}

@@ -1,36 +1,14 @@
-// /// <reference path="../typings/tsd.d.ts"/>
-// import * as mongoose from "mongoose";
-// import Config = require( "../config" );
-// import User = require("../schema/userSchema");
-// import {IUser} from '../models/user.ts';
+﻿import base from "../dynamic/baserepository";
+import * as decorator from "../decorators/repository";
+import {UserModel} from '../models/usermodel';
 
-// mongoose.connect(Config.DbConnection);
+@decorator.repository('/user', UserModel)
+export default  class UserRepository {
 
-// class userRepository{
+    findByName() {
+    }
 
-//   static addUser(user : IUser, cb : Function){
-//     User.create(user, (err,model)=>{
-//       if(err){
-//         cb(err,null);
-//       }
-//       else{
-//         cb(null, model);
-//       }
-//     });
-//   }
+    findByNameAndAge() {
+    }
 
-
-//   static getAllUsers(cb : Function) :  any {
-//     User.find({},(err,models)=>{
-//       if(err){
-//         cb(err, null);
-//       }
-//       else{
-//         cb(null,models);
-//       }
-//     });
-//   }
-// }
-// export = userRepository;
-// // findone , findall , save baseInterface
-// // interface , baseInterFace ()
+}

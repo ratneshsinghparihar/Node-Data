@@ -4,7 +4,7 @@ import * as RM from './rolemodel';
 import {onetomany, manytoone, manytomany} from '../decorators/association';
 import {document} from '../decorators/document'; 
 import {field} from '../decorators/field'; 
-import {IUser} from './user';
+import {IUser} from './user.ts';
 import {Types} from 'mongoose';
 import {Strict} from '../enums/document-strict';
 import * as r from './rolemodel';

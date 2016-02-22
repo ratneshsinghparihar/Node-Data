@@ -8,3 +8,5 @@ obj/**/*.*
 **/*.js
 *.suo
 *.htm
+**/*.orig
+out/**

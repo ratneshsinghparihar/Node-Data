@@ -4,8 +4,6 @@
 // import {IUser} from '../models/user.ts';
 
 
-// Mongoose.connect(Config.DbConnection);
-
 // class UserService{
 //   static addUser(user : IUser): Mongoose.Promise<IUser>{
 //     return User.create(user);
