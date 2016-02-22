@@ -1,6 +1,8 @@
 
-class Config{
-  public static DbConnection : string= "mongodb://localhost/userDatabase";
+export class Data{
+    public static DbConnection: string = "mongodb://localhost/userDatabase";
 }
 
-export = Config;
+export class Security{
+    public static isAutheticationEnabled: boolean = false;
+}

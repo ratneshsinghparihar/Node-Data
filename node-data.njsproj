@@ -27,9 +27,12 @@
     <Content Include="tsd.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="config.ts" />
-    <TypeScriptCompile Include="decorators\association.ts" />
-    <TypeScriptCompile Include="decorators\document.ts" />
-    <TypeScriptCompile Include="decorators\field.ts" />
+    <TypeScriptCompile Include="constants\reflect.ts" />
+    <TypeScriptCompile Include="constants\decorators.ts">
+      <SubType>Code</SubType>
+      <TestFramework>ExportRunner</TestFramework>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="datatypes\mongoose.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
@@ -40,14 +43,13 @@
     <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
-    <TypeScriptCompile Include="models\adress.ts" />
-    <TypeScriptCompile Include="models\modelBase.ts" />
+    <TypeScriptCompile Include="enums\decorator-type.ts" />
+    <TypeScriptCompile Include="enums\document-strict.ts" />
+    <TypeScriptCompile Include="enums\entity-change.ts" />
     <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="dynamic\baserepository.ts" />
-    <TypeScriptCompile Include="models\rolemodel.ts" />
-    <TypeScriptCompile Include="models\usermodel.ts" />
-    <TypeScriptCompile Include="repositories1\rolerepository.ts" />
-    <TypeScriptCompile Include="repositories1\userrepository.ts" />
+    <TypeScriptCompile Include="repositories\rolerepository.ts" />
+    <TypeScriptCompile Include="repositories\userrepository.ts" />
     <TypeScriptCompile Include="server.ts" />
     <Compile Include="server.js" />
     <TypeScriptCompile Include="controllers\index.ts" />
@@ -60,14 +62,19 @@
     <Compile Include="schema\userSchema.js" />
     <TypeScriptCompile Include="services\userService.ts" />
     <Compile Include="services\userService.js" />
+    <TypeScriptCompile Include="utils\utils.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="controllers" />
     <Folder Include="decorators\" />
     <Folder Include="decorators\metadata\" />
+    <Folder Include="decorators\interfaces\" />
     <Folder Include="models" />
     <Folder Include="dynamic\" />
-    <Folder Include="repositories1\" />
+    <Folder Include="datatypes\" />
+    <Folder Include="constants\" />
+    <Folder Include="enums\" />
+    <Folder Include="utils\" />
     <Folder Include="repositories\" />
     <Folder Include="schema" />
     <Folder Include="services" />

@@ -10,7 +10,6 @@ import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 var Mongoose = require("mongoose");
 var schema = Mongoose.Schema;
 var Config = require('../config');
-//Mongoose.connect(Config.DbConnection);
 
 //import linq = require('../typings/linq/linq');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -18,18 +17,18 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export default class Dynamic {
     constructor() {
-        var files = fs.readdirSync('repositories1');
+        var files = fs.readdirSync('repositories');
         var aa = [];
         files.filter((value) => value.match(/[a-zA-Z0-9.]*ts$/))
             .forEach((file: string, index: number, array) => {
-                var route = path.resolve(process.cwd(), 'repositories1\\' + file.substring(0, file.lastIndexOf('.')));
+                var route = path.resolve(process.cwd(), 'repositories\\' + file.substring(0, file.lastIndexOf('.')));
                 var zz = require(route);
                 //var r = new zz.default();
                 //this.initRepo(zz.default.path, null);
                 console.log(file);
                 aa.push(zz.default);
             });
-        aa.forEach((value, index) => new Initalize(aa));
+        new Initalize(aa);
     }
 }
 

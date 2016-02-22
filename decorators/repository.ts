@@ -7,6 +7,7 @@ export function repository(path: string, model: Function) {
         target.prototype.path = path;
         target.prototype.model = model;
         //new dynamic.InitRepo(path, repository);
-        console.log('Target: ', target);        
+        console.log('Target: ', target);   
+             
     };
 }

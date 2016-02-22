@@ -6,11 +6,16 @@ import Mongoose = require('mongoose');
 var MongooseSchema = Mongoose.Schema;
 import aa = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-    
+import * as Types from '../datatypes/mongoose';
+import {Strict} from '../enums/document-strict';
+import {Decorators} from '../constants/decorators';
+
+import {DecoratorType} from '../enums/decorator-type';
 import * as Utils from "../decorators/metadata/utils";
+import {MetaData} from '../decorators/metadata/metadata';
+import {IDocumentParams} from '../decorators/interfaces/document-params';
 
 export class DynamicSchema {
-    
     parsedSchema: any;
     schemaName: string;
     private target: Object;
@@ -42,38 +47,71 @@ export class DynamicSchema {
                 continue;
             }
             var paramType = fieldMetadata.propertyType;
-            if (fieldMetadata.decoratorType !== Utils.DecoratorType.PROPERTY) {
+            if (fieldMetadata.decoratorType !== DecoratorType.PROPERTY) {
                 continue;
             }
-            if (paramType.rel) {
-                var relSchema = { ref: paramType.rel, metaData: fieldMetadata };
-                schema[field] = relSchema;
-                continue;
-            }
-            if (paramType.isArray) {
-                schema[field] = paramType.itemType ? [paramType.itemType] : [];
-                continue;
-            }
-            schema[field] = paramType.itemType ? paramType.itemType : {};
+            schema[field] = this.getSchemaTypeForParam(paramType);
         }
         return schema;
     }
 
+    private getSchemaTypeForParam(paramType) {
+        var schemaType = this.getSchemaTypeForType(paramType.itemType);
+        if (paramType.rel) {
+            //var metaData = Utils.getPrimaryKeyMetadata(paramType.itemType);
+            //var relSchema;
+            //if ((<any>fieldMetadata.params).embedded) {
+            //    schema[field] = paramType.isArray ? [Types.Mixed] : Mongoose.Schema.Types.Mixed;
+            //} else {
+            //    relSchema = { ref: paramType.rel, type: Mongoose.Schema.Types.ObjectId };
+            //    schema[field] = paramType.isArray ? [relSchema] : relSchema;
+            //}
+
+            // need to handle embedding vs foreign key refs
+            return paramType.isArray ? [schemaType] : schemaType;
+        }
+        return paramType.isArray ? [schemaType] : schemaType;
+    }
+
+    private getSchemaTypeForType(type?) {
+        switch (type) {
+            case Mongoose.Types.ObjectId: return Mongoose.Schema.Types.ObjectId;
+            case String: return String;
+            case Number: return Number;
+            case Buffer: return Buffer;
+            case Date: return Date;
+            case Boolean: return Boolean;
+            case Array: return Array;
+            // any or no types
+            case Object:
+            default: return Mongoose.Schema.Types.Mixed;
+        }
+        return type;
+    }
+
     private getMongooseOptions(target: Object): any {
-        var documentMeta = Utils.getMetaData(<any>target, "document", null);
-        return (<any>documentMeta.params).isStrict === false ? { strict: false } : { strict: true };
+        var documentMeta = Utils.getMetaData(<any>target, Decorators.DOCUMENT, null);
+        var options = <any>{};
+        var params = <IDocumentParams>(documentMeta.params || <any>{});
+        switch (params.strict) {
+            case Strict.true: options.strict = true; break;
+            case Strict.false: options.strict = false; break;
+            case Strict.throw: options.strict = "throw"; break;
+            default: options.strict = true; break;
+        }
+        return options;
     }
 
     private isSchemaDecorator(decorator: string) {
-        return decorator === "field" || decorator === "onetomany" || decorator === "manytoone" || decorator === "manytomany";
+        return decorator === Decorators.FIELD || decorator === Decorators.ONETOMANY || decorator === Decorators.MANYTOONE || decorator === Decorators.MANYTOMANY;
     }
 
-    private getAllMetadataForSchema(target: Object): { [key: string]: Utils.MetaData } {
+    private getAllMetadataForSchema(target: Object): { [key: string]: MetaData } {
         var metaDataMap = Utils.getAllMetaDataForAllDecorator(<any>target);
-        var metaDataMapFiltered: {[key: string]: Utils.MetaData} = <any>{};
+        var metaDataMapFiltered: {[key: string]: MetaData} = <any>{};
         for (var field in metaDataMap) {
             var schemaDecorators = Enumerable.from(metaDataMap[field])
-                .where((x: Utils.MetaData) => this.isSchemaDecorator(x.decorator))
+                .where((x: MetaData) => this.isSchemaDecorator(x.decorator))
                 .toArray();
             if (!schemaDecorators || !schemaDecorators.length) {
                 continue;
