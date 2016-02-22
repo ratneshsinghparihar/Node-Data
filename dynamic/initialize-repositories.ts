@@ -83,50 +83,50 @@ export class InitializeRepositories {
     //    }
     //}
 
-    private appendReltaion(node: { [key: string]: any }, visited: [string], depth: number, level: number, models: { [key: string]: DynamicSchema }, rootNode: boolean): {} {
-        if (depth === level) {
-            return;
-        }
-        var schem = {};
-        for (var key in node) {
-            if (node[key].ref) {
-                var metaData = <MetaData>node[key].metaData;
-                var param = metaData.propertyType;
-                var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
-                var primaryKeyType = Utils.getMetaDataForField(metaData.target, primaryKey).propertyType.itemType;
-                primaryKeyType = primaryKeyType ? primaryKeyType : String; // If undefined then use string
-                var isEmbedded = false;
+    //private appendReltaion(node: { [key: string]: any }, visited: [string], depth: number, level: number, models: { [key: string]: DynamicSchema }, rootNode: boolean): {} {
+    //    if (depth === level) {
+    //        return;
+    //    }
+    //    var schem = {};
+    //    for (var key in node) {
+    //        if (node[key].ref) {
+    //            var metaData = <MetaData>node[key].metaData;
+    //            var param = metaData.propertyType;
+    //            var primaryKey = Utils.getPrimaryKeyOfModel(param.itemType);
+    //            var primaryKeyType = Utils.getMetaDataForField(metaData.target, primaryKey).propertyType.itemType;
+    //            primaryKeyType = primaryKeyType ? primaryKeyType : String; // If undefined then use string
+    //            var isEmbedded = false;
 
-                // update schema with primary key if same object is encountered
-                if (visited.indexOf(param.rel) > -1) {
-                    schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
-                }
-                else {
-                    if (!param.embedded) {
-                        schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
-                    }
-                    else {
-                        isEmbedded = true;
-                        visited.push(param.rel);
-                        var ret = {};
-                        if (rootNode) {
-                            ret = this.appendReltaion(models[param.rel].parsedSchema, visited, param.level, 0, models, false);
-                        }
-                        else {
-                            ret = this.appendReltaion(models[param.rel].parsedSchema, visited, depth, level + 1, models, false);
-                        }
+    //            // update schema with primary key if same object is encountered
+    //            if (visited.indexOf(param.rel) > -1) {
+    //                schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
+    //            }
+    //            else {
+    //                if (!param.embedded) {
+    //                    schem[key] = param.isArray ? [primaryKeyType] : primaryKeyType;
+    //                }
+    //                else {
+    //                    isEmbedded = true;
+    //                    visited.push(param.rel);
+    //                    var ret = {};
+    //                    if (rootNode) {
+    //                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, param.level, 0, models, false);
+    //                    }
+    //                    else {
+    //                        ret = this.appendReltaion(models[param.rel].parsedSchema, visited, depth, level + 1, models, false);
+    //                    }
 
-                        // check if array
-                        schem[key] = param.isArray ? [ret] : ret;
-                        var name = visited.pop();
-                    }
-                }
-                //Utils.updateModelLinks(metaData, isEmbedded);
-            }
-            else {
-                schem[key] = node[key];
-            }
-        }
-        return schem;
-    }
+    //                    // check if array
+    //                    schem[key] = param.isArray ? [ret] : ret;
+    //                    var name = visited.pop();
+    //                }
+    //            }
+    //            //Utils.updateModelLinks(metaData, isEmbedded);
+    //        }
+    //        else {
+    //            schem[key] = node[key];
+    //        }
+    //    }
+    //    return schem;
+    //}
 }

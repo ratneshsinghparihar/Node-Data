@@ -15,9 +15,7 @@ export function onetomany(params: { biDirectional?: boolean, rel: string, itemTy
         // property getter
         var getter = function () {
             console.log(`Get: ${key} => ${_val}`);
-            //var Reflect = require('reflect-metadata/Reflect');
-            var metaData: MetaData = Utils.getMetaDataForField(target, key);
-            var propTypeName = metaData.propertyType.rel;
+            var propTypeName = params.rel;
             var selfLink = {};
             if ((<ModelBase>_val)._id) {
                 selfLink["href"] = "/" + propTypeName + "/" + (<ModelBase>_val)._id;

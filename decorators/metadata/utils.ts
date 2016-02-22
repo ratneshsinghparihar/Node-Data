@@ -38,7 +38,7 @@ export function addMetaData(target: Object, decorator: string, decoratorType: De
 
     metadataRoot.models = metadataRoot.models || <any>{};
 
-    var name = this.getModelNameFromObject(target);
+    var name = getModelNameFromObject(target);
     metadataRoot.models[name] = metadataRoot.models[name] || <any>{};
     metadataRoot.models[name].decorator = metadataRoot.models[name].decorator || <any>{};
     metadataRoot.models[name].decorator[decorator] = metadataRoot.models[name].decorator[decorator] || <any>{};
@@ -54,7 +54,7 @@ export function addMetaData(target: Object, decorator: string, decoratorType: De
  * gets the metadata for the given target, decorator and property key
  * @param target
  * @param decorator
- * @param propertyKey
+ * @param propertyKey Optional (If null returns class level MetaData for decorator)
  */
 export function getMetaData(target: Object, decorator: string, propertyKey?: string): MetaData {
     if (!target || !decorator) {
@@ -62,31 +62,12 @@ export function getMetaData(target: Object, decorator: string, propertyKey?: str
     }
 
     propertyKey = propertyKey || '__';
-    var name = this.getModelNameFromObject(target);
-    if (metadataRoot.models[name]) {
-        if (metadataRoot.models[name].decorator[decorator]) {
-            return metadataRoot.models[name].decorator[decorator][propertyKey];
-        }
-    }
-    return null;
-}
-
-// Remove this, use getAllMetaDataForField instead
-export function getMetaDataForField(target: Object, propertyKey?: string): MetaData {
-    if (!target) {
-        throw TypeError;
-    }
-
-    propertyKey = propertyKey || '__';
     var name = getModelNameFromObject(target);
-    if (metadataRoot.models[name]) {
-        for (var dec in metadataRoot.models[name].decorator) {
-            for (var field in metadataRoot.models[name].decorator[dec]) {
-                if (field == propertyKey) {
-                    return metadataRoot.models[name].decorator[dec][field];
-                }
-            }
-        }
+    if (!metadataRoot.models[name]) {
+        return null;
+    }
+    if (metadataRoot.models[name].decorator[decorator]) {
+        return metadataRoot.models[name].decorator[decorator][propertyKey];
     }
     return null;
 }
@@ -102,7 +83,7 @@ export function getAllMetaDataForDecorator(target: Object, decorator: string): {
         throw TypeError;
     }
 
-    var name = this.getModelNameFromObject(target);
+    var name = getModelNameFromObject(target);
 
     if (metadataRoot.models[name]) {
         return metadataRoot.models[name].decorator[decorator];
@@ -120,18 +101,16 @@ export function getPrimaryKeyMetadata(target: Object): MetaData {
         throw TypeError;
     }
 
-    var name = this.getModelNameFromObject(target);
+    var name = getModelNameFromObject(target);
 
     if (!metadataRoot.models[name]) {
         return null;
     }
-    var allFields = metadataRoot.models[name].decorator[Decorators.FIELD];
-    for (var field in allFields) {
-        if ((<any>allFields[field].params).primary) {
-            return allFields[field];
-        }
-    }
-    return null;
+
+    return Enumerable.from(metadataRoot.models[name].decorator[Decorators.FIELD])
+        .where(keyval => keyval.value.params.primary) // keyval = {[key(propName): string]: Metadata};
+        .select(keyVal => keyVal.value)
+        .firstOrDefault(null, null);
 }
 
 /**
@@ -146,19 +125,16 @@ export function getAllMetaDataForField(target: Object, propertyKey?: string): Ar
     }
 
     propertyKey = propertyKey || '__';
-    var name = this.getModelNameFromObject(target);
+    var name = getModelNameFromObject(target);
     if (!metadataRoot.models[name]) {
         return null;
     }
-    var metadataArr: Array<MetaData> = [];
-    for (var dec in metadataRoot.models[name].decorator) {
-        for (var field in metadataRoot.models[name].decorator[dec]) {
-            if (field == propertyKey) {
-                metadataArr.push(metadataRoot.models[name].decorator[dec][field]);
-            }
-        }
-    }
-    return metadataArr;
+
+    return Enumerable.from(metadataRoot.models[name].decorator)
+        .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
+        .where(keyVal =>keyVal.key === propertyKey) // keyval = {[key(propName): string]: Metadata};
+        .select(keyVal => keyVal.value) // keyval = {[key(propName): string]: Metadata};
+        .toArray(); 
 }
 
 /**
@@ -171,38 +147,22 @@ export function getAllMetaDataForAllDecorator(target: Object): { [key: string]: 
     }
 
     var meta: { [key: string]: Array<MetaData> } = <any>{};
-    var name = this.getModelNameFromObject(target);
+    var name = getModelNameFromObject(target);
 
-    if (metadataRoot.models[name]) {
-        for (var dec in metadataRoot.models[name].decorator) {
-            for (var field in metadataRoot.models[name].decorator[dec]) {
-                var metaData: MetaData = metadataRoot.models[name].decorator[dec][field];
-                meta[field] ? meta[field].push(metaData) : meta[field] = [metaData];
-            }
-        }
+    var aa = metadataRoot.models;
+    if (!metadataRoot.models[name]) {
+        return null;
     }
+
+    Enumerable.from(metadataRoot.models[name].decorator)
+        .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
+        .forEach(keyVal => {
+            // keyval = {[key(propName): string]: Metadata};
+            var metaData: MetaData = keyVal.value;
+            meta[keyVal.key] ? meta[keyVal.key].push(metaData) : meta[keyVal.key] = [metaData];
+        });
 
     return meta;
-}
-
-/**
- * get primary key name of the given target
- * @param target
- */
-export function getPrimaryKeyOfModel(target: Object): string {
-    var modelName = this.getModelNameFromObject(target);
-
-    if (metadataRoot.models[modelName]) {
-        for (var dec in metadataRoot.models[modelName].decorator) {
-            for (var key in metadataRoot.models[modelName].decorator[dec]) {
-                var meta: MetaData = metadataRoot.models[modelName].decorator[dec][key];
-                if ((<any>meta.params).primary) {
-                    return key;
-                }
-            }
-        }
-    }
-    return null;
 }
 
 /**
@@ -223,33 +183,35 @@ export function getModelNameFromObject(obj: any): string {
 }
 
 /**
- * get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
+ * Get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
  * @param target
+ *
  */
 export function getAllRelationsForTarget(target: Object): Array<MetaData> {
     if (!target) {
         throw TypeError;
     }
     //global.models.CourseModel.decorator.manytomany.students
-    var meta = getMetaDataForField(target);
-    var relName = (<IDocumentParams>meta.params).name;
-    //var name = this.getModelNameFromObject(target);
+    var meta = getMetaData(target, Decorators.DOCUMENT);
+    var params = <IDocumentParams>meta.params;
+    if (!meta || !params || !params.name) {
+        return null;
+    }
 
     return Enumerable.from(metadataRoot.models)
-        .selectMany((keyVal: any) => {
-            return keyVal.value.decorator;
-        }) //{ key: string(modelName), value: DecoratorMetaData }
-        .where((keyVal: any) => {
-            return Utils.isRelationDecorator(keyVal.key)
-        }) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
-        .selectMany(keyVal => {
-            return keyVal.value;
-        })//{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
-        .where(keyVal => {
-            return (<IAssociationParams>(<MetaData>keyVal.value).params).rel === relName;
-        }) // {key: string(fieldName), value: MetaData}
-        .select(keyVal => {
-            return keyVal.value;
-        }) // {key: string(fieldName), value: MetaData}
+        .selectMany((keyVal: any) => keyVal.value.decorator) //{ key: string(modelName), value: DecoratorMetaData }
+        .where((keyVal: any) => Utils.isRelationDecorator(keyVal.key)) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .where(keyVal => (<IAssociationParams>(<MetaData>keyVal.value).params).rel === params.name) // {key: string(fieldName), value: MetaData}
+        .select(keyVal => keyVal.value) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
+
+//export function test(target: any) {
+//    var aa = getMetaData(target, 'field', '_id');
+//    var bb = getAllMetaDataForField(target, '_id');
+//    var cc = getAllMetaDataForDecorator(target, 'field');
+//    var dd = getPrimaryKeyMetadata(target);
+//    var ee = getAllMetaDataForAllDecorator(target);
+//    var gg = getAllRelationsForTarget(target);
+//}

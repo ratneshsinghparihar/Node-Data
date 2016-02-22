@@ -91,7 +91,7 @@ export class DynamicRepository {
     }
 
     /**
-     * find all the items in a collection
+     * Returns all the items in a collection
      */
     public findAll(): Q.Promise<any> {
         return Q.nbind(this.model.find, this.model)({})
@@ -267,7 +267,7 @@ export class DynamicRepository {
     }
 
     private updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, entityChange: EntityChange): Q.Promise<any> {
-        var targetModelMeta = MetaUtils.getMetaDataForField(targetModel);
+        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.REPOSITORY);
         if (!targetModelMeta) {
             throw 'Could not fetch metadata for target object';
         }
