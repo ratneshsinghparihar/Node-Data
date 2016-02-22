@@ -8,4 +8,4 @@ obj/**/*.*
 **/*.js
 *.suo
 *.htm
-**/*.orig
+*.orig

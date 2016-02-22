@@ -27,7 +27,7 @@ export class UserModel {
     password: string;
 
     @field()
-    age: string;
+    age: number;
 
     @onetomany({ biDirectional: false, rel: 'roles', itemType: RM, embedded: false })
     roles: Array<RM.RoleModel>;

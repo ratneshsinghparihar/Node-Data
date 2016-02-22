@@ -3,7 +3,7 @@ var tsc = require("gulp-typescript");
 var sourcemaps = require("gulp-sourcemaps");
 var nodemon = require('gulp-nodemon');
 var livereload = require('gulp-livereload');
-// var nodeDebug = require("gulp-node-debug");
+var nodeDebug = require("gulp-node-debug");
 
 var tsProject = tsc.createProject('tsconfig.json', { sortOutput: true });
 
@@ -43,13 +43,13 @@ gulp.task('compile-ts', function() {
                         .pipe(gulp.dest("./"));
 });
 
-// gulp.task('debug', ['compile-ts'], function () {
-//   gulp
-//     .src( ["server.js"])
-//     .pipe(nodeDebug(
-//       { debugBrk : true}
-//     ));
-// });
+gulp.task('debug', ['compile-ts'], function () {
+  gulp
+    .src( ["server.js"])
+    .pipe(nodeDebug(
+      { debugBrk : true}
+    ));
+});
 
 gulp.task('live-reload', function() {
     gulp.src(["**/*.js", "!node_modules/**/*.*"])

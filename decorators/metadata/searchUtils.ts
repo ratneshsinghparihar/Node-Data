@@ -6,17 +6,6 @@ export interface ISearchPropertyMap{
 }
 
 export function GetAllFindBySearchFromPrototype(targetProtoType: any) : Array<ISearchPropertyMap>{
-// Check if the model has any fields
-//   if( 
-//         targetProtoType.model 
-//   &&    targetProtoType.model.prototype 
-//   &&    targetProtoType.model.prototype.decorators 
-//   &&    targetProtoType.model.prototype.decorators.field ){
-//       console.log("There are fields");
-//   }
-//   else{
-//       return;
-//   }
   // get all model fields
   var properties : string[]= Object.getOwnPropertyNames(targetProtoType);
   // Get all the properties starting with findBy
@@ -25,12 +14,13 @@ export function GetAllFindBySearchFromPrototype(targetProtoType: any) : Array<IS
   var searchProperties : Array<string> = Enumerable.from(properties).where(p=>{
     return queryRegEx.test(p);
   }).toArray();
-  console.log(targetProtoType);
   
-  // Do all this exercise only if there is anything to search over.
-//   if(searchProperties.length === 0 ){
-//       return;
-//   }
+  var namePropMap : Array<ISearchPropertyMap> = [];
+  
+  //Do all this exercise only if there is anything to search over.
+  if(searchProperties.length === 0 ){
+      return namePropMap;
+  }
 
 //   var fieldProperties = Object.getOwnPropertyNames(targetProtoType.model.prototype.decorators.field);
 //   var fieldPropIter = Enumerable.from(fieldProperties);
@@ -38,7 +28,7 @@ export function GetAllFindBySearchFromPrototype(targetProtoType: any) : Array<IS
 //       return fieldPropIter.contains(p);
 //   });
 
-    var namePropMap : Array<ISearchPropertyMap> = [];
+    
 
     Enumerable.from(searchProperties).forEach(p=>{
       var trimmed :string = p.substr(findBy.length, p.length);
