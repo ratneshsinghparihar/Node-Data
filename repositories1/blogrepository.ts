@@ -5,7 +5,7 @@ import base from "../dynamic/baserepository";
 import * as decorator from "../decorators/repository";
 import {BlogModel} from '../models/blogmodel';
 
-@decorator.repository('/blog', BlogModel)
+@decorator.repository('blog', BlogModel)
 export default class RoleRepository {
 
     constructor() {

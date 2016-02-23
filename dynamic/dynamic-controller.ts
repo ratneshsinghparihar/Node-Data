@@ -1,6 +1,5 @@
 ﻿/// <reference path="../typings/node/node.d.ts" />
-
-//var Config1 = require('../repos');
+import * as Config from '../config';
 var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
@@ -10,8 +9,10 @@ import * as Utils from "../decorators/metadata/utils";
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {SecurityConfig} from '../security-config';
 
+var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+
 if (!Config.Security.isAutheticationEnabled) {
-    ensureLoggedIn = function () {
+     ensureLoggedIn = function () {
         return function (req, res, next) {
             next();
         }
@@ -44,15 +45,7 @@ export class DynamicController {
                         this.sendresult(req, res, result);
 
                     });
-            });
-            
-            return this.repository.findAll()
-                .then((result) => {
-                    result=this.getHalModels(result,this.repository.modelName());
-                    this.sendresult(req, res, result);
-                    
-                });
-        });
+            });                 
         
         router.get(this.path + '/:id',
         ensureLoggedIn(),
@@ -196,14 +189,14 @@ export class DynamicController {
     
      
     private getHalModel1(model:any,resourceName:string,resourceType:any):any{
-        var dbModel=model._doc;
+        var dbModel=model;
         var entityModel:any =new resourceType(dbModel);
         var selfUrl={};
-        selfUrl["href"]="/"+resourceName+"/"+model._doc._id;
+        selfUrl["href"]="/"+resourceName+"/"+model._id;
         //var selfObjec={};
         // selfObjec["self"]=selfUrl;      
         entityModel["_links"]["self"]=selfUrl;
-        model._doc=entityModel;
+        model=entityModel;
         return model;
     }    
     
@@ -226,12 +219,12 @@ export class DynamicController {
     
     private isAuthorize(req:any, access: number):boolean
     {
-        if(!Config.isAutheticationEnabled)
+        if(!Config.Security.isAutheticationEnabled)
         return true; 
         var isAutherize:boolean=false;
         //check for autherization
-             //1. get resource name
-             var resourceName=Utils.getResourceNameFromModelname(this.repository.getEntityType().name)
+             //1. get resource name         
+             var resourceName=Utils.getResourceNameFromModel(this.repository.getEntityType())
              //2. get auth config from security config
              var authCofig=Enumerable.from(SecurityConfig.ResourceAccess)
                                      .where((resourceAccess:any) => {return resourceAccess.name==resourceName ;}  )

@@ -24,7 +24,7 @@ export class AuthController {
         this.addRoutes();
         
         
-        if(Config.isAutheticationByToken)
+        if(Config.Security.isAutheticationByToken)
         {
                 var JwtStrategy = require('passport-jwt').Strategy,
                 ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -49,23 +49,25 @@ export class AuthController {
         }
         
         
-        if(Config.isAutheticationByUserPasswd){
+        if(Config.Security.isAutheticationByUserPasswd){
         passport.use(new LocalStrategy(
                 function(username, password, done) {
-                        userrepository.findByName(username).then(
+                        userrepository.findByField("name",username).then(
                         (user) => {
                             
                             if (!user) {
                         return done(null, false, { message: 'Incorrect username.' });
                     }
-                    if (user._doc.password!=password) {
+                    if (user.password!=password) {
                         return done(null, false, { message: 'Incorrect password.' });
                     }
                         
                     return done(null, user);
                             
                         },
-                        (error) => {return done(error);});
+                        (error) => {
+                            return done(error);
+                        });
                     
                     }
                 
@@ -73,7 +75,7 @@ export class AuthController {
         
 
         passport.serializeUser(function(user, cb) {
-        cb(null, user.id);
+        cb(null, user._id);
         });
 
 

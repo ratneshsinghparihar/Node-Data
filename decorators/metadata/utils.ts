@@ -210,40 +210,13 @@ export function getAllRelationsForTarget(target: Object): Array<MetaData> {
 //@document({ name: 'blogs', isStrict: false })
 //export class BlogModel
 //this will return 'blogs' 
-export function getResourceNameFromModel(object: Object): string {
-    var propertyKey = '__';
-    var name = this.getModelNameFromObject(object);
-    var gl: GlobalExtended = <any>global;
-    if (gl.models[name]) {
-        for (var dec in gl.models[name].decorator) {
-            for (var field in gl.models[name].decorator[dec].fields) {
-                if (field == propertyKey) {
-                    return gl.models[name].decorator[dec].fields[field].params["name"];
-                }
-            }
-        }
+export function getResourceNameFromModel(object: Object): string {   
+    var meta = getMetaData(object, Decorators.DOCUMENT) 
+    
+    if(!meta || !meta.params){
+        return null;
     }
-    return null;
-}
-
-//@document({ name: 'blogs', isStrict: false })
-//export class BlogModel
-//this will return 'blogs' 
-//if calling from repo w/o object you will atleast know the name of resource
-export function getResourceNameFromModelname(ModelName: string): string {
-    var propertyKey = '__';
-    var name = ModelName;
-    var gl: GlobalExtended = <any>global;
-    if (gl.models[name]) {
-        for (var dec in gl.models[name].decorator) {
-            for (var field in gl.models[name].decorator[dec].fields) {
-                if (field == propertyKey) {
-                    return gl.models[name].decorator[dec].fields[field].params["name"];
-                }
-            }
-        }
-    }
-    return null;
+    return (<IDocumentParams>meta.params).name;
 }
 
 //@document({ name: 'blogs', isStrict: false })
@@ -251,15 +224,10 @@ export function getResourceNameFromModelname(ModelName: string): string {
 //this will return 'blogs' 
 //if calling from repo w/o object you will atleast know the name of all resources
 export function getAllResourceNames(): Array<string> {
-    var allResourceNames: Array<string> =new Array<string>();
-    var propertyKey = '__';
-    var gl: GlobalExtended = <any>global;
-    for (var model in gl.models) {
-        for (var dec in model.decorator) {
-            for (var field in dec.fields) {
-                allResourceNames.push(field.params["name"]);
-            }
-        }
-    }
-    return allResourceNames;
+     return Enumerable.from(metadataRoot.models)
+        .selectMany((keyVal: any) => keyVal.value.decorator) //{ key: string(modelName), value: DecoratorMetaData }
+        .where((keyVal: any) => keyVal.key === Decorators.DOCUMENT) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .select(keyVal => (<IDocumentParams>(<MetaData>keyVal.value).params).name) // {key: string(fieldName), value: MetaData}
+        .toArray();
 }
