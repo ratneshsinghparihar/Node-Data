@@ -267,7 +267,7 @@ export class DynamicRepository {
     }
 
     private updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, entityChange: EntityChange): Q.Promise<any> {
-        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.REPOSITORY);
+        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
         if (!targetModelMeta) {
             throw 'Could not fetch metadata for target object';
         }
