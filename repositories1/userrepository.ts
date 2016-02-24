@@ -1,5 +1,4 @@
 
-import * as Express from "express";
 var Dynamic = require('../dynamic/dynamic')
 var BaseRepository = require('./baserepository')
 import base from "../dynamic/baserepository";

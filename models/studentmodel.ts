@@ -5,7 +5,7 @@ import * as CourseModel from './coursemodel';
 import {onetomany, manytoone, manytomany} from '../decorators/association';
 import {document} from '../decorators/document';
 import {field} from '../decorators/field';
-import {IUser} from './user.ts';
+import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../enums/document-strict';
 
