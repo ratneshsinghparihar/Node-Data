@@ -9,10 +9,10 @@ var express = require("express");
 var router = express.Router();
 
 import Q = require('q');
-import * as Config from '../config';
+import {Config} from '../config';
 
 import Mongoose = require("mongoose");
-Mongoose.connect(Config.Data.DbConnection);
+Mongoose.connect(Config.DbConnection);
 var MongooseSchema = Mongoose.Schema;
 
 import * as MetaUtils from "../decorators/metadata/utils";
@@ -63,6 +63,8 @@ export class DynamicRepository {
     public getModel() {
         return this.model;
     }
+    
+    
 
     public addRel() {
         //var user1 = new this.model({"_id": Math.random() + new Date().toString() + this.path + "1", 'name': 'u1' });
@@ -117,6 +119,10 @@ export class DynamicRepository {
         return Q.nbind(this.model.findOne, this.model)(param)
             .then(result => {
                 return this.toObject(result);
+            },
+            err => {
+                console.error(err);
+                return Q.reject(err);
             });
     }
 

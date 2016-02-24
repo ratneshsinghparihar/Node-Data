@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "faa49cc68025118355b677b936892435b9be7247"
+      "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
     },
     "serve-static/serve-static.d.ts": {
       "commit": "627b6c158b73494c803f36fc2fe00ad75faa8fde"
@@ -25,6 +25,12 @@
     },
     "linq/linq.3.0.3-Beta4.d.ts": {
       "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
+    },
+    "request/request.d.ts": {
+      "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
+    },
+    "form-data/form-data.d.ts": {
+      "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
     }
   }
 }

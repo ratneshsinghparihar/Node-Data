@@ -1,4 +1,4 @@
-import {ModelBase} from '../models/modelBase.ts';
+import {ModelBase} from '../models/modelBase';
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 

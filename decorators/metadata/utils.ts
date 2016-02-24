@@ -207,11 +207,27 @@ export function getAllRelationsForTarget(target: Object): Array<MetaData> {
         .toArray();
 }
 
-//export function test(target: any) {
-//    var aa = getMetaData(target, 'field', '_id');
-//    var bb = getAllMetaDataForField(target, '_id');
-//    var cc = getAllMetaDataForDecorator(target, 'field');
-//    var dd = getPrimaryKeyMetadata(target);
-//    var ee = getAllMetaDataForAllDecorator(target);
-//    var gg = getAllRelationsForTarget(target);
-//}
+//@document({ name: 'blogs', isStrict: false })
+//export class BlogModel
+//this will return 'blogs' 
+export function getResourceNameFromModel(object: Object): string {   
+    var meta = getMetaData(object, Decorators.DOCUMENT) 
+    
+    if(!meta || !meta.params){
+        return null;
+    }
+    return (<IDocumentParams>meta.params).name;
+}
+
+//@document({ name: 'blogs', isStrict: false })
+//export class BlogModel
+//this will return 'blogs' 
+//if calling from repo w/o object you will atleast know the name of all resources
+export function getAllResourceNames(): Array<string> {
+     return Enumerable.from(metadataRoot.models)
+        .selectMany((keyVal: any) => keyVal.value.decorator) //{ key: string(modelName), value: DecoratorMetaData }
+        .where((keyVal: any) => keyVal.key === Decorators.DOCUMENT) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .select(keyVal => (<IDocumentParams>(<MetaData>keyVal.value).params).name) // {key: string(fieldName), value: MetaData}
+        .toArray();
+}
