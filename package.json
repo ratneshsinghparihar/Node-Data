@@ -18,6 +18,7 @@
     "ejs": "^2.3.3",
     "express": "^4.13.3",
     "express-session": "^1.13.0",
+    "express-jwt": "^3.3.0",
     "gulp": "^3.9.0",
     "gulp-livereload": "^3.8.1",
     "gulp-nodemon": "^2.0.6",
