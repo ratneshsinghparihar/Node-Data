@@ -253,7 +253,7 @@ export class DynamicController {
     }
 
     private isAuthorize(req: any, access: number): boolean {
-        if (!Config.Security.isAutheticationEnabled)
+        if (!Config.Security.isAuthorizationEnabled)
             return true;
         var isAutherize: boolean = false;
         //check for autherization
