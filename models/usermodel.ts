@@ -24,6 +24,12 @@ export class UserModel {
     email: string;
 
     @field()
+    accessToken: string;
+
+    @field()
+    refreshToken: string;
+
+    @field()
     password: string;
 
     @field()

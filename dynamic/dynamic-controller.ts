@@ -4,16 +4,34 @@ var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
+var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {SecurityConfig} from '../security-config';
 
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+var loggedIn = require('connect-ensure-login').ensureLoggedIn;
+var expressJwt = require('express-jwt');
+var authenticateByToken = expressJwt({
+    secret: SecurityConfig.tokenSecretkey
+});
+
+var ensureLoggedIn = () => {
+
+    //by token
+    if (Config.Security.isAutheticationByToken) {
+        return authenticateByToken;
+    }
+
+    //by password
+    if (Config.Security.isAutheticationByUserPasswd) {
+        return loggedIn();
+    }
+}
 
 if (!Config.Security.isAutheticationEnabled) {
-    ensureLoggedIn = function() {
+    ensureLoggedIn = () => {
         return function(req, res, next) {
             next();
         }
@@ -56,6 +74,7 @@ export class DynamicController {
                     return res.send(401, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
+                        this.getHalModel1(result, this.repository.modelName(), this.repository.getEntityType());
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result,resourceName , this.repository.getEntityType());
                         this.sendresult(req, res, result);
@@ -153,7 +172,7 @@ export class DynamicController {
             this.addRoutesForAllSearch(map);
             links[map.key] = { "href": "/" + map.key, "params": map.args };
         });
-        router.get(this.path + "/search", function(req, res) {
+        router.get(this.path + "/search", function (req, res) {
             res.set("Content-Type", "application/json");
             res.send(JSON.stringify(links, null, 4));
         });
@@ -174,7 +193,7 @@ export class DynamicController {
 
     private getHalModel(model: any, resourceName: string): any {
         var selfUrl = {};
-        selfUrl["href"] =  resourceName + "/" + model._id;
+        selfUrl["href"] = "/" + resourceName + "/" + model._id;
         var selfObjec = {};
         selfObjec["self"] = selfUrl;
         model["_links"] = selfObjec;
@@ -190,7 +209,7 @@ export class DynamicController {
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
          var selfUrl = {};
-        selfUrl["href"] =  resourceName + "/" + model._id;
+        selfUrl["href"] = "/" + resourceName + "/" + model._id;
         model["_links"]={};
         model["_links"]["self"]=selfUrl;
         

@@ -6,6 +6,7 @@ var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 import {SecurityConfig} from '../security-config';
 import * as Config from '../config';
+var crypto = require('crypto');
 import * as Utils from "../decorators/metadata/utils";
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 var Reflect = require('reflect-metadata');
@@ -25,32 +26,34 @@ export class AuthController {
 
 
         if (Config.Security.isAutheticationByToken) {
-            var JwtStrategy = require('passport-jwt').Strategy,
-                ExtractJwt = require('passport-jwt').ExtractJwt;
-            var opts = {}
-            opts["jwtFromRequest"] = ExtractJwt.fromAuthHeader();
-            opts["secretOrKey"] = SecurityConfig.secretkey;
-            opts["issuer"] = SecurityConfig.issuer;
-            opts["audience"] = SecurityConfig.audience;
-            passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-                this.userrepository.findOne({ id: jwt_payload.sub }, function(err, user) {
-                    if (err) {
-                        return done(err, false);
-                    }
-                    if (user) {
-                        done(null, user);
-                    } else {
-                        done(null, false);
-                        // or you could create a new account
-                    }
-                });
-            }));
+            passport.use(new LocalStrategy(
+                (username, password, done) => {
+                    userrepository.findByField("name", username).then(
+                        (user) => {
+
+                            if (!user) {
+                                return done(null, false, { message: 'Incorrect username.' });
+                            }
+                            if (user.password != password) {
+                                return done(null, false, { message: 'Incorrect password.' });
+                            }
+
+                            return done(null, user);
+
+                        },
+                        (error) => {
+                            return done(error);
+                        });
+
+                }
+
+            ));
         }
 
 
         if (Config.Security.isAutheticationByUserPasswd) {
             passport.use(new LocalStrategy(
-                function(username, password, done) {
+                (username, password, done) => {
                     userrepository.findByField("name", username).then(
                         (user) => {
 
@@ -73,12 +76,12 @@ export class AuthController {
             ));
 
 
-            passport.serializeUser(function(user, cb) {
+            passport.serializeUser((user, cb) => {
                 cb(null, user._id);
             });
 
 
-            passport.deserializeUser(function(id, cb) {
+            passport.deserializeUser((id, cb) => {
                 userrepository.findOne(id).
                     then(
                     (user) => {
@@ -100,14 +103,13 @@ export class AuthController {
     }
 
     addRoutes() {
-
-        router.get('/', function(req, res) {
+        router.get('/', (req, res) => {
             // Display the Login page with any flash message, if any
             res.render('home', { message: req.flash('welcome') });
         });
 
-        router.get('/'+Config.Config.basePath ,
-            require('connect-ensure-login').ensureLoggedIn(), function(req, res) {
+        router.get('/data',
+            require('connect-ensure-login').ensureLoggedIn(), (req, res) => {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
@@ -126,20 +128,91 @@ export class AuthController {
         )
 
         router.get('/login',
-            function(req, res) {
+            (req, res) => {
                 res.render('login');
             });
 
-        router.post('/login',
+        if (Config.Security.isAutheticationByToken) {
+            router.post('/login',
+                passport.authenticate("local",
+                    {
+                        session: false
+                    }), (req, res, next) => this.serialize(req, res, next),
+                (req, res, next) => this.generateToken(req, res, next),
+                (req, res, next) => this.generateRefreshToken(req, res, next),
+                (req, res) => this.respond(req, res));
+        }
+
+        router.post('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
+            (req, res, next) => this.serialize(req, res, next),
+            (req, res, next) => this.generateToken(req, res, next),
+            function (req, res) {
+                res.status(201).json({
+                    token: req.token
+                });
+            });
+
+        if (Config.Security.isAutheticationByUserPasswd) {
+            router.post('/login',
             passport.authenticate("local"), (req, res) => {
                 res.redirect('/'+Config.Config.basePath+'/');
             });
-
-        router.get('/logout', function(req, res) {
+        }
+        router.get('/logout', (req, res) => {
             req.logout();
             res.redirect('/');
         });
     }
 
+    serialize(req, res, next) {
+    this.db.updateOrCreate(req.user, function (err, user) {
+        if (err) { return next(err); }
+        // we store the updated information in req.user again
+        req.user = {
+            id: user._id
+        };
+        next();
+    });
+}
 
+   db = {
+    updateOrCreate: function (user, cb) {
+        // we just cb the user
+        cb(null, user);
+    }
+};
+
+    generateToken(req, res, next) {
+        req.token = jwt.sign({
+            id: req.user.id,
+        }, SecurityConfig.tokenSecretkey, {
+                expiresInMinutes: SecurityConfig.tokenExpiresInMinutes
+            });
+        //TODO dont put it in user object in db
+        req.user.accessToken = req.token;
+        userrepository.put(req.user.id, req.user);
+        next();
+    }
+
+    respond(req, res) {
+        res.redirect('/user?token=' + req.token);
+    }
+
+    generateRefreshToken(req, res, next) {
+        req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
+        //TODO dont put it in user object in db
+        userrepository.put(req.user.id, req.user);
+        next();
+    }
+
+    validateRefreshToken(req, res, next) {
+        userrepository.findByField("refreshToken", req.query.refreshToken).then(
+            (user) => {
+                req.user = user;
+                next();
+            },
+            (error) => {
+                return error;
+            });
+}
 }
