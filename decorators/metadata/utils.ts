@@ -13,6 +13,7 @@ import {MetaData} from './metadata';
 import {DecoratorMetaData} from '../interfaces/decorator-metadata';
 
 import {IDocumentParams} from '../interfaces/document-params';
+import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
 
@@ -226,8 +227,8 @@ export function getResourceNameFromModel(object: Object): string {
 export function getAllResourceNames(): Array<string> {
      return Enumerable.from(metadataRoot.models)
         .selectMany((keyVal: any) => keyVal.value.decorator) //{ key: string(modelName), value: DecoratorMetaData }
-        .where((keyVal: any) => keyVal.key === Decorators.DOCUMENT) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .where((keyVal: any) => keyVal.key === Decorators.REPOSITORY) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
         .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
-        .select(keyVal => (<IDocumentParams>(<MetaData>keyVal.value).params).name) // {key: string(fieldName), value: MetaData}
+        .select(keyVal => (<IRepositoryParams>(<MetaData>keyVal.value).params).path) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
