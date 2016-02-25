@@ -1,6 +1,7 @@
 import {DecoratorType} from '../../enums/decorator-type';
 import {ParamTypeCustom} from './param-type-custom';
 import {IDocumentParams} from '../interfaces/document-params';
+import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
 import {ReflectConstants} from '../../constants/reflect';
@@ -10,7 +11,7 @@ export class MetaData {
     propertyKey: string;
     decorator: string;
     propertyType: ParamTypeCustom;
-    params: IFieldParams | IAssociationParams | IDocumentParams;
+    params: IFieldParams | IAssociationParams | IDocumentParams | IRepositoryParams;
     decoratorType: DecoratorType;
 
     constructor(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey: string) {

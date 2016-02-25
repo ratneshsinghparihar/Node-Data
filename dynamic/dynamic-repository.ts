@@ -507,7 +507,7 @@ export class DynamicRepository {
         if (result instanceof Array) {
             return Enumerable.from(result).select(x => x.toObject()).toArray();
         }
-        return result.toObject();
+        return result ? result.toObject() : null ;
     }
 
     //private findNthIndex(str: string, subStr: string, n: number) {

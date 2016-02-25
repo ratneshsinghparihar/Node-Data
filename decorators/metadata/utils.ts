@@ -13,6 +13,7 @@ import {MetaData} from './metadata';
 import {DecoratorMetaData} from '../interfaces/decorator-metadata';
 
 import {IDocumentParams} from '../interfaces/document-params';
+import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
 
@@ -184,7 +185,7 @@ export function getModelNameFromObject(obj: any): string {
 
 /**
  * Get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
- * @param target
+ * @param target like UserModel (function of prototype)
  *
  */
 export function getAllRelationsForTarget(target: Object): Array<MetaData> {
@@ -207,6 +208,27 @@ export function getAllRelationsForTarget(target: Object): Array<MetaData> {
         .toArray();
 }
 
+/**
+ * Get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
+ * @param target like UserModel (function of prototype)
+ *
+ */
+export function getAllRelationsForTargetInternal(target: Object): Array<MetaData> {
+    if (!target) {
+        throw TypeError;
+    }
+    //global.models.CourseModel.decorator.manytomany.students
+    var name = getModelNameFromObject(target);
+
+    return Enumerable.from(metadataRoot.models[name].decorator)
+        .where((keyVal: any) => Utils.isRelationDecorator(keyVal))
+        .selectMany((keyVal: any) => keyVal.value) //{ key: string(decoratorname), value: { [key: string]: MetaData } }
+        .select(keyVal => keyVal.value) // {key: string(fieldName), value: MetaData}
+        .toArray();
+}
+
+
+
 //@document({ name: 'blogs', isStrict: false })
 //export class BlogModel
 //this will return 'blogs' 
@@ -226,8 +248,8 @@ export function getResourceNameFromModel(object: Object): string {
 export function getAllResourceNames(): Array<string> {
      return Enumerable.from(metadataRoot.models)
         .selectMany((keyVal: any) => keyVal.value.decorator) //{ key: string(modelName), value: DecoratorMetaData }
-        .where((keyVal: any) => keyVal.key === Decorators.DOCUMENT) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .where((keyVal: any) => keyVal.key === Decorators.REPOSITORY) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
         .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
-        .select(keyVal => (<IDocumentParams>(<MetaData>keyVal.value).params).name) // {key: string(fieldName), value: MetaData}
+        .select(keyVal => (<IRepositoryParams>(<MetaData>keyVal.value).params).path) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
