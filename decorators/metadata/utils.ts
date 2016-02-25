@@ -185,7 +185,7 @@ export function getModelNameFromObject(obj: any): string {
 
 /**
  * Get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
- * @param target
+ * @param target like UserModel (function of prototype)
  *
  */
 export function getAllRelationsForTarget(target: Object): Array<MetaData> {
@@ -207,6 +207,29 @@ export function getAllRelationsForTarget(target: Object): Array<MetaData> {
         .select(keyVal => keyVal.value) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
+
+/**
+ * Get all the metadata of all the decorators of all the models referencing current target, i.e. (rel = target relation name)
+ * @param target like UserModel (function of prototype)
+ *
+ */
+export function getAllRelationsForTargetInternal(target: Object): Array<MetaData> {
+    if (!target) {
+        throw TypeError;
+    }
+    //global.models.CourseModel.decorator.manytomany.students
+    var name = getModelNameFromObject(target);
+
+    return Enumerable.from(metadataRoot.models[name].decorator)
+        .selectMany((keyVal: any) => {debugger; keyVal.value}) //{ key: string(decoratorname), value: { [key: string]: MetaData } }
+        .where((keyVal: any) => Utils.isRelationDecorator(keyVal.key)) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .selectMany(keyVal => keyVal.value) //{ key: string(decoratorName), value: { [key: string(fieldName)]: MetaData } }
+        .where(keyVal => (<IAssociationParams>(<MetaData>keyVal.value).params).rel === params.name) // {key: string(fieldName), value: MetaData}
+        .select(keyVal => keyVal.value) // {key: string(fieldName), value: MetaData}
+        .toArray();
+}
+
+
 
 //@document({ name: 'blogs', isStrict: false })
 //export class BlogModel

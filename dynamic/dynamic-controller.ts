@@ -6,6 +6,7 @@ var Reflect = require('reflect-metadata');
 export var router = express.Router();
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
 import * as Utils from "../decorators/metadata/utils";
+import {MetaData} from '../decorators/metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {SecurityConfig} from '../security-config';
 
@@ -187,17 +188,32 @@ export class DynamicController {
         }
     }
 
-
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
-        var dbModel = model;
-        var entityModel: any = new resourceType(dbModel);
-        var selfUrl = {};
+         var selfUrl = {};
         selfUrl["href"] =  resourceName + "/" + model._id;
-        //var selfObjec={};
-        // selfObjec["self"]=selfUrl;      
-        entityModel["_links"]["self"] = selfUrl;
-        model = entityModel;
+        model["_links"]={};
+        model["_links"]["self"]=selfUrl;
+        
+        //add associations 
+        //read metadata and get all relations names
+        var relations: Array<MetaData> =Utils.getAllRelationsForTarget(resourceType);
+        
+        relations.forEach(relation => {
+            
+        });
+        
+        //loop through relation names and add into model["_links"]
+        
         return model;
+        
+        // var dbModel = model;
+        // var entityModel: any = new resourceType(dbModel);
+       
+        // //var selfObjec={};
+        // // selfObjec["self"]=selfUrl;      
+        // entityModel["_links"]["self"] = selfUrl;
+        // model = entityModel;
+        // return model;
     }
 
 
