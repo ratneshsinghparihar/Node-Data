@@ -1,11 +1,11 @@
 ﻿/// <reference path="../typings/node/node.d.ts" />
-/// <reference path="../repositories1/userrepository.ts" />
+/// <reference path="../repositories/userrepository.ts" />
 
 //var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
 import {SecurityConfig} from '../security-config';
-var Config = require('../config');
+import * as Config from '../config';
 var crypto = require('crypto');
 import * as Utils from "../decorators/metadata/utils";
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
@@ -96,6 +96,11 @@ export class AuthController {
         }
     }
 
+    private getFullBaseUrl(req): string{
+        var fullbaseUr:string="";
+         fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
+        return fullbaseUr;
+    }
 
     addRoutes() {
         router.get('/', (req, res) => {
@@ -108,9 +113,11 @@ export class AuthController {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
+                var fullbaseUr:string="";
+                fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
-                    resoucejson[resource] = "/data/" + resource + "/";
+                    resoucejson[resource] = fullbaseUr +"/" + resource ;
                     allresourceJson.push(resoucejson);
                 });
                 //loop through rsources and push in json array with name as key and url as value
@@ -147,9 +154,9 @@ export class AuthController {
 
         if (Config.Security.isAutheticationByUserPasswd) {
             router.post('/login',
-                passport.authenticate("local"), (req, res) => {
-                    res.redirect('/user/' + req.user._id);
-                });
+            passport.authenticate("local"), (req, res) => {
+                res.redirect('/'+Config.Config.basePath+'/');
+            });
         }
         router.get('/logout', (req, res) => {
             req.logout();

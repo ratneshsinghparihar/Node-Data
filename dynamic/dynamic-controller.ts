@@ -31,7 +31,7 @@ var ensureLoggedIn = () => {
 
 if (!Config.Security.isAutheticationEnabled) {
     ensureLoggedIn = () => {
-        return function (req, res, next) {
+        return function(req, res, next) {
             next();
         }
     }
@@ -43,7 +43,7 @@ export class DynamicController {
 
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
-        this.path = path;
+        this.path = "/"+Config.Config.basePath + "/" + path;
         this.addSearchPaths();
         this.addRoutes();
     }
@@ -54,11 +54,13 @@ export class DynamicController {
         router.get(this.path,
             ensureLoggedIn(),
             (req, res) => {
-                if(!this.isAuthorize(req,1))                    
-                return res.send(401, 'unauthorize access for resource ' + this.path);
+
+                if (!this.isAuthorize(req, 1))
+                    return res.send(401, 'unauthorize access for resource ' + this.path);
                 return this.repository.findAll()
                     .then((result) => {
-                        result = this.getHalModels(result, this.repository.modelName());
+                        var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
+                        result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);
 
                     });
@@ -72,6 +74,8 @@ export class DynamicController {
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
                         this.getHalModel1(result, this.repository.modelName(), this.repository.getEntityType());
+                        var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result,resourceName , this.repository.getEntityType());
                         this.sendresult(req, res, result);
                     });
             });
@@ -218,7 +222,7 @@ export class DynamicController {
 
     private getHalModels(models: Array<any>, resourceName: string): any {
         var halresult = {};
-        halresult["_links"] = { "self": { "href": "/" + resourceName }, "search": { "href": "/search" } };
+        halresult["_links"] = { "self": { "href":  resourceName }, "search": { "href": "/search" } };
         models.forEach(model => {
             this.getHalModel(model, resourceName);
         });
@@ -233,7 +237,7 @@ export class DynamicController {
     }
 
     private isAuthorize(req: any, access: number): boolean {
-        if (!Config.Security.isAuthorisationEnabled)
+        if (!Config.Security.isAutheticationEnabled)
             return true;
         var isAutherize: boolean = false;
         //check for autherization
@@ -271,4 +275,10 @@ export class DynamicController {
         return true;
     }
 
+    
+    private getFullBaseUrl(req): string{
+        var fullbaseUr:string="";
+         fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
+        return fullbaseUr;
+    }
 }

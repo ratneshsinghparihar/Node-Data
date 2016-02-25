@@ -15,7 +15,7 @@ export class InitializeControllers {
         for (var path in mongooseRepoMap) {
             var controller = new DynamicController(mongooseRepoMap[path].fn.prototype.path, mongooseRepoMap[path].repo);
         }
-        var authController=new AuthController("/", mongooseRepoMap['/user'].repo);
+        var authController=new AuthController("/", mongooseRepoMap['users'].repo);
     }
 
 }
