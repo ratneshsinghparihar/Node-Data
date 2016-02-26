@@ -215,53 +215,106 @@ export class DynamicRepository {
         //var compareropWithId = '"' + prop + '._id"';
         //var updateProp = '"' + prop + '._id"';
         if (isEmbedded) {
-            var cond = {};
-            cond[prop + '._id'] = updateObj['_id'];
-            if (entityChange === EntityChange.put
-                || entityChange === EntityChange.patch
-                || (entityChange === EntityChange.delete && !isArray)) {
-                var newUpdateObj = {};
-                isArray
-                    ? newUpdateObj[prop + '.$'] = updateObj
-                    : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
-                return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
-                    .then(result => {
-                        console.log(result);
+            
+            var queryCond = {};
+            queryCond[prop + '._id'] = updateObj['_id'];
+
+            return Q.nbind(this.model.find, this.model)(queryCond)
+                .then(updated=> {
+
+                    if (entityChange === EntityChange.put
+                        || entityChange === EntityChange.patch
+                        || (entityChange === EntityChange.delete && !isArray)) {
+
+                        var cond = {};
+                        cond[prop + '._id'] = updateObj['_id'];
+
+                        var newUpdateObj = {};
+                        isArray
+                            ? newUpdateObj[prop + '.$'] = updateObj
+                            : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
+
+                        return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
+                            .then(result => {
+                                console.log(result);
+                                var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
+                                this.findAndUpdateEmbeddedData(ids);
+                            });
+                            
+                    }
+                    else {
+                        var pullObj = {};
+                        pullObj[prop] = {};
+                        pullObj[prop]['_id'] = updateObj['_id'];
+
+                        return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
+                            .then(result => {
+                                console.log(result);
+                                var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
+                                this.findAndUpdateEmbeddedData(ids);
+                            });
+                    }
                     });
             }
-            if (entityChange == EntityChange.delete) {
-                var pullObj = {};
-                pullObj[prop] = {};
-                pullObj[prop]['_id'] = updateObj['_id'];
-                return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
-                    .then(result => {
-                        console.log(result);
-                    });
-            }
-        }
         else {
-            // this to handle for deletion only
+            // this to handle foreign key deletion only
             if (entityChange == EntityChange.delete) {
-                var pullObj = {};
-                pullObj[prop] = {};
-                var cond = {};
-                cond[prop] = updateObj['_id'];
+                var queryCond = {};
                 if (isArray) {
-                    pullObj[prop] = updateObj['_id'];
-                    return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
-                        .then(result => {
-                            console.log(result);
-                        });
+                    queryCond[prop] = { $in: [updateObj['_id']] };
                 }
                 else {
-                    pullObj[prop] = null;
-                    return Q.nbind(this.model.update, this.model)(cond, { $set: pullObj }, { multi: true })
-                        .then(result => {
-                            console.log(result);
-                        });
+                    queryCond[prop] = updateObj['_id'];
                 }
+
+                return Q.nbind(this.model.find, this.model)(queryCond)
+                    .then(updated=> {
+                        console.log(cond + ' :count:' + (updated as any[]).length);
+
+                        var pullObj = {};
+                        pullObj[prop] = {};
+
+                        if (isArray) {
+                            pullObj[prop] = updateObj['_id'];
+                            return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
+                                .then(result => {
+                                    console.log(result);
+                                    var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
+                                    this.findAndUpdateEmbeddedData(ids);
+                                });
+                        }
+                        else {
+                            pullObj[prop] = null;
+                            var cond = {};
+                            cond[prop] = updateObj['_id'];
+
+                            return Q.nbind(this.model.update, this.model)(cond, { $set: pullObj }, { multi: true })
+                                .then(result => {
+                                    console.log(result);
+                                    var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
+                                    this.findAndUpdateEmbeddedData(ids);
+                                });
+                        }
+                    });
             }
         }
+    }
+
+    private findAndUpdateEmbeddedData(ids: any[]): Q.Promise<any> {
+        return Q.nbind(this.model.find, this.model)({
+            '_id': {
+                $in: ids
+            }
+        }).then(result=> {
+            // Now update affected documents in embedded records
+
+            var asyncCalls = [];
+            Enumerable.from(result).forEach(x=> {
+                asyncCalls.push(this.updateEmbeddedOnEntityChange(EntityChange.patch, x));
+            });
+
+            //return Q.allSettled(asyncCalls);
+        });
     }
 
     /**
