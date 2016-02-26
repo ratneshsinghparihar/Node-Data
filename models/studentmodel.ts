@@ -23,14 +23,17 @@ export class StudentModel {
     @field()
     gender: string;
 
-    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
+    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true })
     course: CourseModel.CourseModel;
 
-    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true})
+    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true})
     courses: Array<CourseModel.CourseModel>;
 
-    @onetomany({ biDirectional: false, rel: 'teachers', itemType: TeacherModel, persist: true })
+    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded:true})
     teachers: Array<TeacherModel.TeacherModel>;
+
+    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded: true })
+    favouriteTeacher: TeacherModel.TeacherModel;
 }
 
 export default StudentModel;

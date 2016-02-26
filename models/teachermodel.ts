@@ -26,8 +26,9 @@ export class TeacherModel {
     @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
     courses: Array<CourseModel.CourseModel>;
 
-    @onetomany({ biDirectional: false, rel: 'students', itemType: StudentModel, persist: true})
-    students: Array<StudentModel>;
+    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true })
+    preferredCourse: CourseModel.CourseModel;
+
 }
 
 export default TeacherModel;
