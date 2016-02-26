@@ -240,19 +240,20 @@ export class AuthController {
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
+        res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });
         userrepository.put(req.user.id, req.user);
         next();
     }
 
     respond(req, res) {
-        res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });
-        res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
+       
         res.redirect('/data');
     }
 
     generateRefreshToken(req, res, next) {
         req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
         //TODO dont put it in user object in db
+        res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
         userrepository.put(req.user.id, req.user);
         next();
     }
