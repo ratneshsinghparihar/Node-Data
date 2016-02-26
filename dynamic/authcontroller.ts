@@ -233,6 +233,7 @@ export class AuthController {
     }
 
     respond(req, res) {
+        req.headers.authorization = req.token;
         res.redirect('/data?token='+req.token);
     }
 

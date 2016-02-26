@@ -113,7 +113,8 @@ export class DynamicController {
                         //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
                         // var resourceName= Reflect.getMetadata("design:type", association);
                         //this.getHalModel(association,req.params.prop);
-                        this.getHalModel1(association, this.repository.modelName(), this.repository.getEntityType());
+                        var resourceName=this.getFullDataUrl(req) + req.params.prop;
+                        this.getHalModel1(association, resourceName, this.repository.getEntityType());
                         this.sendresult(req, res, association);
                     });
             });
@@ -316,6 +317,12 @@ export class DynamicController {
         return true;
     }
 
+    
+    private getFullDataUrl(req): string{
+        var fullbaseUr:string="";
+         fullbaseUr=req.protocol + '://' + req.get('host') + Config.Config.basePath;
+        return fullbaseUr;
+    }
     
     private getFullBaseUrl(req): string{
         var fullbaseUr:string="";
