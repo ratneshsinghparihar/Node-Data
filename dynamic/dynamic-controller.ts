@@ -84,7 +84,6 @@ export class DynamicController {
                     return res.send(401, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
-                        this.getHalModel1(result, this.repository.modelName(), this.repository.getEntityType());
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result,resourceName , this.repository.getEntityType());
                         this.sendresult(req, res, result);
@@ -98,13 +97,23 @@ export class DynamicController {
                     .then((result) => {
                         //result=this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
                         //var propTypeName = Reflect.getMetadata("design:type", result.toObject()[req.params.prop], req.params.prop);
-                        this.getHalModel1(result, this.repository.modelName(), this.repository.getEntityType());
+                        
 
                         var parent = (<any>result).toObject();
+                        
+                        
+                        //1. embedded
                         var association = parent[req.params.prop];
+                        //2. foreign key
+                        ///1. get metadata for thsi prop
+                        ///2. get moongoose model from metadata
+                        ///3. call findAll 
+                        ///4 return object or array of object
+                        
                         //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
                         // var resourceName= Reflect.getMetadata("design:type", association);
                         //this.getHalModel(association,req.params.prop);
+                        this.getHalModel1(association, this.repository.modelName(), this.repository.getEntityType());
                         this.sendresult(req, res, association);
                     });
             });
@@ -203,7 +212,7 @@ export class DynamicController {
 
     private getHalModel(model: any, resourceName: string): any {
         var selfUrl = {};
-        selfUrl["href"] = "/" + resourceName + "/" + model._id;
+        selfUrl["href"] = resourceName + "/" + model._id;
         var selfObjec = {};
         selfObjec["self"] = selfUrl;
         model["_links"] = selfObjec;
@@ -219,15 +228,21 @@ export class DynamicController {
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
          var selfUrl = {};
-        selfUrl["href"] = "/" + resourceName + "/" + model._id;
+        selfUrl["href"] = resourceName ;// + "/" + model._id;
         model["_links"]={};
         model["_links"]["self"]=selfUrl;
         
         //add associations 
         //read metadata and get all relations names
-        var relations: Array<MetaData> =Utils.getAllRelationsForTarget(resourceType);
+        var relations: Array<MetaData> =Utils.getAllRelationsForTargetInternal(resourceType);
         
         relations.forEach(relation => {
+            if(relation.propertyKey)
+            {
+                var relUrl={};
+                relUrl["href"] = resourceName+"/"+relation.propertyKey;
+                model["_links"][relation.propertyKey]=relUrl;
+            }
             
         });
         
