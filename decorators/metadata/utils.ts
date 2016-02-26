@@ -221,9 +221,14 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
     var name = getModelNameFromObject(target);
 
     return Enumerable.from(metadataRoot.models[name].decorator)
-        .where((keyVal: any) => Utils.isRelationDecorator(keyVal))
-        .selectMany((keyVal: any) => keyVal.value) //{ key: string(decoratorname), value: { [key: string]: MetaData } }
-        .select(keyVal => keyVal.value) // {key: string(fieldName), value: MetaData}
+        .where((keyVal: any) => Utils.isRelationDecorator(keyVal.key))
+        .selectMany((keyVal: any) => 
+                    {
+                        return keyVal.value
+                    }) //{ key: string(decoratorname), value: { [key: string]: MetaData } }
+        .select(keyVal =>{
+            
+        return keyVal.value}) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
 

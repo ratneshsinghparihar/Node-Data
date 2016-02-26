@@ -117,7 +117,7 @@ export class AuthController {
                 fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
-                    resoucejson[resource] = fullbaseUr +"" + resource ;
+                    resoucejson[resource] = fullbaseUr + resource ;
                     allresourceJson.push(resoucejson);
                 });
                 //loop through rsources and push in json array with name as key and url as value

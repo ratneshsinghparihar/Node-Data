@@ -9,6 +9,6 @@ export class Config {
 export class Security {
     public static isAutheticationEnabled: boolean = true;
     public static isAuthorizationEnabled: boolean = false;
-    public static isAutheticationByUserPasswd: boolean = false;
-    public static isAutheticationByToken: boolean = true;
+    public static isAutheticationByUserPasswd: boolean = true;
+    public static isAutheticationByToken: boolean = false;
 }
