@@ -194,11 +194,7 @@ export class AuthController {
         router.post('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
             (req, res, next) => this.serialize(req, res, next),
             (req, res, next) => this.generateToken(req, res, next),
-            function (req, res) {
-                res.status(201).json({
-                    token: req.token
-                });
-            });
+            (req, res) => this.respond(req, res));
 
         if (Config.Security.isAutheticationByUserPasswd) {
             router.post('/login',
