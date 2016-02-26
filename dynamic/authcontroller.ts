@@ -26,6 +26,8 @@ var authenticateByToken = expressJwt({
             return req.headers.authorization.split(' ')[1];
         } else if (req.query && req.query.token) {
             return req.query.token;
+        } else if (req.cookies && req.cookies.authorization){
+            return req.cookies.authorization;
         }
         return null;
     }
@@ -41,6 +43,10 @@ var ensureLoggedIn = () => {
     //by password
     if (Config.Security.isAutheticationByUserPasswd) {
         return loggedIn();
+    }
+
+    return function (req, res, next) {
+        next();
     }
 }
 
@@ -152,20 +158,20 @@ export class AuthController {
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
                 var fullbaseUrl: string = "";
-                var originalUrl: string = "";
-                var tokenUrl: string = "";
-                if (req.originalUrl.indexOf('?') === -1) {
-                    originalUrl = req.originalUrl;
-                } else {
-                    var url = req.originalUrl;
-                    originalUrl = url.substr(0, url.indexOf('?')) + "/";
-                    tokenUrl = "?"+ url.substr(url.indexOf('?') + 1);
+                //var originalUrl: string = "";
+                //var tokenUrl: string = "";
+                //if (req.originalUrl.indexOf('?') === -1) {
+                //    originalUrl = req.originalUrl;
+                //} else {
+                //    var url = req.originalUrl;
+                //    originalUrl = url.substr(0, url.indexOf('?')) + "/";
+                //    tokenUrl = "?"+ url.substr(url.indexOf('?') + 1);
 
-                }
-                fullbaseUrl = req.protocol + '://' + req.get('host') + originalUrl;
+                //}
+                fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
-                    resoucejson[resource] = fullbaseUrl + resource + tokenUrl;
+                    resoucejson[resource] = fullbaseUrl + "/" +resource;//+ tokenUrl;
                     allresourceJson.push(resoucejson);
                 });
                 //loop through rsources and push in json array with name as key and url as value
@@ -191,7 +197,7 @@ export class AuthController {
                 (req, res) => this.respond(req, res));
         }
 
-        router.post('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
+        router.get('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
             (req, res, next) => this.serialize(req, res, next),
             (req, res, next) => this.generateToken(req, res, next),
             (req, res) => this.respond(req, res));
@@ -239,7 +245,9 @@ export class AuthController {
     }
 
     respond(req, res) {
-        res.redirect('/data?token='+req.token);
+        res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });
+        res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
+        res.redirect('/data');
     }
 
     generateRefreshToken(req, res, next) {
@@ -250,7 +258,7 @@ export class AuthController {
     }
 
     validateRefreshToken(req, res, next) {
-        userrepository.findByField("refreshToken", req.query.refreshToken).then(
+        userrepository.findByField("refreshToken", req.cookies.refreshToken).then(
             (user) => {
                 req.user = user;
                 next();
