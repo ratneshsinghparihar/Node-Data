@@ -21,6 +21,8 @@ var authenticateByToken = expressJwt({
             return req.headers.authorization.split(' ')[1];
         } else if (req.query && req.query.token) {
             return req.query.token;
+        } else if (req.cookies && req.cookies.authorization) {
+            return req.cookies.authorization;
         }
         return null;
     }
@@ -37,6 +39,10 @@ var ensureLoggedIn = () => {
     //by password
     if (Config.Security.isAutheticationByUserPasswd) {
         return loggedIn();
+    }
+
+    return function (req, res, next) {
+        next();
     }
 }
 
