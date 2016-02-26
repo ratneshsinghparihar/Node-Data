@@ -42,6 +42,10 @@ var ensureLoggedIn = () => {
     if (Config.Security.isAutheticationByUserPasswd) {
         return loggedIn();
     }
+
+    return function (req, res, next) {
+        next();
+    }
 }
 
 if (!Config.Security.isAutheticationEnabled) {

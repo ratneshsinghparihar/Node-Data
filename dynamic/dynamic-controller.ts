@@ -1,7 +1,7 @@
 ﻿/// <reference path="../typings/node/node.d.ts" />
 import * as Config from '../config';
 var express = require('express');
-import {DynamicRepository} from './dynamic-repository';
+import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 var jwt = require('jsonwebtoken');
@@ -37,6 +37,10 @@ var ensureLoggedIn = () => {
     //by password
     if (Config.Security.isAutheticationByUserPasswd) {
         return loggedIn();
+    }
+
+    return function (req, res, next) {
+        next();
     }
 }
 
@@ -89,7 +93,7 @@ export class DynamicController {
                         this.sendresult(req, res, result);
                     });
             });
-
+        
         router.get(this.path + '/:id/:prop',
             ensureLoggedIn(),
             (req, res) => {
@@ -97,13 +101,8 @@ export class DynamicController {
                     .then((result) => {
                         //result=this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
                         //var propTypeName = Reflect.getMetadata("design:type", result.toObject()[req.params.prop], req.params.prop);
-                        
 
-                        var parent = (<any>result).toObject();
-                        
-                        
                         //1. embedded
-                        var association = parent[req.params.prop];
                         //2. foreign key
                         ///1. get metadata for thsi prop
                         ///2. get moongoose model from metadata
@@ -113,8 +112,62 @@ export class DynamicController {
                         //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
                         // var resourceName= Reflect.getMetadata("design:type", association);
                         //this.getHalModel(association,req.params.prop);
-                        this.getHalModel1(association, this.repository.modelName(), this.repository.getEntityType());
-                        this.sendresult(req, res, association);
+                        //this.getHalModel1(association, this.repository.modelName(), this.repository.getEntityType());
+                        //this.sendresult(req, res, association);
+
+                        var parent = (<any>result).toObject();
+                        var association = parent[req.params.prop];
+                        var metaData = Utils.getAllRelationalMetaDataForField(this.repository.getEntityType(), req.params.prop);
+
+                        if (metaData != null && metaData.length > 0 &&
+                            association !== undefined && association !== null) {
+
+                            var meta = metaData[0]; // by deafult take first relation
+                            var repo = GetRepositoryForName(meta.propertyType.rel);
+                            if (repo == null) return;
+
+                            var resourceName = this.getFullBaseUrlUsingRepo(req, repo.modelName());
+
+                            if (meta.propertyType.embedded) {
+                                if (meta.propertyType.isArray) {
+                                    Enumerable.from(association).forEach(x=> {
+                                        this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
+                                    });
+                                    association = this.getHalModels(association, resourceName);
+                                }
+                                else {
+                                    this.getHalModel1(association, resourceName + '/' + association['_id'], repo.getEntityType());
+                                }
+                                this.sendresult(req, res, association);
+                            }
+                            else {
+                                var ids = association;
+                                if (!meta.propertyType.isArray) {
+                                    ids = [association];
+                                }
+
+                                return repo.findMany(ids)
+                                    .then((result) => {
+                                        if (result.length > 0) {
+                                            if (meta.propertyType.isArray) {
+                                                Enumerable.from(result).forEach(x=> {
+                                                    this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
+                                                });
+
+                                                result = this.getHalModels(result, resourceName);
+                                            }
+                                            else {
+                                                result = result[0];
+                                                this.getHalModel1(result, resourceName + '/' + result['_id'], repo.getEntityType());
+                                            }
+                                            this.sendresult(req, res, result);
+                                        }
+                                    });
+                            }
+                        }
+                        else {
+                            this.sendresult(req, res, association);
+                        }
                     });
             });
 
@@ -317,9 +370,15 @@ export class DynamicController {
     }
 
     
-    private getFullBaseUrl(req): string{
-        var fullbaseUr:string="";
-         fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
+    private getFullBaseUrl(req): string {
+        var fullbaseUr: string = "";
+        fullbaseUr = req.protocol + '://' + req.get('host') + req.originalUrl;
+        return fullbaseUr;
+    }
+
+    private getFullBaseUrlUsingRepo(req, repoName): string {
+        var fullbaseUr: string = "";
+        fullbaseUr = req.protocol + '://' + req.get('host') + '/' + Config.Config.basePath + '/' + repoName;
         return fullbaseUr;
     }
 }
