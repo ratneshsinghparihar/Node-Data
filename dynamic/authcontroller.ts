@@ -151,11 +151,21 @@ export class AuthController {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
-                var fullbaseUr:string="";
-                fullbaseUr=req.protocol + '://' + req.get('host') + req.originalUrl;
+                var fullbaseUrl: string = "";
+                var originalUrl: string = "";
+                var tokenUrl: string = "";
+                if (req.originalUrl.indexOf('?') === -1) {
+                    originalUrl = req.originalUrl;
+                } else {
+                    var url = req.originalUrl;
+                    originalUrl = url.substr(0, url.indexOf('?')) + "/";
+                    tokenUrl = "?"+ url.substr(url.indexOf('?') + 1);
+
+                }
+                fullbaseUrl = req.protocol + '://' + req.get('host') + originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
-                    resoucejson[resource] = fullbaseUr +"" + resource ;
+                    resoucejson[resource] = fullbaseUrl + resource + tokenUrl;
                     allresourceJson.push(resoucejson);
                 });
                 //loop through rsources and push in json array with name as key and url as value
