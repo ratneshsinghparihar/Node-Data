@@ -21,6 +21,8 @@ var authenticateByToken = expressJwt({
             return req.headers.authorization.split(' ')[1];
         } else if (req.query && req.query.token) {
             return req.query.token;
+        } else if (req.cookies && req.cookies.authorization) {
+            return req.cookies.authorization;
         }
         return null;
     }
@@ -369,6 +371,12 @@ export class DynamicController {
         return true;
     }
 
+    
+    private getFullDataUrl(req): string{
+        var fullbaseUr:string="";
+         fullbaseUr=req.protocol + '://' + req.get('host') + "/" + Config.Config.basePath;
+        return fullbaseUr;
+    }
     
     private getFullBaseUrl(req): string {
         var fullbaseUr: string = "";
