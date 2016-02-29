@@ -27,8 +27,13 @@ import {EntityChange} from '../enums/entity-change';
 var repoList: { [key: string]: any } = {};
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
 
+export function GetRepositoryForName(name: string): IDynamicRepository {
+    return modelNameRepoModelMap[name]
+}
+
 interface IDynamicRepository {
     getModel();
+    getEntityType();
     addRel();
     modelName();
     put(id: any, obj: any): Q.Promise<any>;
@@ -368,7 +373,7 @@ export class DynamicRepository {
             throw 'Could not fetch metadata for target object';
         }
         var repoName = (<IDocumentParams>targetModelMeta.params).name;
-        var repo = this.getRepositoryForName(repoName);
+        var repo = GetRepositoryForName(repoName);
         if (!repo) {
             throw 'no repository found for relation';
         }
@@ -411,7 +416,7 @@ export class DynamicRepository {
         }
         var params: IAssociationParams = <any>relMetadata.params;
 
-        var repo = this.getRepositoryForName(params.rel);
+        var repo = GetRepositoryForName(params.rel);
         if (!repo) {
             throw 'no repository found for relation';
         }
@@ -431,10 +436,6 @@ export class DynamicRepository {
                 console.error(error);
                 return Q.reject(error);
             });
-    }
-
-    private getRepositoryForName(name) {
-        return modelNameRepoModelMap[name]
     }
 
     private castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {

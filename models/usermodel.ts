@@ -35,7 +35,7 @@ export class UserModel {
     @field()
     age: string;
 
-    @onetomany({ biDirectional: false, rel: 'roles', itemType: RM, embedded: false })
+    @onetomany({ rel: 'roles', itemType: RM, embedded: true })
     roles: Array<RM.RoleModel>;
 
     _links: any;  

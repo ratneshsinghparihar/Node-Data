@@ -258,3 +258,22 @@ export function getAllResourceNames(): Array<string> {
         .select(keyVal => (<IRepositoryParams>(<MetaData>keyVal.value).params).path) // {key: string(fieldName), value: MetaData}
         .toArray();
 }
+
+export function getAllRelationalMetaDataForField(target: Object, propertyKey?: string): Array<MetaData> {
+    if (!target) {
+        throw TypeError;
+    }
+
+    propertyKey = propertyKey || '__';
+    var name = getModelNameFromObject(target);
+    if (!metadataRoot.models[name]) {
+        return null;
+    }
+
+    return Enumerable.from(metadataRoot.models[name].decorator)
+        .where((keyVal: any) => Utils.isRelationDecorator(keyVal.key))
+        .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
+        .where(keyVal => keyVal.key === propertyKey) // keyval = {[key(propName): string]: Metadata};
+        .select(keyVal => keyVal.value) // keyval = {[key(propName): string]: Metadata};
+        .toArray();
+}

@@ -54,6 +54,7 @@
     <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
+    <TypeScriptCompile Include="dynamic\metadataController.ts" />
     <TypeScriptCompile Include="enums\decorator-type.ts" />
     <TypeScriptCompile Include="enums\document-strict.ts" />
     <TypeScriptCompile Include="enums\entity-change.ts" />
