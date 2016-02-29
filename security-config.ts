@@ -35,3 +35,4 @@ export enum RoleEnum {
     ROLE_AUTHOR,
     ROLE_PUBLISHER
 }
+

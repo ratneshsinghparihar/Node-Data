@@ -167,7 +167,9 @@ export class DynamicRepository {
                     console.log(ex);
                     return Q.reject(ex);
                 }
-                return Q.nbind(this.model.create, this.model)(new this.model(obj));
+                return Q.nbind(this.model.create, this.model)(new this.model(obj)).then(result => {
+                    return this.toObject(result);
+                });
             }).catch(error => {
                 console.error(error);
                 return Q.reject(error);

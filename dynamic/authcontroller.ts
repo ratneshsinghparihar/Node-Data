@@ -8,7 +8,11 @@ import {SecurityConfig} from '../security-config';
 import * as Config from '../config';
 var crypto = require('crypto');
 import * as Utils from "../decorators/metadata/utils";
-var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
+//Passport
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
+
 var Reflect = require('reflect-metadata');
 var jwt = require('jsonwebtoken');
 import * as dc from './dynamic-controller';
@@ -18,6 +22,8 @@ var userrepository: DynamicRepository;
 //Remove this code, move it to utils. Same code present in dynamic-controller.ts
 var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
+
+
 var authenticateByToken = expressJwt({
     secret: SecurityConfig.tokenSecretkey,
     credentialsRequired: true,
@@ -137,6 +143,63 @@ export class AuthController {
 
             });
         }
+
+        passport.use(new FacebookStrategy({
+
+            // pull in our app id and secret from our Config.ts file
+            clientID: Config.facebookAuth.clientID,
+            clientSecret: Config.facebookAuth.clientSecret,
+            callbackURL: Config.facebookAuth.callbackURL
+
+        },
+
+           // facebook will send back the token and profile
+            (token, refreshToken, profile, done) => {
+                userrepository.findByField("facebookId", profile.id).then(
+                    (user) => {
+
+                        if (!user) {
+                            // if there is no user found with that facebook id, create them
+                            var newUser = {};
+                            // set all of the facebook information in our user model
+                            newUser['facebookId'] = profile.id; // set the users facebook id                   
+                            newUser['facebookToken'] = token; // we will save the token that facebook provides to the user                    
+                            userrepository.post(newUser).then((finalUser) => {
+                                return done(null, finalUser);
+                            }, (error) => {
+                                return done(null, error); 
+                            });
+
+                        } else {
+                            return done(null, user); // user found, return that user
+                        }
+                    },
+                    (error) => {
+                        return done(error);
+                    });
+
+            }
+
+        ));
+
+        passport.serializeUser((user, cb) => {
+            cb(null, user._id);
+        });
+
+
+        passport.deserializeUser((id, cb) => {
+            userrepository.findOne(id).
+                then(
+                (user) => {
+                    cb(null, user);
+                },
+                (err) => {
+                    return cb(err);
+                }
+                );
+
+        });
+
     }
 
     private getFullBaseUrl(req): string{
@@ -171,7 +234,7 @@ export class AuthController {
                 fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
-                    resoucejson[resource] = fullbaseUrl + "/" +resource;//+ tokenUrl;
+                    resoucejson[resource] = fullbaseUrl + resource;//+ tokenUrl;
                     allresourceJson.push(resoucejson);
                 });
                 //loop through rsources and push in json array with name as key and url as value
@@ -212,6 +275,20 @@ export class AuthController {
             req.logout();
             res.redirect('/');
         });
+
+        // route for facebook authentication and login
+        router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
+
+        // handle the callback after facebook has authenticated the user
+        router.get('/auth/facebook/callback',
+            passport.authenticate('facebook'), (req, res) => this.facebookResponse(req, res)
+            );
+
+    }
+
+    facebookResponse(req, res) {
+        res.cookie('authorization', req.user.facebookToken, { maxAge: 900000, httpOnly: true });
+        res.redirect('/data');
     }
 
     serialize(req, res, next) {
@@ -246,7 +323,6 @@ export class AuthController {
     }
 
     respond(req, res) {
-       
         res.redirect('/data');
     }
 
