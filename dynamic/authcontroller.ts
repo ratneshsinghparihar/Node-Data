@@ -288,7 +288,7 @@ export class AuthController {
 
     facebookResponse(req, res) {
         res.cookie('authorization', req.user.facebookToken, { maxAge: 900000, httpOnly: true });
-        res.redirect('/data');
+        res.redirect('/data/');
     }
 
     serialize(req, res, next) {
@@ -323,7 +323,7 @@ export class AuthController {
     }
 
     respond(req, res) {
-        res.redirect('/data');
+        res.redirect('/data/');
     }
 
     generateRefreshToken(req, res, next) {
