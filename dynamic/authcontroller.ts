@@ -163,7 +163,7 @@ export class AuthController {
                             var newUser = {};
                             // set all of the facebook information in our user model
                             newUser['facebookId'] = profile.id; // set the users facebook id                   
-                            newUser['facebookToken'] = token; // we will save the token that facebook provides to the user                    
+                            newUser['facebookToken'] = token; // we will save the token that facebook provides to the user  
                             userrepository.post(newUser).then((finalUser) => {
                                 return done(null, finalUser);
                             }, (error) => {
@@ -221,16 +221,6 @@ export class AuthController {
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
                 var fullbaseUrl: string = "";
-                //var originalUrl: string = "";
-                //var tokenUrl: string = "";
-                //if (req.originalUrl.indexOf('?') === -1) {
-                //    originalUrl = req.originalUrl;
-                //} else {
-                //    var url = req.originalUrl;
-                //    originalUrl = url.substr(0, url.indexOf('?')) + "/";
-                //    tokenUrl = "?"+ url.substr(url.indexOf('?') + 1);
-
-                //}
                 fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
