@@ -2,12 +2,10 @@
 
 import {StudentModel} from './studentmodel';
 import * as CourseModel from './coursemodel';
-import {onetomany, manytoone, manytomany} from '../decorators/association';
-import {document} from '../decorators/document';
-import {field} from '../decorators/field';
+import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
 import {IUser} from './user';
 import {Types} from 'mongoose';
-import {Strict} from '../enums/document-strict';
+import {Strict} from '../enums';
 
 @document({ name: 'teachers', strict: Strict.true })
 export class TeacherModel {

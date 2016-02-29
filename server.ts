@@ -3,6 +3,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 require('reflect-metadata/Reflect');
+require('harmonize')(['harmony_default_parameters']);
 
 //import * as rolerepo from './repositories/rolerepository';
 var Dynamic = require('./dynamic/dynamic');

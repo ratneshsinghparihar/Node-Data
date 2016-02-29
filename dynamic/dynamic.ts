@@ -14,7 +14,6 @@ var Config = require('../config');
 //import linq = require('../typings/linq/linq');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
-
 export default class Dynamic {
     constructor() {
         var files = fs.readdirSync('repositories');

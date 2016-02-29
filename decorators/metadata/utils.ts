@@ -5,19 +5,16 @@
 /// <reference path="../../config.ts" />
 
 import {ParamTypeCustom} from './param-type-custom';
-import {Strict} from '../../enums/document-strict';
-import * as Utils from '../../utils/utils';
-import {DecoratorType} from '../../enums/decorator-type';
-import {Decorators} from '../../constants/decorators';
+import {Strict, DecoratorType} from '../../enums';
+import * as Utils from '../../utils';
+import {Decorators} from '../../constants';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {MetaRoot} from '../interfaces/metaroot';
 import {MetaData} from './metadata';
 import {DecoratorMetaData} from '../interfaces/decorator-metadata';
 
-import {IDocumentParams} from '../interfaces/document-params';
+import {IDocumentParams, IAssociationParams, IFieldParams, IInjectParams} from '../interfaces/meta-params';
 import {IRepositoryParams} from '../interfaces/repository-params';
-import {IFieldParams} from '../interfaces/field-params';
-import {IAssociationParams} from '../interfaces/association-params';
 
 var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
@@ -33,8 +30,9 @@ export var metadataRoot: MetaRoot = <any>{};
  * @param decoratorType
  * @param params
  * @param propertyKey
+ * @param paramIndex
  */
-export function addMetaData(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string) {
+export function addMetaData(target: Object|Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number) {
     if (!target) {
         throw TypeError;
     }
@@ -43,6 +41,8 @@ export function addMetaData(target: Object, decorator: string, decoratorType: De
         throw TypeError;
     }
     propertyKey = propertyKey || '__';
+    // special case for param decorators
+    propertyKey = propertyKey + (paramIndex !== undefined ? '_' + paramIndex : '');
 
     metadataRoot.models = metadataRoot.models || <any>{};
 
@@ -53,7 +53,7 @@ export function addMetaData(target: Object, decorator: string, decoratorType: De
     //metadataRoot.models[name].decorator[decorator].fields = metadataRoot.models[name].decorator[decorator].fields || <any>{};
 
     if (!metadataRoot.models[name].decorator[decorator][propertyKey]) {
-        var metData: MetaData = new MetaData(target, decorator, decoratorType, params, propertyKey);
+        var metData: MetaData = new MetaData(target, decorator, decoratorType, params, propertyKey, paramIndex);
         metadataRoot.models[name].decorator[decorator][propertyKey] = metData;
     }
 }

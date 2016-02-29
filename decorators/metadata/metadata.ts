@@ -4,19 +4,22 @@ import {IDocumentParams} from '../interfaces/document-params';
 import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
-import {ReflectConstants} from '../../constants/reflect';
+import {IInjectParams} from '../interfaces/inject-params';
+import {ReflectConstants} from '../../constants';
 
 export class MetaData {
     target: Object;
     propertyKey: string;
     decorator: string;
     propertyType: ParamTypeCustom;
-    params: IFieldParams | IAssociationParams | IDocumentParams | IRepositoryParams;
+    params: IFieldParams | IAssociationParams | IDocumentParams | IRepositoryParams | IInjectParams;
     decoratorType: DecoratorType;
+    paramIndex: number;
 
-    constructor(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey: string) {
+    constructor(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey: string, paramIndex: number) {
         this.target = target;
         this.propertyKey = propertyKey;
+        this.paramIndex = paramIndex;
         this.decorator = decorator;
         this.decoratorType = decoratorType;
         this.params = params;
