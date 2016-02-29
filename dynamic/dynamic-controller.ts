@@ -11,49 +11,6 @@ import {MetaData} from '../decorators/metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {SecurityConfig} from '../security-config';
 
-var loggedIn = require('connect-ensure-login').ensureLoggedIn;
-var expressJwt = require('express-jwt');
-var authenticateByToken = expressJwt({
-    secret: SecurityConfig.tokenSecretkey,
-    credentialsRequired: true,
-    getToken: function fromHeaderOrQuerystring(req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-            return req.query.token;
-        } else if (req.cookies && req.cookies.authorization) {
-            return req.cookies.authorization;
-        }
-        return null;
-    }
-});
-
-
-var ensureLoggedIn = () => {
-
-    //by token
-    if (Config.Security.isAutheticationByToken) {
-        return authenticateByToken;
-    }
-
-    //by password
-    if (Config.Security.isAutheticationByUserPasswd) {
-        return loggedIn();
-    }
-
-    return function (req, res, next) {
-        next();
-    }
-}
-
-if (!Config.Security.isAutheticationEnabled) {
-    ensureLoggedIn = () => {
-        return function(req, res, next) {
-            next();
-        }
-    }
-}
-
 export class DynamicController {
     private repository: DynamicRepository;
     private path: string;
@@ -69,7 +26,7 @@ export class DynamicController {
 
     addRoutes() {
         router.get(this.path,
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
 
                 if (!this.isAuthorize(req, 1))
@@ -84,7 +41,7 @@ export class DynamicController {
             });
 
         router.get(this.path + '/:id',
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 if (!this.isAuthorize(req, 1))
                     return res.send(401, 'unauthorize access for resource ' + this.path);
@@ -97,7 +54,7 @@ export class DynamicController {
             });
         
         router.get(this.path + '/:id/:prop',
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
@@ -174,7 +131,7 @@ export class DynamicController {
             });
 
         router.post(this.path,
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 this.getModelFromHalModel(req.body);
                 return this.repository.post(req.body)
@@ -194,7 +151,7 @@ export class DynamicController {
 
         // delete any property value
         router.delete(this.path + "/:id/:prop",
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.delete(req.params.id)
                     .then(result => {
@@ -206,7 +163,7 @@ export class DynamicController {
 
         // add or update any property value
         router.put(this.path + "/:id",
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
@@ -217,7 +174,7 @@ export class DynamicController {
             });
 
         router.delete(this.path + "/:id",
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.delete(req.params.id)
                     .then((result) => {
@@ -228,7 +185,7 @@ export class DynamicController {
             });
 
         router.patch(this.path + "/:id",
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {

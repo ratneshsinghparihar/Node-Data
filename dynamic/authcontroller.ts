@@ -19,51 +19,6 @@ import * as dc from './dynamic-controller';
 var router = dc.router;
 var userrepository: DynamicRepository;
 
-//Remove this code, move it to utils. Same code present in dynamic-controller.ts
-var loggedIn = require('connect-ensure-login').ensureLoggedIn;
-var expressJwt = require('express-jwt');
-
-
-var authenticateByToken = expressJwt({
-    secret: SecurityConfig.tokenSecretkey,
-    credentialsRequired: true,
-    getToken: function fromHeaderOrQuerystring(req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-            return req.query.token;
-        } else if (req.cookies && req.cookies.authorization){
-            return req.cookies.authorization;
-        }
-        return null;
-    }
-});
-
-var ensureLoggedIn = () => {
-
-    //by token
-    if (Config.Security.isAutheticationByToken) {
-        return authenticateByToken;
-    }
-
-    //by password
-    if (Config.Security.isAutheticationByUserPasswd) {
-        return loggedIn();
-    }
-
-    return function (req, res, next) {
-        next();
-    }
-}
-
-if (!Config.Security.isAutheticationEnabled) {
-    ensureLoggedIn = () => {
-        return function (req, res, next) {
-            next();
-        }
-    }
-}
-
 export class AuthController {
 
     private path: string;
@@ -215,7 +170,7 @@ export class AuthController {
         });
 
         router.get('/data',
-            ensureLoggedIn(),
+            Utils.ensureLoggedIn(),
              (req, res) => {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();

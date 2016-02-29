@@ -1,6 +1,8 @@
 ﻿/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 /// <reference path="../../typings/node/node.d.ts" />
 /// <reference path="../../typings/linq/linq.3.0.3-Beta4.d.ts" />
+/// <reference path="../../security-config.ts" />
+/// <reference path="../../config.ts" />
 
 import {ParamTypeCustom} from './param-type-custom';
 import {Strict} from '../../enums/document-strict';
@@ -16,6 +18,11 @@ import {IDocumentParams} from '../interfaces/document-params';
 import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
+
+var loggedIn = require('connect-ensure-login').ensureLoggedIn;
+var expressJwt = require('express-jwt');
+import * as Config from '../../config';
+import {SecurityConfig} from '../../security-config';
 
 export var metadataRoot: MetaRoot = <any>{};
 
@@ -276,4 +283,38 @@ export function getAllRelationalMetaDataForField(target: Object, propertyKey?: s
         .where(keyVal => keyVal.key === propertyKey) // keyval = {[key(propName): string]: Metadata};
         .select(keyVal => keyVal.value) // keyval = {[key(propName): string]: Metadata};
         .toArray();
+}
+
+
+var authenticateByToken = expressJwt({
+    secret: SecurityConfig.tokenSecretkey,
+    credentialsRequired: true,
+    getToken: function fromHeaderOrQuerystring(req) {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            return req.headers.authorization.split(' ')[1];
+        } else if (req.query && req.query.token) {
+            return req.query.token;
+        } else if (req.cookies && req.cookies.authorization) {
+            return req.cookies.authorization;
+        }
+        return null;
+    }
+});
+
+
+export function ensureLoggedIn() {
+
+    //by token
+    if (Config.Security.isAutheticationByToken) {
+        return authenticateByToken;
+    }
+
+    //by password
+    if (Config.Security.isAutheticationByUserPasswd) {
+        return loggedIn();
+    }
+
+    return function (req, res, next) {
+        next();
+    }
 }
