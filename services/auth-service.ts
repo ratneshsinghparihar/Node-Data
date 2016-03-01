@@ -10,7 +10,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 
-import {DynamicRepository} from '../dynamic/dynamic-repository.ts';
+import {DynamicRepository} from '../dynamic/dynamic-repository';
 
 var userrepository: DynamicRepository;
 

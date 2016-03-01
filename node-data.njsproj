@@ -102,7 +102,6 @@
     <TypeScriptCompile Include="server.ts" />
     <TypeScriptCompile Include="services\role-service.ts" />
     <TypeScriptCompile Include="services\user-service.ts" />
-    <TypeScriptCompile Include="services\authService.ts" />
     <TypeScriptCompile Include="services\userrole-service.ts" />
     <TypeScriptCompile Include="typings\express\express.d.ts" />
     <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
