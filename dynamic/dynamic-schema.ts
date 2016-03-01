@@ -8,12 +8,12 @@ import aa = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import * as Types from '../datatypes/mongoose';
 import {Strict} from '../enums/document-strict';
-import {Decorators} from '../constants/decorators';
+import {Decorators} from '../constants';
 
-import {DecoratorType} from '../enums/decorator-type';
+import {DecoratorType} from '../enums';
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
-import {IDocumentParams} from '../decorators/interfaces/document-params';
+import {IDocumentParams} from '../decorators/interfaces/meta-params';
 
 export class DynamicSchema {
     parsedSchema: any;
@@ -86,7 +86,6 @@ export class DynamicSchema {
             case Object:
             default: return Mongoose.Schema.Types.Mixed;
         }
-        return type;
     }
 
     private getMongooseOptions(target: Object): any {

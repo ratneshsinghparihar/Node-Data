@@ -1,9 +1,7 @@
-import {onetomany, manytoone, manytomany} from '../decorators/association';
-import {document} from '../decorators/document';
-import {field} from '../decorators/field';
+import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
 import {IRole} from './role';
 import * as UM from './usermodel';
-import {Strict} from '../enums/document-strict';
+import {Strict} from '../enums';
 
 @document({ name: 'roles', strict: Strict.false })
 export class RoleModel{

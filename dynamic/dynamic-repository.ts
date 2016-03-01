@@ -2,10 +2,10 @@
 /// <reference path="../typings/node/node.d.ts" />
 /// <reference path="../typings/q/Q.d.ts" />
 /// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
+/// <reference path="../typings/express/express.d.ts" />
 
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-var http = require("http");
-var express = require("express");
+import express = require("express");
 var router = express.Router();
 
 import Q = require('q');
@@ -16,13 +16,13 @@ Mongoose.connect(Config.DbConnection);
 var MongooseSchema = Mongoose.Schema;
 
 import * as MetaUtils from "../decorators/metadata/utils";
-import * as Utils from "../utils/utils";
+import * as Utils from "../utils";
 import {MetaData} from '../decorators/metadata/metadata';
-import {IAssociationParams} from '../decorators/interfaces/association-params';
-import {IFieldParams} from '../decorators/interfaces/field-params';
-import {IDocumentParams} from '../decorators/interfaces/document-params';
+import {IAssociationParams, IFieldParams, IDocumentParams} from '../decorators/interfaces/meta-params';
 import {Decorators} from '../constants/decorators';
 import {EntityChange} from '../enums/entity-change';
+import {UserRoleService} from '../services/userrole-service';
+import {Container} from '../di';
 
 var repoList: { [key: string]: any } = {};
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};

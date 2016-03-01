@@ -1,5 +1,10 @@
 ﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
 import Mongoose = require("mongoose");
+import {ClassType} from './classtype';
+
+export function getParamType(target: Object|Function, prop: string) {
+    return Reflect.getMetadata("design:type", target, prop);
+}
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -31,6 +36,15 @@ export function castToMongooseType(value, schemaType) {
         default: newVal = value; break;
     }
     return newVal;
+}
+
+export function activator<T>(cls: ClassType, args?: Array<any>): T {
+    return new (Function.prototype.bind.apply(cls, [null].concat(args)));
+    //function F(): void {
+    //    return <any>cls.constructor.apply(this, args);
+    //}
+    //F.prototype = <any>cls.constructor.prototype;
+    //return new F();
 }
 
 export function isRelationDecorator(decorator: string) {

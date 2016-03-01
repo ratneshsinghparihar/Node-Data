@@ -1,5 +1,5 @@
 import * as Utils from "./metadata/utils";
-import {Decorators} from '../constants/decorators';
+import {Decorators} from '../constants';
 import {DecoratorType} from '../enums/decorator-type';
 import {Strict} from '../enums/document-strict';
 

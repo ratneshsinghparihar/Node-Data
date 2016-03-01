@@ -10,6 +10,7 @@
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <TypeScriptTarget>ES6</TypeScriptTarget>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
     <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <TypeScriptExperimentalDecorators>true</TypeScriptExperimentalDecorators>
@@ -18,6 +19,9 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>node-data</Name>
+    <NodeExeArguments>
+    </NodeExeArguments>
+    <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="jsdocconf.json" />
@@ -26,31 +30,47 @@
     <Content Include="tsd.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="config.ts" />
+    <TypeScriptCompile Include="constants\index.ts" />
     <TypeScriptCompile Include="constants\reflect.ts" />
     <TypeScriptCompile Include="constants\decorators.ts">
       <SubType>Code</SubType>
       <TestFramework>ExportRunner</TestFramework>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="config.ts" />
+    <TypeScriptCompile Include="constants\decorators.ts" />
+    <TypeScriptCompile Include="constants\index.ts" />
+    <TypeScriptCompile Include="constants\reflect.ts" />
+    <TypeScriptCompile Include="controllers\index.ts" />
+    <TypeScriptCompile Include="controllers\userController.ts" />
     <TypeScriptCompile Include="datatypes\mongoose.ts" />
     <TypeScriptCompile Include="decorators\association.ts" />
     <TypeScriptCompile Include="decorators\document.ts" />
     <TypeScriptCompile Include="decorators\field.ts" />
+    <TypeScriptCompile Include="decorators\index.ts" />
+    <TypeScriptCompile Include="decorators\inject.ts" />
     <TypeScriptCompile Include="decorators\interfaces\association-params.ts" />
     <TypeScriptCompile Include="decorators\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="decorators\interfaces\document-params.ts" />
     <TypeScriptCompile Include="decorators\interfaces\field-metadata.ts" />
     <TypeScriptCompile Include="decorators\interfaces\field-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\inject-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\meta-params.ts" />
     <TypeScriptCompile Include="decorators\interfaces\metaroot.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\repository-params.ts" />
     <TypeScriptCompile Include="decorators\metadata\metadata.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
     <TypeScriptCompile Include="decorators\metadata\searchUtils.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
-    <TypeScriptCompile Include="dynamic\authcontroller.ts" />
-    <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="decorators\repository.ts" />
+    <TypeScriptCompile Include="decorators\service.ts" />
+    <TypeScriptCompile Include="di\di.ts" />
+    <TypeScriptCompile Include="di\index.ts" />
+    <TypeScriptCompile Include="dynamic\authcontroller.ts" />
+    <TypeScriptCompile Include="dynamic\baserepository.ts" />
+    <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-repository.ts" />
-    <TypeScriptCompile Include="dynamic\dynamic.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-schema.ts" />
+    <TypeScriptCompile Include="dynamic\dynamic.ts" />
     <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
@@ -58,30 +78,43 @@
     <TypeScriptCompile Include="enums\decorator-type.ts" />
     <TypeScriptCompile Include="enums\document-strict.ts" />
     <TypeScriptCompile Include="enums\entity-change.ts" />
+    <TypeScriptCompile Include="enums\index.ts" />
     <TypeScriptCompile Include="models\adress.ts" />
+    <TypeScriptCompile Include="models\blog.ts" />
+    <TypeScriptCompile Include="models\blogmodel.ts" />
     <TypeScriptCompile Include="models\coursemodel.ts" />
+    <TypeScriptCompile Include="models\decorator.ts" />
     <TypeScriptCompile Include="models\modelBase.ts" />
     <TypeScriptCompile Include="models\role.ts" />
-    <TypeScriptCompile Include="dynamic\baserepository.ts" />
     <TypeScriptCompile Include="models\rolemodel.ts" />
     <TypeScriptCompile Include="models\studentmodel.ts" />
     <TypeScriptCompile Include="models\teachermodel.ts" />
+    <TypeScriptCompile Include="models\user.ts" />
     <TypeScriptCompile Include="models\usermodel.ts" />
+    <TypeScriptCompile Include="repositories\blogrepository.ts" />
     <TypeScriptCompile Include="repositories\course-repository.ts" />
     <TypeScriptCompile Include="repositories\rolerepository.ts" />
     <TypeScriptCompile Include="repositories\student-repository.ts" />
     <TypeScriptCompile Include="repositories\teacher-repository.ts" />
-    <TypeScriptCompile Include="repositories\userrepository.ts" />
-    <TypeScriptCompile Include="server.ts" />
-    <Compile Include="server.js" />
-    <TypeScriptCompile Include="controllers\index.ts" />
-    <TypeScriptCompile Include="controllers\userController.ts" />
-    <Compile Include="controllers\index.js" />
-    <Compile Include="controllers\userController.js" />
-    <TypeScriptCompile Include="models\user.ts" />
+    <TypeScriptCompile Include="repositories\userRepository.ts" />
     <TypeScriptCompile Include="schema\userSchema.ts" />
-    <TypeScriptCompile Include="services\userService.ts" />
-    <TypeScriptCompile Include="utils\utils.ts" />
+    <TypeScriptCompile Include="security-config.ts" />
+    <TypeScriptCompile Include="server.ts" />
+    <TypeScriptCompile Include="services\role-service.ts" />
+    <TypeScriptCompile Include="services\user-service.ts" />
+    <TypeScriptCompile Include="services\userrole-service.ts" />
+    <TypeScriptCompile Include="typings\express\express.d.ts" />
+    <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
+    <TypeScriptCompile Include="typings\linq\linq.3.0.3-Beta4.d.ts" />
+    <TypeScriptCompile Include="typings\mime\mime.d.ts" />
+    <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\q\Q.d.ts" />
+    <TypeScriptCompile Include="typings\request\request.d.ts" />
+    <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="utils\ClassType.ts" />
+    <TypeScriptCompile Include="utils\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="controllers" />
@@ -93,6 +126,17 @@
     <Folder Include="datatypes\" />
     <Folder Include="constants\" />
     <Folder Include="enums\" />
+    <Folder Include="di\" />
+    <Folder Include="typings\" />
+    <Folder Include="typings\express\" />
+    <Folder Include="typings\form-data\" />
+    <Folder Include="typings\linq\" />
+    <Folder Include="typings\mime\" />
+    <Folder Include="typings\mongoose\" />
+    <Folder Include="typings\node\" />
+    <Folder Include="typings\q\" />
+    <Folder Include="typings\request\" />
+    <Folder Include="typings\serve-static\" />
     <Folder Include="utils\" />
     <Folder Include="repositories\" />
     <Folder Include="schema" />
@@ -100,6 +144,20 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <TypeScriptTarget>ES6</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+    <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
+  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
   <ProjectExtensions>
@@ -140,17 +198,5 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TypeScriptTarget>ES5</TypeScriptTarget>
-    <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
-    <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptModuleKind>AMD</TypeScriptModuleKind>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <TypeScriptTarget>ES5</TypeScriptTarget>
-    <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
-    <TypeScriptSourceMap>false</TypeScriptSourceMap>
-    <TypeScriptModuleKind>AMD</TypeScriptModuleKind>
-  </PropertyGroup>
   <Import Project="$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets')" />
 </Project>

@@ -1,12 +1,10 @@
 /// <reference path="../typings/mongoose/mongoose.d.ts" />
 
 import * as RM from './rolemodel';
-import {onetomany, manytoone, manytomany} from '../decorators/association';
-import {document} from '../decorators/document'; 
-import {field} from '../decorators/field'; 
+import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
 import {IUser} from './user';
 import {Types} from 'mongoose';
-import {Strict} from '../enums/document-strict';
+import {Strict} from '../enums';
 import * as r from './rolemodel';
 
 @document({ name: 'users', strict: Strict.false })
