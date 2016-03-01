@@ -19,26 +19,17 @@ var router = dc.router;
 
 export class AuthService {
 
-
     constructor(repository: DynamicRepository) {
         userrepository = repository;
         this.addRoutes();
     }
 
     authenticate() {
-        if (Config.Security.isAutheticationByToken) {
-            this.authenticateByToken(true);
-        }
-
-        if (Config.Security.isAutheticationByUserPasswd) {
-            this.authenticateByPassword(true);
-        }
-
+        this.authenticateByPasswordorToken();
         this.facebookAuthentication();
     }
 
-    private authenticateByToken(authenticate: boolean) {
-        if (authenticate) {
+    private authenticateByPasswordorToken() {
             passport.use(new LocalStrategy(
                 (username, password, done) => {
                     userrepository.findByField("name", username).then(
@@ -60,54 +51,30 @@ export class AuthService {
 
                 }
 
-            ));
-        }
+        ));
+            this.serializeDeserialize();
+
+          
     }
 
-    private authenticateByPassword(authenticate: boolean) {
-        if (authenticate) {
-            passport.use(new LocalStrategy(
-                (username, password, done) => {
-                    userrepository.findByField("name", username).then(
-                        (user) => {
+    private serializeDeserialize() {
+        passport.serializeUser((user, cb) => {
+            cb(null, user._id);
+        });
 
-                            if (!user) {
-                                return done(null, false, { message: 'Incorrect username.' });
-                            }
-                            if (user.password != password) {
-                                return done(null, false, { message: 'Incorrect password.' });
-                            }
 
-                            return done(null, user);
-
-                        },
-                        (error) => {
-                            return done(error);
-                        });
-
+        passport.deserializeUser((id, cb) => {
+            userrepository.findOne(id).
+                then(
+                (user) => {
+                    cb(null, user);
+                },
+                (err) => {
+                    return cb(err);
                 }
+                );
 
-            ));
-
-
-            passport.serializeUser((user, cb) => {
-                cb(null, user._id);
-            });
-
-
-            passport.deserializeUser((id, cb) => {
-                userrepository.findOne(id).
-                    then(
-                    (user) => {
-                        cb(null, user);
-                    },
-                    (err) => {
-                        return cb(err);
-                    }
-                    );
-
-            });
-        }
+        });
     }
 
     private facebookAuthentication() {
@@ -148,24 +115,7 @@ export class AuthService {
             }
 
         ));
-
-        passport.serializeUser((user, cb) => {
-            cb(null, user._id);
-        });
-
-
-        passport.deserializeUser((id, cb) => {
-            userrepository.findOne(id).
-                then(
-                (user) => {
-                    cb(null, user);
-                },
-                (err) => {
-                    return cb(err);
-                }
-                );
-
-        });
+        this.serializeDeserialize();
     }
 
     private addRoutes() {
