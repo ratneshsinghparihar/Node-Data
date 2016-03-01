@@ -14,7 +14,7 @@ export class Security {
 }
 
 export class facebookAuth {
-    public static clientID = '848426498601025';// your App ID
-    public static clientSecret = '209bfed3e31c927339a60f835da20901';// your App Secret
+    public static clientID = '11';// your App ID
+    public static clientSecret = 'aa';// your App Secret
     public static callbackURL = 'http://localhost:23548/auth/facebook/callback';
 }
