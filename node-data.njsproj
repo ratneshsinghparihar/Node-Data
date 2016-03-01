@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1e09d3f0-0f70-4a7a-a0d8-294a8663def6}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.js</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -75,6 +75,7 @@
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
     <TypeScriptCompile Include="dynamic\metadataController.ts" />
+    <TypeScriptCompile Include="dynamic\model-helper.ts" />
     <TypeScriptCompile Include="enums\decorator-type.ts" />
     <TypeScriptCompile Include="enums\document-strict.ts" />
     <TypeScriptCompile Include="enums\entity-change.ts" />

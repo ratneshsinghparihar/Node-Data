@@ -9,26 +9,14 @@ import express = require("express");
 var router = express.Router();
 
 import Q = require('q');
-import {Config} from '../config';
-
 import Mongoose = require("mongoose");
-Mongoose.connect(Config.DbConnection);
-var MongooseSchema = Mongoose.Schema;
 
-import * as MetaUtils from "../decorators/metadata/utils";
-import * as Utils from "../utils";
-import {MetaData} from '../decorators/metadata/metadata';
-import {IAssociationParams, IFieldParams, IDocumentParams} from '../decorators/interfaces/meta-params';
-import {Decorators} from '../constants/decorators';
-import {EntityChange} from '../enums/entity-change';
 import {UserRoleService} from '../services/userrole-service';
+import * as ModelHelper from "../dynamic/model-helper";
 import {Container} from '../di';
-
 import {searchUtils} from "../search/elasticSearchUtils";
 
-var repoList: { [key: string]: any } = {};
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
-
  
 export function GetRepositoryForName(name: string): IDynamicRepository {
     return modelNameRepoModelMap[name]
@@ -42,7 +30,6 @@ export interface IDynamicRepository {
     post(obj: any): Q.Promise<any>;
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>): Q.Promise<any>;
-    patchAllEmbedded(prop: string, obj: any, entityChange: EntityChange, embedded: boolean, targetPropArray: boolean): Q.Promise<any>;
     getEntityType() : any;
 }
 
@@ -53,14 +40,14 @@ export class DynamicRepository implements IDynamicRepository {
     private entityType: any;
     private modelRepo: any;
 
-    constructor(repositoryPath: string, fn: Function, schema: any, modelRepo: any) {
-        console.log(schema);
+    constructor(repositoryPath: string, fn: Function, model: any, modelRepo: any) {
+        //console.log(schema);
         this.path = repositoryPath;
         var modelName = this.path.substring(1);
         this.entityType = fn;
         //this.metaModel=new this.entityType();
-        repoList[this.path] = repoList[this.path] || Mongoose.model(repositoryPath, schema);
-        this.model = repoList[this.path];
+        this.model = model;
+        console.log(this.model.schema);
         modelNameRepoModelMap[this.path] = this;
         this.modelRepo = modelRepo;
     }
@@ -72,8 +59,6 @@ export class DynamicRepository implements IDynamicRepository {
     public getModel() {
         return this.model;
     }
-    
-    
 
     public addRel() {
         //var user1 = new this.model({"_id": Math.random() + new Date().toString() + this.path + "1", 'name': 'u1' });
@@ -86,11 +71,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public saveObjs(objArr: Array<any>) {
-        return this.model.create(objArr).then((msg) => {
-            console.log(msg);
-        }, (e) => {
-            console.log(e);
-        });
+        return ModelHelper.saveObjs(this.model, objArr);
     }
 
     public modelName() {
@@ -105,61 +86,27 @@ export class DynamicRepository implements IDynamicRepository {
      * Returns all the items in a collection
      */
     public findAll(): Q.Promise<any> {
-        return Q.nbind(this.model.find, this.model)({})
-            .then(result => {
-                return this.toObject(result);
-            });;
+        return ModelHelper.findAll(this.model);
     }
 
     public findWhere(query): Q.Promise<any> {
-        return Q.nbind(this.model.find, this.model)(query);
+        return ModelHelper.findWhere(this.model, query);
     }
 
     public findOne(id) {
-        return Q.nbind(this.model.findOne, this.model)({ '_id': id })
-            .then(result => {
-                return this.toObject(result);
-            });;
+        return ModelHelper.findOne(this.model, id);
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
-        var param = {};
-        param[fieldName] = value;
-        return Q.nbind(this.model.findOne, this.model)(param)
-            .then(result => {
-                return this.toObject(result);
-            },
-            err => {
-                console.error(err);
-                return Q.reject(err);
-            });
+        return ModelHelper.findByField(this.model, fieldName, value);
     }
 
     public findMany(ids: Array<any>) {
-        return Q.nbind(this.model.find, this.model)({
-            '_id': {
-                $in: ids
-            }
-        }).then((result: any) => {
-            if (result.length !== ids.length) {
-                var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length;
-                console.error(error);
-                return Q.reject(error);
-            }
-            return this.toObject(result);
-        });
+        return ModelHelper.findMany(this.model, ids);
     }
 
     public findChild(id, prop) {
-        var deferred = Q.defer();
-        this.model.findOne({ '_id': id }, (err, res) => {
-            if (err) {
-                return deferred.reject(err);
-            }
-            return deferred.resolve(res);
-        });
-        return deferred.promise;
-
+        return ModelHelper.findChild(this.model, id, prop);
     }
 
     /**
@@ -168,293 +115,20 @@ export class DynamicRepository implements IDynamicRepository {
      * @param obj
      */
     public post(obj: any): Q.Promise<any> {
-        return this.processEmbedding(obj)
-            .then(result => {
-                try {
-                    this.autogenerateIdsForAutoFields(obj);
-                } catch (ex) {
-                    console.log(ex);
-                    return Q.reject(ex);
-                }
-                return Q.nbind(this.model.create, this.model)(new this.model(obj)).then(result => {
-                    return this.toObject(result);
-                });
-            }).catch(error => {
-                console.error(error);
-                return Q.reject(error);
-            });
+        return ModelHelper.post(this.model, obj);
     }
 
     public put(id: any, obj: any) {
-        // First update the any embedded property and then update the model
-        return this.processEmbedding(obj).then(result=> {
-            return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id }, obj, { upsert: true, new: true })
-                .then(result => {
-                    this.updateEmbeddedOnEntityChange(EntityChange.put, result);
-                    return this.toObject(result);
-                });
-        }).catch(error => {
-            console.error(error);
-            return Q.reject(error);
-        });
+        return ModelHelper.put(this.model, id, obj);
     }
 
     public delete(id: any) {
-        return Q.nbind(this.model.findOneAndRemove, this.model)({ '_id': id })
-            .then((response: any) => {
-                if (!response) {
-                    return Q.reject('delete failed');
-                }
-                return this.updateEmbeddedOnEntityChange(EntityChange.delete, response);
-            });
+        return ModelHelper.del(this.model, id);
     }
 
     public patch(id: any, obj) {
-        // First update the any embedded property and then update the model
-        return this.processEmbedding(obj).then(result=> {
-            return Q.nbind(this.model.findOneAndUpdate, this.model)({ '_id': id }, { $set: obj })
-                .then(result => {
-                    this.updateEmbeddedOnEntityChange(EntityChange.patch, result);
-                });
-        }).catch(error => {
-            console.error(error);
-            return Q.reject(error);
-        });
+        return ModelHelper.patch(this.model, id, obj);;
     }
-
-    public patchAllEmbedded(prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, isArray?: boolean) {
-        //var compareropWithId = '"' + prop + '._id"';
-        //var updateProp = '"' + prop + '._id"';
-        if (isEmbedded) {
-            
-            var queryCond = {};
-            queryCond[prop + '._id'] = updateObj['_id'];
-
-            return Q.nbind(this.model.find, this.model)(queryCond)
-                .then(updated=> {
-
-                    if (entityChange === EntityChange.put
-                        || entityChange === EntityChange.patch
-                        || (entityChange === EntityChange.delete && !isArray)) {
-
-                        var cond = {};
-                        cond[prop + '._id'] = updateObj['_id'];
-
-                        var newUpdateObj = {};
-                        isArray
-                            ? newUpdateObj[prop + '.$'] = updateObj
-                            : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
-
-                        return Q.nbind(this.model.update, this.model)(cond, { $set: newUpdateObj }, { multi: true })
-                            .then(result => {
-                                console.log(result);
-                                var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
-                                this.findAndUpdateEmbeddedData(ids);
-                            });
-                            
-                    }
-                    else {
-                        var pullObj = {};
-                        pullObj[prop] = {};
-                        pullObj[prop]['_id'] = updateObj['_id'];
-
-                        return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
-                            .then(result => {
-                                console.log(result);
-                                var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
-                                this.findAndUpdateEmbeddedData(ids);
-                            });
-                    }
-                    });
-            }
-        else {
-            // this to handle foreign key deletion only
-            if (entityChange == EntityChange.delete) {
-                var queryCond = {};
-                if (isArray) {
-                    queryCond[prop] = { $in: [updateObj['_id']] };
-                }
-                else {
-                    queryCond[prop] = updateObj['_id'];
-                }
-
-                return Q.nbind(this.model.find, this.model)(queryCond)
-                    .then(updated=> {
-                        console.log(cond + ' :count:' + (updated as any[]).length);
-
-                        var pullObj = {};
-                        pullObj[prop] = {};
-
-                        if (isArray) {
-                            pullObj[prop] = updateObj['_id'];
-                            return Q.nbind(this.model.update, this.model)({}, { $pull: pullObj }, { multi: true })
-                                .then(result => {
-                                    console.log(result);
-                                    var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
-                                    this.findAndUpdateEmbeddedData(ids);
-                                });
-                        }
-                        else {
-                            pullObj[prop] = null;
-                            var cond = {};
-                            cond[prop] = updateObj['_id'];
-
-                            return Q.nbind(this.model.update, this.model)(cond, { $set: pullObj }, { multi: true })
-                                .then(result => {
-                                    console.log(result);
-                                    var ids = Enumerable.from(updated).select(x=> x['_id']).toArray();
-                                    this.findAndUpdateEmbeddedData(ids);
-                                });
-                        }
-                    });
-            }
-        }
-    }
-
-    private findAndUpdateEmbeddedData(ids: any[]): Q.Promise<any> {
-        return Q.nbind(this.model.find, this.model)({
-            '_id': {
-                $in: ids
-            }
-        }).then(result=> {
-            // Now update affected documents in embedded records
-
-            var asyncCalls = [];
-            Enumerable.from(result).forEach(x=> {
-                asyncCalls.push(this.updateEmbeddedOnEntityChange(EntityChange.patch, x));
-            });
-
-            //return Q.allSettled(asyncCalls);
-        });
-    }
-
-    /**
-     * Autogenerate mongodb guid (ObjectId) for the autogenerated fields in the object
-     * @param obj
-     * throws TypeError if field type is not String, ObjectId or Object
-     */
-    private autogenerateIdsForAutoFields(obj: any): void {
-        var fieldMetaArr = MetaUtils.getAllMetaDataForDecorator(this.entityType, Decorators.FIELD);
-        if (!fieldMetaArr) {
-            return;
-        }
-        Enumerable.from(fieldMetaArr)
-            .where((keyVal) => keyVal.value && keyVal.value.params && (<IFieldParams>keyVal.value.params).autogenerated)
-            .forEach((keyVal) => {
-                var metaData = <MetaData>keyVal.value;
-                var objectId = new Mongoose.Types.ObjectId();
-                if (metaData.propertyType.itemType === String) {
-                    obj[metaData.propertyKey] = objectId.toHexString();
-                } else if (metaData.propertyType.itemType === Mongoose.Types.ObjectId || metaData.propertyType.itemType === Object) {
-                    obj[metaData.propertyKey] = objectId;
-                } else {
-                    throw TypeError(MetaUtils.getModelNameFromObject(this.entityType) + ': ' + metaData.propertyKey + ' - ' + 'Invalid autogenerated type');
-                }
-            });
-    }
-
-    private merge(source, dest) {
-        for (var key in source) {
-            if (!dest[key] || dest[key] != source[key]) {
-                dest[key] = source[key];
-            }
-        }
-    }
-
-    private updateEmbeddedOnEntityChange(entityChange: EntityChange, obj: any) {
-        var allReferencingEntities = MetaUtils.getAllRelationsForTarget(this.entityType);
-        var asyncCalls = [];
-        Enumerable.from(allReferencingEntities)
-            .forEach((x: MetaData) => { 
-                asyncCalls.push(this.updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, (<IAssociationParams>x.params).embedded, entityChange));
-            });
-        return Q.allSettled(asyncCalls);
-    }
-
-    private updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange): Q.Promise<any> {
-        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
-        if (!targetModelMeta) {
-            throw 'Could not fetch metadata for target object';
-        }
-        var repoName = (<IDocumentParams>targetModelMeta.params).name;
-        var repo = GetRepositoryForName(repoName);
-        if (!repo) {
-            throw 'no repository found for relation';
-        }
-        return repo.patchAllEmbedded(propKey, updatedObject, entityChange, embedded, targetPropArray);
-    }
-
-    private processEmbedding(obj: any) {
-        var asyncCalls = [];
-        for (var prop in obj) {
-            var metaArr = MetaUtils.getAllMetaDataForField(this.entityType, prop);
-            var relationDecoratorMeta: [MetaData] = <any>Enumerable.from(metaArr)
-                .where((x: MetaData) => Utils.isRelationDecorator(x.decorator))
-                .toArray();
-
-            if (!relationDecoratorMeta || relationDecoratorMeta.length == 0) {
-                continue;
-            }
-            if (relationDecoratorMeta.length > 1) {
-                throw 'too many relations in single model';
-            }
-            //var params = <IAssociationParams>relationDecoratorMeta[0].params;
-            asyncCalls.push(this.embedChild(obj, prop, relationDecoratorMeta[0]));
-            //else if (!params.persist) {
-            //    delete obj[prop];
-            //    continue;
-            //}
-        }
-        return Q.all(asyncCalls);
-    }
-
-    private embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
-        if (!obj[prop] || (obj[prop] instanceof Array && obj[prop].length == 0)) {
-            return Q.when();
-        }
-        if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
-            throw 'Expected array, found non-array';
-        }
-        if (!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
-            throw 'Expected single item, found array';
-        }
-        var params: IAssociationParams = <any>relMetadata.params;
-
-        var repo = GetRepositoryForName(params.rel);
-        if (!repo) {
-            throw 'no repository found for relation';
-        }
-
-        var params = <IAssociationParams>relMetadata.params;
-
-        return repo.findMany(this.castAndGetPrimaryKeys(obj, prop, relMetadata))
-            .then(result => {
-                if (params.embedded) {
-                    obj[prop] = obj[prop] instanceof Array ? result : result[0];
-                }
-                else {
-                    // Verified that foriegn keys are correct and now update the Id
-                    obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x=> x['_id']).toArray() : result[0]['_id'];
-                }
-            }).catch(error => {
-                console.error(error);
-                return Q.reject(error);
-            });
-    }
-
-    private castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
-        var primaryMetaDataForRelation = MetaUtils.getPrimaryKeyMetadata(relMetaData.target);
-
-        if (!primaryMetaDataForRelation) {
-            throw 'primary key not found for relation';
-        }
-
-        var primaryType = primaryMetaDataForRelation.propertyType.itemType;
-        return obj[prop] instanceof Array
-            ? Enumerable.from(obj[prop]).select(x => Utils.castToMongooseType(x, primaryType)).toArray()
-            : [Utils.castToMongooseType(obj[prop], primaryType)];
-    }
-
 
     //private saveChildren(obj: any): Q.Promise<any> {
     //    var asyncCalls = [];
@@ -507,15 +181,6 @@ export class DynamicRepository implements IDynamicRepository {
     //    });
     //    return Q.allSettled(asyncCalls);
     //}
-
-
-
-    private toObject(result): any {
-        if (result instanceof Array) {
-            return Enumerable.from(result).select(x => x.toObject()).toArray();
-        }
-        return result ? result.toObject() : null ;
-    }
 
     //private findNthIndex(str: string, subStr: string, n: number) {
     //    var index = -1;

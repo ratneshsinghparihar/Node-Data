@@ -76,20 +76,25 @@ export class MetadataController {
         //var props: { [key: string]: MetaData } = <any>{};
         var props = [];
         var metaData = {};
+        var properties = [];
         Enumerable.from(metas).selectMany(x=> x.value).forEach(x=> {
             var m = x as MetaData;
             if ((!props[m.propertyKey] || !m.propertyType.rel) && m.propertyType.itemType) {
+                var info = {};
+                info['name'] = m.propertyKey;
                 if (m.propertyType.rel) {
                     var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + m.propertyType.rel;
-                    metaData[m.propertyKey] = m.propertyType.isArray ? [relMeta] : relMeta;
+                    info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
                 }
                 else {
-                    metaData[m.propertyKey] = m.propertyType.isArray ? [m.propertyType.itemType.name] : m.propertyType.itemType.name;
+                    info['type'] = m.propertyType.isArray ? [m.propertyType.itemType.name] : m.propertyType.itemType.name;
                 }
+                properties.push(info);
                 props.push(m.propertyKey);
             }
         });
-
+        metaData['id'] = type;
+        metaData['properties'] = properties;
         this.metaData[req.params.type] = metaData;
         return this.metaData[req.params.type];
     }

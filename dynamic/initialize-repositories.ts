@@ -1,47 +1,60 @@
-﻿import {DynamicSchema} from './dynamic-schema';
+﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
+
+import {DynamicSchema} from './dynamic-schema';
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 
 import {IDynamicRepository,DynamicRepository} from './dynamic-repository';
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 import {searchUtils} from "../search/elasticSearchUtils";
+import {Config} from '../config';
+
+import Mongoose = require("mongoose");
+Mongoose.connect(Config.DbConnection);
+var MongooseSchema = Mongoose.Schema;
 
 export var mongooseRepoMap: { [key: string]: { fn: Function, repo: IDynamicRepository } } = { };
-export var  mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
+export var mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
+var schemaNameModel: { [key: string]: any } = {};
+
+export function GetEntity(schemaName: string): any {
+    if (!schemaNameModel[schemaName])
+        return null;
+
+    return schemaNameModel[schemaName]['entity'];
+}
+
+export function GetModel(schemaName: string): any {
+    if (!schemaNameModel[schemaName])
+        return null;
+
+    return schemaNameModel[schemaName]['model'];
+}
 
 export class InitializeRepositories {
     constructor(repositories: Array<Function>) {
         this.initializeRepo(repositories);
     }
-        private schemas: { [key: string]: DynamicSchema } = {};
-        private parsedSchema: { [key: string]: any} = {};
-
 
     private initializeRepo(repositories: Array<Function>) {
         repositories.forEach((value, index) => {
                 var schemaName = Utils.getMetaData(value.prototype.model.prototype, "document").params['name']; // model name i.e. schema name
                 var schema = new DynamicSchema(value.prototype.model.prototype, schemaName);
-                this.schemas[value.prototype.path] = schema;
-                this.parsedSchema[schema.schemaName] = schema;
-        });
-
-        //this.resolveMongooseRelation();
-
-        repositories.forEach((value, index) => {
-                var schema: DynamicSchema = this.schemas[value.prototype.path];
                 var mongooseSchema = schema.getSchema();
-                
                 mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schema.schemaName, fn: value };
                 mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
         });
 
-
         for (var path in mongooseSchemaMap) {
             var schemaMapVal = mongooseSchemaMap[path];
+            if (!schemaNameModel[schemaMapVal.name]) {
+                schemaNameModel[schemaMapVal.name] = { entity: schemaMapVal.fn.prototype.model, model: Mongoose.model(schemaMapVal.name, schemaMapVal.schema) };
+            }
+
             mongooseRepoMap[path] = {
                 fn: mongooseSchemaMap[path].fn,
-                repo: new DynamicRepository(schemaMapVal.name, schemaMapVal.fn.prototype.model, schemaMapVal.schema,schemaMapVal.fn.prototype)
+                repo: new DynamicRepository(schemaMapVal.name, GetEntity(schemaMapVal.name), GetModel(schemaMapVal.name), schemaMapVal.fn.prototype)
             };
             searchUtils.registerToMongoosastic(mongooseRepoMap[path].repo.getModel());
         }
