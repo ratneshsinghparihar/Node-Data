@@ -2,10 +2,11 @@
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 
-import {DynamicRepository} from './dynamic-repository';
+import {IDynamicRepository,DynamicRepository} from './dynamic-repository';
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
+import {searchUtils} from "../search/elasticSearchUtils";
 
-export var mongooseRepoMap: { [key: string]: { fn: Function, repo: any } } = { };
+export var mongooseRepoMap: { [key: string]: { fn: Function, repo: IDynamicRepository } } = { };
 export var  mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
@@ -30,6 +31,7 @@ export class InitializeRepositories {
         repositories.forEach((value, index) => {
                 var schema: DynamicSchema = this.schemas[value.prototype.path];
                 var mongooseSchema = schema.getSchema();
+                
                 mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schema.schemaName, fn: value };
                 mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
         });
@@ -41,6 +43,7 @@ export class InitializeRepositories {
                 fn: mongooseSchemaMap[path].fn,
                 repo: new DynamicRepository(schemaMapVal.name, schemaMapVal.fn.prototype.model, schemaMapVal.schema,schemaMapVal.fn.prototype)
             };
+            searchUtils.registerToMongoosastic(mongooseRepoMap[path].repo.getModel());
         }
     }
 

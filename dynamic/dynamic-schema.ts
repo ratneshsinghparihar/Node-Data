@@ -3,14 +3,16 @@
 /// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
 
 import Mongoose = require('mongoose');
-var MongooseSchema = Mongoose.Schema;
-import aa = require('mongoose');
+
+//import aa = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import * as Types from '../datatypes/mongoose';
 import {Strict} from '../enums/document-strict';
-import {Decorators} from '../constants';
+import {Decorators} from '../constants/decorators';
 
-import {DecoratorType} from '../enums';
+import {IMongooseSchemaOptions,schemaGenerator} from "./mongooseSchemaGenerator";
+
+import {DecoratorType} from '../enums/decorator-type';
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 import {IDocumentParams} from '../decorators/interfaces/meta-params';
@@ -27,7 +29,12 @@ export class DynamicSchema {
     }
     
     public getSchema(): Mongoose.SchemaType {
-        return new MongooseSchema(this.parsedSchema, this.getMongooseOptions(this.target));
+        var fieldMetaArr = Utils.getAllMetaDataForDecorator(this.target, Decorators.FIELD);
+        var idx = Enumerable.from(fieldMetaArr)
+            .where((keyVal) => keyVal.value && keyVal.value.params && (keyVal.value.params).searchIndex).any();
+            var options = this.getMongooseOptions(this.target);
+        var mongooseOptions : IMongooseSchemaOptions = { options:options,searchIndex : idx };
+        return schemaGenerator.createSchema(this.parsedSchema, mongooseOptions);
     }
 
     private parse(target: Object) {
@@ -50,9 +57,32 @@ export class DynamicSchema {
             if (fieldMetadata.decoratorType !== DecoratorType.PROPERTY) {
                 continue;
             }
+            if (fieldMetadata.params && (<any>fieldMetadata.params).searchIndex) {
+                schema[field] = this.getSearchSchemaTypeForParam(paramType);
+            }
+            else{
             schema[field] = this.getSchemaTypeForParam(paramType);
         }
+        }
         return schema;
+    }
+
+    private getSearchSchemaTypeForParam(paramType) {
+        var schemaType = this.getSchemaTypeForType(paramType.itemType);
+        if (paramType.rel) {
+            //var metaData = Utils.getPrimaryKeyMetadata(paramType.itemType);
+            //var relSchema;
+            //if ((<any>fieldMetadata.params).embedded) {
+            //    schema[field] = paramType.isArray ? [Types.Mixed] : Mongoose.Schema.Types.Mixed;
+            //} else {
+            //    relSchema = { ref: paramType.rel, type: Mongoose.Schema.Types.ObjectId };
+            //    schema[field] = paramType.isArray ? [relSchema] : relSchema;
+            //}
+
+            // need to handle embedding vs foreign key refs
+            return paramType.isArray ? [schemaType] : schemaType;
+        }
+        return paramType.isArray ? [schemaType] : {type : schemaType, es_indexed : true};
     }
 
     private getSchemaTypeForParam(paramType) {
@@ -88,7 +118,7 @@ export class DynamicSchema {
         }
     }
 
-    private getMongooseOptions(target: Object): any {
+    private getMongooseOptions(target: Object) {
         var documentMeta = Utils.getMetaData(<any>target, Decorators.DOCUMENT, null);
         var options = <any>{};
         var params = <IDocumentParams>(documentMeta.params || <any>{});

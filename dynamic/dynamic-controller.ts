@@ -1,15 +1,30 @@
 ﻿/// <reference path="../typings/node/node.d.ts" />
 import * as Config from '../config';
+//var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 export var router = express.Router();
 var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
-import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {SecurityConfig} from '../security-config';
+import * as Utils from "../decorators/metadata/utils";
+import {Decorators} from '../constants/decorators';
+var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+
+var Enumerable: linqjs.EnumerableStatic = require('linq');
+import {IFieldParams} from '../decorators/interfaces/field-params';
+//import {Config} from "../config";
+
+if (!Config.Security.isAutheticationEnabled) {
+    ensureLoggedIn = function() {
+        return function(req, res, next) {
+            next();
+        }
+    }
+}
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -196,29 +211,80 @@ export class DynamicController {
     }
 
     addSearchPaths() {
-        var modelRepo = this.repository.getModelRepo();
-        var searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
-        var links = { "self": { "href": "/search" } };
+        let model = this.repository.getModel();
+        let modelRepo = this.repository.getModelRepo();
+        let decoratorFields = Utils.getAllMetaDataForDecorator(this.repository.getEntityType(), Decorators.FIELD);
+        let fieldsWithSearchIndex = Enumerable.from(decoratorFields).where(ele => {
+            return ele.key && decoratorFields[ele.key] && decoratorFields[ele.key].params && (<IFieldParams>decoratorFields[ele.key].params).searchIndex;
+        })
+            .select(ele => ele.key)
+            .toArray();
+
+        let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
+
+        let links = { "self": { "href": "/search" } };
         searchPropMap.forEach(map=> {
-            this.addRoutesForAllSearch(map);
+            this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
             links[map.key] = { "href": "/" + map.key, "params": map.args };
         });
-        router.get(this.path + "/search", function (req, res) {
-            res.set("Content-Type", "application/json");
-            res.send(JSON.stringify(links, null, 4));
+        router.get(this.path + "/search", Utils.ensureLoggedIn(), (req, res) => {
+            this.sendresult(req, res, links);
         });
     }
 
-    private addRoutesForAllSearch(map: ISearchPropertyMap) {
-        router.get(this.path + "/search/" + map.key, (req, res) => {
-            var query = req.query;
-            return this.repository
-                .findWhere(query)
-                .then((result) => {
-                    this.sendresult(req, res, result);
-                });
+    private addRoutesForAllSearch(map: ISearchPropertyMap, fieldsWithSearchIndex: any[]) {
+        let searchFromDb: boolean = true;
+        if (Config.Config.ApplyElasticSearch) {
+            let areAllSearchFieldsIndexed = Enumerable.from(map.args).intersect(fieldsWithSearchIndex).count() == map.args.length;
+            searchFromDb = !areAllSearchFieldsIndexed;
+        }
 
-        });
+        // If all the search fields are not indexed in the elasticsearch, return data from the database
+        // Keeping different router.get to avoid unncessary closure at runtime
+        if (searchFromDb) {
+            router.get(this.path + "/search/" + map.key, Utils.ensureLoggedIn(),(req, res) => {
+                var queryObj = req.query;
+                console.log("Querying Database");
+                return this.repository
+                    .findWhere(queryObj)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    });
+
+            });
+        }
+        else { // Search from elasticsearch
+            let model: any = this.repository.getModel();
+            router.get(this.path + "/search/" + map.key, (req, res) => {
+                let queryObj = req.query;
+                let musts = map.args.map(function(arg) {
+                    let s = '{"' + arg + '":' + "0" + "}";
+                    let obj = JSON.parse(s);
+                    obj[arg] = queryObj[arg];
+                    return { "match": obj };
+                });
+                let query = {
+                    "query": {
+                        "bool": {
+                            "must":
+                            musts
+                        }
+                    }
+                };
+                console.log("Querying Elastic search with %s", JSON.stringify(query));
+                return model
+                    .search(query, (err, rr) => {
+                        if (err) {
+                            console.error(err);
+                            this.sendresult(req, res, err);
+                        }
+                        else {
+                            console.log(rr);
+                            this.sendresult(req, res, rr);
+                        }
+                    });
+            });
+        }
     }
 
 
@@ -239,7 +305,7 @@ export class DynamicController {
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
-         var selfUrl = {};
+        var selfUrl = {};
         selfUrl["href"] = resourceName ;// + "/" + model._id;
         model["_links"]={};
         model["_links"]["self"]=selfUrl;

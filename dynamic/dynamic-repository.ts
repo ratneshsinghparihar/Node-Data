@@ -24,16 +24,18 @@ import {EntityChange} from '../enums/entity-change';
 import {UserRoleService} from '../services/userrole-service';
 import {Container} from '../di';
 
+import {searchUtils} from "../search/elasticSearchUtils";
+
 var repoList: { [key: string]: any } = {};
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
 
+ 
 export function GetRepositoryForName(name: string): IDynamicRepository {
     return modelNameRepoModelMap[name]
 }
 
-interface IDynamicRepository {
+export interface IDynamicRepository {
     getModel();
-    getEntityType();
     addRel();
     modelName();
     put(id: any, obj: any): Q.Promise<any>;
@@ -41,9 +43,10 @@ interface IDynamicRepository {
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>): Q.Promise<any>;
     patchAllEmbedded(prop: string, obj: any, entityChange: EntityChange, embedded: boolean, targetPropArray: boolean): Q.Promise<any>;
+    getEntityType() : any;
 }
 
-export class DynamicRepository {
+export class DynamicRepository implements IDynamicRepository {
     private path: string;
     private model: Mongoose.Model<any>;
     private metaModel: any;
@@ -51,6 +54,7 @@ export class DynamicRepository {
     private modelRepo: any;
 
     constructor(repositoryPath: string, fn: Function, schema: any, modelRepo: any) {
+        console.log(schema);
         this.path = repositoryPath;
         var modelName = this.path.substring(1);
         this.entityType = fn;
