@@ -64,7 +64,7 @@ export class AuthService {
         }
     }
 
-   private authenticateByPassword(authenticate: boolean) {
+    private authenticateByPassword(authenticate: boolean) {
         if (authenticate) {
             passport.use(new LocalStrategy(
                 (username, password, done) => {
@@ -110,7 +110,7 @@ export class AuthService {
         }
     }
 
-   private facebookAuthentication() {
+    private facebookAuthentication() {
         passport.use(new FacebookStrategy({
 
             // pull in our app id and secret from our Config.ts file
@@ -166,21 +166,21 @@ export class AuthService {
                 );
 
         });
-   }
+    }
 
-   private addRoutes() {
-       // route for facebook authentication and login
-       router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
+    private addRoutes() {
+        // route for facebook authentication and login
+        router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
 
-       // handle the callback after facebook has authenticated the user
-       router.get('/auth/facebook/callback',
-           passport.authenticate('facebook'), (req, res) => this.facebookResponse(req, res)
-       );
+        // handle the callback after facebook has authenticated the user
+        router.get('/auth/facebook/callback',
+            passport.authenticate('facebook'), (req, res) => this.facebookResponse(req, res)
+        );
 
-   }
+    }
 
-   private facebookResponse(req, res) {
-       res.cookie('authorization', req.user.facebookToken, { maxAge: 900000, httpOnly: true });
-       res.redirect('/data/');
-   }
+    private facebookResponse(req, res) {
+        res.cookie('authorization', req.user.facebookToken, { maxAge: 900000, httpOnly: true });
+        res.redirect('/data/');
+    }
 }
