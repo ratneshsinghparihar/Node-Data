@@ -15,11 +15,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true
   },
-  "filesGlob": [
-    "**/*.ts",
-    "**/*.tsx",
-    "!node_modules/**"
-  ],
   "compileOnSave": true,
   "buildOnSave": false,
   "atom": {

@@ -5,7 +5,4 @@ import {DecoratorMetaData} from './decorator-metadata';
 //     "UserModel": {<DecoratorMetaData>},
 //     "TeacherModel": {<DecoratorMetaData>}
 // } 
-export interface MetaRoot {
-    models: { [key: string]: DecoratorMetaData };
-}
-
+export type MetaRoot = Map<Function | Object, DecoratorMetaData>;

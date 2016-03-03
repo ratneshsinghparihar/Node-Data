@@ -16,11 +16,8 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function saveObjs(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
     return Q.nbind(model.create, model)()
-        .then(result=> {
-            console.log(result);
-        }).catch(error=> {
-            console.log(error);
-        });
+        .then(result => result)
+        .catch(error => error);
 }
 
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {

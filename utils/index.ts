@@ -1,9 +1,16 @@
 ﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
+/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
+
+var Enumerable: linqjs.EnumerableStatic = require('linq');
 import Mongoose = require("mongoose");
 import {ClassType} from './classtype';
 
-export function getParamType(target: Object|Function, prop: string) {
+export function getDesignType(target: Object|Function, prop: string) {
     return Reflect.getMetadata("design:type", target, prop);
+}
+
+export function getDesignParamType(target: Object | Function, prop: string, parameterIndex: number) {
+    return Reflect.getMetadata("design:paramtypes", target, prop);
 }
 
 export function castToMongooseType(value, schemaType) {

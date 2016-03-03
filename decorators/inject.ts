@@ -6,17 +6,42 @@ import {DecoratorType} from '../enums/decorator-type';
 import {Container} from '../di';
 
 export function inject(injectType?) {
+    function getInjectType(target, propertyKey, parameterIndex, decoratorType: DecoratorType) {
+        if (injectType) {
+            return injectType;
+        }
+        let type;
+        if (decoratorType === DecoratorType.PARAM) {
+            var paramTypes: Array<any> = Utils.getDesignParamType(target, propertyKey, parameterIndex);
+            type = paramTypes && paramTypes.length && parameterIndex < paramTypes.length
+                ? paramTypes[parameterIndex]
+                : null;
+        } else if (decoratorType === DecoratorType.PROPERTY) {
+             type = Utils.getDesignType(target, propertyKey);
+        } else {
+            throw 'Error';
+        }
+        if (!type) {
+            console.log(target);
+            throw 'inject type cannot be null';
+        }
+        return type;
+    }
+
     return function (target: Object|Function, propertyKey: string, parameterIndex?: number) {
         // param decorator
-        if (!injectType) {
-            injectType = Utils.getParamType(target, propertyKey);
-        }
         if (arguments.length === 3) {
-            MetaUtils.addMetaData(target, Decorators.INJECT, DecoratorType.PARAM, { type: injectType }, propertyKey, parameterIndex);
+            MetaUtils.addMetaData(target,
+                Decorators.INJECT,
+                DecoratorType.PARAM,
+                { type: getInjectType(target, propertyKey, parameterIndex, DecoratorType.PARAM) },
+                propertyKey,
+                parameterIndex);
             return;
         }
         // property decorator
         else {
+            injectType = getInjectType(target, propertyKey, parameterIndex, DecoratorType.PROPERTY);
             let injectedProp = null;
             // property getter
             var getter = function () {

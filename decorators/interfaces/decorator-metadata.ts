@@ -13,6 +13,4 @@ import {MetaData} from '../metadata/metadata';
 //         "onetomany": {}    
 //     }
 // }
-export interface DecoratorMetaData {
-    decorator: { [key: string]: { [key: string]: MetaData }};
-}
+export type DecoratorMetaData = { [key: string]: { [key: string]: MetaData } };

@@ -9,6 +9,7 @@ import {ReflectConstants} from '../../constants';
 
 export class MetaData {
     target: Object;
+    isStatic: boolean;
     propertyKey: string;
     decorator: string;
     propertyType: ParamTypeCustom;
@@ -16,8 +17,9 @@ export class MetaData {
     decoratorType: DecoratorType;
     paramIndex: number;
 
-    constructor(target: Object, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey: string, paramIndex: number) {
+    constructor(target: Object, isStatic: boolean, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey: string, paramIndex: number) {
         this.target = target;
+        this.isStatic = isStatic;
         this.propertyKey = propertyKey;
         this.paramIndex = paramIndex;
         this.decorator = decorator;

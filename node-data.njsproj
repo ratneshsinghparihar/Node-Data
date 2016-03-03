@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1e09d3f0-0f70-4a7a-a0d8-294a8663def6}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>server.js</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -19,8 +19,7 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>node-data</Name>
-    <NodeExeArguments>
-    </NodeExeArguments>
+    <NodeExeArguments>--harmony_default_parameters</NodeExeArguments>
     <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <ItemGroup>
@@ -101,6 +100,10 @@
     <TypeScriptCompile Include="schema\userSchema.ts" />
     <TypeScriptCompile Include="security-config.ts" />
     <TypeScriptCompile Include="server.ts" />
+    <TypeScriptCompile Include="services\b-service.ts" />
+    <TypeScriptCompile Include="services\a-service.ts" />
+    <TypeScriptCompile Include="services\di-service-test-fail.ts" />
+    <TypeScriptCompile Include="services\di-service-test-success.ts" />
     <TypeScriptCompile Include="services\role-service.ts" />
     <TypeScriptCompile Include="services\user-service.ts" />
     <TypeScriptCompile Include="services\userrole-service.ts" />

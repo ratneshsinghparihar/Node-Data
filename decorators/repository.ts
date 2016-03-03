@@ -13,9 +13,5 @@ import {Strict} from '../enums/document-strict';
         target.prototype.model = params.model;
         
         Utils.addMetaData(((<any>target).prototype || target), Decorators.REPOSITORY, DecoratorType.CLASS, params);
-        
-        //new dynamic.InitRepo(path, repository);
-        console.log('Target: ', target);   
-              
     };
 }
