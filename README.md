@@ -396,8 +396,10 @@ isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.
  
 ###Token Based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.  
-The token expiry time can be set in security-config.ts file.  
+The token expiry time can be set in security-config.ts file. 
+ ```javascript
 public static tokenExpiresInMinutes: number = 2;//2 minutes. 
+```
 The token is set in the cookies and sent to the browser.Using that token, user is considered valid, and provided access to the system. 
 Once the token is expired, user can just hit the /token API with refreshToken as the query param. RefreshToken value can be found in the browser cookies. This API will generate a new token for the user, and replace the old token in the user document in the DB, as well as in the cookies. Using the new token user can access the system again, without having to login again and again. 
  
