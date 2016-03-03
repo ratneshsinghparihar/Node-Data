@@ -296,11 +296,11 @@ All the search methods are needed to be exposed on the Repository.
 Currently only the "And" search operations are supported. 
  
 ###Configuring ElasticSearch: 
-*Config Class:*  
+###Config Class:  
 Set "ApplyElasticSearch" to true to enable ElasticSearch 
 Set the path of the ElasticSearch service at "ElasticSearchConnection" 
  
-*Model Class:*  
+###Model Class:  
 For all the fields where the ElasticSearch indexing is requried, set the property in "@field" as "searchIndex:true" 
 e.g. As in the "name" and "age" properties, the searchIndex is set to true. 
  ```javascript
@@ -319,7 +319,7 @@ constructor(){
 } 
 ```
 
-*Configuring Search:*  
+###Configuring Search:  
 All the search methods are defined at the Repository classes. 
 Currently the methods are needed to be defined in a fixed format.  
 The method name should start with "findBy".  
@@ -337,7 +337,7 @@ class PersonRepository {
 } 
 ```
  
-*How the search happens:* 
+###How the search happens: 
  
 The API's are defined in such a way that if ALL of the fields to be searched are indexed, then the data is fetched from ElasticSearch. 
 If any one the fields to be searched is NOT indexed in ElasticSearch, the data is fetched from MongoDB. 
