@@ -148,10 +148,11 @@ If custom logic need to be added or entire repository action (like save) need to
 <S extends T> S save(S entity); 
 ```
  
-Relations using annotations (one to one , onetomany , manytoone , manyttomany) (Mayank) 
+##Relations using annotations (one to one , onetomany , manytoone , manyttomany)
  
 Relations between models can be established by adding following declarations. To explain we will be using following entities. 
  
+  ```javascript
 @document({ name: 'subjects', strict: Strict.true }) 
 class SubjectModel { 
     @field() 
@@ -169,11 +170,13 @@ class TeacherModel {
     @field() 
     name: string; 
 } 
- 
-OneToMany 
+```
+
+###OneToMany 
 One-to-many refers to the relationship between two entities A and B in which an element of A may be linked to many elements of B, but a member of B is linked to only one element of A.  
   
 For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. 
+ ```javascript
 @document({ name: 'teachers', strict: Strict.true }) 
 class TeacherModel { 
     @field() 
@@ -181,6 +184,8 @@ class TeacherModel {
     @onetomany({ rel: 'students', itemType: StudentModel, embedded: false }) 
     mentoring: Array<StudentModel>; 
 } 
+```
+
 We have different keywords while declaring the relation. These keywords are used in all the declaration. They are explained as below: 
 Name 
 Description 
@@ -191,9 +196,10 @@ Set Entity type to which property is mapped to
 embedded 
 Set to true will embed whole document as property value otherwise only primary key will be set as property value 
  
-ManyToOne 
+###ManyToOne 
 Many-to-one is vice-versa implementation of one-to-many relation. It’s just that entity is present on other end.  
 We will use example from OneToMany example and add that relation on Student entity. 
+ ```javascript
 @document({ name: 'students', strict: Strict.true }) 
 class StudentModel { 
     @field() 
@@ -201,9 +207,12 @@ class StudentModel {
     @manytoone({ rel: 'students', itemType: TeacherModel, embedded: false }) 
     mentor: TeacherModel; 
 } 
-OneToOne 
+```
+
+###OneToOne 
 One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.  
 For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. 
+ ```javascript
 @document({ name: 'teachers', strict: Strict.true }) 
 class TeacherModel { 
     @field() 
@@ -211,9 +220,12 @@ class TeacherModel {
     @onetoone({ rel: 'subjects', itemType: SubjectModel, embedded: false }) 
     subject: SubjectModel; 
 }  
-ManyToMany 
+```
+
+###ManyToMany 
 Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.  
 For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. 
+ ```javascript
 @document({ name: 'students', strict: Strict.true }) 
 class StudentModel { 
     @field() 
@@ -221,36 +233,35 @@ class StudentModel {
     @manytomany({ rel: 'subjects', itemType: SubjectModel, embedded: false }) 
     subjects: Array<SubjectModel>; 
 } 
-Page Break
+```
  
-Embedded relations support (replication) (Mayank) 
+##Embedded relations support (*replication*)
 A relation can be saved two ways: 
-1)      Link to the related document 
-2)      Embed the related document 
+1. Link to the related document 
+2. Embed the related document 
 Embedding document helps to get the object and relational data using single query from database thus reducing the database/server hits. This behaviour is managed by using ‘embedded’ keyword. When set to true, it fetches the document and embed whole document into the property. In this case, document is replicated and managed by the system. All the embedded document’s update/delete will automatically update the parent document. 
   
-**For embedded, please make sure that there is no circular embedding into the system. Although system checks for any circular embedding of the object and throws error. 
+*For embedded, please make sure that there is no circular embedding into the system. Although system checks for any circular embedding of the object and throws error.* 
+
  
- 
- 
-Page Break
- 
-Transaction and services using annotations (Hari) - (Not Yet Implemented) 
+Transaction and services using annotations - (Not Yet Implemented) 
 At the moment, transaction is not supported. But eventually, we will support basic transactions using @transactional annotation.  
-Refer to: https://docs.mongodb.org/manual/tutorial/perform-two-phase-commits/ for mongodb transaction. 
+Refer to: [Website] (https://docs.mongodb.org/manual/tutorial/perform-two-phase-commits/) for mongodb transaction. 
   
-Page Break
- 
-DI container (Hari) 
+##DI container
  
 Node-data implements a light-weight annotation driven dependency-injection container. All the services(@service) and repositories(@repository) can be injected in other classes. Construction injection (only for services) and property injection are supported currently. To inject the dependency, use the annotation @inject. @inject takes optional "type" parameter. When type cannot be inferred from the usage (interface or other types), we can pass the "concrete" type as a parameter to inject. 
-Currently, we support concrete types only. If anyone wants to use interfaces, check out http://inversify.io/ for more. 
-Usage 
+Currently, we support concrete types only. If anyone wants to use interfaces, check out [Website] (http://inversify.io/) for more. 
+
+*Usage*
+ ```javascript
 @service({singleton: true}) 
 class MyService{ 
 ... 
 } 
-Inject dependency in another service(constructor and property) 
+```
+*Inject dependency in another service(constructor and property)* 
+ ```javascript
 @service() 
 class MyAnotherService{ 
 @inject() 
@@ -260,19 +271,20 @@ private myServiceAsProp: MyService;
 constructor(@inject() myService: MyService){ 
 } 
 } 
- 
-Inject dependency in any another class(only property injection as of now) 
+```
+
+*Inject dependency in any another class(only property injection as of now)*
+ ```javascript
 class MyNormalClass { 
 @inject() 
 private myService: MyService; 
 @inject() 
 private myAnotherService: MyAnotherService; 
 }
-Page Break
+```
  
-Caching second level (Ritesh) 
-Not yet implemented. 
-Page Break
+##Caching second level 
+Not yet implemented.  
  
 Search and count (inbuilt elastic search)(repository and query dsl) (Pratik) 
 Searching 
