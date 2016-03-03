@@ -50,22 +50,23 @@ library |  version |  Comment/alternative
 nodejs |  5.7.0 | node
 express | 4.13.3 | Rest middleware
 TypeScript | 1.8.4 | Rest middleware
-monogdb | 2.1.3 | Rest middleware
-Mongoose | 4.3.5 | Rest middleware
-Metadata-reflect | 0.1.3 | Rest middleware
-gulp | 3.9.0 | Rest middleware
-passport | 0.2.2 | Rest middleware
-Npm-acl | 0.4.9 | Rest middleware
-Elastic search | 10.1.3 | Rest middleware
-Mongosastic | 4.0.2 | Rest middleware
+monogdb | 2.1.3 | Documetndb , nosql , auto sharding
+Mongoose | 4.3.5 | ORM for mongoDB
+Metadata-reflect | 0.1.3 | For reflection and metadata
+gulp | 3.9.0 | Compiling Typscript and Build process
+passport | 0.2.2 | Authentication , sso , OAtuh , jwt token
+Npm-acl | 0.4.9 | Popular acl library
+Elastic search | 10.1.3 | Search and aggregation
+Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
 ##Rest level 3 APIs
 
 Node-data exposes the entities as level 3 REST APIs in HAL format. 
 Read more about: 
-[HAL specification-] (http://stateless.co/hal_specification.html) 
-[Rest API levels-] (http://martinfowler.com/articles/richardsonMaturityModel.html) 
+[HAL specification] (http://stateless.co/hal_specification.html) 
+
+[Rest API levels] (http://martinfowler.com/articles/richardsonMaturityModel.html) 
  
 In short, REST level 3 in addition to HTTP verbs(get, put, post etc.) introduces the concept of discoverability. 
 When we navigate to the base-url(assuming base-url for API is "http://localhost:8080/data/") for API, we get all the exposed rest APIs in the system. 
@@ -124,34 +125,28 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 If we want to fetch all the roles for any user, we can simply fetch the roles url from inside the "_links" object for the given user. We just need to know what the base URL is, and after that we just follow the links to get any entity, its relations and so on. 
 
-Model driven system  
+##Model driven system  
+
 A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  
  
 ![sample image render](/images/Modeldrivensystem.png "Model driven system")
 
-Data repositories (Only interface)(Ratnesh) 
+##Data repositories (Only interface)
  
 Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required. 
-Image 
+
+![sample image render](/images/dataRepositories.png "Data Repositories")
  
- 
- 
-Page Break
- 
-Auto rest end point generations from repositories (Ratnesh) 
+##Auto rest end point generations from repositories 
  
 Once the repository interface defined the framework will automatically generates the rest point . In otherward as a developer you don't need to create the controllers. 
  
+If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) 
  
- If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) 
- 
+ ```javascript
 @PostAuthorize("@currentUserAutherizationServiceImpl.logSavedEntity(principal, returnObject)") 
 <S extends T> S save(S entity); 
- 
- 
- 
- 
-Page Break
+```
  
 Relations using annotations (one to one , onetomany , manytoone , manyttomany) (Mayank) 
  
@@ -379,28 +374,27 @@ Further running ‘http://localhost/Metadata/students’ will give:
  
 For primitive types, name of the type is shown.  If the entity has a relationship with another entity then the link of that object's metadata is shown. 
  
+##Security (inbuilt authentication) ,role based autherization , acl 
  
-Page Break
+###System has two types of inbuilt authentication:  
+1. *Session based* 
+2. *Token based* 
  
-Security (inbuilt authentication) ,role based autherization , acl (Ritesh) 
- 
-System has two types of inbuilt authentication: 
-1) Session based 
-2) Token based 
- 
-Session based 
+###Session based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a session for it. 
 To use this a user needs to edit the config.ts file. 
+```javascript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
     public static isAutheticationByUserPasswd: boolean = true; 
     public static isAutheticationByToken: boolean = false; 
 } 
-Both isAutheticationEnabled  and isAutheticationByUserPasswd should be set to TRUE. 
- isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.  
+```
+Both isAutheticationEnabled  and isAutheticationByUserPasswd should be set to TRUE.  
+isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.   
  
-Token Based 
+###Token Based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.  
 The token expiry time can be set in security-config.ts file.  
 public static tokenExpiresInMinutes: number = 2;//2 minutes. 
@@ -408,36 +402,28 @@ The token is set in the cookies and sent to the browser.Using that token, user i
 Once the token is expired, user can just hit the /token API with refreshToken as the query param. RefreshToken value can be found in the browser cookies. This API will generate a new token for the user, and replace the old token in the user document in the DB, as well as in the cookies. Using the new token user can access the system again, without having to login again and again. 
  
 To enable token based authentication just edit the config.ts file in following manner 
+```javascript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
     public static isAutheticationByUserPasswd: boolean = false; 
     public static isAutheticationByToken: boolean = true; 
 } 
+```
 Currently any user who is AUTHENTICATED, has access to the entire DB. This is because, AUTHORIZATION is not implemented. In the absence of authorization, the user has access to every document in the db. 
 FaceBook Authentication(SSO) 
 Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. 
+```javascript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
     public static isAutheticationByUserPasswd: boolean = true; 
     public static isAutheticationByToken: boolean = false; 
 } 
+```
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-Page Break
- 
-Everything is promise (no callback hell) (Hari) 
+##Everything is promise (no callback hell) (Hari) 
  
 Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. 
  
