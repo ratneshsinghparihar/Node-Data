@@ -425,10 +425,11 @@ export class Security {
 } 
 ```
  
-##Everything is promise (no callback hell) (Hari) 
+##Everything is promise (*no callback hell*)
  
 Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. 
  
+ ```javascript
  return Q.nbind(this.find, this)(params) 
         .then(result => doSomething(params1)) 
         .then(result => doSomethingElse(params2)) 
@@ -443,5 +444,5 @@ doSomethingElse(params2, (error, data) => {
 }); 
 }); 
 }) 
- 
-For details about Q refer to https://github.com/kriskowal/q/wiki/API-Reference 
+```
+For details about Q refer to [website API Reference] (https://github.com/kriskowal/q/wiki/API-Reference) 
