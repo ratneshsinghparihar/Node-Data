@@ -124,12 +124,11 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 If we want to fetch all the roles for any user, we can simply fetch the roles url from inside the "_links" object for the given user. We just need to know what the base URL is, and after that we just follow the links to get any entity, its relations and so on. 
 
-Model driven system (Ratnesh) 
+Model driven system  
 A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  
  
-![sample image render](/images/sample.jpg "Title")
-Page Break
- 
+![sample image render](/images/Modeldrivensystem.png "Model driven system")
+
 Data repositories (Only interface)(Ratnesh) 
  
 Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required. 
