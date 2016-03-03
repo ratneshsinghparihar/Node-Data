@@ -286,22 +286,24 @@ private myAnotherService: MyAnotherService;
 ##Caching second level 
 Not yet implemented.  
  
-Search and count (inbuilt elastic search)(repository and query dsl) (Pratik) 
-Searching 
+##Search and count (inbuilt elastic search)(repository and query dsl) 
+
+###Searching 
 Searching is done on MongoDB by default. 
 Provision is made to search using elasticsearch by changing the settings in the Config file. 
 Search on elasticsearch is currently done only on fields that are indexed in the elasticsearch. 
 All the search methods are needed to be exposed on the Repository. 
 Currently only the "And" search operations are supported. 
  
-Configuring ElasticSearch: 
-Config Class: 
+###Configuring ElasticSearch: 
+*Config Class:*  
 Set "ApplyElasticSearch" to true to enable ElasticSearch 
 Set the path of the ElasticSearch service at "ElasticSearchConnection" 
  
-Model Class: 
+*Model Class:*  
 For all the fields where the ElasticSearch indexing is requried, set the property in "@field" as "searchIndex:true" 
 e.g. As in the "name" and "age" properties, the searchIndex is set to true. 
+ ```javascript
 class PersonModel { 
     @field({searchIndex : true}) 
     name: string; 
@@ -315,14 +317,16 @@ class PersonModel {
 constructor(){ 
 } 
 } 
- 
-Configuring Search: 
+```
+
+*Configuring Search:*  
 All the search methods are defined at the Repository classes. 
 Currently the methods are needed to be defined in a fixed format.  
 The method name should start with "findBy".  
 It should then be followed by all the fields that are needed to be searched joined by "And" 
  
 e.g. 
+ ```javascript
 class PersonRepository { 
     findByName() { 
     } 
@@ -331,24 +335,30 @@ class PersonRepository {
     findByNameAndLastname(){ 
     } 
 } 
+```
  
-How the search happens: 
+*How the search happens:* 
+ 
 The API's are defined in such a way that if ALL of the fields to be searched are indexed, then the data is fetched from ElasticSearch. 
 If any one the fields to be searched is NOT indexed in ElasticSearch, the data is fetched from MongoDB. 
 Let us consider the above mentioned "PersonModel" and "PersonRepository" 
 The methods "findByName" and "findByNameAndAge", queries using the fields "name" and "age". Since they are defined as Indexed, the data will be fetched from ElasticSearch. 
 The method "findByNameAndLastname", queries "name" and "lastname". Since "lastname" is not defined as indexed, the data will be fetched from MongoDB. 
-Page Break
+
  
-Logging and auditing using annotations (Ratnesh) 
-Page Break
+##Logging and auditing using annotations 
+
+Not Implemented
+
+##Graphql support 
+
+Not Implemented
  
-Graphql support 
- 
-Page Break
- 
-Meta-data API (Mayank) 
+##Meta-data API
+
 Metadata gives the structure of the object. The structure consists of the properties defined in the entities. 
+
+```javascript
 For e.g. ‘http://localhost/metadata’ will return all the objects metadata : 
 { 
   "_links": [ 
@@ -383,7 +393,7 @@ Further running ‘http://localhost/Metadata/students’ will give:
     } 
   ] 
 } 
- 
+```
 For primitive types, name of the type is shown.  If the entity has a relationship with another entity then the link of that object's metadata is shown. 
  
 ##Security (inbuilt authentication) ,role based autherization , acl 
