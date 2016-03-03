@@ -435,7 +435,9 @@ export class Security {
 } 
 ```
 Currently any user who is AUTHENTICATED, has access to the entire DB. This is because, AUTHORIZATION is not implemented. In the absence of authorization, the user has access to every document in the db. 
-FaceBook Authentication(SSO) 
+
+###FaceBook Authentication(SSO) 
+
 Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. 
 ```javascript
