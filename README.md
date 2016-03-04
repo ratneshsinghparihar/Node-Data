@@ -20,7 +20,7 @@ Rest level 3 is an amazing protocol allows the autodiscovery of system and appli
  
 4. Auto rest end point generations from repositories
  
-5. Relations using annotations (one to one , onetomany , manytoone , manyttomany)
+5. Relations using annotations (onetoone , onetomany , manytoone , manyttomany)
  
 6. Embedded relations support (replication)
 
@@ -70,7 +70,7 @@ Read more about:
  
 In short, REST level 3 in addition to HTTP verbs(get, put, post etc.) introduces the concept of discoverability. 
 When we navigate to the base-url(assuming base-url for API is "http://localhost:8080/data/") for API, we get all the exposed rest APIs in the system. 
-```javascript
+```typescript
 [ 
   { 
    "roles": "http://localhost:8080/data/roles" 
@@ -82,7 +82,7 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 ```
  
 ###Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users". 
-```javascript
+```typescript
 { 
   "_links": { 
    "self": { 
@@ -143,7 +143,7 @@ Once the repository interface defined the framework will automatically generates
  
 If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) 
  
- ```javascript
+ ```typescript
 @PostAuthorize("@currentUserAutherizationServiceImpl.logSavedEntity(principal, returnObject)") 
 <S extends T> S save(S entity); 
 ```
@@ -152,7 +152,7 @@ If custom logic need to be added or entire repository action (like save) need to
  
 Relations between models can be established by adding following declarations. To explain we will be using following entities. 
  
-  ```javascript
+  ```typescript
 @document({ name: 'subjects', strict: Strict.true }) 
 class SubjectModel { 
     @field() 
@@ -176,7 +176,7 @@ class TeacherModel {
 One-to-many refers to the relationship between two entities A and B in which an element of A may be linked to many elements of B, but a member of B is linked to only one element of A.  
   
 For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. 
- ```javascript
+ ```typescripttypescript
 @document({ name: 'teachers', strict: Strict.true }) 
 class TeacherModel { 
     @field() 
@@ -199,7 +199,7 @@ Set to true will embed whole document as property value otherwise only primary k
 ###ManyToOne 
 Many-to-one is vice-versa implementation of one-to-many relation. It’s just that entity is present on other end.  
 We will use example from OneToMany example and add that relation on Student entity. 
- ```javascript
+ ```typescript
 @document({ name: 'students', strict: Strict.true }) 
 class StudentModel { 
     @field() 
@@ -212,7 +212,7 @@ class StudentModel {
 ###OneToOne 
 One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.  
 For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. 
- ```javascript
+ ```typescript
 @document({ name: 'teachers', strict: Strict.true }) 
 class TeacherModel { 
     @field() 
@@ -225,7 +225,7 @@ class TeacherModel {
 ###ManyToMany 
 Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.  
 For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. 
- ```javascript
+ ```typescript
 @document({ name: 'students', strict: Strict.true }) 
 class StudentModel { 
     @field() 
@@ -254,14 +254,14 @@ Node-data implements a light-weight annotation driven dependency-injection conta
 Currently, we support concrete types only. If anyone wants to use interfaces, check out [Website] (http://inversify.io/) for more. 
 
 *Usage*
- ```javascript
+ ```typescript
 @service({singleton: true}) 
 class MyService{ 
 ... 
 } 
 ```
 *Inject dependency in another service(constructor and property)* 
- ```javascript
+ ```typescript
 @service() 
 class MyAnotherService{ 
 @inject() 
@@ -274,7 +274,7 @@ constructor(@inject() myService: MyService){
 ```
 
 *Inject dependency in any another class(only property injection as of now)*
- ```javascript
+ ```typescript
 class MyNormalClass { 
 @inject() 
 private myService: MyService; 
@@ -303,7 +303,7 @@ Set the path of the ElasticSearch service at "ElasticSearchConnection"
 ###Model Class:  
 For all the fields where the ElasticSearch indexing is requried, set the property in "@field" as "searchIndex:true" 
 e.g. As in the "name" and "age" properties, the searchIndex is set to true. 
- ```javascript
+ ```typescript
 class PersonModel { 
     @field({searchIndex : true}) 
     name: string; 
@@ -326,7 +326,7 @@ The method name should start with "findBy".
 It should then be followed by all the fields that are needed to be searched joined by "And" 
  
 e.g. 
- ```javascript
+ ```typescript
 class PersonRepository { 
     findByName() { 
     } 
@@ -358,7 +358,7 @@ Not Implemented
 
 Metadata gives the structure of the object. The structure consists of the properties defined in the entities. 
 
-```javascript
+```typescript
 For e.g. ‘http://localhost/metadata’ will return all the objects metadata : 
 { 
   "_links": [ 
@@ -405,7 +405,7 @@ For primitive types, name of the type is shown.  If the entity has a relationshi
 ###Session based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a session for it. 
 To use this a user needs to edit the config.ts file. 
-```javascript
+```typescript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
@@ -419,14 +419,14 @@ isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.
 ###Token Based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.  
 The token expiry time can be set in security-config.ts file. 
- ```javascript
+ ```typescript
 public static tokenExpiresInMinutes: number = 2;//2 minutes. 
 ```
 The token is set in the cookies and sent to the browser.Using that token, user is considered valid, and provided access to the system. 
 Once the token is expired, user can just hit the /token API with refreshToken as the query param. RefreshToken value can be found in the browser cookies. This API will generate a new token for the user, and replace the old token in the user document in the DB, as well as in the cookies. Using the new token user can access the system again, without having to login again and again. 
  
 To enable token based authentication just edit the config.ts file in following manner 
-```javascript
+```typescript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
@@ -440,7 +440,7 @@ Currently any user who is AUTHENTICATED, has access to the entire DB. This is be
 
 Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. 
-```javascript
+```typescript
 export class Security { 
     public static isAutheticationEnabled: boolean = true; 
     public static isAuthorizationEnabled: boolean = false; 
@@ -453,14 +453,15 @@ export class Security {
  
 Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. 
  
- ```javascript
+ ```typescript
  return Q.nbind(this.find, this)(params) 
         .then(result => doSomething(params1)) 
         .then(result => doSomethingElse(params2)) 
         ... 
         .catch(error => Q.reject(error)) 
- 
+ ```
 Instead of (Callback hell): 
+```typescript
 this.find(params, (error, data) => { 
 doSomething(params1, (error, data) => { 
 doSomethingElse(params2, (error, data) => { 
@@ -469,4 +470,4 @@ doSomethingElse(params2, (error, data) => {
 }); 
 }) 
 ```
-For details about Q refer to [website API Reference] (https://github.com/kriskowal/q/wiki/API-Reference) 
+Find out more about Q [here](https://github.com/kriskowal/q/wiki/API-Reference) 
