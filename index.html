@@ -1,0 +1,608 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Node-data</title>
+  <meta name="description" content=" Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).  This framework will allow declarative style (annotations) to handle most of backend concerns (data relations, transactions, rest, graphql , security) .">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Node-data</h1>
+    </header>
+    <div id="container">
+      <p class="tagline"> Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).  This framework will allow declarative style (annotations) to handle most of backend concerns (data relations, transactions, rest, graphql , security) .</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/ratneshsinghparihar/Node-Data/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/ratneshsinghparihar/Node-Data/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/ratneshsinghparihar/Node-Data" class="code">View Node-data on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h2>
+<a id="what-is-node-data" class="anchor" href="#what-is-node-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is Node-Data</h2>
+
+<p>Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).</p>
+
+<p>This framework will allow declarative style (annotations) to handle most of backend concerns (data relations, transactions, rest, graphql , security) .Yes its on javascript .</p>
+
+<p>The target consumers are nodejs based scale projects looking for rewrite/new.</p>
+
+<p>When you write for scale you might missed important aspect which might give you headache if you add the aspect late in your project. Node-Data will have most of aspects required in modern web scale project which can be enabled anytime using only annotations.</p>
+
+<p>Rest level 3 is an amazing protocol allows the autodiscovery of system and application developers can write infrastructure for their code if backend api is level 3.</p>
+
+<h2>
+<a id="what-backend-concerns-will-be-handled" class="anchor" href="#what-backend-concerns-will-be-handled" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What backend concerns will be handled</h2>
+
+<ol>
+<li><p>Rest level 3 APIs</p></li>
+<li><p>Model driven system</p></li>
+<li><p>Data repositories(Only interface)</p></li>
+<li><p>Auto rest end point generations from repositories</p></li>
+<li><p>Relations using annotations (one to one , onetomany , manytoone , manyttomany)</p></li>
+<li><p>Embedded relations support (replication)</p></li>
+<li><p>Transaction and services using annotations</p></li>
+<li><p>DI container</p></li>
+<li><p>Caching second level</p></li>
+<li><p>Search and count (inbuilt elastic search)(repository and query dsl)</p></li>
+<li><p>Logging and auditing using annotations</p></li>
+<li><p>Graphql support</p></li>
+<li><p>Meta-data API</p></li>
+<li><p>Security (inbuilt authentication) ,role based autherization , acl</p></li>
+<li><p>Everythingh is promise (no callback hell)</p></li>
+</ol>
+
+<h2>
+<a id="technologies-used" class="anchor" href="#technologies-used" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Technologies used</h2>
+
+<table>
+<thead>
+<tr>
+<th>library</th>
+<th>version</th>
+<th>Comment/alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nodejs</td>
+<td>5.7.0</td>
+<td>node</td>
+</tr>
+<tr>
+<td>express</td>
+<td>4.13.3</td>
+<td>Rest middleware</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td>1.8.4</td>
+<td>Rest middleware</td>
+</tr>
+<tr>
+<td>monogdb</td>
+<td>2.1.3</td>
+<td>Documetndb , nosql , auto sharding</td>
+</tr>
+<tr>
+<td>Mongoose</td>
+<td>4.3.5</td>
+<td>ORM for mongoDB</td>
+</tr>
+<tr>
+<td>Metadata-reflect</td>
+<td>0.1.3</td>
+<td>For reflection and metadata</td>
+</tr>
+<tr>
+<td>gulp</td>
+<td>3.9.0</td>
+<td>Compiling Typscript and Build process</td>
+</tr>
+<tr>
+<td>passport</td>
+<td>0.2.2</td>
+<td>Authentication , sso , OAtuh , jwt token</td>
+</tr>
+<tr>
+<td>Npm-acl</td>
+<td>0.4.9</td>
+<td>Popular acl library</td>
+</tr>
+<tr>
+<td>Elastic search</td>
+<td>10.1.3</td>
+<td>Search and aggregation</td>
+</tr>
+<tr>
+<td>Mongosastic</td>
+<td>4.0.2</td>
+<td>Library for integrating Mongoose with ElasticSearch</td>
+</tr>
+<tr>
+<td>redis</td>
+<td>unknown</td>
+<td>Rest middleware</td>
+</tr>
+</tbody>
+</table>
+
+<h2>
+<a id="rest-level-3-apis" class="anchor" href="#rest-level-3-apis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Rest level 3 APIs</h2>
+
+<p>Node-data exposes the entities as level 3 REST APIs in HAL format. 
+Read more about: 
+<a href="http://stateless.co/hal_specification.html">HAL specification</a> </p>
+
+<p><a href="http://martinfowler.com/articles/richardsonMaturityModel.html">Rest API levels</a> </p>
+
+<p>In short, REST level 3 in addition to HTTP verbs(get, put, post etc.) introduces the concept of discoverability. 
+When we navigate to the base-url(assuming base-url for API is "http://localhost:8080/data/") for API, we get all the exposed rest APIs in the system. </p>
+
+<div class="highlight highlight-source-js"><pre>[ 
+  { 
+   <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/roles<span class="pl-pds">"</span></span> 
+  }, 
+  { 
+   <span class="pl-s"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
+  } 
+] </pre></div>
+
+<h3>
+<a id="suppose-we-want-to-get-all-the-users-in-the-system-we-go-to-httplocalhost8080datausers" class="anchor" href="#suppose-we-want-to-get-all-the-users-in-the-system-we-go-to-httplocalhost8080datausers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users".</h3>
+
+<div class="highlight highlight-source-js"><pre>{ 
+  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+   <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
+   }, 
+   <span class="pl-s"><span class="pl-pds">"</span>search<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>/search<span class="pl-pds">"</span></span> 
+   } 
+  }, 
+  <span class="pl-s"><span class="pl-pds">"</span>_embedded<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+   { 
+    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>56d692a24043588c0c713564<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>alex.b@xyz.com<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Alex Brown<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564<span class="pl-pds">"</span></span> 
+     }, 
+     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span>{ 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564/roles<span class="pl-pds">"</span></span> 
+     } 
+    } 
+   }, 
+   { 
+    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>56d692be4043588c0c713565<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>daniel.j@xyz.com<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Daniel Jones<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565<span class="pl-pds">"</span></span> 
+     }, 
+     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span>{ 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565/roles<span class="pl-pds">"</span></span> 
+     } 
+    } 
+   } 
+  ] 
+} </pre></div>
+
+<p>If we want to fetch all the roles for any user, we can simply fetch the roles url from inside the "_links" object for the given user. We just need to know what the base URL is, and after that we just follow the links to get any entity, its relations and so on. </p>
+
+<h2>
+<a id="model-driven-system" class="anchor" href="#model-driven-system" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Model driven system</h2>
+
+<p>A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  </p>
+
+<p><img src="/images/Modeldrivensystem.png" alt="sample image render" title="Model driven system"></p>
+
+<h2>
+<a id="data-repositories-only-interface" class="anchor" href="#data-repositories-only-interface" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data repositories (Only interface)</h2>
+
+<p>Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required. </p>
+
+<p><img src="/images/dataRepositories.png" alt="sample image render" title="Data Repositories"></p>
+
+<h2>
+<a id="auto-rest-end-point-generations-from-repositories" class="anchor" href="#auto-rest-end-point-generations-from-repositories" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Auto rest end point generations from repositories</h2>
+
+<p>Once the repository interface defined the framework will automatically generates the rest point . In otherward as a developer you don't need to create the controllers. </p>
+
+<p>If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-en">PostAuthorize</span>(<span class="pl-s"><span class="pl-pds">"</span>@currentUserAutherizationServiceImpl.logSavedEntity(principal, returnObject)<span class="pl-pds">"</span></span>) 
+<span class="pl-k">&lt;</span>S <span class="pl-k">extends</span> T<span class="pl-k">&gt;</span> S <span class="pl-en">save</span>(S entity); </pre></div>
+
+<h2>
+<a id="relations-using-annotations-one-to-one--onetomany--manytoone--manyttomany" class="anchor" href="#relations-using-annotations-one-to-one--onetomany--manytoone--manyttomany" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Relations using annotations (one to one , onetomany , manytoone , manyttomany)</h2>
+
+<p>Relations between models can be established by adding following declarations. To explain we will be using following entities. </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">SubjectModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+} 
+
+@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+} 
+
+@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+} </pre></div>
+
+<h3>
+<a id="onetomany" class="anchor" href="#onetomany" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OneToMany</h3>
+
+<p>One-to-many refers to the relationship between two entities A and B in which an element of A may be linked to many elements of B, but a member of B is linked to only one element of A.  </p>
+
+<p>For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+    @<span class="pl-en">onetomany</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> StudentModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
+    mentoring<span class="pl-k">:</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>StudentModel<span class="pl-k">&gt;</span>; 
+} </pre></div>
+
+<p>We have different keywords while declaring the relation. These keywords are used in all the declaration. They are explained as below: 
+Name 
+Description 
+Rel 
+Set document name to which this property is mapped to<br>
+itemType 
+Set Entity type to which property is mapped to 
+embedded 
+Set to true will embed whole document as property value otherwise only primary key will be set as property value </p>
+
+<h3>
+<a id="manytoone" class="anchor" href="#manytoone" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ManyToOne</h3>
+
+<p>Many-to-one is vice-versa implementation of one-to-many relation. It’s just that entity is present on other end.<br>
+We will use example from OneToMany example and add that relation on Student entity. </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+    @<span class="pl-en">manytoone</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> TeacherModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
+    mentor<span class="pl-k">:</span> TeacherModel; 
+} </pre></div>
+
+<h3>
+<a id="onetoone" class="anchor" href="#onetoone" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OneToOne</h3>
+
+<p>One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.<br>
+For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+    @<span class="pl-en">onetoone</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> SubjectModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
+    subject<span class="pl-k">:</span> SubjectModel; 
+}  </pre></div>
+
+<h3>
+<a id="manytomany" class="anchor" href="#manytomany" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ManyToMany</h3>
+
+<p>Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.<br>
+For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name<span class="pl-k">:</span> string; 
+    @<span class="pl-en">manytomany</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> SubjectModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
+    subjects<span class="pl-k">:</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>SubjectModel<span class="pl-k">&gt;</span>; 
+} </pre></div>
+
+<h2>
+<a id="embedded-relations-support-replication" class="anchor" href="#embedded-relations-support-replication" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Embedded relations support (<em>replication</em>)</h2>
+
+<p>A relation can be saved two ways: 
+1. Link to the related document 
+2. Embed the related document 
+Embedding document helps to get the object and relational data using single query from database thus reducing the database/server hits. This behaviour is managed by using ‘embedded’ keyword. When set to true, it fetches the document and embed whole document into the property. In this case, document is replicated and managed by the system. All the embedded document’s update/delete will automatically update the parent document. </p>
+
+<p><em>For embedded, please make sure that there is no circular embedding into the system. Although system checks for any circular embedding of the object and throws error.</em> </p>
+
+<p>Transaction and services using annotations - (Not Yet Implemented) 
+At the moment, transaction is not supported. But eventually, we will support basic transactions using <a href="https://github.com/transactional" class="user-mention">@transactional</a> annotation.<br>
+Refer to: <a href="https://docs.mongodb.org/manual/tutorial/perform-two-phase-commits/">Website</a> for mongodb transaction. </p>
+
+<h2>
+<a id="di-container" class="anchor" href="#di-container" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>DI container</h2>
+
+<p>Node-data implements a light-weight annotation driven dependency-injection container. All the services(<a href="https://github.com/service" class="user-mention">@service</a>) and repositories(<a href="https://github.com/repository" class="user-mention">@repository</a>) can be injected in other classes. Construction injection (only for services) and property injection are supported currently. To inject the dependency, use the annotation <a href="https://github.com/inject" class="user-mention">@inject</a>. <a href="https://github.com/inject" class="user-mention">@inject</a> takes optional "type" parameter. When type cannot be inferred from the usage (interface or other types), we can pass the "concrete" type as a parameter to inject. 
+Currently, we support concrete types only. If anyone wants to use interfaces, check out <a href="http://inversify.io/">Website</a> for more. </p>
+
+<p><em>Usage</em></p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-en">service</span>({singleton<span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
+<span class="pl-k">class</span> <span class="pl-en">MyService</span>{ 
+<span class="pl-k">...</span> 
+} </pre></div>
+
+<p><em>Inject dependency in another service(constructor and property)</em> </p>
+
+<div class="highlight highlight-source-js"><pre>@<span class="pl-en">service</span>() 
+<span class="pl-k">class</span> <span class="pl-en">MyAnotherService</span>{ 
+@<span class="pl-en">inject</span>() 
+<span class="pl-k">private</span> myServiceAsProp<span class="pl-k">:</span> MyService; 
+
+<span class="pl-c">// constructor injection </span>
+<span class="pl-en">constructor</span>(@<span class="pl-smi">inject</span>() myService<span class="pl-k">:</span> MyService){ 
+} 
+} </pre></div>
+
+<p><em>Inject dependency in any another class(only property injection as of now)</em></p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">MyNormalClass</span> { 
+@<span class="pl-en">inject</span>() 
+<span class="pl-k">private</span> myService<span class="pl-k">:</span> MyService; 
+@<span class="pl-en">inject</span>() 
+<span class="pl-k">private</span> myAnotherService<span class="pl-k">:</span> MyAnotherService; 
+}</pre></div>
+
+<h2>
+<a id="caching-second-level" class="anchor" href="#caching-second-level" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Caching second level</h2>
+
+<p>Not yet implemented.  </p>
+
+<h2>
+<a id="search-and-count-inbuilt-elastic-searchrepository-and-query-dsl" class="anchor" href="#search-and-count-inbuilt-elastic-searchrepository-and-query-dsl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Search and count (inbuilt elastic search)(repository and query dsl)</h2>
+
+<h3>
+<a id="searching" class="anchor" href="#searching" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Searching</h3>
+
+<p>Searching is done on MongoDB by default. 
+Provision is made to search using elasticsearch by changing the settings in the Config file. 
+Search on elasticsearch is currently done only on fields that are indexed in the elasticsearch. 
+All the search methods are needed to be exposed on the Repository. 
+Currently only the "And" search operations are supported. </p>
+
+<h3>
+<a id="configuring-elasticsearch" class="anchor" href="#configuring-elasticsearch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuring ElasticSearch:</h3>
+
+<h3>
+<a id="config-class" class="anchor" href="#config-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Config Class:</h3>
+
+<p>Set "ApplyElasticSearch" to true to enable ElasticSearch 
+Set the path of the ElasticSearch service at "ElasticSearchConnection" </p>
+
+<h3>
+<a id="model-class" class="anchor" href="#model-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Model Class:</h3>
+
+<p>For all the fields where the ElasticSearch indexing is requried, set the property in "<a href="https://github.com/field" class="user-mention">@field</a>" as "searchIndex:true" 
+e.g. As in the "name" and "age" properties, the searchIndex is set to true. </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">PersonModel</span> { 
+    @<span class="pl-en">field</span>({searchIndex <span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
+    name<span class="pl-k">:</span> string; 
+
+    @<span class="pl-en">field</span>() 
+    lastname<span class="pl-k">:</span> string; 
+
+    @<span class="pl-en">field</span>({searchIndex <span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
+    age<span class="pl-k">:</span> number; 
+
+<span class="pl-en">constructor</span>(){ 
+} 
+} </pre></div>
+
+<h3>
+<a id="configuring-search" class="anchor" href="#configuring-search" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuring Search:</h3>
+
+<p>All the search methods are defined at the Repository classes. 
+Currently the methods are needed to be defined in a fixed format.<br>
+The method name should start with "findBy".<br>
+It should then be followed by all the fields that are needed to be searched joined by "And" </p>
+
+<p>e.g. </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">PersonRepository</span> { 
+    <span class="pl-en">findByName</span>() { 
+    } 
+    <span class="pl-en">findByNameAndAge</span>() { 
+    } 
+    <span class="pl-en">findByNameAndLastname</span>(){ 
+    } 
+} </pre></div>
+
+<h3>
+<a id="how-the-search-happens" class="anchor" href="#how-the-search-happens" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How the search happens:</h3>
+
+<p>The API's are defined in such a way that if ALL of the fields to be searched are indexed, then the data is fetched from ElasticSearch. 
+If any one the fields to be searched is NOT indexed in ElasticSearch, the data is fetched from MongoDB. 
+Let us consider the above mentioned "PersonModel" and "PersonRepository" 
+The methods "findByName" and "findByNameAndAge", queries using the fields "name" and "age". Since they are defined as Indexed, the data will be fetched from ElasticSearch. 
+The method "findByNameAndLastname", queries "name" and "lastname". Since "lastname" is not defined as indexed, the data will be fetched from MongoDB. </p>
+
+<h2>
+<a id="logging-and-auditing-using-annotations" class="anchor" href="#logging-and-auditing-using-annotations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging and auditing using annotations</h2>
+
+<p>Not Implemented</p>
+
+<h2>
+<a id="graphql-support" class="anchor" href="#graphql-support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Graphql support</h2>
+
+<p>Not Implemented</p>
+
+<h2>
+<a id="meta-data-api" class="anchor" href="#meta-data-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Meta-data API</h2>
+
+<p>Metadata gives the structure of the object. The structure consists of the properties defined in the entities. </p>
+
+<div class="highlight highlight-source-js"><pre>For <span class="pl-smi">e</span>.<span class="pl-smi">g</span>. ‘http<span class="pl-k">:</span><span class="pl-c">//localhost/metadata’ will return all the objects metadata : </span>
+{ 
+  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/subjects<span class="pl-pds">"</span></span> 
+    }, 
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/students<span class="pl-pds">"</span></span> 
+    }, 
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>teachers<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/teachers<span class="pl-pds">"</span></span> 
+    } 
+  ] 
+} 
+
+Further running ‘http<span class="pl-k">:</span><span class="pl-c">//localhost/Metadata/students’ will give: </span>
+{ 
+  <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
+  <span class="pl-s"><span class="pl-pds">"</span>properties<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>String<span class="pl-pds">"</span></span> 
+    }, 
+    { 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+        <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/subjects<span class="pl-pds">"</span></span> 
+      ] 
+    } 
+  ] 
+} </pre></div>
+
+<p>For primitive types, name of the type is shown.  If the entity has a relationship with another entity then the link of that object's metadata is shown. </p>
+
+<h2>
+<a id="security-inbuilt-authentication-role-based-autherization--acl" class="anchor" href="#security-inbuilt-authentication-role-based-autherization--acl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Security (inbuilt authentication) ,role based autherization , acl</h2>
+
+<h3>
+<a id="system-has-two-types-of-inbuilt-authentication" class="anchor" href="#system-has-two-types-of-inbuilt-authentication" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>System has two types of inbuilt authentication:</h3>
+
+<ol>
+<li>
+<em>Session based</em> </li>
+<li>
+<em>Token based</em> </li>
+</ol>
+
+<h3>
+<a id="session-based" class="anchor" href="#session-based" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Session based</h3>
+
+<p>It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a session for it. 
+To use this a user needs to edit the config.ts file. </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+} </pre></div>
+
+<p>Both isAutheticationEnabled  and isAutheticationByUserPasswd should be set to TRUE.<br>
+isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.   </p>
+
+<h3>
+<a id="token-based" class="anchor" href="#token-based" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Token Based</h3>
+
+<p>It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.<br>
+The token expiry time can be set in security-config.ts file. </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">public</span> <span class="pl-k">static</span> tokenExpiresInMinutes<span class="pl-k">:</span> number <span class="pl-k">=</span> <span class="pl-c1">2</span>;<span class="pl-c">//2 minutes. </span></pre></div>
+
+<p>The token is set in the cookies and sent to the browser.Using that token, user is considered valid, and provided access to the system. 
+Once the token is expired, user can just hit the /token API with refreshToken as the query param. RefreshToken value can be found in the browser cookies. This API will generate a new token for the user, and replace the old token in the user document in the DB, as well as in the cookies. Using the new token user can access the system again, without having to login again and again. </p>
+
+<p>To enable token based authentication just edit the config.ts file in following manner </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+} </pre></div>
+
+<p>Currently any user who is AUTHENTICATED, has access to the entire DB. This is because, AUTHORIZATION is not implemented. In the absence of authorization, the user has access to every document in the db. </p>
+
+<h3>
+<a id="facebook-authenticationsso" class="anchor" href="#facebook-authenticationsso" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>FaceBook Authentication(SSO)</h3>
+
+<p>Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
+To enable it the only thing needs to be done is in the config.ts file. </p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+} </pre></div>
+
+<h2>
+<a id="everything-is-promise-no-callback-hell" class="anchor" href="#everything-is-promise-no-callback-hell" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Everything is promise (<em>no callback hell</em>)</h2>
+
+<p>Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. </p>
+
+<div class="highlight highlight-source-js"><pre> <span class="pl-k">return</span> <span class="pl-smi">Q</span>.<span class="pl-en">nbind</span>(<span class="pl-v">this</span>.<span class="pl-smi">find</span>, <span class="pl-v">this</span>)(params) 
+        .<span class="pl-en">then</span>(result <span class="pl-k">=&gt;</span> <span class="pl-en">doSomething</span>(params1)) 
+        .<span class="pl-en">then</span>(result <span class="pl-k">=&gt;</span> <span class="pl-en">doSomethingElse</span>(params2)) 
+        <span class="pl-k">...</span> 
+        .<span class="pl-en">catch</span>(error <span class="pl-k">=&gt;</span> <span class="pl-smi">Q</span>.<span class="pl-en">reject</span>(error)) 
+
+Instead <span class="pl-k">of</span> (Callback hell)<span class="pl-k">:</span> 
+<span class="pl-v">this</span>.<span class="pl-c1">find</span>(params, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
+<span class="pl-en">doSomething</span>(params1, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
+<span class="pl-en">doSomethingElse</span>(params2, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
+<span class="pl-k">...</span> 
+}); 
+}); 
+}) </pre></div>
+
+<p>For details about Q refer to <a href="https://github.com/kriskowal/q/wiki/API-Reference">website API Reference</a> </p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/ratneshsinghparihar" class="avatar"><img src="https://avatars0.githubusercontent.com/u/4960923?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/ratneshsinghparihar">ratneshsinghparihar</a> maintains <a href="https://github.com/ratneshsinghparihar/Node-Data">Node-data</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/ratneshsinghparihar/Node-Data/tarball/master" class="tar">tar</a><a href="https://github.com/ratneshsinghparihar/Node-Data/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
