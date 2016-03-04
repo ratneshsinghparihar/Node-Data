@@ -70,7 +70,7 @@ Read more about:
  
 In short, REST level 3 in addition to HTTP verbs(get, put, post etc.) introduces the concept of discoverability. 
 When we navigate to the base-url(assuming base-url for API is "http://localhost:8080/data/") for API, we get all the exposed rest APIs in the system. 
-```typescript
+```json
 [ 
   { 
    "roles": "http://localhost:8080/data/roles" 
@@ -82,7 +82,7 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 ```
  
 ###Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users". 
-```typescript
+```json
 { 
   "_links": { 
    "self": { 
@@ -176,7 +176,7 @@ class TeacherModel {
 One-to-many refers to the relationship between two entities A and B in which an element of A may be linked to many elements of B, but a member of B is linked to only one element of A.  
   
 For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. 
- ```typescripttypescript
+ ```typescript
 @document({ name: 'teachers', strict: Strict.true }) 
 class TeacherModel { 
     @field() 
@@ -348,18 +348,50 @@ The method "findByNameAndLastname", queries "name" and "lastname". Since "lastna
  
 ##Logging and auditing using annotations 
 
-Not Implemented
+__Not Implemented__
 
 ##Graphql support 
 
-Not Implemented
- 
+Example GraphQL query:
+```javascript
+user(id: "1") {
+  name
+  friends {
+    name
+  }
+}
+```
+Example response:
+```json
+{
+  "data": {
+    "user": {
+      "name": "John Doe",
+      "friends": [
+        {
+          "name": "Friend One"
+        },
+        {
+          "name": "Friend Two"
+        }]
+      }
+    }
+  }
+  ```
+Example GraphQL mutation:
+```javascript
+mutation updateUser($userId: String! $name: String!) {
+  updateUser(id: $userId name: $name) {
+    name
+  }
+}
+``` 
 ##Meta-data API
 
 Metadata gives the structure of the object. The structure consists of the properties defined in the entities. 
 
-```typescript
 For e.g. ‘http://localhost/metadata’ will return all the objects metadata : 
+```json
 { 
   "_links": [ 
     { 
@@ -376,8 +408,9 @@ For e.g. ‘http://localhost/metadata’ will return all the objects metadata :
     } 
   ] 
 } 
-  
-Further running ‘http://localhost/Metadata/students’ will give: 
+```  
+Further running ‘http://localhost/Metadata/students’ will give:
+```json
 { 
   "id": "students", 
   "properties": [ 
