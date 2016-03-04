@@ -1,4 +1,3 @@
-
 export class Config {
     public static DbConnection: string = "mongodb://localhost:27017/userDatabase";
     public static basePath: string = "data";
@@ -9,10 +8,8 @@ export class Config {
 }
 
 export class Security {
-    public static isAutheticationEnabled: boolean = true;
-    public static isAuthorizationEnabled: boolean = false;
-    public static isAutheticationByUserPasswd: boolean = true;
-    public static isAutheticationByToken: boolean = false;
+    public static isAutheticationEnabled = "enabledWithoutAuthorization";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
+    public static authenticationType = "passwordBased";//allowed values: "passwordBased","TokenBased"
 }
 
 export class facebookAuth {

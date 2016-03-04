@@ -6,7 +6,7 @@
 //var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository} from './dynamic-repository';
-import {SecurityConfig} from '../security-config';
+import * as SecurityConfig from '../security-config';
 import * as Config from '../config';
 var crypto = require('crypto');
 import * as Utils from "../decorators/metadata/utils";
@@ -78,7 +78,7 @@ export class AuthController {
                 res.render('login');
             });
 
-        if (Config.Security.isAutheticationByToken) {
+        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",
                     {
@@ -94,7 +94,7 @@ export class AuthController {
             (req, res, next) => this.generateToken(req, res, next),
             (req, res) => this.respond(req, res));
 
-        if (Config.Security.isAutheticationByUserPasswd) {
+        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
             router.post('/login',
             passport.authenticate("local"), (req, res) => {
                 res.redirect('/'+Config.Config.basePath+'/');
@@ -127,8 +127,8 @@ export class AuthController {
     generateToken(req, res, next) {
         req.token = jwt.sign({
             id: req.user.id,
-        }, SecurityConfig.tokenSecretkey, {
-                expiresInMinutes: SecurityConfig.tokenExpiresInMinutes
+        }, SecurityConfig.SecurityConfig.tokenSecretkey, {
+                expiresInMinutes: SecurityConfig.SecurityConfig.tokenExpiresInMinutes
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;

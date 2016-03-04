@@ -9,22 +9,13 @@ var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../decorators/metadata/searchUtils";
 import {MetaData} from '../decorators/metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-import {SecurityConfig} from '../security-config';
+import  * as SecurityConfig from '../security-config';
 import * as Utils from "../decorators/metadata/utils";
 import {Decorators} from '../constants/decorators';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {IFieldParams} from '../decorators/interfaces/field-params';
-//import {Config} from "../config";
-
-if (!Config.Security.isAutheticationEnabled) {
-    ensureLoggedIn = function() {
-        return function(req, res, next) {
-            next();
-        }
-    }
-}
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -356,14 +347,14 @@ export class DynamicController {
     }
 
     private isAuthorize(req: any, access: number): boolean {
-        if (!Config.Security.isAuthorizationEnabled)
+        if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization])
             return true;
         var isAutherize: boolean = false;
         //check for autherization
         //1. get resource name         
         var resourceName = Utils.getResourceNameFromModel(this.repository.getEntityType())
         //2. get auth config from security config
-        var authCofig = Enumerable.from(SecurityConfig.ResourceAccess)
+        var authCofig = Enumerable.from(SecurityConfig.SecurityConfig.ResourceAccess)
             .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
             .firstOrDefault();
         //if none found then carry on                                     
