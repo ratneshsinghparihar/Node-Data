@@ -129,13 +129,13 @@ If we want to fetch all the roles for any user, we can simply fetch the roles ur
 
 A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  
  
-![sample image render](/images/Modeldrivensystem.png "Model driven system")
+![sample image render](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/Modeldrivensystem.png "Model driven system")
 
 ##Data repositories (Only interface)
  
 Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required. 
 
-![sample image render](/images/dataRepositories.png "Data Repositories")
+![sample image render](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/dataRepositories.png "Data Repositories")
  
 ##Auto rest end point generations from repositories 
  
