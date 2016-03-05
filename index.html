@@ -40,7 +40,7 @@
 <li><p>Model driven system</p></li>
 <li><p>Data repositories(Only interface)</p></li>
 <li><p>Auto rest end point generations from repositories</p></li>
-<li><p>Relations using annotations (one to one , onetomany , manytoone , manyttomany)</p></li>
+<li><p>Relations using annotations (onetoone , onetomany , manytoone , manyttomany)</p></li>
 <li><p>Embedded relations support (replication)</p></li>
 <li><p>Transaction and services using annotations</p></li>
 <li><p>DI container</p></li>
@@ -140,51 +140,51 @@ Read more about:
 <p>In short, REST level 3 in addition to HTTP verbs(get, put, post etc.) introduces the concept of discoverability. 
 When we navigate to the base-url(assuming base-url for API is "http://localhost:8080/data/") for API, we get all the exposed rest APIs in the system. </p>
 
-<div class="highlight highlight-source-js"><pre>[ 
+<div class="highlight highlight-source-json"><pre>[ 
   { 
-   <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/roles<span class="pl-pds">"</span></span> 
+   <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/roles<span class="pl-pds">"</span></span> 
   }, 
   { 
-   <span class="pl-s"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
+   <span class="pl-s"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
   } 
 ] </pre></div>
 
 <h3>
 <a id="suppose-we-want-to-get-all-the-users-in-the-system-we-go-to-httplocalhost8080datausers" class="anchor" href="#suppose-we-want-to-get-all-the-users-in-the-system-we-go-to-httplocalhost8080datausers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users".</h3>
 
-<div class="highlight highlight-source-js"><pre>{ 
-  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-   <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
+<div class="highlight highlight-source-json"><pre>{ 
+  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span>: { 
+   <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span>: { 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
    }, 
-   <span class="pl-s"><span class="pl-pds">"</span>search<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>/search<span class="pl-pds">"</span></span> 
+   <span class="pl-s"><span class="pl-pds">"</span>search<span class="pl-pds">"</span></span>: { 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>/search<span class="pl-pds">"</span></span> 
    } 
   }, 
-  <span class="pl-s"><span class="pl-pds">"</span>_embedded<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+  <span class="pl-s"><span class="pl-pds">"</span>_embedded<span class="pl-pds">"</span></span>: [ 
    { 
-    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>56d692a24043588c0c713564<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>alex.b@xyz.com<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Alex Brown<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564<span class="pl-pds">"</span></span> 
+    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>56d692a24043588c0c713564<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>alex.b@xyz.com<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Alex Brown<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span>: { 
+     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span>: { 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564<span class="pl-pds">"</span></span> 
      }, 
-     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span>{ 
-      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564/roles<span class="pl-pds">"</span></span> 
+     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span>:{ 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692a24043588c0c713564/roles<span class="pl-pds">"</span></span> 
      } 
     } 
    }, 
    { 
-    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>56d692be4043588c0c713565<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>daniel.j@xyz.com<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Daniel Jones<span class="pl-pds">"</span></span>, 
-    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span><span class="pl-k">:</span> { 
-      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565<span class="pl-pds">"</span></span> 
+    <span class="pl-s"><span class="pl-pds">"</span>_id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>56d692be4043588c0c713565<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>daniel.j@xyz.com<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Daniel Jones<span class="pl-pds">"</span></span>, 
+    <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span>: { 
+     <span class="pl-s"><span class="pl-pds">"</span>self<span class="pl-pds">"</span></span>: { 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565<span class="pl-pds">"</span></span> 
      }, 
-     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span><span class="pl-k">:</span>{ 
-      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565/roles<span class="pl-pds">"</span></span> 
+     <span class="pl-s"><span class="pl-pds">"</span>roles<span class="pl-pds">"</span></span>:{ 
+      <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/56d692be4043588c0c713565/roles<span class="pl-pds">"</span></span> 
      } 
     } 
    } 
@@ -198,14 +198,40 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 <p>A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  </p>
 
-<p><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/Modeldrivensystem.png" alt="sample image render" title="Model driven system"></p>
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> })
+<span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">StudentModel</span> {
+    @<span class="pl-en">field</span>({ <span class="pl-v">primary</span>: true, <span class="pl-v">autogenerated</span>: true })
+    _id: Types.ObjectId;
+
+    @<span class="pl-en">field</span>()
+    name: <span class="pl-k">string</span>;
+
+    @<span class="pl-en">field</span>()
+    age: <span class="pl-k">number</span>;
+
+    @<span class="pl-en">field</span>()
+    gender: <span class="pl-k">string</span>;
+
+    @<span class="pl-en">onetomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'courses'</span>, <span class="pl-v">itemType</span>: CourseModel, <span class="pl-v">embedded</span>: true })
+    course: CourseModel.CourseModel;
+    }</pre></div>
+
+<p>Here the Student Model has attribute is decorated with document with name student which will tell the system to persist each Student Model as a document with name student and schema will be restricted.</p>
+
+<p><a href="https://github.com/Field" class="user-mention">@Field</a> will provide the specification for fields in model like primarykey , string field etc. <a href="https://github.com/oneToMany" class="user-mention">@oneToMany</a> annotation will build a embedded relation with couseModel in the system.</p>
 
 <h2>
 <a id="data-repositories-only-interface" class="anchor" href="#data-repositories-only-interface" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data repositories (Only interface)</h2>
 
-<p>Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required. </p>
+<p>Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required.</p>
 
-<p><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/dataRepositories.png" alt="sample image render" title="Data Repositories"></p>
+<div class="highlight highlight-source-ts"><pre>@repository({ path: <span class="pl-s">'blogs'</span>, model: BlogModel })
+<span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">BlogRepository</span> <span class="pl-k">extends</span> <span class="pl-k">dataRepository</span> {
+    <span class="pl-en">findByName</span>();
+    <span class="pl-en">publish</span>();
+}</pre></div>
+
+<p>Here the basic CRUD operations (fineone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.</p>
 
 <h2>
 <a id="auto-rest-end-point-generations-from-repositories" class="anchor" href="#auto-rest-end-point-generations-from-repositories" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Auto rest end point generations from repositories</h2>
@@ -214,30 +240,30 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 <p>If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-en">PostAuthorize</span>(<span class="pl-s"><span class="pl-pds">"</span>@currentUserAutherizationServiceImpl.logSavedEntity(principal, returnObject)<span class="pl-pds">"</span></span>) 
-<span class="pl-k">&lt;</span>S <span class="pl-k">extends</span> T<span class="pl-k">&gt;</span> S <span class="pl-en">save</span>(S entity); </pre></div>
+<div class="highlight highlight-source-ts"><pre>@PostAuthorize(<span class="pl-s">"@currentUserAutherizationServiceImpl.logSavedEntity(principal, returnObject)"</span>) 
+<span class="pl-k">&lt;</span>S extends T<span class="pl-k">&gt;</span> S save(S entity); </pre></div>
 
 <h2>
 <a id="relations-using-annotations-one-to-one--onetomany--manytoone--manyttomany" class="anchor" href="#relations-using-annotations-one-to-one--onetomany--manytoone--manyttomany" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Relations using annotations (one to one , onetomany , manytoone , manyttomany)</h2>
 
 <p>Relations between models can be established by adding following declarations. To explain we will be using following entities. </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'subjects'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">SubjectModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
+    name: <span class="pl-k">string</span>; 
 } 
 
-@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
+    name: <span class="pl-k">string</span>; 
 } 
 
-@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+@document({ name: <span class="pl-s">'teachers'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
+    name: <span class="pl-k">string</span>; 
 } </pre></div>
 
 <h3>
@@ -247,12 +273,12 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 <p>For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'teachers'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
-    @<span class="pl-en">onetomany</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> StudentModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
-    mentoring<span class="pl-k">:</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>StudentModel<span class="pl-k">&gt;</span>; 
+    name: <span class="pl-k">string</span>; 
+    @<span class="pl-en">onetomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'students'</span>, <span class="pl-v">itemType</span>: StudentModel, <span class="pl-v">embedded</span>: false }) 
+    mentoring: <span class="pl-en">Array</span>&lt;StudentModel&gt;; 
 } </pre></div>
 
 <p>We have different keywords while declaring the relation. These keywords are used in all the declaration. They are explained as below: 
@@ -271,12 +297,12 @@ Set to true will embed whole document as property value otherwise only primary k
 <p>Many-to-one is vice-versa implementation of one-to-many relation. It’s just that entity is present on other end.<br>
 We will use example from OneToMany example and add that relation on Student entity. </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
-    @<span class="pl-en">manytoone</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> TeacherModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
-    mentor<span class="pl-k">:</span> TeacherModel; 
+    name: <span class="pl-k">string</span>; 
+    @<span class="pl-en">manytoone</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'students'</span>, <span class="pl-v">itemType</span>: TeacherModel, <span class="pl-v">embedded</span>: false }) 
+    mentor: TeacherModel; 
 } </pre></div>
 
 <h3>
@@ -285,12 +311,12 @@ We will use example from OneToMany example and add that relation on Student enti
 <p>One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.<br>
 For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>teachers<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'teachers'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
-    @<span class="pl-en">onetoone</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> SubjectModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
-    subject<span class="pl-k">:</span> SubjectModel; 
+    name: <span class="pl-k">string</span>; 
+    @<span class="pl-en">onetoone</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'subjects'</span>, <span class="pl-v">itemType</span>: SubjectModel, <span class="pl-v">embedded</span>: false }) 
+    subject: SubjectModel; 
 }  </pre></div>
 
 <h3>
@@ -299,12 +325,12 @@ For instance, think of A as teacher, and B as subject. A teacher has only one su
 <p>Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.<br>
 For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-c1">document</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>students<span class="pl-pds">'</span></span>, strict<span class="pl-k">:</span> <span class="pl-smi">Strict</span>.<span class="pl-smi">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
 <span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
     @<span class="pl-en">field</span>() 
-    name<span class="pl-k">:</span> string; 
-    @<span class="pl-en">manytomany</span>({ rel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>subjects<span class="pl-pds">'</span></span>, itemType<span class="pl-k">:</span> SubjectModel, embedded<span class="pl-k">:</span> <span class="pl-c1">false</span> }) 
-    subjects<span class="pl-k">:</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>SubjectModel<span class="pl-k">&gt;</span>; 
+    name: <span class="pl-k">string</span>; 
+    @<span class="pl-en">manytomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'subjects'</span>, <span class="pl-v">itemType</span>: SubjectModel, <span class="pl-v">embedded</span>: false }) 
+    subjects: <span class="pl-en">Array</span>&lt;SubjectModel&gt;; 
 } </pre></div>
 
 <h2>
@@ -329,36 +355,57 @@ Currently, we support concrete types only. If anyone wants to use interfaces, ch
 
 <p><em>Usage</em></p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-en">service</span>({singleton<span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
+<div class="highlight highlight-source-ts"><pre>@service({singleton: <span class="pl-c1">true</span>}) 
 <span class="pl-k">class</span> <span class="pl-en">MyService</span>{ 
-<span class="pl-k">...</span> 
+... 
 } </pre></div>
 
 <p><em>Inject dependency in another service(constructor and property)</em> </p>
 
-<div class="highlight highlight-source-js"><pre>@<span class="pl-en">service</span>() 
+<div class="highlight highlight-source-ts"><pre>@service() 
 <span class="pl-k">class</span> <span class="pl-en">MyAnotherService</span>{ 
 @<span class="pl-en">inject</span>() 
-<span class="pl-k">private</span> myServiceAsProp<span class="pl-k">:</span> MyService; 
+private myServiceAsProp: MyService; 
 
 <span class="pl-c">// constructor injection </span>
-<span class="pl-en">constructor</span>(@<span class="pl-smi">inject</span>() myService<span class="pl-k">:</span> MyService){ 
+<span class="pl-en">constructor</span>(@<span class="pl-v">inject</span>() myService: MyService){ 
 } 
 } </pre></div>
 
 <p><em>Inject dependency in any another class(only property injection as of now)</em></p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">MyNormalClass</span> { 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">class</span> <span class="pl-en">MyNormalClass</span> { 
 @<span class="pl-en">inject</span>() 
-<span class="pl-k">private</span> myService<span class="pl-k">:</span> MyService; 
+private myService: MyService; 
 @<span class="pl-en">inject</span>() 
-<span class="pl-k">private</span> myAnotherService<span class="pl-k">:</span> MyAnotherService; 
+private myAnotherService: MyAnotherService; 
 }</pre></div>
 
 <h2>
 <a id="caching-second-level" class="anchor" href="#caching-second-level" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Caching second level</h2>
 
-<p>Not yet implemented.  </p>
+<p>The proposal for caching is like below</p>
+
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'courses'</span>, strict: Strict.throw })
+@cache({expirtion: Policy.Update ,concurrencyStrategy:Strategy.Read_Write })
+<span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">CourseModel</span> {
+    @<span class="pl-en">field</span>({ <span class="pl-v">primary</span>: true, <span class="pl-v">autogenerated</span>: true })
+    _id: Types.ObjectId;
+
+    @<span class="pl-en">field</span>()
+    name: String;
+
+    @<span class="pl-en">onetomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'teachers'</span>, <span class="pl-v">biDirectional</span>: true})
+    @cache
+    teachers: <span class="pl-en">Array</span>&lt;TM.TeacherModel&gt;;
+
+    @<span class="pl-en">manytomany</span>({<span class="pl-v">rel</span>: <span class="pl-s">'students'</span>, <span class="pl-v">biDirectional</span>: false})
+    students: <span class="pl-en">Array</span>&lt;SM.StudentModel&gt;;
+}</pre></div>
+
+<p>In above example the courses in the system will be cached as per policy and concurrency defined . if you look for teachers for a course that will be served by the cache but if you look for students for a course that will come from persitent in lazy loading manner.</p>
+
+<p>The choice for Caching (Redis , memcahed ,local) and its setting can be define in config.ts file.</p>
 
 <h2>
 <a id="search-and-count-inbuilt-elastic-searchrepository-and-query-dsl" class="anchor" href="#search-and-count-inbuilt-elastic-searchrepository-and-query-dsl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Search and count (inbuilt elastic search)(repository and query dsl)</h2>
@@ -387,15 +434,15 @@ Set the path of the ElasticSearch service at "ElasticSearchConnection" </p>
 <p>For all the fields where the ElasticSearch indexing is requried, set the property in "<a href="https://github.com/field" class="user-mention">@field</a>" as "searchIndex:true" 
 e.g. As in the "name" and "age" properties, the searchIndex is set to true. </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">PersonModel</span> { 
-    @<span class="pl-en">field</span>({searchIndex <span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
-    name<span class="pl-k">:</span> string; 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">class</span> <span class="pl-en">PersonModel</span> { 
+    @<span class="pl-en">field</span>({<span class="pl-v">searchIndex</span> : true}) 
+    name: <span class="pl-k">string</span>; 
 
     @<span class="pl-en">field</span>() 
-    lastname<span class="pl-k">:</span> string; 
+    lastname: <span class="pl-k">string</span>; 
 
-    @<span class="pl-en">field</span>({searchIndex <span class="pl-k">:</span> <span class="pl-c1">true</span>}) 
-    age<span class="pl-k">:</span> number; 
+    @<span class="pl-en">field</span>({<span class="pl-v">searchIndex</span> : true}) 
+    age: <span class="pl-k">number</span>; 
 
 <span class="pl-en">constructor</span>(){ 
 } 
@@ -411,7 +458,7 @@ It should then be followed by all the fields that are needed to be searched join
 
 <p>e.g. </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">PersonRepository</span> { 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">class</span> <span class="pl-en">PersonRepository</span> { 
     <span class="pl-en">findByName</span>() { 
     } 
     <span class="pl-en">findByNameAndAge</span>() { 
@@ -430,49 +477,132 @@ The methods "findByName" and "findByNameAndAge", queries using the fields "name"
 The method "findByNameAndLastname", queries "name" and "lastname". Since "lastname" is not defined as indexed, the data will be fetched from MongoDB. </p>
 
 <h2>
-<a id="logging-and-auditing-using-annotations" class="anchor" href="#logging-and-auditing-using-annotations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging and auditing using annotations</h2>
+<a id="logging" class="anchor" href="#logging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging</h2>
 
-<p>Not Implemented</p>
+<p>It will be completely on developers hand , The framework will allow the metadata of a class , method with logging attribute to be accessible to developers.</p>
+
+<h2>
+<a id="auditing" class="anchor" href="#auditing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Auditing</h2>
+
+<p>The proposal for Auditing is <a href="https://github.com/Audit" class="user-mention">@Audit</a> attribute which can be applied over model or over repository or in both . </p>
+
+<div class="highlight highlight-source-ts"><pre>@Audit({auditModel: CourseAuditModel})
+<span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">CourseModel</span> {
+}</pre></div>
+
+<p>If appllied over model then developer needs to create a audit schema model similar to current model , remove any non auditable field and add audit fields (createdby, lastmodifiedby, deletedby, createddate, lastmodifieddatae) (or extend from). then this new audit schema model need to be passed as a parameter in attribute. If no schmea is provided then framework will autmatically create audit schema including all columns.</p>
+
+<div class="highlight highlight-source-ts"><pre>@repository({ path: <span class="pl-s">'blogs'</span>, model: BlogModel })
+<span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">BlogRepository</span> <span class="pl-k">extends</span> <span class="pl-k">dataRepository</span> {
+    @Audit
+    <span class="pl-en">save</span>();
+}</pre></div>
+
+<p>If appllied over repository then all write opertation will be audited in a dedicated document for the model.</p>
+
+<h2>
+<a id="optimistic-locking" class="anchor" href="#optimistic-locking" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Optimistic Locking</h2>
+
+<p>The docuement databases are infamous for concurrent updates . in high concurrency the situation multifolds itself. we are proposing a simple mechanism of optimatic locking by decorating the suspected method on repository by</p>
+
+<div class="highlight highlight-source-ts"><pre>@OptimisticLocking(type <span class="pl-k">=</span> OptimisticLockType.VERSION)
+save()</pre></div>
+
+<p>in other to support it the corresponding model should have a column decorated with <a href="https://github.com/version" class="user-mention">@version</a> attribute</p>
+
+<div class="highlight highlight-source-ts"><pre>@Version
+@JsonIgnore
+@field(name <span class="pl-k">=</span> <span class="pl-s">"version"</span>)
+version: int;</pre></div>
+
+<p><a href="https://github.com/version" class="user-mention">@version</a> attribute could be applied to int , date fields. Once this is done , for every write query the version check will be apllied hence if somone has stale data it won't be allowed to write.</p>
 
 <h2>
 <a id="graphql-support" class="anchor" href="#graphql-support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Graphql support</h2>
 
-<p>Not Implemented</p>
+<p>For Graphql, atrribute over the  Model will enable the graph queries to be executed.like </p>
+
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'users'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
+@Graphql
+<span class="pl-k">class</span> <span class="pl-en">UserModel</span> { 
+    @<span class="pl-en">field</span>() 
+    name: <span class="pl-k">string</span>; 
+    @<span class="pl-en">manytomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'friends'</span>, <span class="pl-v">itemType</span>: FreindModel, <span class="pl-v">embedded</span>: true }) 
+    friends: <span class="pl-en">Array</span>&lt;FriendModel&gt;; 
+} </pre></div>
+
+<p>Once define like above the framework will automatically add GraphqlObjectType and GraphqlSchema.</p>
+
+<p>Example GraphQL query (request body for post on /user/grpahql/):</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-en">user</span>(<span class="pl-smi">id</span>: <span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span>) {
+  name
+  friends {
+    name
+  }
+}</pre></div>
+
+<p>Example response:</p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>data<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span>: {
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>John Doe<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>friends<span class="pl-pds">"</span></span>: [
+        {
+          <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Friend One<span class="pl-pds">"</span></span>
+        },
+        {
+          <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Friend Two<span class="pl-pds">"</span></span>
+        }]
+      }
+    }
+  }</pre></div>
+
+<p>Example GraphQL mutation:</p>
+
+<div class="highlight highlight-source-js"><pre>mutation <span class="pl-en">updateUser</span>(<span class="pl-smi">$userId</span>: <span class="pl-smi">String</span>! <span class="pl-smi">$name</span>: <span class="pl-smi">String</span>!) {
+  <span class="pl-en">updateUser</span>(<span class="pl-smi">id</span>: <span class="pl-smi">$userId</span> <span class="pl-smi">name</span>: <span class="pl-smi">$name</span>) {
+    name
+  }
+}</pre></div>
 
 <h2>
 <a id="meta-data-api" class="anchor" href="#meta-data-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Meta-data API</h2>
 
 <p>Metadata gives the structure of the object. The structure consists of the properties defined in the entities. </p>
 
-<div class="highlight highlight-source-js"><pre>For <span class="pl-smi">e</span>.<span class="pl-smi">g</span>. ‘http<span class="pl-k">:</span><span class="pl-c">//localhost/metadata’ will return all the objects metadata : </span>
-{ 
-  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+<p>For e.g. ‘http://localhost/metadata’ will return all the objects metadata : </p>
+
+<div class="highlight highlight-source-json"><pre>{ 
+  <span class="pl-s"><span class="pl-pds">"</span>_links<span class="pl-pds">"</span></span>: [ 
     { 
-      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
-      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/subjects<span class="pl-pds">"</span></span> 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/subjects<span class="pl-pds">"</span></span> 
     }, 
     { 
-      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
-      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/students<span class="pl-pds">"</span></span> 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/students<span class="pl-pds">"</span></span> 
     }, 
     { 
-      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>teachers<span class="pl-pds">"</span></span>, 
-      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/teachers<span class="pl-pds">"</span></span> 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>teachers<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>metadata<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/teachers<span class="pl-pds">"</span></span> 
     } 
   ] 
-} 
+} </pre></div>
 
-Further running ‘http<span class="pl-k">:</span><span class="pl-c">//localhost/Metadata/students’ will give: </span>
-{ 
-  <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
-  <span class="pl-s"><span class="pl-pds">"</span>properties<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+<p>Further running ‘http://localhost/Metadata/students’ will give:</p>
+
+<div class="highlight highlight-source-json"><pre>{ 
+  <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>students<span class="pl-pds">"</span></span>, 
+  <span class="pl-s"><span class="pl-pds">"</span>properties<span class="pl-pds">"</span></span>: [ 
     { 
-      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>, 
-      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>String<span class="pl-pds">"</span></span> 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>String<span class="pl-pds">"</span></span> 
     }, 
     { 
-      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
-      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span><span class="pl-k">:</span> [ 
+      <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>subjects<span class="pl-pds">"</span></span>, 
+      <span class="pl-s"><span class="pl-pds">"</span>type<span class="pl-pds">"</span></span>: [ 
         <span class="pl-s"><span class="pl-pds">"</span>http://localhost/Metadata/subjects<span class="pl-pds">"</span></span> 
       ] 
     } 
@@ -500,11 +630,11 @@ Further running ‘http<span class="pl-k">:</span><span class="pl-c">//localhost
 <p>It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a session for it. 
 To use this a user needs to edit the config.ts file. </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAuthorizationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByUserPasswd</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByToken</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
 } </pre></div>
 
 <p>Both isAutheticationEnabled  and isAutheticationByUserPasswd should be set to TRUE.<br>
@@ -516,18 +646,18 @@ isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.
 <p>It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.<br>
 The token expiry time can be set in security-config.ts file. </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">public</span> <span class="pl-k">static</span> tokenExpiresInMinutes<span class="pl-k">:</span> number <span class="pl-k">=</span> <span class="pl-c1">2</span>;<span class="pl-c">//2 minutes. </span></pre></div>
+<div class="highlight highlight-source-ts"><pre>public static tokenExpiresInMinutes: <span class="pl-k">number</span> <span class="pl-k">=</span> <span class="pl-c1">2</span>;<span class="pl-c">//2 minutes. </span></pre></div>
 
 <p>The token is set in the cookies and sent to the browser.Using that token, user is considered valid, and provided access to the system. 
 Once the token is expired, user can just hit the /token API with refreshToken as the query param. RefreshToken value can be found in the browser cookies. This API will generate a new token for the user, and replace the old token in the user document in the DB, as well as in the cookies. Using the new token user can access the system again, without having to login again and again. </p>
 
 <p>To enable token based authentication just edit the config.ts file in following manner </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAuthorizationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByUserPasswd</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByToken</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
 } </pre></div>
 
 <p>Currently any user who is AUTHENTICATED, has access to the entire DB. This is because, AUTHORIZATION is not implemented. In the absence of authorization, the user has access to every document in the db. </p>
@@ -538,11 +668,11 @@ Once the token is expired, user can just hit the /token API with refreshToken as
 <p>Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. </p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAuthorizationEnabled<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByUserPasswd<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> isAutheticationByToken<span class="pl-k">:</span> boolean <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAuthorizationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByUserPasswd</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByToken</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
 } </pre></div>
 
 <h2>
@@ -550,22 +680,23 @@ To enable it the only thing needs to be done is in the config.ts file. </p>
 
 <p>Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. </p>
 
-<div class="highlight highlight-source-js"><pre> <span class="pl-k">return</span> <span class="pl-smi">Q</span>.<span class="pl-en">nbind</span>(<span class="pl-v">this</span>.<span class="pl-smi">find</span>, <span class="pl-v">this</span>)(params) 
-        .<span class="pl-en">then</span>(result <span class="pl-k">=&gt;</span> <span class="pl-en">doSomething</span>(params1)) 
-        .<span class="pl-en">then</span>(result <span class="pl-k">=&gt;</span> <span class="pl-en">doSomethingElse</span>(params2)) 
-        <span class="pl-k">...</span> 
-        .<span class="pl-en">catch</span>(error <span class="pl-k">=&gt;</span> <span class="pl-smi">Q</span>.<span class="pl-en">reject</span>(error)) 
+<div class="highlight highlight-source-ts"><pre> <span class="pl-k">return</span> Q.nbind(<span class="pl-c1">this</span>.find, <span class="pl-c1">this</span>)(params) 
+        .then(result <span class="pl-k">=&gt;</span> doSomething(params1)) 
+        .then(result <span class="pl-k">=&gt;</span> doSomethingElse(params2)) 
+        ... 
+        .catch(error <span class="pl-k">=&gt;</span> Q.reject(error)) </pre></div>
 
-Instead <span class="pl-k">of</span> (Callback hell)<span class="pl-k">:</span> 
-<span class="pl-v">this</span>.<span class="pl-c1">find</span>(params, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
-<span class="pl-en">doSomething</span>(params1, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
-<span class="pl-en">doSomethingElse</span>(params2, (<span class="pl-smi">error</span>, <span class="pl-smi">data</span>) <span class="pl-k">=&gt;</span> { 
-<span class="pl-k">...</span> 
+<p>Instead of (Callback hell): </p>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-c1">this</span>.find(params, (error, data) <span class="pl-k">=&gt;</span> { 
+doSomething(params1, (error, data) <span class="pl-k">=&gt;</span> { 
+doSomethingElse(params2, (error, data) <span class="pl-k">=&gt;</span> { 
+... 
 }); 
 }); 
 }) </pre></div>
 
-<p>For details about Q refer to <a href="https://github.com/kriskowal/q/wiki/API-Reference">website API Reference</a> </p>
+<p>Find out more about Q <a href="https://github.com/kriskowal/q/wiki/API-Reference">here</a> </p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/ratneshsinghparihar/Node-Data">Node-data</a> is maintained by <a href="https://github.com/ratneshsinghparihar">ratneshsinghparihar</a>.</span>
