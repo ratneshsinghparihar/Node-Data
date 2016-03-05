@@ -89,8 +89,11 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
     "href": "http://localhost:8080/data/users" 
    }, 
    "search": { 
-    "href": "/search" 
-   } 
+    "href": "http://localhost:8080/data/users/search" 
+   }, 
+   "action": { 
+    "href": "http://localhost:8080/data/users/action" 
+   }  
   }, 
   "_embedded": [ 
    { 
@@ -160,14 +163,37 @@ Data repository exposes the basic CRUD operations for a defined model which can 
 @repository({ path: 'blogs', model: BlogModel })
 export interface BlogRepository extends dataRepository {
 	findByName();
-    publish();
+    doPublish();
 }
 ```
-Here the basic CRUD operations (fineone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.
+Here the basic CRUD operations (findone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.
  
 ##Auto rest end point generations from repositories 
  
 Once the repository interface defined the framework will automatically generates the rest point . In otherward as a developer you don't need to create the controllers. 
+
+like for above BlogRepository the framework will generate and handle following automatically
+
+```html
+findOne
+Get http://localhost:8080/data/blogs/1/
+findAll
+Get http://localhost:8080/data/blogs/
+create
+Post http://localhost:8080/data/blogs/
+update
+Put http://localhost:8080/data/blogs/1/
+delete
+Delete http://localhost:8080/data/blogs/1/
+
+```
+
+for Custom methods the framework will generate and handle url like
+
+```html
+http://localhost:8080/data/blogs/search/findByName?name=testblog
+http://localhost:8080/data/blogs/action/doPublish/
+```
  
 If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) 
  
