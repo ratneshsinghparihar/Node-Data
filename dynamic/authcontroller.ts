@@ -99,7 +99,7 @@ export class AuthController {
         if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
             router.post('/login',
             passport.authenticate("local"), (req, res) => {
-                res.redirect('/'+Config.Config.basePath+'/');
+                res.redirect('/'+Config.Config.basePath);
             });
         }
         router.get('/logout', (req, res) => {
