@@ -48,9 +48,11 @@ export class AuthController {
     }
 
     addRoutes() {
-        router.get('/', (req, res) => {
+        router.get('/',
+            Utils.ensureLoggedIn(),
+            (req, res) => {
             // Display the Login page with any flash message, if any
-            res.render('home', { message: req.flash('welcome') });
+                res.render('home', {user: req.user});
         });
 
         router.get('/data',
