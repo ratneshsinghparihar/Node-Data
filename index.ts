@@ -29,6 +29,8 @@ function readIgnore(file: string, stats: fs.Stats) {
         || (stats.isDirectory() && ignoreDirectory(file, stats));
 }
 
+let _appRoot = process.cwd();
+
 class Dynamic {
     constructor(config: any) {
         Utils.config(config);
@@ -43,7 +45,7 @@ class Dynamic {
     }
 
     scanDirectories(): Q.Promise<any> {
-        return Q.nfapply(recursiveReadDir, [process.cwd(), [readIgnore]]);
+        return Q.nfapply(recursiveReadDir, [_appRoot, [readIgnore]]);
     }
 
     loadComponents(files: Array<string>) {
@@ -65,6 +67,11 @@ class Dynamic {
     }
 }
 
-module.exports = function (config: any) {
+module.exports = function (config: any, appRoot?: string) {
+    // application root (where we scan the components) set priority: 
+    // 1. User provided 
+    // 2. Environment Variable 
+    // 3. Current working directory
+    _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
     new Dynamic(config);
 }

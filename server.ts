@@ -6,10 +6,10 @@ var bodyParser = require("body-parser");
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 import * as config from './config';
 import {router} from './dynamic/dynamic-controller';
+process.env.APP_ROOT = "hello";
 
 //import * as rolerepo from './repositories/rolerepository';
-var Main = require('./index')(config);
-
+var Main = require('./index')(config, __dirname);
 var app = express();
 
 app.set('views', __dirname + '/views');
