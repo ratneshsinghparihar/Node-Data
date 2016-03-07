@@ -8,12 +8,16 @@ import {IDynamicRepository,DynamicRepository} from './dynamic-repository';
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 import {searchUtils} from "../search/elasticSearchUtils";
 import {Config} from '../config';
+import {Decorators} from '../constants';
+
+import {IRepositoryParams, IDocumentParams} from '../decorators/interfaces/meta-params';
 
 import Mongoose = require("mongoose");
 Mongoose.connect(Config.DbConnection);
 var MongooseSchema = Mongoose.Schema;
+var Enumerable: linqjs.EnumerableStatic = require('linq');
 
-export var mongooseRepoMap: { [key: string]: { fn: Function, repo: IDynamicRepository } } = { };
+export var mongooseRepoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = { };
 export var mongooseSchemaMap: { [key: string]: { schema: any, name: string, fn: any } } = { };
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
 var schemaNameModel: { [key: string]: any } = {};
@@ -33,28 +37,36 @@ export function GetModel(schemaName: string): any {
 }
 
 export class InitializeRepositories {
-    constructor(repositories: Array<Function>) {
-        this.initializeRepo(repositories);
+    constructor() {
+        this.initializeRepo();
     }
 
-    private initializeRepo(repositories: Array<Function>) {
-        repositories.forEach((value, index) => {
-                var schemaName = Utils.getMetaData(value.prototype.model.prototype, "document").params['name']; // model name i.e. schema name
-                var schema = new DynamicSchema(value.prototype.model.prototype, schemaName);
-                var mongooseSchema = schema.getSchema();
-                mongooseSchemaMap[value.prototype.path] = { schema: mongooseSchema, name: schema.schemaName, fn: value };
+    private initializeRepo() {
+        let repositories = Utils.getMetaDataForDecoratorInAllTargets(Decorators.REPOSITORY);
+
+        Enumerable.from(repositories)
+            .forEach((x: { target: Object, metadata: Array<MetaData> }) => {
+                if (!x.metadata || !x.metadata.length) {
+                    return;
+                }
+                let params = <IRepositoryParams >x.metadata[0].params;
+                let repositoryModel = Utils.getMetaData(params.model.prototype, Decorators.DOCUMENT);
+                let schemaName = (<IDocumentParams>repositoryModel.params).name; // model name i.e. schema name
+                let schema = new DynamicSchema(params.model, schemaName);
+                let mongooseSchema = schema.getSchema();
+                mongooseSchemaMap[(<any>x.target).path] = { schema: mongooseSchema, name: schema.schemaName, fn: x.target };
                 mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
-        });
+            });
 
         for (var path in mongooseSchemaMap) {
             var schemaMapVal = mongooseSchemaMap[path];
             if (!schemaNameModel[schemaMapVal.name]) {
-                schemaNameModel[schemaMapVal.name] = { entity: schemaMapVal.fn.prototype.model, model: Mongoose.model(schemaMapVal.name, schemaMapVal.schema) };
+                schemaNameModel[schemaMapVal.name] = { entity: schemaMapVal.fn.model, model: Mongoose.model(schemaMapVal.name, schemaMapVal.schema) };
             }
 
             mongooseRepoMap[path] = {
                 fn: mongooseSchemaMap[path].fn,
-                repo: new DynamicRepository(schemaMapVal.name, GetEntity(schemaMapVal.name), GetModel(schemaMapVal.name), schemaMapVal.fn.prototype)
+                repo: new DynamicRepository(schemaMapVal.name, GetEntity(schemaMapVal.name), GetModel(schemaMapVal.name), schemaMapVal.fn)
             };
             searchUtils.registerToMongoosastic(mongooseRepoMap[path].repo.getModel());
         }

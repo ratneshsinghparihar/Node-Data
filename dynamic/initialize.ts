@@ -1,26 +1,27 @@
-﻿import * as Utils from "../decorators/metadata/utils";
-import {InitializeRepositories, mongooseRepoMap} from "./initialize-repositories";
+﻿import {InitializeRepositories, mongooseRepoMap} from "./initialize-repositories";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
+import path = require('path');
+var Enumerable: linqjs.EnumerableStatic = require('linq');
 
-var Mongoose = require("mongoose");
-var MongooseSchema = Mongoose.Schema;
-var Config = require('../config');
-var acl = require('acl');
-acl = new acl(new acl.mongodbBackend(Config.DbConnection, "acl"));
-var SecurityConfig = require('../security-config');
+import * as Utils from '../utils';
 
 export class Initalize {
-    constructor(repositories: Array<Function>) {
-        new InitializeRepositories(repositories);
+    constructor(files: Array<String>) {
+        new InitializeRepositories();
         new InitializeControllers(mongooseRepoMap);
-        var mongodb = require('mongodb');
-        //   mongodb.connect(Config.DbConnection, function(error, db) {
-        //         acl = new acl( new acl.mongodbBackend(db, 'acl'));       
+        this.configureAcl();
+    }
+
+    configureAcl() {
+        var acl = require('acl');
+        acl = new acl(new acl.mongodbBackend(Utils.config().DbConnection, "acl"));
+        var SecurityConfig = require('../security-config');
+
         SecurityConfig.SecurityConfig.ResourceAccess.forEach(resource => {
             resource.acl.forEach(access => {
                 var aclString: Array<string> = this.aclStringFromMask(access["accessmask"]);
-                acl.allow(access["role"], resource["name"], aclString, function(err, res) {
+                acl.allow(access["role"], resource["name"], aclString, function (err, res) {
                     if (res) {
                         console.log("User joed is allowed to view blogs")
                     }
@@ -31,7 +32,6 @@ export class Initalize {
             });
 
         });
-        //});
     }
 
     aclStringFromMask(mask: number): Array<string> {

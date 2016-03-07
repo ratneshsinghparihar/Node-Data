@@ -19,7 +19,8 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>node-data</Name>
-    <NodeExeArguments>--harmony_default_parameters</NodeExeArguments>
+    <NodeExeArguments>
+    </NodeExeArguments>
     <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <ItemGroup>
@@ -69,7 +70,6 @@
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-repository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-schema.ts" />
-    <TypeScriptCompile Include="dynamic\dynamic.ts" />
     <TypeScriptCompile Include="dynamic\initialize-controllers.ts" />
     <TypeScriptCompile Include="dynamic\initialize-repositories.ts" />
     <TypeScriptCompile Include="dynamic\initialize.ts" />
@@ -79,6 +79,7 @@
     <TypeScriptCompile Include="enums\document-strict.ts" />
     <TypeScriptCompile Include="enums\entity-change.ts" />
     <TypeScriptCompile Include="enums\index.ts" />
+    <TypeScriptCompile Include="index.ts" />
     <TypeScriptCompile Include="models\adress.ts" />
     <TypeScriptCompile Include="models\blog.ts" />
     <TypeScriptCompile Include="models\blogmodel.ts" />
@@ -100,6 +101,7 @@
     <TypeScriptCompile Include="schema\userSchema.ts" />
     <TypeScriptCompile Include="security-config.ts" />
     <TypeScriptCompile Include="server.ts" />
+    <TypeScriptCompile Include="services\aa-service.ts" />
     <TypeScriptCompile Include="services\b-service.ts" />
     <TypeScriptCompile Include="services\a-service.ts" />
     <TypeScriptCompile Include="services\di-service-test-fail.ts" />

@@ -1,6 +1,4 @@
 ﻿//import * as Express from "express";
-//var Dynamic1 = require('../dynamic/dynamic')
-//import * as d1 from "../dynamic/dynamic";
 
 
 export default class BaseRepository {// extends d1.repo {

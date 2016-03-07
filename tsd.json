@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
+      "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
     },
     "serve-static/serve-static.d.ts": {
       "commit": "627b6c158b73494c803f36fc2fe00ad75faa8fde"
@@ -31,6 +31,9 @@
     },
     "form-data/form-data.d.ts": {
       "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
+    },
+    "recursive-readdir/recursive-readdir.d.ts": {
+      "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
     }
   }
 }

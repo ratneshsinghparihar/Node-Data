@@ -24,7 +24,7 @@ export class DynamicController {
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
         this.path = "/"+Config.Config.basePath + "/" + path;
-        this.addSearchPaths();
+        //this.addSearchPaths();
         this.addRoutes();
     }
 
@@ -38,7 +38,7 @@ export class DynamicController {
                 if (!this.isAuthorize(req, 1))
                     return res.send(401, 'unauthorize access for resource ' + this.path);
                 return this.repository.findAll()
-                    .then((result) => {
+                    .then((result) => { 
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
                         result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);

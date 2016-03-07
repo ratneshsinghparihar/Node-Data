@@ -4,9 +4,11 @@ var http = require("http");
 var express = require("express");
 var bodyParser = require("body-parser");
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
+import * as config from './config';
+import {router} from './dynamic/dynamic-controller';
 
 //import * as rolerepo from './repositories/rolerepository';
-import Dynamic = require('./dynamic/dynamic');
+var Main = require('./index')(config);
 
 var app = express();
 
@@ -19,7 +21,8 @@ app.use(require('cookie-parser')());
 //var u = new UserRepository();
 //var r = new RoleRepository();
 
-var d = new Dynamic.repo();
+//new Main.Dynamic(config);
+
 //controllers.init(app);
 var expressSession = require('express-session');
 app.use(expressSession({secret: 'mySecretKey', resave: false, saveUninitialized: false }));
@@ -36,17 +39,17 @@ app.use(passport.session());
 //import ApiGenerator =require("./models/decorator");
 //ApiGenerator.init(app);
 //controllers.init(app);
-app.use("/", Dynamic.dynamicRouter);
+app.use("/", router);
 
 var server = http.createServer(app);
 
 import {Container} from './di';
 import {UserRoleService} from './services/userrole-service';
-import {ESuccess as ESuccess} from './services/di-service-test-success';
+import {BSuccess as ESuccess} from './services/di-service-test-success';
 import {E as EFail} from './services/di-service-test-fail';
 
 console.log('Success:');
-//var aa = Container.resolve<ESuccess>(ESuccess);
+var aa = Container.resolve<ESuccess>(ESuccess);
 console.log('Fail:');
 //var bb = Container.resolve<EFail>(EFail);
         //var aa = Container.resolve<UserRoleService>(UserRoleService);

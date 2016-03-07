@@ -1,34 +1,11 @@
 ﻿import {service, inject} from '../decorators';
-
-@service()
-export class ASuccess {
-    constructor() {
-    }
-}
+import {AA} from './aa-service';
 
 @service()
 export class BSuccess {
-    constructor( @inject() a: ASuccess) {
-    }
-}
-
-@service()
-export class CSuccess {
-    constructor( @inject() a: ASuccess, @inject() b: BSuccess) {
-    }
-}
-
-@service()
-export class DSuccess {
     @inject()
-    private c1: CSuccess;
+    private a1: AA;
 
-    constructor( @inject() a: ASuccess, @inject() b: BSuccess, @inject() c: CSuccess) {
-    }
-}
-
-@service()
-export class ESuccess {
-    constructor( @inject() private a: ASuccess, @inject() private b: BSuccess, @inject() private c: CSuccess, @inject() d: DSuccess) {
+    constructor() {
     }
 }

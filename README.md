@@ -264,31 +264,31 @@ class StudentModel {
 ```
 
 ###OneToOne 
-One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.  
-For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. 
+One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.
+For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity.
  ```typescript
-@document({ name: 'teachers', strict: Strict.true }) 
+@document({ name: 'teachers', strict: Strict.true })
 class TeacherModel { 
     @field() 
     name: string; 
-    @onetoone({ rel: 'subjects', itemType: SubjectModel, embedded: false }) 
+    @onetoone({ rel: 'subjects', itemType: SubjectModel, embedded: false })
     subject: SubjectModel; 
 }  
 ```
 
-###ManyToMany 
-Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.  
-For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. 
+###ManyToMany
+Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.
+For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity.
  ```typescript
-@document({ name: 'students', strict: Strict.true }) 
-class StudentModel { 
-    @field() 
-    name: string; 
+@document({ name: 'students', strict: Strict.true })
+class StudentModel {
+    @field()
+    name: string;
     @manytomany({ rel: 'subjects', itemType: SubjectModel, embedded: false }) 
-    subjects: Array<SubjectModel>; 
-} 
+    subjects: Array<SubjectModel>;
+}
 ```
- 
+
 ##Embedded relations support (*replication*)
 A relation can be saved two ways: 
 1. Link to the related document 
@@ -420,13 +420,22 @@ Let us consider the above mentioned "PersonModel" and "PersonRepository"
 The methods "findByName" and "findByNameAndAge", queries using the fields "name" and "age". Since they are defined as Indexed, the data will be fetched from ElasticSearch. 
 The method "findByNameAndLastname", queries "name" and "lastname". Since "lastname" is not defined as indexed, the data will be fetched from MongoDB. 
 
- 
+
 ##Logging 
 
 It will be completely on developers hand , The framework will allow the metadata of a class , method with logging attribute to be accessible to developers.
+User can also inject the logger using DI.
+ ```typescript
+class Calculator{
+	@log
+    add(a: number, b: number){
+    	return a + b;
+    }
+}
+```
 
-##Auditing 
-The proposal for Auditing is @Audit attribute which can be applied over model or over repository or in both . 
+##Auditing
+The proposal for Auditing is @Audit attribute which can be applied over model or over repository or in both.
 ```typescript
 @Audit({auditModel: CourseAuditModel})
 export class CourseModel {
@@ -595,33 +604,30 @@ Currently any user who is AUTHENTICATED, has access to the entire DB. This is be
 Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. 
 ```typescript
-export class Security { 
-    public static isAutheticationEnabled: boolean = true; 
-    public static isAuthorizationEnabled: boolean = false; 
+export class Security {
+    public static isAutheticationEnabled: boolean = true;
+    public static isAuthorizationEnabled: boolean = false;
     public static isAutheticationByUserPasswd: boolean = true; 
     public static isAutheticationByToken: boolean = false; 
-} 
+}
 ```
- 
+
 ##Everything is promise (*no callback hell*)
- 
-Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. 
- 
+Callback-Hell in nodejs occurs when we have multiple levels of callbacks(as shown in the sample below). This severely affects readablitly of the code. Node-data internally uses [Q](https://github.com/kriskowal/q/wiki/API-Reference) to wrap the function calls and returns a promise. Using Promise chains flattens the pyramid and the code is cleaner.
  ```typescript
- return Q.nbind(this.find, this)(params) 
-        .then(result => doSomething(params1)) 
-        .then(result => doSomethingElse(params2)) 
-        ... 
-        .catch(error => Q.reject(error)) 
+ return Q.nbind(this.find, this)(params)
+        .then(result => doSomething(params1))
+        .then(result => doSomethingElse(params2))
+        ...
+        .catch(error => Q.reject(error))
  ```
-Instead of (Callback hell): 
+Instead of (Callback hell):
 ```typescript
-this.find(params, (error, data) => { 
-doSomething(params1, (error, data) => { 
-doSomethingElse(params2, (error, data) => { 
-... 
-}); 
-}); 
-}) 
+this.find(params, (error, data) => {
+	doSomething(params1, (error, data) => {
+		doSomethingElse(params2, (error, data) => {
+			...
+		});
+	});
+})
 ```
-Find out more about Q [here](https://github.com/kriskowal/q/wiki/API-Reference) 

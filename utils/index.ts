@@ -5,6 +5,15 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 import Mongoose = require("mongoose");
 import {ClassType} from './classtype';
 
+let _config: any = {};
+
+export function config(config?: any) {
+    if (!(config === undefined)) {
+        _config = config;
+    }
+    return _config;
+}
+
 export function getDesignType(target: Object|Function, prop: string) {
     return Reflect.getMetadata("design:type", target, prop);
 }

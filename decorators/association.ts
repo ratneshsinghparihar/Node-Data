@@ -5,7 +5,8 @@ import {DecoratorType} from '../enums';
 import * as Utils from "./metadata/utils";
 import {MetaData} from './metadata/metadata';
 
-export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
+export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+    params = params || <any>{};
 
     return function (target: Object, key: string) {
 
@@ -17,7 +18,9 @@ export function onetomany(params: { biDirectional?: boolean, rel: string, itemTy
     }
 }
 
-export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
+export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+    params = params || <any>{};
+
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytoone - propertyKey: ', propertyKey, ', target:', name);
@@ -25,7 +28,9 @@ export function manytoone(params: { biDirectional?: boolean, rel: string, itemTy
     }
 }
 
-export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean } = <any>{}) {
+export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+    params = params || <any>{};
+
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);

@@ -1,5 +1,4 @@
-﻿import * as dynamic from '../dynamic/dynamic';
-import * as MetaUtils from './metadata/utils';
+﻿import * as MetaUtils from './metadata/utils';
 import * as Utils from '../utils';
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums/decorator-type';

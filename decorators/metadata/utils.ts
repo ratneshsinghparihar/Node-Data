@@ -97,6 +97,25 @@ export function getAllMetaDataForDecorator(target: Object, decorator: string): {
     return null;
 }
 
+export function getMetaDataForDecoratorInAllTargets(decorator: string): Array<{ target: Object, metadata: Array<MetaData> }> {
+    var returnObj = [];
+    for (let key of metadataRoot.keys()) {
+        var metaArrForKey = Enumerable.from(metadataRoot.get(key)) // decoratormetadata: { [key: string]: { [key: string]: MetaData } };
+            .where(keyVal => {
+                return keyVal.key === decorator;
+            })
+            .selectMany(keyval => {
+                return keyval.value;
+            }) //{ [key: string]: MetaData }
+            .select(keyVal => keyVal.value)
+            .toArray();
+        if (metaArrForKey.length) {
+            returnObj.push({ target: key, metadata: metaArrForKey });
+        }
+    }
+    return returnObj;
+}
+
 /**
  * gets metadata of the primary key if the given target
  * @param target
