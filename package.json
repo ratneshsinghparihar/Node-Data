@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jasmine-node .",
-	"testone": "jasmine-node ",
+    "testone": "jasmine-node ",
     "start": "node server.js",
     "postinstall": "tsd install"
   },
@@ -36,6 +36,7 @@
     "passport-local": "^1.0.0",
     "q": "^1.4.1",
     "recursive-readdir": "^1.3.0",
+    "recursive-readdir-synchronous": "^0.0.2",
     "request": "^2.69.0"
   },
   "devDependencies": {
