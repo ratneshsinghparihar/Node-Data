@@ -1,1 +1,3 @@
-﻿
+﻿describe('AuthControllerFunc',  () => {
+    var ut;
+});
