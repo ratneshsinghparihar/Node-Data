@@ -47,7 +47,7 @@ export class AuthController {
         return fullbaseUr;
     }
 
-    addRoutes() {
+   private addRoutes() {
         router.get('/',
             Utils.ensureLoggedIn(),
             (req, res) => {
@@ -126,7 +126,7 @@ export class AuthController {
     }
 };
 
-    generateToken(req, res, next) {
+    private generateToken(req, res, next) {
         req.token = jwt.sign({
             id: req.user.id,
         }, SecurityConfig.SecurityConfig.tokenSecretkey, {
@@ -139,11 +139,11 @@ export class AuthController {
         next();
     }
 
-    respond(req, res) {
+   private respond(req, res) {
         res.redirect('/data/');
     }
 
-    generateRefreshToken(req, res, next) {
+   private  generateRefreshToken(req, res, next) {
         req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
         //TODO dont put it in user object in db
         res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
@@ -151,7 +151,7 @@ export class AuthController {
         next();
     }
 
-    validateRefreshToken(req, res, next) {
+   private validateRefreshToken(req, res, next) {
         userrepository.findByField("refreshToken", req.cookies.refreshToken).then(
             (user) => {
                 req.user = user;

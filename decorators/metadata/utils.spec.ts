@@ -10,7 +10,7 @@ import {DecoratorType} from '../../enums/decorator-type';
 import {Strict} from '../../enums';
 import * as models from '../../unit-test/testModels';
 
-describe('Utils function', function () {
+xdescribe('Utils function', function () {
     //var ut
     //beforeEach(function () {
     //    ut = {
@@ -22,7 +22,7 @@ describe('Utils function', function () {
     //    ut.addMetadata(
     //});
     var ut;
-    beforeEach(function () {
+    beforeEach( () => {
         spyOn(utils, "addMetaData");
         utils.addMetaData(models.student, Decorators.DOCUMENT, DecoratorType.CLASS, { name: models.student.name, strict: Strict.true });
 
@@ -31,17 +31,17 @@ describe('Utils function', function () {
     });
 
 
-    it('Add document metadata', function () {
+    it('Add document metadata',  () =>{
         expect(utils.addMetaData).toHaveBeenCalledWith(models.student, Decorators.DOCUMENT, DecoratorType.CLASS, { name: models.student.name, strict: Strict.true });
 
         //var res = utils.getAllMetaDataForAllDecorator(models.student);
         //console.log(res);
     });
 
-    it('Add document metadata', function () {
+    it('Add document metadata', () =>{
         //expect(utils.addMetaData).toHaveBeenCalledWith(models.student, Decorators.DOCUMENT, DecoratorType.CLASS, { name: models.student.name, strict: Strict.true });
     });
-    it('Add document metadata', function () {
+    it('Add document metadata', () =>{
         //expect(utils.addMetaData).toHaveBeenCalledWith(models.student, Decorators.DOCUMENT, DecoratorType.CLASS, { name: models.student.name, strict: Strict.true });
     });
 
@@ -81,7 +81,7 @@ describe('Utils function', function () {
 
 });
 
-describe("A spy", function () {
+xdescribe("A spy", function () {
     var foo, bar, fetchedBar;
 
     beforeEach(function () {

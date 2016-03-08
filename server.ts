@@ -1,5 +1,6 @@
 require('reflect-metadata/reflect');
 //require('harmonize')(['harmony_default_parameters']);
+require('jasmine-node');
 var http = require("http");
 var express = require("express");
 var bodyParser = require("body-parser");
