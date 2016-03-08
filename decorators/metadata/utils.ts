@@ -36,6 +36,7 @@ export function addMetaData(target: Object|Function, decorator: string, decorato
     if (!target) {
         throw TypeError;
     }
+    console.log("addmetadat is called");
     // property/method decorator with no key passed
     if (arguments.length === 5 && !propertyKey) {
         throw TypeError;

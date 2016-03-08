@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1e09d3f0-0f70-4a7a-a0d8-294a8663def6}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.js</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -60,6 +60,7 @@
     <TypeScriptCompile Include="decorators\metadata\metadata.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
     <TypeScriptCompile Include="decorators\metadata\searchUtils.ts" />
+    <TypeScriptCompile Include="decorators\metadata\utils.spec.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
     <TypeScriptCompile Include="decorators\repository.ts" />
     <TypeScriptCompile Include="decorators\service.ts" />
@@ -92,6 +93,7 @@
     <TypeScriptCompile Include="models\teachermodel.ts" />
     <TypeScriptCompile Include="models\user.ts" />
     <TypeScriptCompile Include="models\usermodel.ts" />
+    <TypeScriptCompile Include="pretest.ts" />
     <TypeScriptCompile Include="repositories\blogrepository.ts" />
     <TypeScriptCompile Include="repositories\course-repository.ts" />
     <TypeScriptCompile Include="repositories\rolerepository.ts" />

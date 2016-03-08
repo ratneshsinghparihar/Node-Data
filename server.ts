@@ -57,3 +57,7 @@ console.log('Fail:');
         //aa.getAll();
 
 server.listen(23548);
+
+export function CloseServer() {
+    server.close();
+};
