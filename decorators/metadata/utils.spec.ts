@@ -8,7 +8,7 @@ import * as utils from './utils';
 import {Decorators} from '../../constants';
 import {DecoratorType} from '../../enums/decorator-type';
 import {Strict} from '../../enums';
-import * as models from '../../unit-test/testModels';
+import * as models from '../../unit-test/models/testModels';
 
 xdescribe('Utils function', function () {
     //var ut

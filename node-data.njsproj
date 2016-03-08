@@ -121,6 +121,14 @@
     <TypeScriptCompile Include="typings\request\request.d.ts" />
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="unit-test\controllers\format.ts" />
+    <TypeScriptCompile Include="unit-test\dto\format.ts" />
+    <TypeScriptCompile Include="unit-test\format.ts" />
+    <TypeScriptCompile Include="unit-test\InitializeModels.ts" />
+    <TypeScriptCompile Include="unit-test\models\format.ts" />
+    <TypeScriptCompile Include="unit-test\repository\format.ts" />
+    <TypeScriptCompile Include="unit-test\services\format.ts" />
+    <TypeScriptCompile Include="unit-test\models\testModels.ts" />
     <TypeScriptCompile Include="utils\ClassType.ts" />
     <TypeScriptCompile Include="utils\index.ts" />
   </ItemGroup>
@@ -145,6 +153,12 @@
     <Folder Include="typings\q\" />
     <Folder Include="typings\request\" />
     <Folder Include="typings\serve-static\" />
+    <Folder Include="unit-test\" />
+    <Folder Include="unit-test\controllers\" />
+    <Folder Include="unit-test\dto\" />
+    <Folder Include="unit-test\models\" />
+    <Folder Include="unit-test\repository\" />
+    <Folder Include="unit-test\services\" />
     <Folder Include="utils\" />
     <Folder Include="repositories\" />
     <Folder Include="schema" />
