@@ -5,18 +5,20 @@ import {DynamicController} from './dynamic-controller';
 import UserRepository from '../repositories/userrepository';
 import {AuthController} from '../dynamic/authcontroller'
 import {MetadataController} from '../dynamic/metadataController'
+import {repositoryMap} from "./repositories";
 
 export class InitializeControllers {
-    constructor(mongooseRepoMap: { [key: string]: { fn: Object, repo: any } }) {
-        this.initializeController(mongooseRepoMap);
+    constructor() {
+        this.initializeController();
     }
 
-    private initializeController(mongooseRepoMap: { [key: string]: { fn: Object, repo: any } }) {
+    private initializeController() {
        
-        for (var path in mongooseRepoMap) {
-            var controller = new DynamicController((<any>mongooseRepoMap[path].fn).path, mongooseRepoMap[path].repo);
+        for (var path in repositoryMap) {
+            var controller = new DynamicController((<any>repositoryMap()[path].fn).path, <any>repositoryMap()[path].repo);
         }
-        var authController = new AuthController("/", mongooseRepoMap['users'].repo);
+        var authController = new AuthController("/", <any>repositoryMap()['users'].repo);
+        authController.createAuthStrategy();
         var metadataController = new MetadataController();
     }
 }

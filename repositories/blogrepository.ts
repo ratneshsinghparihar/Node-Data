@@ -1,6 +1,5 @@
 ﻿//import * as Express from "express";
 import * as role from '../models/role';
-import base from "../dynamic/baserepository";
 import * as decorator from "../decorators/repository";
 import {BlogModel} from '../models/blogmodel';
 

@@ -1,4 +1,4 @@
-﻿import {InitializeRepositories, mongooseRepoMap} from "./initialize-repositories";
+﻿import {InitializeRepositories} from "./initialize-repositories";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
 import path = require('path');
@@ -9,7 +9,7 @@ import * as Utils from '../utils';
 export class Initalize {
     constructor(files: Array<String>) {
         new InitializeRepositories();
-        new InitializeControllers(mongooseRepoMap);
+        new InitializeControllers();
         this.configureAcl();
     }
 

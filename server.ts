@@ -1,8 +1,11 @@
 require('reflect-metadata/reflect');
+console.log(Reflect.decorate);
+//console.log(Reflect.decorate);
 //require('harmonize')(['harmony_default_parameters']);
 require('jasmine-node');
 var http = require("http");
 var express = require("express");
+console.log(Reflect.decorate);
 var bodyParser = require("body-parser");
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 import * as config from './config';
@@ -49,9 +52,9 @@ import {UserRoleService} from './services/userrole-service';
 import {BSuccess as ESuccess} from './services/di-service-test-success';
 import {E as EFail} from './services/di-service-test-fail';
 
-console.log('Success:');
-var aa = Container.resolve<ESuccess>(ESuccess);
-console.log('Fail:');
+//console.log('Success:');
+//var aa = Container.resolve<ESuccess>(ESuccess);
+//console.log('Fail:');
 //var bb = Container.resolve<EFail>(EFail);
         //var aa = Container.resolve<UserRoleService>(UserRoleService);
         //aa.getOne();

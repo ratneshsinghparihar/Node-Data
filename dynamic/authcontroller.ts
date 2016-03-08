@@ -15,7 +15,6 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 
-var Reflect = require('reflect-metadata');
 var jwt = require('jsonwebtoken');
 import * as dc from './dynamic-controller';
 var router = dc.router;
@@ -30,15 +29,17 @@ export class AuthController {
 
     private path: string;
 
+    @inject()
+    public authService: AuthService;
+
     constructor(path: string, repository: DynamicRepository) {
         userrepository = repository;
         this.path = path;
         this.addRoutes();
+    }
 
-        var authService = new AuthService(repository);
-
-        authService.authenticate();
-
+    public createAuthStrategy() {
+        this.authService.authenticate();
     }
 
     private getFullBaseUrl(req): string{
@@ -51,6 +52,7 @@ export class AuthController {
         router.get('/',
             Utils.ensureLoggedIn(),
             (req, res) => {
+                var aa = this.authService;
             // Display the Login page with any flash message, if any
                 res.render('home', {user: req.user});
         });

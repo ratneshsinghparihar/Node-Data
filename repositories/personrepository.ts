@@ -1,4 +1,3 @@
-import base from "../dynamic/baserepository";
 import * as decorator from "../decorators/repository";
 import {PersonModel} from '../models/personModel';
 

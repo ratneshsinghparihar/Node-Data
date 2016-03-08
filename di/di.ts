@@ -7,6 +7,8 @@ import {DecoratorType} from '../enums/decorator-type';
 import {MetaData} from '../decorators/metadata/metadata';
 import {ClassType} from '../utils/classtype';
 import {IInjectParams} from '../decorators/interfaces/inject-params';
+import {repositoryMap} from '../dynamic/repositories';
+
 import * as Utils from '../utils';
 
 var serviceInstMap = new Map();
@@ -69,11 +71,13 @@ export class DI {
     }
 
     private resolveDependencies<T>(cls: ClassType): T {
-        var service = serviceMap.get(cls);
-        if (!service) {
-            return null;
+        if (serviceMap.has(cls)) {
+            return this.resolveServiceDependency<T>(cls, serviceMap.get(cls));
         }
+        return this.resolveRepositoryDependency<T>(cls);
+    }
 
+    private resolveServiceDependency<T>(cls: ClassType, service): T {
         let inst;
         if (!service.singleton) {
             inst = this.instantiateClass<T>(cls);
@@ -87,10 +91,15 @@ export class DI {
         return inst;
     }
 
+    private resolveRepositoryDependency<T>(cls: ClassType): T {
+        return Enumerable.from(repositoryMap())
+            .where(keyVal => cls.prototype == keyVal.value.fn)
+            .select(keyVal => keyVal.value.repo)
+            .firstOrDefault();
+    }
+
     private getInstance(cls: ClassType): any {
         return serviceInstMap.get(cls);
-        //return Enumerable.from(serviceInstances)
-        //    .firstOrDefault(x => x.fn === cls, null);
     }
 
     private getDependencies(cls: ClassType): Array<MetaData> {
@@ -156,13 +165,6 @@ export class DI {
 
     // todo: cyclic dependency
     private instantiateClass<T>(cls: ClassType): T {
-        //if (this.cycle(cls)) {
-        //    throw 'Cycle found: ' + this.getDependencyOrderString(cls);
-        //}
-        //this.dependencyOrder.set(cls, this.dependencyOrder.size);
-
-        //console.log('Current dependency Order: ', this.getDependencyOrderString());
-
         console.log('get dependencies: ' + cls.name);
 
         var allDependencies = this.getDependencies(cls);
@@ -203,10 +205,6 @@ export class DI {
         this.resolvePropDeps(inst, injectedProps);
 
         serviceInstMap.set(cls, inst);
-        //serviceInstances.push({ fn: cls, inst: inst });
-
-        // remove the current class from dependency order
-        //this.dependencyOrder.delete(cls);
 
         stack.pop();
         return inst;
