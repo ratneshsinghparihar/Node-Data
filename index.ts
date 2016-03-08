@@ -35,7 +35,6 @@ class Dynamic {
     constructor(config: any) {
         Utils.config(config);
         config = config;
-        debugger
         var files = this.scanDirectories();
         this.loadComponents(files);
         this.initialize(files);
