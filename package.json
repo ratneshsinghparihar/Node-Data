@@ -4,10 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "jasmine-node spec",
+    "test": "jasmine-node .",
     "start": "node server.js",
-    "postinstall": "tsd install",
-    "pretest": "pretest.bat"
+    "postinstall": "tsd install"
   },
   "author": "pratikv",
   "license": "ISC",
