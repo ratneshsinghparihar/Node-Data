@@ -4,7 +4,7 @@
 
 import {Initalize} from './dynamic/initialize';
 import fs = require('fs');
-import recursiveReadDir = require('recursive-readdir');
+var recursiveReadDir = require('recursive-readdir-synchronous');
 import path = require('path');
 import Q = require("q");
 
@@ -35,17 +35,15 @@ class Dynamic {
     constructor(config: any) {
         Utils.config(config);
         config = config;
-
-        this.scanDirectories()
-            .then(result => {
-                this.loadComponents(result);
-                this.initialize(result);
-            })
-            .catch(error => console.log(error));
+        debugger
+        var files = this.scanDirectories();
+        this.loadComponents(files);
+        this.initialize(files);
     }
 
-    scanDirectories(): Q.Promise<any> {
-        return Q.nfapply(recursiveReadDir, [_appRoot, [readIgnore]]);
+    scanDirectories(): Array<string> {
+        return recursiveReadDir(_appRoot, [readIgnore]);
+        //return Q.nfapply(recursiveReadDir, [_appRoot, [readIgnore]]);
     }
 
     loadComponents(files: Array<string>) {
