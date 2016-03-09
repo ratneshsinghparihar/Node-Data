@@ -1,5 +1,4 @@
-﻿/// <reference path="../../typings/jasmine/jasmine.d.ts" />
-/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
+﻿/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
 
 require('reflect-metadata/reflect');
 var loggedIn = require('connect-ensure-login').ensureLoggedIn;

@@ -1,5 +1,4 @@
-﻿/// <reference path="../typings/node/node.d.ts" />
-import * as Config from '../config';
+﻿import * as Config from '../config';
 //var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';

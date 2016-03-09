@@ -123,9 +123,7 @@
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\q\Q.d.ts" />
-    <TypeScriptCompile Include="typings\request\request.d.ts" />
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
-    <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
     <TypeScriptCompile Include="unit-test\dto\format.ts" />
     <TypeScriptCompile Include="unit-test\format.ts" />
@@ -156,7 +154,6 @@
     <Folder Include="typings\mongoose\" />
     <Folder Include="typings\node\" />
     <Folder Include="typings\q\" />
-    <Folder Include="typings\request\" />
     <Folder Include="typings\serve-static\" />
     <Folder Include="unit-test\" />
     <Folder Include="unit-test\models\" />

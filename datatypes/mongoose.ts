@@ -1,6 +1,4 @@
-﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
-
-import Mongoose = require('mongoose');
+﻿import Mongoose = require('mongoose');
 
 export import ObjectId = Mongoose.Types.ObjectId;
 export import Mixed = Mongoose.SchemaType;

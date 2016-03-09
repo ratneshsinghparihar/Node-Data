@@ -26,14 +26,8 @@
     "linq/linq.3.0.3-Beta4.d.ts": {
       "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
     },
-    "request/request.d.ts": {
-      "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
-    },
     "form-data/form-data.d.ts": {
       "commit": "d0db7bef6269878af5d8e183081693ca3c73953c"
-    },
-    "recursive-readdir/recursive-readdir.d.ts": {
-      "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
     },
     "jasmine/jasmine.d.ts": {
       "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"

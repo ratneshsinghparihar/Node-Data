@@ -1,5 +1,3 @@
-/// <reference path="../typings/mongoose/mongoose.d.ts" />
-
 import * as RM from './rolemodel';
 import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
 import {IUser} from './user';

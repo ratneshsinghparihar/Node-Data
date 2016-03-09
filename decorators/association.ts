@@ -1,4 +1,3 @@
-import {ModelBase} from '../models/modelBase';
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums';
 

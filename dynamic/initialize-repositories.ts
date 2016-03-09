@@ -1,6 +1,4 @@
-﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
-
-import {DynamicSchema} from './dynamic-schema';
+﻿import {DynamicSchema} from './dynamic-schema';
 import * as Utils from "../decorators/metadata/utils";
 import {MetaData} from '../decorators/metadata/metadata';
 

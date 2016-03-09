@@ -1,6 +1,4 @@
-﻿///// <reference path="../typings/jasmine/jasmine.d.ts" />
-
-//describe('Sample description', function () {
+﻿////describe('Sample description', function () {
 
 //    beforeEach(function () {
 

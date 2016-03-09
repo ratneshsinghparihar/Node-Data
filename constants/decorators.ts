@@ -1,5 +1,4 @@
-﻿/// <reference path="../typings/node/node.d.ts" />
-
+﻿
 export class Decorators {
     public static DOCUMENT = 'document';
     public static FIELD = 'field';

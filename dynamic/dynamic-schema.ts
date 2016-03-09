@@ -1,8 +1,4 @@
-﻿/// <reference path="../typings/node/node.d.ts" />
-/// <reference path="../typings/mongoose/mongoose.d.ts" />
-/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
-
-import Mongoose = require('mongoose');
+﻿import Mongoose = require('mongoose');
 
 //import aa = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
