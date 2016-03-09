@@ -653,12 +653,12 @@ class UserModel {
     email: string; 
     
     @field() 
-    @length(10) // to ensure that this attribute is not having more than 10         char, and all char are numbers
+    @length(10) // to ensure that this attribute is not having more than 10 char, and all char are numbers
     mobileNumber: string; 
     
     @field() 
     @min(10)
-    @max(20)// to ensure that this attribute is not more than 20 and not less       than 10
+    @max(20)// to ensure that this attribute is not more than 20 and not less than 10
     count: number;      
 } 
 ```
