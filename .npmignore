@@ -1,11 +1,13 @@
 node_modules/**
-.*/**
-**/*.js.map
-**/*.js
 bin/**
-typings/**/*.*
+typings/**
 obj/**/*.*
 *.suo
 *.htm
 **/*.orig
 out/**
+*.njsproj
+*.sln
+server.js
+**/server.*
+*.spec.*

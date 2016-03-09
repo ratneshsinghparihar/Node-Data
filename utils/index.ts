@@ -1,6 +1,4 @@
-﻿/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
-
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿var Enumerable: any = require('linq');
 import Mongoose = require("mongoose");
 import {ClassType} from './classtype';
 
