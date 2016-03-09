@@ -633,7 +633,7 @@ this.find(params, (error, data) => {
 ```
 
 ##Validation
-Proposal is to craete a validation service where annotations will be used to validate required attributes in any entity.
+Proposal is to create a validation service where annotations will be used to validate required attributes in any entity.
 
 For example check below code fragment
 
