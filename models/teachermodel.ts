@@ -1,5 +1,3 @@
-/// <reference path="../datatypes/mongoose.ts" />
-
 import {StudentModel} from './studentmodel';
 import * as CourseModel from './coursemodel';
 import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 

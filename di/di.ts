@@ -1,6 +1,4 @@
-﻿/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
-
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿var Enumerable: any = require('linq');
 import * as MetaUtils from '../decorators/metadata/utils';
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums/decorator-type';

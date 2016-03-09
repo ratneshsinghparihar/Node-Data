@@ -1,5 +1,4 @@
-// /// <reference path="../typings/tsd.d.ts"/>
-// import * as Express from "express";
+// // import * as Express from "express";
 // import UserController = require("./userController");
 
 // class controllers{

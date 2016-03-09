@@ -1,10 +1,4 @@
-﻿/// <reference path="../services/auth-service.ts" />
-/// <reference path="../decorators/inject.ts" />
-/// <reference path="../typings/node/node.d.ts" />
-/// <reference path="../repositories/userrepository.ts" />
-
-//var Config1 = require('../repos');
-var express = require('express');
+﻿var express = require('express');
 import UserRepository from '../repositories/userRepository';
 import * as SecurityConfig from '../security-config';
 import * as Config from '../config';

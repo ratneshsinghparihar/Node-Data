@@ -6,7 +6,7 @@ import {Container} from '../di';
 import {UserService} from './user-service';
 import {service} from '../decorators/service';
 import {inject} from '../decorators/inject';
-import  UserRepository from '../repositories/userRepository';
+import UserRepository from '../repositories/userRepository';
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;

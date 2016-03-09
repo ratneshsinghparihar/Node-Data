@@ -1,5 +1,4 @@
-﻿/// <reference path="../typings/node/node.d.ts" />
-import * as dc from './dynamic-controller';
+﻿import * as dc from './dynamic-controller';
 var router = dc.router;
 import * as Utils from "../decorators/metadata/utils";
 import {GetRepositoryForName} from './dynamic-repository';
