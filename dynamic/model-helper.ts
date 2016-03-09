@@ -4,6 +4,7 @@ import {EntityChange} from '../enums/entity-change';
 import * as MetaUtils from "../decorators/metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
+import {DecoratorType} from '../enums/decorator-type';
 import {MetaData} from '../decorators/metadata/metadata';
 import {IAssociationParams, IFieldParams, IDocumentParams} from '../decorators/interfaces/meta-params';
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
@@ -82,14 +83,16 @@ export function findChild(model: Mongoose.Model<any>, id, prop) {
 export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     return processEmbedding(model, obj)
         .then(result => {
-            try {
-                autogenerateIdsForAutoFields(model, obj);
-            } catch (ex) {
-                console.log(ex);
-                return Q.reject(ex);
-            }
-            return Q.nbind(model.create, model)(new model(obj)).then(result => {
-                return toObject(result);
+            return isDataValid(model, obj, null).then(result => {
+                try {
+                    autogenerateIdsForAutoFields(model, obj);
+                } catch (ex) {
+                    console.log(ex);
+                    return Q.reject(ex);
+                }
+                return Q.nbind(model.create, model)(new model(obj)).then(result => {
+                    return toObject(result);
+                });
             });
         }).catch(error => {
             console.error(error);
@@ -123,11 +126,14 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
 
 export function patch(model: Mongoose.Model<any>,id: any, obj): Q.Promise<any> {
     // First update the any embedded property and then update the model
-    return processEmbedding(model, obj).then(result=> {
-        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, { $set: obj })
-            .then(result => {
-                updateEmbeddedOnEntityChange(model, EntityChange.patch, result);
-            });
+    return processEmbedding(model, obj).then(result => {
+        return isDataValid(model, obj, id).then(result => {
+            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, { $set: obj })
+                .then(result => {
+                    updateEmbeddedOnEntityChange(model, EntityChange.patch, result);
+                    return toObject(result);
+                });
+        });
     }).catch(error => {
         console.error(error);
         return Q.reject(error);
@@ -220,6 +226,67 @@ export function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updat
                     }
                 });
         }
+    }
+}
+
+export function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
+    var asyncCalls = [];
+    var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
+    Enumerable.from(metas).forEach(x => {
+        var m: MetaData = x;
+        if (val[m.propertyKey]) {
+            asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id));
+        }
+    });
+    return Q.all(asyncCalls);
+}
+
+function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData, val: any, id: any): Q.Promise<any> {
+    switch (metadata.decorator) {
+        case Decorators.ONETOMANY: // for array of objects
+            if (metadata.propertyType.isArray) {
+                if (Array.isArray(val) && val.length > 0) {
+                    var queryCond = [];
+                    Enumerable.from(val).forEach(x => {
+                        var con = {};
+                        if (metadata.propertyType.embedded) {
+                            con[metadata.propertyKey + '._id'] = x['_id'];
+                        }
+                        else {
+                            con[metadata.propertyKey + '._id'] = x;
+                        }
+                        queryCond.push(con);
+                    });
+                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
+                        .then(result => {
+                            if (Array.isArray(result) && result.length > 0) {
+                                throw TypeError(model.modelName + ': ' + metadata.propertyKey + ' - ' + 'Invalid relation');
+                            }
+                        });
+                }
+            }
+            break;
+        case Decorators.MANYTOONE: // for single object
+            break;
+        case Decorators.ONETOONE: // for single object
+            break;
+        case Decorators.MANYTOMANY: // for array of objects
+            // do nothing
+            break;
+    }
+}
+
+function getQueryCondition(id: any, cond: any): any {
+    if (id) {
+        return {
+            $and: [
+                { $or: cond },
+                { '_id': { $ne: id } }
+            ]
+        };
+    }
+    else {
+        return { $or: cond }
     }
 }
 
