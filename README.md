@@ -663,4 +663,4 @@ class UserModel {
 } 
 ```
 
-The user will have freedom to choose the entity attribute to be validated before sve or update.
+The user will have freedom to choose the entity attribute to be validated before save or update.
