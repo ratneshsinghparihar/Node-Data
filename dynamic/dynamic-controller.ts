@@ -364,9 +364,9 @@ export class DynamicController {
             var userInsession = req.user;
             //4. get roles for current user
                   
-            if (!userInsession._doc.rolenames) return false;
+            if (!userInsession.rolenames) return false;
 
-            var userRoles: string = userInsession._doc.rolenames;
+            var userRoles: string = userInsession.rolenames;
 
             var rolesForRead: Array<any> = Enumerable.from(authCofig.acl)
                 .where((acl: any) => { return (acl.accessmask & 1) == 1; })

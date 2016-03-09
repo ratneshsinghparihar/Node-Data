@@ -631,3 +631,36 @@ this.find(params, (error, data) => {
 	});
 })
 ```
+
+##Validation
+Proposal is to craete a validation service where annotations will be used to validate required attributes in any entity.
+
+For example check below code fragment
+
+```typescript
+class UserModel { 
+    
+    @field() 
+    @NotNull() // to ensure that this attribute is never null
+    name: string;   
+    
+    @field() 
+    @number() // to ensure that this attribute is integer
+    age: number; 
+    
+    @field() 
+    @email() // to ensure that this attribute is in mail format
+    email: string; 
+    
+    @field() 
+    @length(10) // to ensure that this attribute is not having more than 10         char, and all char are numbers
+    mobileNumber: string; 
+    
+    @field() 
+    @min(10)
+    @max(20)// to ensure that this attribute is not more than 20 and not less       than 10
+    count: number;      
+} 
+```
+
+The user will have freedom to choose the entity attribute to be validated before sve or update.
