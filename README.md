@@ -42,6 +42,8 @@ Rest level 3 is an amazing protocol allows the autodiscovery of system and appli
 
 15. Everythingh is promise (no callback hell)
 
+16. Validation
+
 
 ##Technologies used 
 
