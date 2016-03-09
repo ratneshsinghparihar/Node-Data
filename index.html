@@ -158,8 +158,11 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
     <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users<span class="pl-pds">"</span></span> 
    }, 
    <span class="pl-s"><span class="pl-pds">"</span>search<span class="pl-pds">"</span></span>: { 
-    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>/search<span class="pl-pds">"</span></span> 
-   } 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/search<span class="pl-pds">"</span></span> 
+   }, 
+   <span class="pl-s"><span class="pl-pds">"</span>action<span class="pl-pds">"</span></span>: { 
+    <span class="pl-s"><span class="pl-pds">"</span>href<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>http://localhost:8080/data/users/action<span class="pl-pds">"</span></span> 
+   }  
   }, 
   <span class="pl-s"><span class="pl-pds">"</span>_embedded<span class="pl-pds">"</span></span>: [ 
    { 
@@ -228,15 +231,34 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 <div class="highlight highlight-source-ts"><pre>@repository({ path: <span class="pl-s">'blogs'</span>, model: BlogModel })
 <span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">BlogRepository</span> <span class="pl-k">extends</span> <span class="pl-k">dataRepository</span> {
     <span class="pl-en">findByName</span>();
-    <span class="pl-en">publish</span>();
+    <span class="pl-en">doPublish</span>();
 }</pre></div>
 
-<p>Here the basic CRUD operations (fineone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.</p>
+<p>Here the basic CRUD operations (findone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.</p>
 
 <h2>
 <a id="auto-rest-end-point-generations-from-repositories" class="anchor" href="#auto-rest-end-point-generations-from-repositories" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Auto rest end point generations from repositories</h2>
 
 <p>Once the repository interface defined the framework will automatically generates the rest point . In otherward as a developer you don't need to create the controllers. </p>
+
+<p>like for above BlogRepository the framework will generate and handle following automatically</p>
+
+<div class="highlight highlight-text-html-basic"><pre>findOne
+Get http://localhost:8080/data/blogs/1/
+findAll
+Get http://localhost:8080/data/blogs/
+create
+Post http://localhost:8080/data/blogs/
+update
+Put http://localhost:8080/data/blogs/1/
+delete
+Delete http://localhost:8080/data/blogs/1/
+</pre></div>
+
+<p>for Custom methods the framework will generate and handle url like</p>
+
+<div class="highlight highlight-text-html-basic"><pre>http://localhost:8080/data/blogs/search/findByName?name=testblog
+http://localhost:8080/data/blogs/action/doPublish/</pre></div>
 
 <p>If custom logic need to be added or entire repository action (like save) need to overridden then a service can be created for the custom logic and service method invocation can be done by defining in attribute over the respective repository's method like below (here we want to do logging after the save) </p>
 
@@ -308,30 +330,30 @@ We will use example from OneToMany example and add that relation on Student enti
 <h3>
 <a id="onetoone" class="anchor" href="#onetoone" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OneToOne</h3>
 
-<p>One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.<br>
-For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity. </p>
+<p>One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.
+For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity.</p>
 
-<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'teachers'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'teachers'</span>, strict: Strict.<span class="pl-c1">true</span> })
 <span class="pl-k">class</span> <span class="pl-en">TeacherModel</span> { 
     @<span class="pl-en">field</span>() 
     name: <span class="pl-k">string</span>; 
-    @<span class="pl-en">onetoone</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'subjects'</span>, <span class="pl-v">itemType</span>: SubjectModel, <span class="pl-v">embedded</span>: false }) 
+    @<span class="pl-en">onetoone</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'subjects'</span>, <span class="pl-v">itemType</span>: SubjectModel, <span class="pl-v">embedded</span>: false })
     subject: SubjectModel; 
 }  </pre></div>
 
 <h3>
 <a id="manytomany" class="anchor" href="#manytomany" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ManyToMany</h3>
 
-<p>Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.<br>
-For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity. </p>
+<p>Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.
+For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity.</p>
 
-<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> }) 
-<span class="pl-k">class</span> <span class="pl-en">StudentModel</span> { 
-    @<span class="pl-en">field</span>() 
-    name: <span class="pl-k">string</span>; 
+<div class="highlight highlight-source-ts"><pre>@document({ name: <span class="pl-s">'students'</span>, strict: Strict.<span class="pl-c1">true</span> })
+<span class="pl-k">class</span> <span class="pl-en">StudentModel</span> {
+    @<span class="pl-en">field</span>()
+    name: <span class="pl-k">string</span>;
     @<span class="pl-en">manytomany</span>({ <span class="pl-v">rel</span>: <span class="pl-s">'subjects'</span>, <span class="pl-v">itemType</span>: SubjectModel, <span class="pl-v">embedded</span>: false }) 
-    subjects: <span class="pl-en">Array</span>&lt;SubjectModel&gt;; 
-} </pre></div>
+    subjects: <span class="pl-en">Array</span>&lt;SubjectModel&gt;;
+}</pre></div>
 
 <h2>
 <a id="embedded-relations-support-replication" class="anchor" href="#embedded-relations-support-replication" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Embedded relations support (<em>replication</em>)</h2>
@@ -479,12 +501,20 @@ The method "findByNameAndLastname", queries "name" and "lastname". Since "lastna
 <h2>
 <a id="logging" class="anchor" href="#logging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging</h2>
 
-<p>It will be completely on developers hand , The framework will allow the metadata of a class , method with logging attribute to be accessible to developers.</p>
+<p>It will be completely on developers hand , The framework will allow the metadata of a class , method with logging attribute to be accessible to developers.
+User can also inject the logger using DI.</p>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">class</span> <span class="pl-en">Calculator</span>{
+    @log
+    <span class="pl-en">add</span>(<span class="pl-v">a</span>: <span class="pl-k">number</span>, <span class="pl-v">b</span>: <span class="pl-k">number</span>){
+        <span class="pl-k">return</span> a <span class="pl-k">+</span> b;
+    }
+}</pre></div>
 
 <h2>
 <a id="auditing" class="anchor" href="#auditing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Auditing</h2>
 
-<p>The proposal for Auditing is <a href="https://github.com/Audit" class="user-mention">@Audit</a> attribute which can be applied over model or over repository or in both . </p>
+<p>The proposal for Auditing is <a href="https://github.com/Audit" class="user-mention">@Audit</a> attribute which can be applied over model or over repository or in both.</p>
 
 <div class="highlight highlight-source-ts"><pre>@Audit({auditModel: CourseAuditModel})
 <span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">CourseModel</span> {
@@ -668,35 +698,66 @@ Once the token is expired, user can just hit the /token API with refreshToken as
 <p>Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. </p>
 
-<div class="highlight highlight-source-ts"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> { 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
-    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAuthorizationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">Security</span> {
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAuthorizationEnabled</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
     <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByUserPasswd</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>; 
     <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-v">isAutheticationByToken</span>: <span class="pl-k">boolean</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>; 
-} </pre></div>
+}</pre></div>
 
 <h2>
 <a id="everything-is-promise-no-callback-hell" class="anchor" href="#everything-is-promise-no-callback-hell" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Everything is promise (<em>no callback hell</em>)</h2>
 
-<p>Node-data internally uses Q to wrap the function calls and returns a promise. Node's callback style coding always lead to what we call as callback hell sooner or later. Using Promise chains is a much cleaner way. </p>
+<p>Callback-Hell in nodejs occurs when we have multiple levels of callbacks(as shown in the sample below). This severely affects readablitly of the code. Node-data internally uses <a href="https://github.com/kriskowal/q/wiki/API-Reference">Q</a> to wrap the function calls and returns a promise. Using Promise chains flattens the pyramid and the code is cleaner.</p>
 
-<div class="highlight highlight-source-ts"><pre> <span class="pl-k">return</span> Q.nbind(<span class="pl-c1">this</span>.find, <span class="pl-c1">this</span>)(params) 
-        .then(result <span class="pl-k">=&gt;</span> doSomething(params1)) 
-        .then(result <span class="pl-k">=&gt;</span> doSomethingElse(params2)) 
-        ... 
-        .catch(error <span class="pl-k">=&gt;</span> Q.reject(error)) </pre></div>
+<div class="highlight highlight-source-ts"><pre> <span class="pl-k">return</span> Q.nbind(<span class="pl-c1">this</span>.find, <span class="pl-c1">this</span>)(params)
+        .then(result <span class="pl-k">=&gt;</span> doSomething(params1))
+        .then(result <span class="pl-k">=&gt;</span> doSomethingElse(params2))
+        ...
+        .catch(error <span class="pl-k">=&gt;</span> Q.reject(error))</pre></div>
 
-<p>Instead of (Callback hell): </p>
+<p>Instead of (Callback hell):</p>
 
-<div class="highlight highlight-source-ts"><pre><span class="pl-c1">this</span>.find(params, (error, data) <span class="pl-k">=&gt;</span> { 
-doSomething(params1, (error, data) <span class="pl-k">=&gt;</span> { 
-doSomethingElse(params2, (error, data) <span class="pl-k">=&gt;</span> { 
-... 
-}); 
-}); 
-}) </pre></div>
+<div class="highlight highlight-source-ts"><pre><span class="pl-c1">this</span>.find(params, (error, data) <span class="pl-k">=&gt;</span> {
+    doSomething(params1, (error, data) <span class="pl-k">=&gt;</span> {
+        doSomethingElse(params2, (error, data) <span class="pl-k">=&gt;</span> {
+            ...
+        });
+    });
+})</pre></div>
 
-<p>Find out more about Q <a href="https://github.com/kriskowal/q/wiki/API-Reference">here</a> </p>
+<h2>
+<a id="validation" class="anchor" href="#validation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Validation</h2>
+
+<p>Proposal is to craete a validation service where annotations will be used to validate required attributes in any entity.</p>
+
+<p>For example check below code fragment</p>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">class</span> <span class="pl-en">UserModel</span> { 
+
+    @<span class="pl-en">field</span>() 
+    @<span class="pl-en">NotNull</span>() <span class="pl-c">// to ensure that this attribute is never null</span>
+    name: <span class="pl-k">string</span>;   
+
+    @<span class="pl-en">field</span>() 
+    @<span class="pl-en">number</span>() <span class="pl-c">// to ensure that this attribute is integer</span>
+    age: <span class="pl-k">number</span>; 
+
+    @<span class="pl-en">field</span>() 
+    @<span class="pl-en">email</span>() <span class="pl-c">// to ensure that this attribute is in mail format</span>
+    email: <span class="pl-k">string</span>; 
+
+    @<span class="pl-en">field</span>() 
+    @<span class="pl-en">length</span>(10) <span class="pl-c">// to ensure that this attribute is not having more than 10 char, and all char are numbers</span>
+    mobileNumber: <span class="pl-k">string</span>; 
+
+    @<span class="pl-en">field</span>() 
+    @<span class="pl-en">min</span>(10)
+    @<span class="pl-en">max</span>(20)<span class="pl-c">// to ensure that this attribute is not more than 20 and not less than 10</span>
+    count: <span class="pl-k">number</span>;      
+} </pre></div>
+
+<p>The user will have freedom to choose the entity attribute to be validated before save or update.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/ratneshsinghparihar/Node-Data">Node-data</a> is maintained by <a href="https://github.com/ratneshsinghparihar">ratneshsinghparihar</a>.</span>
