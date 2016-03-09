@@ -5,7 +5,7 @@
 
 //var Config1 = require('../repos');
 var express = require('express');
-import {DynamicRepository} from './dynamic-repository';
+import UserRepository from '../repositories/userRepository';
 import * as SecurityConfig from '../security-config';
 import * as Config from '../config';
 var crypto = require('crypto');
@@ -18,7 +18,7 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var jwt = require('jsonwebtoken');
 import * as dc from './dynamic-controller';
 var router = dc.router;
-var userrepository: DynamicRepository;
+var userrepository: UserRepository;
 
 import {inject} from '../decorators/inject';
 
@@ -32,7 +32,7 @@ export class AuthController {
     @inject()
     public authService: AuthService;
 
-    constructor(path: string, repository: DynamicRepository) {
+    constructor(path: string, repository: UserRepository) {
         userrepository = repository;
         this.path = path;
         this.addRoutes();

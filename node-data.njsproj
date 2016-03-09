@@ -108,6 +108,7 @@
     <TypeScriptCompile Include="security-config.ts" />
     <TypeScriptCompile Include="server.ts" />
     <TypeScriptCompile Include="services\aa-service.ts" />
+    <TypeScriptCompile Include="services\auth-service.ts" />
     <TypeScriptCompile Include="services\b-service.ts" />
     <TypeScriptCompile Include="services\a-service.ts" />
     <TypeScriptCompile Include="services\di-service-test-fail.ts" />
