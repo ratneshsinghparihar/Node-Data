@@ -1,7 +1,7 @@
 {
   "name": "nodedata",
-  "version": "0.0.14",
-  "description": "",
+  "version": "0.0.16",
+  "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
     "test": "jasmine-node .",
