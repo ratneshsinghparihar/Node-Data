@@ -1,4 +1,4 @@
-import {StudentModel} from './studentmodel';
+import * as StudentModel from './studentmodel';
 import * as CourseModel from './coursemodel';
 import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
 import {IUser} from './user';
@@ -19,12 +19,11 @@ export class TeacherModel {
     @field()
     gender: string;
 
-    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
-    courses: Array<CourseModel.CourseModel>;
-
     @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true })
-    preferredCourse: CourseModel.CourseModel;
+    subjects: Array<CourseModel.CourseModel>;
 
+    @onetomany({ rel: 'students', itemType: StudentModel, embedded: false })
+    students: Array<StudentModel.StudentModel>;
 }
 
 export default TeacherModel;

@@ -124,11 +124,11 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
         });
 }
 
-export function patch(model: Mongoose.Model<any>,id: any, obj): Q.Promise<any> {
+export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
     // First update the any embedded property and then update the model
     return processEmbedding(model, obj).then(result => {
         return isDataValid(model, obj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, { $set: obj })
+            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, obj, { new: true })
                 .then(result => {
                     updateEmbeddedOnEntityChange(model, EntityChange.patch, result);
                     return toObject(result);
@@ -253,7 +253,7 @@ function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData,
                             con[metadata.propertyKey + '._id'] = x['_id'];
                         }
                         else {
-                            con[metadata.propertyKey + '._id'] = x;
+                            con[metadata.propertyKey] = { $in: [x] };
                         }
                         queryCond.push(con);
                     });

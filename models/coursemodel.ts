@@ -11,12 +11,6 @@ export class CourseModel {
 
     @field()
     name: String;
-
-    //@onetomany({ rel: 'teachers', biDirectional: true, itemType: TM, persist: true })
-    //teachers: Array<TM.TeacherModel>;
-
-    //@manytomany({rel: 'students', biDirectional: false, itemType: SM, persist: true})
-    //students: Array<SM.StudentModel>;
 }
 
 export default CourseModel;

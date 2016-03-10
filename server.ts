@@ -1,4 +1,5 @@
 require('reflect-metadata/reflect');
+require('jasmine-node');
 console.log(Reflect.decorate);
 //console.log(Reflect.decorate);
 //require('harmonize')(['harmony_default_parameters']);
