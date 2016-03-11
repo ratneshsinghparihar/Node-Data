@@ -33,9 +33,19 @@ var tsProject = tsc.createProject('tsconfig.json', { sortOutput: true });
 // });
 
 gulp.task('compile-ts', function() {
+    var errors = 0;
   var tsResult = tsProject.src()//gulp.src()
                        .pipe(sourcemaps.init())
-                       .pipe(tsc(tsProject));
+        .pipe(tsc(tsProject))
+        .on("error", function() {
+            errors++;
+        })
+        .on("finish", function() {
+            if (errors !== 0) {
+                console.error("Typescript error(s) found. Build Failed");
+                process.exit(1);
+            }
+        });
 
         tsResult.dts.pipe(gulp.dest("./"));
         return tsResult.js

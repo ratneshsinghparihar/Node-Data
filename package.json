@@ -7,7 +7,8 @@
     "test": "jasmine",
     "testone": "jasmine ",
     "start": "node server.js",
-    "postinstall": "tsd install"
+    "postinstall": "tsd install",
+    "preinstall": "npm install -g tsd jasmine-node"
   },
   "author": "pratikv",
   "license": "ISC",
@@ -46,4 +47,4 @@
     "jasmine": "^2.4.1",
     "jasmine-node": "^1.14.5"
   }
-}
+  }
