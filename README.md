@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
+
 ##This is a work in progress. DO NOT USE IT.##
 
 ##What is Node-Data
