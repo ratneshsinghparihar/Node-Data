@@ -1,10 +1,4 @@
-﻿/// <reference path="../typings/mongoose/mongoose.d.ts" />
-/// <reference path="../typings/node/node.d.ts" />
-/// <reference path="../typings/q/Q.d.ts" />
-/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
-/// <reference path="../typings/express/express.d.ts" />
-
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿var Enumerable: linqjs.EnumerableStatic = require('linq');
 import express = require("express");
 var router = express.Router();
 

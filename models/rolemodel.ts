@@ -1,5 +1,4 @@
 import {field, document, onetomany, manytoone, manytomany} from '../decorators'; 
-import {IRole} from './role';
 import * as UM from './usermodel';
 import {Strict} from '../enums';
 
@@ -10,14 +9,6 @@ export class RoleModel{
     
     @field()
     name: any;
-    
-    //@manytoone({rel: 'users'})
-    //users: Array<UserModel>;
-
-    constructor(userDto: IRole) {
-        this._id = userDto._id;
-        this.name = userDto.name;
-    }
 }
 
 export default RoleModel;

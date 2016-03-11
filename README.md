@@ -1,3 +1,5 @@
+##This is a work in progress. DO NOT USE IT.##
+
 ##What is Node-Data
 
 Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).

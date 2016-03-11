@@ -1,5 +1,4 @@
-﻿/// <reference path="../typings/node/node.d.ts" />
-import * as Config from '../config';
+﻿import * as Config from '../config';
 //var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
@@ -24,11 +23,9 @@ export class DynamicController {
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
         this.path = "/"+Config.Config.basePath + "/" + path;
-        //this.addSearchPaths();
+        this.addSearchPaths();
         this.addRoutes();
     }
-
-
 
     addRoutes() {
         router.get(this.path,
@@ -36,13 +33,15 @@ export class DynamicController {
             (req, res) => {
 
                 if (!this.isAuthorize(req, 1))
-                    return res.send(401, 'unauthorize access for resource ' + this.path);
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findAll()
-                    .then((result) => { 
+                    .then((result) => {
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
                         result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);
-
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
 
@@ -50,12 +49,15 @@ export class DynamicController {
             Utils.ensureLoggedIn(),
             (req, res) => {
                 if (!this.isAuthorize(req, 1))
-                    return res.send(401, 'unauthorize access for resource ' + this.path);
+                    this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result,resourceName , this.repository.getEntityType());
                         this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
         
@@ -133,6 +135,9 @@ export class DynamicController {
                         else {
                             this.sendresult(req, res, association);
                         }
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
 
@@ -145,8 +150,8 @@ export class DynamicController {
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
-                        res.send(error);
-                    });;
+                        this.sendError(res, error);
+                    });
             });
         
         
@@ -163,7 +168,8 @@ export class DynamicController {
                     .then(result => {
                         this.sendresult(req, res, result);
                     }).catch(error => {
-                        res.send(error)
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
 
@@ -174,8 +180,9 @@ export class DynamicController {
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
-                    }, (e) => {
-                        console.log(e);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
 
@@ -186,8 +193,9 @@ export class DynamicController {
                     .then((result) => {
                         this.sendresult(req, res, result);
                     }).catch(error => {
-                        res.send(error)
-                    });;
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         router.patch(this.path + "/:id",
@@ -196,6 +204,9 @@ export class DynamicController {
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
                     });
             });
 
@@ -340,9 +351,18 @@ export class DynamicController {
         return halresult;
     }
 
+    private sendUnauthorizeError(res, error) {
+        res.set("Content-Type", "application/json");
+        res.send(401, JSON.stringify(error, null, 4));
+    }
+
+    private sendError(res, error) {
+        res.set("Content-Type", "application/json");
+        res.send(500, JSON.stringify(error, null, 4));
+    }
+
     private sendresult(req, res, result) {
         res.set("Content-Type", "application/json");
-
         res.send(JSON.stringify(result, null, 4));
     }
 

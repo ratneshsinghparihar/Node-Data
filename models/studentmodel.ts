@@ -1,5 +1,3 @@
-/// <reference path="../datatypes/mongoose.ts" />
-
 import * as TeacherModel from './teachermodel';
 import * as CourseModel from './coursemodel';
 import {field, document, onetomany, manytoone, manytomany} from '../decorators';
@@ -21,17 +19,8 @@ export class StudentModel {
     @field()
     gender: string;
 
-    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true })
-    course: CourseModel.CourseModel;
-
-    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true})
-    courses: Array<CourseModel.CourseModel>;
-
-    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded:true})
-    teachers: Array<TeacherModel.TeacherModel>;
-
-    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded: true })
-    favouriteTeacher: TeacherModel.TeacherModel;
+    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
+    subjects: Array<CourseModel.CourseModel>;
 }
 
 export default StudentModel;

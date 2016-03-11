@@ -1,10 +1,4 @@
-﻿/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
-/// <reference path="../../typings/node/node.d.ts" />
-/// <reference path="../../typings/linq/linq.3.0.3-Beta4.d.ts" />
-/// <reference path="../../security-config.ts" />
-/// <reference path="../../config.ts" />
-
-import {ParamTypeCustom} from './param-type-custom';
+﻿import {ParamTypeCustom} from './param-type-custom';
 import {Strict, DecoratorType} from '../../enums';
 import * as Utils from '../../utils';
 import {Decorators} from '../../constants';

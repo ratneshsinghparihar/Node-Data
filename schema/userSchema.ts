@@ -1,5 +1,4 @@
-// /// <reference path="../typings/tsd.d.ts"/>
-// import {IUser} from '../models/user.ts';
+// // import {IUser} from '../models/user.ts';
 // import * as Mongoose from "mongoose";
 
 // var schema = Mongoose.Schema;

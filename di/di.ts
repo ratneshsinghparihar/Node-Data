@@ -1,6 +1,4 @@
-﻿/// <reference path="../typings/linq/linq.3.0.3-Beta4.d.ts" />
-
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿var Enumerable: any = require('linq');
 import * as MetaUtils from '../decorators/metadata/utils';
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums/decorator-type';
@@ -93,7 +91,8 @@ export class DI {
 
     private resolveRepositoryDependency<T>(cls: ClassType): T {
         return Enumerable.from(repositoryMap())
-            .where(keyVal => cls.prototype == keyVal.value.fn)
+            // TODO: change (keyVal.value.fn.path == cls.prototype.path) to (keyVal.value.fn == cls.prototype). This is workaround for demo.
+            .where(keyVal => keyVal.value.fn.path == cls.prototype.path)
             .select(keyVal => keyVal.value.repo)
             .firstOrDefault();
     }

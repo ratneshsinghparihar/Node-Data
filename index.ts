@@ -1,8 +1,4 @@
-﻿/// <reference path="typings/node/node.d.ts" />
-/// <reference path="typings/recursive-readdir/recursive-readdir.d.ts" />
-/// <reference path="typings/q/Q.d.ts" />
-
-import {Initalize} from './dynamic/initialize';
+﻿import {Initalize} from './dynamic/initialize';
 import fs = require('fs');
 var recursiveReadDir = require('recursive-readdir-synchronous');
 import path = require('path');
