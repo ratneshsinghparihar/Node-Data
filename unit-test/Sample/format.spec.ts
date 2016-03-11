@@ -1,0 +1,41 @@
+﻿// spyon should be created for all the external dependencies
+// each spyon should be checked with number of paramaters and type of parameters and return type if any
+
+import * as global from './GlobalObject';
+import {A} from './SampleClassA';
+import {B} from './SampleClassB';
+
+describe('sample', function () {
+    var getCounterValue = global.GetCounterValue;
+    var a_obj;
+    var b_obj = new B();
+
+    beforeEach(() => {
+        spyOn(b_obj, "getName").and.callThrough();
+        spyOn(global, "GetCounterValue").and.callThrough();
+        spyOn(global, "GetSquare").and.callFake((val) => {
+            console.log(val + val);
+        });
+    });
+
+    xit('check getName() of B object is called', function () {
+        a_obj = new A(b_obj);
+        expect(b_obj.getName).toHaveBeenCalled();
+    });
+
+    xit('check GetCounterValue() of global is called', function () {
+        // restoring the original definition so that we can again spyon the function with different behavior
+        global.GetCounterValue = getCounterValue; 
+        spyOn(global, "GetCounterValue").and.returnValue(10);
+
+        a_obj = new A(b_obj);
+        a_obj.nestedGlobalFunctionCall();
+        expect(global.GetCounterValue).toHaveBeenCalled();
+    });
+
+    it('check GetSquare() of global is called which takes paramaterized value', function () {
+        a_obj = new A(b_obj);
+        a_obj.nestedGlobalFunctionWithParam(10);
+        expect(global.GetSquare).toHaveBeenCalled();
+    });
+});

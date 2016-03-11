@@ -1,0 +1,27 @@
+{
+	"spec_dir":"./",
+	"spec_files":[
+			"constants/**/*[sS]pec.js",
+			"controllers/**/*[sS]pec.js",
+			"datatypes/**/*[sS]pec.js",
+			"decorators/**/*[sS]pec.js",
+			"di/**/*[sS]pec.js",
+			"dynamic/**/*[sS]pec.js",
+			"enums/**/*[sS]pec.js",
+			"images/**/*[sS]pec.js",
+			"models/**/*[sS]pec.js",
+			"repositories/**/*[sS]pec.js",
+			"repositories1/**/*[sS]pec.js",
+			"schema/**/*[sS]pec.js",
+			"search/**/*[sS]pec.js",
+			"services/**/*[sS]pec.js",
+			"stories/**/*[sS]pec.js",
+			"typings/**/*[sS]pec.js",
+			"utils/**/*[sS]pec.js",
+			"views/**/*[sS]pec.js",
+			"*[sS]pec.js"
+			],
+	"helpers":["helpers/**/ *.js"],
+	"stopSpecOnExpectationFailure":false,
+	"random":false
+}

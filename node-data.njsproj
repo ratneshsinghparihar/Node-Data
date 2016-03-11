@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.js</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -31,7 +31,6 @@
     <Content Include="README.md" />
     <Content Include="unit-test\format.js.map" />
     <Content Include="unit-test\InitializeModels.js.map" />
-    <Content Include="unit-test\testModels.js.map" />
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="constants\index.ts" />
     <TypeScriptCompile Include="constants\reflect.ts" />
@@ -97,7 +96,6 @@
     <TypeScriptCompile Include="models\teachermodel.ts" />
     <TypeScriptCompile Include="models\user.ts" />
     <TypeScriptCompile Include="models\usermodel.ts" />
-    <TypeScriptCompile Include="pretest.ts" />
     <TypeScriptCompile Include="repositories\blogrepository.ts" />
     <TypeScriptCompile Include="repositories\course-repository.ts" />
     <TypeScriptCompile Include="repositories\rolerepository.ts" />
@@ -126,12 +124,14 @@
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
     <TypeScriptCompile Include="unit-test\dto\format.ts" />
-    <TypeScriptCompile Include="unit-test\format.ts" />
+    <TypeScriptCompile Include="unit-test\Sample\format.spec.ts" />
+    <TypeScriptCompile Include="unit-test\Sample\GlobalObject.ts" />
     <TypeScriptCompile Include="unit-test\InitializeModels.ts" />
     <TypeScriptCompile Include="unit-test\models\format.ts" />
     <TypeScriptCompile Include="unit-test\repository\user-repository-mock.ts" />
+    <TypeScriptCompile Include="unit-test\Sample\SampleClassB.ts" />
+    <TypeScriptCompile Include="unit-test\Sample\SampleClassA.ts" />
     <TypeScriptCompile Include="unit-test\services\format.ts" />
-    <TypeScriptCompile Include="unit-test\testModels.ts" />
     <TypeScriptCompile Include="utils\ClassType.ts" />
     <TypeScriptCompile Include="utils\index.ts" />
   </ItemGroup>
@@ -159,6 +159,7 @@
     <Folder Include="unit-test\models\" />
     <Folder Include="unit-test\dto\" />
     <Folder Include="unit-test\controllers\" />
+    <Folder Include="unit-test\Sample\" />
     <Folder Include="unit-test\services\" />
     <Folder Include="unit-test\repository\" />
     <Folder Include="utils\" />
@@ -169,7 +170,6 @@
   <ItemGroup>
     <Compile Include="unit-test\format.js" />
     <Compile Include="unit-test\InitializeModels.js" />
-    <Compile Include="unit-test\testModels.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->
