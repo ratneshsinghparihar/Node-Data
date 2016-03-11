@@ -4,10 +4,12 @@
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
+    "pretest": "gulp compile-ts",
     "test": "jasmine-node .",
     "testone": "jasmine-node ",
     "start": "node server.js",
-    "postinstall": "tsd install"
+    "postinstall": "tsd install",
+    "preinstall": "npm install -g tsd jasmine-node"
   },
   "author": "pratikv",
   "license": "ISC",
@@ -47,4 +49,4 @@
     "jasmine-node": "^1.14.5",
     "karma-jasmine": "^0.3.7"
   }
-}
+  }
