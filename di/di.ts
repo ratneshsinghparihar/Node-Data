@@ -39,7 +39,6 @@ export class DI {
     private dependencyOrder: Map<ClassType, number>;
 
     addService(fn: Function, params: any) {
-        console.log('addService(fn): ' + fn);
         serviceMap.set(fn, params);
         if (params.test) {
             mockServiceMap.set(params.injectedType, fn);

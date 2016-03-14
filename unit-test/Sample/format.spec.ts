@@ -2,14 +2,14 @@
 // each spyon should be checked with number of paramaters and type of parameters and return type if any
 require('reflect-metadata/reflect');
 
-import {registerMockServices} from './Service';
+var service = require('./Service');
 import * as global from './GlobalObject';
 import {A} from './SampleClassA';
 import {B} from './SampleClassB';
 
 describe('sample', function () {
     // initialize MockServices first
-    registerMockServices();
+    //registerMockServices();
     
     var getCounterValue = global.GetCounterValue;
     var a_obj;
