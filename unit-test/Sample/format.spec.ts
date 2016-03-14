@@ -1,11 +1,16 @@
 ﻿// spyon should be created for all the external dependencies
 // each spyon should be checked with number of paramaters and type of parameters and return type if any
+require('reflect-metadata/reflect');
 
+import {registerMockServices} from './Service';
 import * as global from './GlobalObject';
 import {A} from './SampleClassA';
 import {B} from './SampleClassB';
 
 describe('sample', function () {
+    // initialize MockServices first
+    registerMockServices();
+    
     var getCounterValue = global.GetCounterValue;
     var a_obj;
     var b_obj = new B();
@@ -33,9 +38,15 @@ describe('sample', function () {
         expect(global.GetCounterValue).toHaveBeenCalled();
     });
 
-    it('check GetSquare() of global is called which takes paramaterized value', function () {
+    xit('check GetSquare() of global is called which takes paramaterized value', function () {
         a_obj = new A(b_obj);
         a_obj.nestedGlobalFunctionWithParam(10);
         expect(global.GetSquare).toHaveBeenCalled();
+    });
+
+    it('dependency injection for Authservice using mock object', function () {
+        a_obj = new A(b_obj);
+        var val = a_obj.authenticate();
+        expect(val).toEqual(true);
     });
 });

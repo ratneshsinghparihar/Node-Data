@@ -11,6 +11,7 @@ import * as Utils from '../utils';
 
 var serviceInstMap = new Map();
 var serviceMap = new Map();
+var mockServiceMap = new Map();
 
 //var services: Array<{ fn: Function, params: {} }> = [];
 //var serviceInstances: Array<{fn: Function, inst: any}> = [];
@@ -38,13 +39,22 @@ export class DI {
     private dependencyOrder: Map<ClassType, number>;
 
     addService(fn: Function, params: any) {
+        console.log('addService(fn): ' + fn);
         serviceMap.set(fn, params);
+        if (params.test) {
+            mockServiceMap.set(params.injectedType, fn);
+        }
         //services.push({ fn: fn, params: params });
     }
 
     resolve<T>(cls: ClassType): T {
         this.dependencyOrder = new Map<ClassType, number>();
-        return this.resolveDependencies<T>(cls);
+        if (mockServiceMap.has(cls)) {
+            return this.resolveDependencies<T>(mockServiceMap.get(cls));
+        }
+        else {
+            return this.resolveDependencies<T>(cls);
+        }
     }
 
 

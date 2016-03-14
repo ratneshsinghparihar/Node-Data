@@ -131,6 +131,7 @@
     <TypeScriptCompile Include="unit-test\repository\user-repository-mock.ts" />
     <TypeScriptCompile Include="unit-test\Sample\SampleClassB.ts" />
     <TypeScriptCompile Include="unit-test\Sample\SampleClassA.ts" />
+    <TypeScriptCompile Include="unit-test\Sample\Service.ts" />
     <TypeScriptCompile Include="unit-test\services\format.ts" />
     <TypeScriptCompile Include="utils\ClassType.ts" />
     <TypeScriptCompile Include="utils\index.ts" />
