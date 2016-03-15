@@ -3,7 +3,7 @@ import * as MetaUtils from './metadata/utils';
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums';
 
-export function service(params?: { singleton?: boolean, test?: boolean, injectedType?: Object |Function }) {
+export function service(params?: { singleton?: boolean }) {
     params = params || <any>{};
     params.singleton = true;
 

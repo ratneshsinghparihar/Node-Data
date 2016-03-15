@@ -11,7 +11,6 @@ import * as Utils from '../utils';
 
 var serviceInstMap = new Map();
 var serviceMap = new Map();
-var mockServiceMap = new Map();
 
 //var services: Array<{ fn: Function, params: {} }> = [];
 //var serviceInstances: Array<{fn: Function, inst: any}> = [];
@@ -40,20 +39,15 @@ export class DI {
 
     addService(fn: Function, params: any) {
         serviceMap.set(fn, params);
-        if (params.test) {
-            mockServiceMap.set(params.injectedType, fn);
-        }
         //services.push({ fn: fn, params: params });
     }
 
     resolve<T>(cls: ClassType): T {
         this.dependencyOrder = new Map<ClassType, number>();
-        if (mockServiceMap.has(cls)) {
-            return this.resolveDependencies<T>(mockServiceMap.get(cls));
+        if (serviceMap.has(cls)) {
+            return this.resolveServiceDependency<T>(cls, serviceMap.get(cls));
         }
-        else {
-            return this.resolveDependencies<T>(cls);
-        }
+        return this.resolveRepositoryDependency<T>(cls);
     }
 
 
@@ -75,13 +69,6 @@ export class DI {
             return true;
         }
         return false;
-    }
-
-    private resolveDependencies<T>(cls: ClassType): T {
-        if (serviceMap.has(cls)) {
-            return this.resolveServiceDependency<T>(cls, serviceMap.get(cls));
-        }
-        return this.resolveRepositoryDependency<T>(cls);
     }
 
     private resolveServiceDependency<T>(cls: ClassType, service): T {
@@ -142,7 +129,7 @@ export class DI {
                     console.log(x);
                     throw 'no type found';
                 }
-                resolvedDeps.push(this.resolveDependencies(type));
+                resolvedDeps.push(this.resolve(type));
             });
         return resolvedDeps;
     }
@@ -158,7 +145,7 @@ export class DI {
     private resolvePropDeps(inst: any, propDeps: Array<any>) {
         Enumerable.from(propDeps)
             .forEach((x: MetaData) => {
-                inst[x.propertyKey] = this.resolveDependencies((<IInjectParams>x.params).type);
+                inst[x.propertyKey] = this.resolve((<IInjectParams>x.params).type);
             });
     }
     //private instantiateClass<T extends Function>(fn: T): T {}
