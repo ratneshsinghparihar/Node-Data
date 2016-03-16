@@ -4,7 +4,7 @@ import {DecoratorType} from '../enums';
 import * as Utils from "./metadata/utils";
 import {MetaData} from './metadata/metadata';
 
-export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean}) {
     params = params || <any>{};
 
     return function (target: Object, key: string) {
@@ -17,7 +17,7 @@ export function onetomany(params: { biDirectional?: boolean, rel: string, itemTy
     }
 }
 
-export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
     params = params || <any>{};
 
     return function (target: Object, propertyKey: string) {
@@ -27,12 +27,22 @@ export function manytoone(params: { biDirectional?: boolean, rel: string, itemTy
     }
 }
 
-export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean }) {
+export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
     params = params || <any>{};
 
     return function (target: Object, propertyKey: string) {
         var name = (<any>target.constructor).name;
         console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);
         Utils.addMetaData(target, Decorators.MANYTOMANY, DecoratorType.PROPERTY, params, propertyKey);
+    }
+}
+
+export function onetoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
+    params = params || <any>{};
+
+    return function (target: Object, propertyKey: string) {
+        var name = (<any>target.constructor).name;
+        console.log('onetoone - propertyKey: ', propertyKey, ', target:', name);
+        Utils.addMetaData(target, Decorators.ONETOONE, DecoratorType.PROPERTY, params, propertyKey);
     }
 }

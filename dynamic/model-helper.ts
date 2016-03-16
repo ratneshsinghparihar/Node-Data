@@ -28,11 +28,14 @@ export function findWhere(model: Mongoose.Model<any>, query): Q.Promise < any > 
     return Q.nbind(model.find, model)(query);
 }
 
-export function findOne(model: Mongoose.Model<any>,id) {
+export function findOne(model: Mongoose.Model<any>, id) {
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            return toObject(result);
-        });;
+            return embeddedChildren(model, result)
+                .then(r => {
+                    return toObject(r);
+                });
+        });
 }
 
 export function findByField(model: Mongoose.Model<any>,fieldName, value): Q.Promise < any > {
@@ -59,6 +62,7 @@ export function findMany(model: Mongoose.Model<any>,ids: Array<any>) {
             console.error(error);
             return Q.reject(error);
         }
+
         return toObject(result);
     });
 }
@@ -229,7 +233,55 @@ export function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updat
     }
 }
 
-export function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
+function embeddedChildren(model: Mongoose.Model<any>, val: any){
+    if (!model)
+        return;
+
+    var asyncCalls = [];
+    var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
+
+    Enumerable.from(metas).forEach(x => {
+        var m: MetaData = x;
+        var param: IAssociationParams = <IAssociationParams>m.params;
+        if (!m.propertyType.embedded && param.eagerLoading) {
+            var relModel = GetModel(m.propertyType.rel);
+            if (m.propertyType.isArray) {
+                asyncCalls.push(findMany(relModel, val[m.propertyKey])
+                    .then(result => {
+
+                        var childCalls = [];
+                        var updatedChild = [];
+
+                        Enumerable.from(result).forEach(res => {
+                            childCalls.push(embeddedChildren(relModel, res).then(r => {
+                                updatedChild.push(r);
+                            }));
+                        });
+
+                        return Q.all(childCalls).then(r => {
+                            val[m.propertyKey] = updatedChild;
+                        });
+                    }));
+            }
+            else {
+                asyncCalls.push(findOne(relModel, val[m.propertyKey])
+                    .then(result => {
+
+                        return Q.resolve(embeddedChildren(relModel, result).then(r => {
+                            val[m.propertyKey] = r;
+                        }));
+
+                    }));
+            }
+        }
+    });
+
+    return Q.allSettled(asyncCalls).then(res => {
+        return val;
+    });
+}
+
+function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
     var asyncCalls = [];
     var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
     Enumerable.from(metas).forEach(x => {
@@ -440,3 +492,45 @@ function toObject(result): any {
     }
     return result ? result.toObject() : null;
 }
+
+//export function ExampleQPromise(model: Mongoose.Model<any>, id) {
+//    return Q.nbind(model.findOne, model)({ '_id': id })
+//        .then(result => {
+//            var res = toObject(result);
+//            var asyncCalls = [];
+//            asyncCalls.push(findMany(model, [id]).then(val => {
+//                var nestedCalls = [];
+//                var nestedVal = {};
+
+//                nestedCalls.push(findMany(model, [id]).then(val => {
+//                    nestedVal['AA'] = val;
+//                }));
+
+//                nestedCalls.push(findMany(model, [id]).then(val => {
+//                    nestedVal['AB'] = val;
+//                }));
+
+//                nestedCalls.push(findMany(model, [id]).then(val => {
+//                    nestedVal['AC'] = val;
+//                }));
+
+//                return Q.all(nestedCalls).then(val => {
+//                    res['A'] = nestedVal;
+//                    return res;
+//                });
+
+//            }));
+
+//            asyncCalls.push(findMany(model, [id]).then(val => {
+//                res['B'] = val;
+//            }));
+
+//            asyncCalls.push(findMany(model, [id]).then(val => {
+//                res['C'] = val;
+//            }));
+
+//            return Q.all(asyncCalls).then(ret => {
+//                return res;
+//            });
+//        });
+//}
