@@ -73,7 +73,6 @@
     <TypeScriptCompile Include="di\index.ts" />
     <TypeScriptCompile Include="dynamic\authcontroller.spec.ts" />
     <TypeScriptCompile Include="dynamic\authcontroller.ts" />
-    <TypeScriptCompile Include="dynamic\baserepository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-repository.ts" />
     <TypeScriptCompile Include="dynamic\dynamic-schema.ts" />
@@ -87,19 +86,12 @@
     <TypeScriptCompile Include="enums\entity-change.ts" />
     <TypeScriptCompile Include="enums\index.ts" />
     <TypeScriptCompile Include="index.ts" />
-    <TypeScriptCompile Include="models\adress.ts" />
-    <TypeScriptCompile Include="models\blog.ts" />
-    <TypeScriptCompile Include="models\blogmodel.ts" />
     <TypeScriptCompile Include="models\coursemodel.ts" />
-    <TypeScriptCompile Include="models\decorator.ts" />
-    <TypeScriptCompile Include="models\modelBase.ts" />
-    <TypeScriptCompile Include="models\role.ts" />
     <TypeScriptCompile Include="models\rolemodel.ts" />
     <TypeScriptCompile Include="models\studentmodel.ts" />
     <TypeScriptCompile Include="models\teachermodel.ts" />
     <TypeScriptCompile Include="models\user.ts" />
     <TypeScriptCompile Include="models\usermodel.ts" />
-    <TypeScriptCompile Include="repositories\blogrepository.ts" />
     <TypeScriptCompile Include="repositories\course-repository.ts" />
     <TypeScriptCompile Include="repositories\rolerepository.ts" />
     <TypeScriptCompile Include="repositories\student-repository.ts" />

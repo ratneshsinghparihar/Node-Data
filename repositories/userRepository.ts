@@ -12,8 +12,18 @@ export default class UserRepository extends DynamicRepository {
     findByNameAndAge() {
     }
 
-   // @authorize({roles: ['ROLE_ADMIN']})
+    @authorize({roles: ['ROLE_ADMIN']})
     findByField(name: string, value: string): any {
+
+    }
+
+    @authorize({ roles: ['ROLE_ADMIN'] })
+    findAll(): any {
+
+    }
+
+    @authorize({ roles: ['ROLE_ADMIN'] })
+    findOne(id: any): any {
 
     }
 

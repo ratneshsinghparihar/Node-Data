@@ -33,7 +33,7 @@ export class DynamicController {
             Utils.ensureLoggedIn(),
             (req, res) => {
                     
-                if (!this.isAuthorize(req, 1))
+                if (!this.isAuthorize(req, 1, 'findAll'))
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findAll()
                     .then((result) => {
@@ -49,7 +49,7 @@ export class DynamicController {
         router.get(this.path + '/:id',
             Utils.ensureLoggedIn(),
             (req, res) => {
-                if (!this.isAuthorize(req, 1))
+                if (!this.isAuthorize(req, 1,'findOne'))
                     this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
@@ -367,15 +367,24 @@ export class DynamicController {
         res.send(JSON.stringify(result, null, 4));
     }
 
-    private isAuthorize(req: any, access: number): boolean {
-        if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization])
+    private isAuthorize(req: any, access: number, invokedFunction?: string): boolean {
+        if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
             return true;
-        var metadata = Utils.getMetaData(this.repository, Decorators.AUTHORIZE, 'findByField');
-        var param = <IAuthorizeParams>metadata.params;
-        if (param && param.roles) {
-            console.log("----------->>>>>>>>>>>>>>>>>>>>>>>>" + param.roles);
         }
-
+        var metadata = Utils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
+        var param = metadata && <IAuthorizeParams>metadata.params;
+        if (param && param.roles) {
+            var currentUser = req.user;
+            if (currentUser && currentUser.roles && currentUser.roles != "" && currentUser.roles.length > 0) {
+               var isRolePresent = Enumerable.from(param.roles)
+                    .select(role => this.presentInArray(role, currentUser.roles) == true)
+                    .firstOrDefault(null);
+               if (isRolePresent) {
+                   return true;
+               }
+            }
+            return false;
+        }
         var isAutherize: boolean = false;
         //check for autherization
         //1. get resource name         
@@ -412,6 +421,17 @@ export class DynamicController {
         return true;
     }
 
+
+    private presentInArray(key: string, roleArray: Array<string>) {
+        var isAvailable = Enumerable.from(roleArray)
+            .where(role => role.name == key)
+            .firstOrDefault(null);
+        if (isAvailable) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     
     private getFullDataUrl(req): string{
         var fullbaseUr:string="";

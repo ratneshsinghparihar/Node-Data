@@ -29,7 +29,7 @@ export var metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData
 export function addMetaData(target: Object|Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number) {
     if (!target) {
         throw TypeError;
-    }
+    }   
     // property/method decorator with no key passed
     if (arguments.length === 5 && !propertyKey) {
         throw TypeError;
