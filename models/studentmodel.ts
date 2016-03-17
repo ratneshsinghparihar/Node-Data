@@ -1,6 +1,6 @@
 import * as TeacherModel from './teachermodel';
 import * as CourseModel from './coursemodel';
-import {field, document, onetomany, manytoone, manytomany} from '../decorators';
+import {field, document, onetomany, manytoone, manytomany, onetoone} from '../decorators';
 import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../enums';
@@ -21,6 +21,9 @@ export class StudentModel {
 
     @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
     subjects: Array<CourseModel.CourseModel>;
+
+    @onetoone({ rel: 'courses', itemType: CourseModel, embedded: true})
+    mainSubjects: CourseModel.CourseModel;
 }
 
 export default StudentModel;

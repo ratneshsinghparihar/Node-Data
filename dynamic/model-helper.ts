@@ -104,20 +104,6 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
         });
 }
 
-export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
-    // First update the any embedded property and then update the model
-    return processEmbedding(model, obj).then(result=> {
-        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, obj, { upsert: true, new: true })
-            .then(result => {
-                updateEmbeddedOnEntityChange(model, EntityChange.put, result);
-                return toObject(result);
-            });
-    }).catch(error => {
-        console.error(error);
-        return Q.reject(error);
-    });
-}
-
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
     return Q.nbind(model.findOneAndRemove, model)({ '_id': id })
         .then((response: any) => {
@@ -126,6 +112,22 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
             }
             return updateEmbeddedOnEntityChange(model, EntityChange.delete, response);
         });
+}
+
+export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    // First update the any embedded property and then update the model
+    return processEmbedding(model, obj).then(result => {
+        return isDataValid(model, obj, id).then(result => {
+            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, obj, { upsert: true, new: true })
+                .then(result => {
+                    updateEmbeddedOnEntityChange(model, EntityChange.put, result);
+                    return toObject(result);
+                });
+        });
+    }).catch(error => {
+        console.error(error);
+        return Q.reject(error);
+    });
 }
 
 export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
@@ -283,17 +285,26 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any){
 
 function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
     var asyncCalls = [];
+    var ret: boolean = true;
     var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         if (val[m.propertyKey]) {
-            asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id));
+            asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
+                if (res != undefined && !res) {
+                    ret = false;
+                }
+            }));
         }
     });
-    return Q.all(asyncCalls);
+    return Q.all(asyncCalls).then(f => {
+        if (!ret) {
+            throw 'Invalid value. Adding these properties will break the relation.'
+        }
+    });
 }
 
-function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData, val: any, id: any): Q.Promise<any> {
+function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData, val: any, id: any){
     switch (metadata.decorator) {
         case Decorators.ONETOMANY: // for array of objects
             if (metadata.propertyType.isArray) {
@@ -311,20 +322,42 @@ function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData,
                     });
                     return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
                         .then(result => {
+                            if (Array.isArray(result) && result.length > 0) 
+                                return false;
+                            else
+                                return true;
+                        });
+                }
+            }
+            break;
+        case Decorators.ONETOONE: // for single object
+            if (!metadata.propertyType.isArray) {
+                if (!Array.isArray(val)) {
+                    var queryCond = [];
+                    var con = {};
+                    if (metadata.propertyType.embedded) {
+                        con[metadata.propertyKey + '._id'] = val['_id'];
+                    }
+                    else {
+                        con[metadata.propertyKey] = { $in: [val] };
+                    }
+                    queryCond.push(con);
+
+                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
+                        .then(result => {
                             if (Array.isArray(result) && result.length > 0) {
-                                throw TypeError(model.modelName + ': ' + metadata.propertyKey + ' - ' + 'Invalid relation');
+                                return false;
                             }
                         });
                 }
             }
             break;
         case Decorators.MANYTOONE: // for single object
-            break;
-        case Decorators.ONETOONE: // for single object
-            break;
+            // do nothing
+            return Q(undefined);
         case Decorators.MANYTOMANY: // for array of objects
             // do nothing
-            break;
+            return Q(undefined);
     }
 }
 

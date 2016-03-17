@@ -1,6 +1,7 @@
 export {onetomany} from './association';
 export {manytoone} from './association';
 export {manytomany} from './association';
+export {onetoone} from './association';
 export {field} from './field';
 export {repository} from './repository';
 export {document} from './document';

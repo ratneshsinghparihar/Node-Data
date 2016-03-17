@@ -61,5 +61,5 @@ export function activator<T>(cls: ClassType, args?: Array<any>): T {
 }
 
 export function isRelationDecorator(decorator: string) {
-    return decorator === 'onetomany' || decorator === 'manytoone' || decorator === 'manytomany';
+    return decorator === 'onetomany' || decorator === 'manytoone' || decorator === 'manytomany' || decorator === 'onetoone';
 }

@@ -1,6 +1,10 @@
 ﻿import {InitializeRepositories} from "./initialize-repositories";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../decorators/metadata/param-type-custom';
+import {Decorators} from '../constants';
+import * as metaUtils from "../decorators/metadata/utils";
+import {MetaData} from '../decorators/metadata/metadata';
+import {IAssociationParams} from '../decorators/interfaces/meta-params';
 import path = require('path');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
@@ -8,6 +12,7 @@ import * as Utils from '../utils';
 
 export class Initalize {
     constructor(files: Array<String>) {
+        //this.validateModels();
         new InitializeRepositories();
         new InitializeControllers();
         this.configureAcl();
@@ -40,5 +45,49 @@ export class Initalize {
         if ((mask & 2) == 2) aclString.push("edit");
         if ((mask & 4) == 4) aclString.push("delete");
         return aclString;
+    }
+
+    // need to pass this via reference
+    private visitedNodes = new Map();
+
+    validateModels() {
+        var modelsMeta = metaUtils.getMetaDataForDecoratorInAllTargets(Decorators.DOCUMENT);
+        Enumerable.from(modelsMeta).forEach(x => {
+            var m: MetaData = x;
+            var res = this.hasLoop(m.target, new Array<MetaData>());
+            if (res) {
+                throw 'Cannot start server. Please correct the model ' + m.target.constructor.name;
+            }
+        });
+    }
+
+    hasLoop(target: Object, vis: Array<MetaData>): boolean {
+        var rel = metaUtils.getAllRelationsForTargetInternal(target);
+        Enumerable.from(rel).forEach(y => {
+            var r: MetaData = <MetaData>y;
+            var param: IAssociationParams = <IAssociationParams>r.params;
+            if (param.embedded || param.eagerLoading) {
+                var res = false;
+                if (this.visitedNodes.has(r)) {
+                    // no need to go ahead, path from this node is already checked
+                    res = false;
+                }
+                else if (vis.indexOf(r) > -1) {
+                    // loop found
+                    res = true;
+                }
+                else {
+                    vis.push(r);
+                    this.visitedNodes.set(r, true);
+                    res = this.hasLoop(param.itemType, vis);
+                }
+
+                // if any loop 
+                if (res)
+                    return true;
+            }
+        });
+
+        return false;
     }
 }

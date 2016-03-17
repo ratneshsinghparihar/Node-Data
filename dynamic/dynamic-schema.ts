@@ -128,7 +128,7 @@ export class DynamicSchema {
     }
 
     private isSchemaDecorator(decorator: string) {
-        return decorator === Decorators.FIELD || decorator === Decorators.ONETOMANY || decorator === Decorators.MANYTOONE || decorator === Decorators.MANYTOMANY;
+        return decorator === Decorators.FIELD || decorator === Decorators.ONETOMANY || decorator === Decorators.MANYTOONE || decorator === Decorators.MANYTOMANY || decorator === Decorators.ONETOONE;
     }
 
     private getAllMetadataForSchema(target: Object): { [key: string]: MetaData } {
