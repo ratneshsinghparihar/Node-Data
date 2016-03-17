@@ -15,7 +15,7 @@ export class Initalize {
 
     configureAcl() {
         var acl = require('acl');
-        acl = new acl(new acl.mongodbBackend(Utils.config().DbConnection, "acl"));
+        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));
         var SecurityConfig = require('../security-config');
 
         SecurityConfig.SecurityConfig.ResourceAccess.forEach(resource => {

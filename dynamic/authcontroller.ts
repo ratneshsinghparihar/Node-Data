@@ -1,5 +1,6 @@
 ﻿var express = require('express');
 import UserRepository from '../repositories/userRepository';
+import * as configUtil from '../utils';
 import * as SecurityConfig from '../security-config';
 import * as Config from '../config';
 var crypto = require('crypto');
@@ -76,7 +77,7 @@ export class AuthController {
                 res.render('login');
             });
 
-        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
+        if (configUtil.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",
                     {
@@ -92,7 +93,7 @@ export class AuthController {
             (req, res, next) => this.generateToken(req, res, next),
             (req, res) => this.respond(req, res));
 
-        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
+        if (configUtil.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
             router.post('/login',
             passport.authenticate("local"), (req, res) => {
                 res.redirect('/'+Config.Config.basePath);

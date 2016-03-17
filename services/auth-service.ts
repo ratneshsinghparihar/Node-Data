@@ -1,7 +1,7 @@
 /// <reference path="../dynamic/dynamic-repository.ts" />
 /// <reference path="../dynamic/dynamic-controller.ts" />
 /// <reference path="../repositories/userRepository.ts" />
-import Config = require("../config");
+import * as configUtil from '../utils';
 import {Container} from '../di';
 import {UserService} from './user-service';
 import {service} from '../decorators/service';
@@ -83,9 +83,9 @@ export class AuthService {
         passport.use(new FacebookStrategy({
 
             // pull in our app id and secret from our Config.ts file
-            clientID: Config.facebookAuth.clientID,
-            clientSecret: Config.facebookAuth.clientSecret,
-            callbackURL: Config.facebookAuth.callbackURL
+            clientID: configUtil.config().facebookAuth.clientID,
+            clientSecret: configUtil.config().facebookAuth.clientSecret,
+            callbackURL: configUtil.config().facebookAuth.callbackURL
 
         },
 

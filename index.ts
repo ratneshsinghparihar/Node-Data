@@ -3,8 +3,6 @@ import fs = require('fs');
 var recursiveReadDir = require('recursive-readdir-synchronous');
 import path = require('path');
 import Q = require("q");
-
-import Config = require('./config');
 import Utils = require('./utils');
 
 //import linq = require('../typings/linq/linq');

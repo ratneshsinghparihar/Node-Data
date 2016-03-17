@@ -1,4 +1,5 @@
 ﻿import * as Config from '../config';
+import * as configUtil from '../utils';
 //var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
@@ -23,7 +24,7 @@ export class DynamicController {
 
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
-        this.path = "/"+Config.Config.basePath + "/" + path;
+        this.path = "/"+configUtil.config().Config.basePath + "/" + path;
         this.addSearchPaths();
         this.addRoutes();
     }
@@ -237,7 +238,7 @@ export class DynamicController {
 
     private addRoutesForAllSearch(map: ISearchPropertyMap, fieldsWithSearchIndex: any[]) {
         let searchFromDb: boolean = true;
-        if (Config.Config.ApplyElasticSearch) {
+        if (configUtil.config().Config.ApplyElasticSearch) {
             let areAllSearchFieldsIndexed = Enumerable.from(map.args).intersect(fieldsWithSearchIndex).count() == map.args.length;
             searchFromDb = !areAllSearchFieldsIndexed;
         }
@@ -368,7 +369,7 @@ export class DynamicController {
     }
 
     private isAuthorize(req: any, access: number, invokedFunction?: string): boolean {
-        if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
+        if (configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
             return true;
         }
         var metadata = Utils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
@@ -435,7 +436,7 @@ export class DynamicController {
     
     private getFullDataUrl(req): string{
         var fullbaseUr:string="";
-         fullbaseUr=req.protocol + '://' + req.get('host') + "/" + Config.Config.basePath;
+         fullbaseUr=req.protocol + '://' + req.get('host') + "/" + configUtil.config().Config.basePath;
         return fullbaseUr;
     }
     
@@ -447,7 +448,7 @@ export class DynamicController {
 
     private getFullBaseUrlUsingRepo(req, repoName): string {
         var fullbaseUr: string = "";
-        fullbaseUr = req.protocol + '://' + req.get('host') + '/' + Config.Config.basePath + '/' + repoName;
+        fullbaseUr = req.protocol + '://' + req.get('host') + '/' + configUtil.config().Config.basePath + '/' + repoName;
         return fullbaseUr;
     }
 }
