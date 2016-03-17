@@ -12,7 +12,7 @@ import {initializeModels} from '../../unit-test/InitializeModels';
 import {DecoratorType} from '../../enums/decorator-type';
 import {Strict} from '../../enums';
 
-xdescribe('Utils function:', function () {
+describe('Utils function:', function () {
     var met;
     beforeEach(() => {
         initializeModels();

@@ -119,6 +119,7 @@
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
     <TypeScriptCompile Include="unit-test\dto\format.ts" />
+    <TypeScriptCompile Include="unit-test\models\testModels.ts" />
     <TypeScriptCompile Include="unit-test\Sample\format.spec.ts" />
     <TypeScriptCompile Include="unit-test\Sample\GlobalObject.ts" />
     <TypeScriptCompile Include="unit-test\InitializeModels.ts" />
@@ -128,6 +129,7 @@
     <TypeScriptCompile Include="unit-test\Sample\SampleClassA.ts" />
     <TypeScriptCompile Include="unit-test\Sample\MockService.ts" />
     <TypeScriptCompile Include="unit-test\services\format.ts" />
+    <TypeScriptCompile Include="unit-test\services\MockService.ts" />
     <TypeScriptCompile Include="utils\ClassType.ts" />
     <TypeScriptCompile Include="utils\index.ts" />
   </ItemGroup>
