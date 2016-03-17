@@ -1,13 +1,13 @@
 ﻿var Enumerable: any = require('linq');
-import * as MetaUtils from '../decorators/metadata/utils';
-import {Decorators} from '../constants';
-import {DecoratorType} from '../enums/decorator-type';
-import {MetaData} from '../decorators/metadata/metadata';
-import {ClassType} from '../utils/classtype';
-import {IInjectParams} from '../decorators/interfaces/inject-params';
-import {repositoryMap} from '../dynamic/repositories';
+import * as MetaUtils from '../core/metadata/utils';
+import {Decorators} from '../core/constants';
+import {DecoratorType} from '../core/enums/decorator-type';
+import {MetaData} from '../core/metadata/metadata';
+import {ClassType} from '../core/utils/classtype';
+import {IInjectParams} from './decorators/interfaces/inject-params';
+import {repositoryMap} from '../core/exports/repositories';
 
-import * as Utils from '../utils';
+import * as Utils from '../core/utils';
 
 var serviceInstMap = new Map();
 var serviceMap = new Map();
@@ -209,3 +209,5 @@ export class DI {
         return inst;
     }
 }
+
+export var Container = new DI();
