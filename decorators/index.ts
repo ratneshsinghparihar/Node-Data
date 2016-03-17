@@ -6,3 +6,4 @@ export {repository} from './repository';
 export {document} from './document';
 export {service} from './service';
 export {inject} from './inject';
+export {authorize} from './authorize';

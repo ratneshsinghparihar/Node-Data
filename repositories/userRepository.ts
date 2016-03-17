@@ -1,6 +1,7 @@
 ﻿import * as decorator from "../decorators/repository";
 import {UserModel} from '../models/usermodel';
 import {DynamicRepository} from '../dynamic/dynamic-repository';
+import {authorize} from '../decorators'; 
 
 @decorator.repository({ path: 'users', model: UserModel })
 export default class UserRepository extends DynamicRepository {
@@ -9,6 +10,11 @@ export default class UserRepository extends DynamicRepository {
     }
 
     findByNameAndAge() {
+    }
+
+   // @authorize({roles: ['ROLE_ADMIN']})
+    findByField(name: string, value: string): any {
+
     }
 
 }

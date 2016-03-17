@@ -46,11 +46,13 @@
     <TypeScriptCompile Include="controllers\userController.ts" />
     <TypeScriptCompile Include="datatypes\mongoose.ts" />
     <TypeScriptCompile Include="decorators\association.ts" />
+    <TypeScriptCompile Include="decorators\authorize.ts" />
     <TypeScriptCompile Include="decorators\document.ts" />
     <TypeScriptCompile Include="decorators\field.ts" />
     <TypeScriptCompile Include="decorators\index.ts" />
     <TypeScriptCompile Include="decorators\inject.ts" />
     <TypeScriptCompile Include="decorators\interfaces\association-params.ts" />
+    <TypeScriptCompile Include="decorators\interfaces\authorization-params.ts" />
     <TypeScriptCompile Include="decorators\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="decorators\interfaces\document-params.ts" />
     <TypeScriptCompile Include="decorators\interfaces\field-metadata.ts" />
@@ -61,6 +63,7 @@
     <TypeScriptCompile Include="decorators\interfaces\repository-params.ts" />
     <TypeScriptCompile Include="decorators\metadata\metadata.ts" />
     <TypeScriptCompile Include="decorators\metadata\param-type-custom.ts" />
+    <TypeScriptCompile Include="decorators\metadata\searchUtils.spec.ts" />
     <TypeScriptCompile Include="decorators\metadata\searchUtils.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.spec.ts" />
     <TypeScriptCompile Include="decorators\metadata\utils.ts" />
@@ -168,6 +171,7 @@
     <Folder Include="services" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="decorators\document.js" />
     <Compile Include="unit-test\format.js" />
     <Compile Include="unit-test\InitializeModels.js" />
   </ItemGroup>

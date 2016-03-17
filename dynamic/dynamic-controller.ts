@@ -12,6 +12,7 @@ import  * as SecurityConfig from '../security-config';
 import * as Utils from "../decorators/metadata/utils";
 import {Decorators} from '../constants/decorators';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+import {IAuthorizeParams} from '../decorators/interfaces/authorization-params';
 
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {IFieldParams} from '../decorators/interfaces/field-params';
@@ -31,7 +32,7 @@ export class DynamicController {
         router.get(this.path,
             Utils.ensureLoggedIn(),
             (req, res) => {
-
+                    
                 if (!this.isAuthorize(req, 1))
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findAll()
@@ -369,6 +370,12 @@ export class DynamicController {
     private isAuthorize(req: any, access: number): boolean {
         if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization])
             return true;
+        var metadata = Utils.getMetaData(this.repository, Decorators.AUTHORIZE, 'findByField');
+        var param = <IAuthorizeParams>metadata.params;
+        if (param && param.roles) {
+            console.log("----------->>>>>>>>>>>>>>>>>>>>>>>>" + param.roles);
+        }
+
         var isAutherize: boolean = false;
         //check for autherization
         //1. get resource name         

@@ -4,6 +4,7 @@ import {IDocumentParams} from '../interfaces/document-params';
 import {IRepositoryParams} from '../interfaces/repository-params';
 import {IFieldParams} from '../interfaces/field-params';
 import {IAssociationParams} from '../interfaces/association-params';
+import {IAuthorizeParams} from '../interfaces/authorization-params';
 import {IInjectParams} from '../interfaces/inject-params';
 import {ReflectConstants} from '../../constants';
 
@@ -13,7 +14,7 @@ export class MetaData {
     propertyKey: string;
     decorator: string;
     propertyType: ParamTypeCustom;
-    params: IFieldParams | IAssociationParams | IDocumentParams | IRepositoryParams | IInjectParams;
+    params: IFieldParams | IAssociationParams | IDocumentParams | IRepositoryParams | IInjectParams | IAuthorizeParams;
     decoratorType: DecoratorType;
     paramIndex: number;
 

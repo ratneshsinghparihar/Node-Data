@@ -9,4 +9,5 @@ export class Decorators {
     public static ONETOONE = 'onetoone';
     public static REPOSITORY = 'repository';
     public static SERVICE = 'service';
+    public static AUTHORIZE = 'authorize';
 }

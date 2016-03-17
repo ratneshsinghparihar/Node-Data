@@ -9,6 +9,9 @@ import {UserRoleService} from '../services/userrole-service';
 import * as ModelHelper from "../dynamic/model-helper";
 import {Container} from '../di';
 import {searchUtils} from "../search/elasticSearchUtils";
+import * as Utils from "../decorators/metadata/utils";
+import {Decorators} from '../constants/decorators';
+import {IAuthorizeParams} from '../decorators/interfaces/authorization-params';
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
  
