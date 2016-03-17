@@ -17,7 +17,7 @@ function ignoreFile(file: string, stats: fs.Stats) {
 
 // ignore node_modules or folders starting with '.', eg. '.git'
 function ignoreDirectory(file: string, stats: fs.Stats) {
-    return path.basename(file) == "node_modules" || path.basename(file).startsWith('.');
+    return path.basename(file) == "node_modules" || path.basename(file).startsWith('.') || path.basename(file) == "unit-test";
 }
 
 function readIgnore(file: string, stats: fs.Stats) {
