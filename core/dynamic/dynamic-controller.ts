@@ -11,6 +11,7 @@ import  * as SecurityConfig from '../../security-config';
 import * as MetaUtils from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
+import {IAssociationParams} from '../decorators/interfaces';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -90,12 +91,13 @@ export class DynamicController {
                             association !== undefined && association !== null) {
 
                             var meta = metaData[0]; // by deafult take first relation
-                            var repo = GetRepositoryForName(meta.propertyType.rel);
+                            var params = <IAssociationParams>meta.params;
+                            var repo = GetRepositoryForName(params.rel);
                             if (repo == null) return;
 
                             var resourceName = this.getFullBaseUrlUsingRepo(req, repo.modelName());
 
-                            if (meta.propertyType.embedded) {
+                            if (params.embedded) {
                                 if (meta.propertyType.isArray) {
                                     Enumerable.from(association).forEach(x=> {
                                         this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());

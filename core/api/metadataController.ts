@@ -3,6 +3,7 @@ var router = dc.router;
 import * as Utils from "../metadata/utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
+import {IAssociationParams} from '../decorators/interfaces';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 var ensureLoggedIn = () => {
@@ -78,11 +79,12 @@ export class MetadataController {
         var properties = [];
         Enumerable.from(metas).selectMany(x=> x.value).forEach(x=> {
             var m = x as MetaData;
-            if ((!props[m.propertyKey] || !m.propertyType.rel) && m.propertyType.itemType) {
+            var params = <IAssociationParams>m.params;
+            if ((!props[m.propertyKey] || !params.rel) && m.propertyType.itemType) {
                 var info = {};
                 info['name'] = m.propertyKey;
-                if (m.propertyType.rel) {
-                    var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + m.propertyType.rel;
+                if (params.rel) {
+                    var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + params.rel;
                     info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
                 }
                 else {

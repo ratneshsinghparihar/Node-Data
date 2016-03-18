@@ -1,6 +1,4 @@
 ﻿import Q = require('q');
-import {EntityChange} from '../enums/entity-change';
-import {MetaData} from '../metadata/metadata';
 
 export interface IEntityService {
     saveObjs(model: any, objArr: Array<any>): Q.Promise<any>;
@@ -14,7 +12,4 @@ export interface IEntityService {
     put(model: any, id: any, obj: any): Q.Promise<any>;
     del(model: any, id: any): Q.Promise<any>;
     patch(model: any, id: any, obj): Q.Promise<any>;
-    patchAllEmbedded(model: any, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, isArray?: boolean): Q.Promise<any>;
-    castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any>;
-    toObject(result): any;
 }
