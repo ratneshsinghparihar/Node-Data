@@ -14,6 +14,7 @@ var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
 import * as Config from '../../config';
 import * as SecurityConfig from '../../security-config';
+import * as configUtils from '../../core/utils';
 
 export var metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
 
@@ -326,19 +327,19 @@ var authenticateByToken = expressJwt({
 
 
 export function ensureLoggedIn() {
-if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled]) {
+if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled]) {
         return function (req, res, next) {
             next();
         }
     }
 
 //by token
-if (Config.Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
+if (configUtils.config().Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
         return authenticateByToken;
     }
 
 //by password
-if (Config.Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
+if (configUtils.config().Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
         return loggedIn();
     }
 

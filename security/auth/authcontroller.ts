@@ -18,19 +18,19 @@ import {inject} from '../../di/decorators/inject';
 import {Container} from '../../di';
 import {AuthService} from './auth-service';
 import * as Utils from '../../core/utils';
-var Config = Utils.config();
 
 export class AuthController {
 
     private path: string;
 
-    @inject()
     public authService: AuthService;
 
     constructor(path: string, repository: any) {
         userrepository = repository;
+        this.authService = new AuthService(userrepository);
         this.path = path;
         this.addRoutes();
+        this.createAuthStrategy();
     }
 
     public createAuthStrategy() {
@@ -76,8 +76,7 @@ export class AuthController {
             (req, res) => {
                 res.render('login');
             });
-
-        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
+       if (Utils.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",
                     {
@@ -93,10 +92,10 @@ export class AuthController {
             (req, res, next) => this.generateToken(req, res, next),
             (req, res) => this.respond(req, res));
 
-        if (Config.Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
+        if (Utils.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
             router.post('/login',
             passport.authenticate("local"), (req, res) => {
-                res.redirect('/'+Config.Config.basePath);
+                res.redirect('/' + Utils.config().Config.basePath);
             });
         }
         router.get('/logout', (req, res) => {
