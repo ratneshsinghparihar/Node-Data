@@ -1,4 +1,5 @@
-﻿require('reflect-metadata/reflect');
+﻿/* tslint:disable */
+require('reflect-metadata/reflect');
 import http = require("http");
 import express = require("express");
 var bodyParser = require("body-parser");
