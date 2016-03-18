@@ -34,8 +34,9 @@
     "passport-local": "^1.0.0",
     "q": "^1.4.1",
     "recursive-readdir-synchronous": "^0.0.2",
+    "reflect-metadata": "^0.1.3",
     "request": "^2.69.0",
-    "reflect-metadata": "^0.1.3"
+    "tslint": "^3.6.0"
   },
   "devDependencies": {
     "gulp-ignore": "^2.0.1",

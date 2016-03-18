@@ -25,6 +25,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="jsdocconf.json" />
+    <Content Include="node_modules\gulp-tslint\.github\ISSUE_TEMPLATE" />
+    <Content Include="node_modules\gulp-tslint\.npmignore" />
+    <Content Include="node_modules\gulp-tslint\CHANGELOG.md" />
+    <Content Include="node_modules\gulp-tslint\LICENSE" />
+    <Content Include="node_modules\gulp-tslint\package.json" />
+    <Content Include="node_modules\gulp-tslint\README.md" />
+    <Content Include="node_modules\gulp-tslint\tsconfig.json" />
     <Content Include="package.json" />
     <Content Include="search\elasticSearchUtils.js.map" />
     <Content Include="tests\models\adress.js.map" />
@@ -92,6 +99,7 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\field-params.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-service.ts" />
     <TypeScriptCompile Include="mongoose\utils\index.ts" />
+    <TypeScriptCompile Include="node_modules\gulp-tslint\index.d.ts" />
     <TypeScriptCompile Include="search\elasticSearchUtils.ts" />
     <TypeScriptCompile Include="core\decorators\association.ts" />
     <TypeScriptCompile Include="core\decorators\index.ts" />
@@ -129,6 +137,7 @@
     <TypeScriptCompile Include="core\index.ts" />
     <TypeScriptCompile Include="pretest.ts" />
     <TypeScriptCompile Include="security-config.ts" />
+    <TypeScriptCompile Include="security\auth\security-utils.ts" />
     <TypeScriptCompile Include="server.ts" />
     <TypeScriptCompile Include="tests\models\adress.ts" />
     <TypeScriptCompile Include="tests\models\blog.ts" />
@@ -181,6 +190,8 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
+    <Folder Include="node_modules\gulp-tslint\" />
+    <Folder Include="node_modules\gulp-tslint\.github\" />
     <Folder Include="security\" />
     <Folder Include="core\api\" />
     <Folder Include="core\metadata\interfaces\" />
@@ -219,6 +230,7 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="node_modules\gulp-tslint\index.js" />
     <Compile Include="search\elasticSearchUtils.js" />
     <Compile Include="tests\models\adress.js" />
     <Compile Include="tests\models\blog.js" />

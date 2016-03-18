@@ -1,4 +1,5 @@
-﻿var express = require('express');
+﻿/// <reference path="security-utils.ts" />
+var express = require('express');
 //import UserRepository from '../repositories/userRepository';
 import * as SecurityConfig from '../../security-config';
 var crypto = require('crypto');
@@ -18,6 +19,8 @@ import {inject} from '../../di/decorators/inject';
 import {Container} from '../../di';
 import {AuthService} from './auth-service';
 import * as Utils from '../../core/utils';
+
+import * as securityUtils from './security-utils';
 
 export class AuthController {
 
@@ -45,7 +48,7 @@ export class AuthController {
 
    private addRoutes() {
         router.get('/',
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 var aa = this.authService;
             // Display the Login page with any flash message, if any
@@ -53,7 +56,7 @@ export class AuthController {
         });
 
         router.get('/data',
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
              (req, res) => {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = MetaUtils.getAllResourceNames();

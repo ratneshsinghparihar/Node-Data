@@ -1,26 +1,11 @@
-﻿import * as dc from '../dynamic/dynamic-controller';
+﻿/// <reference path="../../security/auth/security-utils.ts" />
+import * as dc from '../dynamic/dynamic-controller';
 var router = dc.router;
 import * as Utils from "../metadata/utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-
-var ensureLoggedIn = () => {
-    // Ask ritesh to call appropriate function
-
-    //by token
-    //if (Config.Security.isAutheticationByToken) {
-    //    return authenticateByToken;
-    //}
-
-    ////by password
-    //if (Config.Security.isAutheticationByUserPasswd) {
-    //    return loggedIn();
-    //}
-    return function (req, res, next) {
-        next();
-    }
-}
+import * as securityUtils from '../../security/auth/security-utils';
 
 export class MetadataController {
     private path: string;
@@ -31,12 +16,12 @@ export class MetadataController {
     }
 
     private AddRoutes() {
-        router.get(this.path, ensureLoggedIn(), (req, res) => {
+        router.get(this.path, securityUtils.ensureLoggedIn(), (req, res) => {
             this.metaData['All'] = this.metaData['All'] ? this.metaData['All'] : this.getAllMetadata(req);
             this.sendresult(req, res, this.metaData['All']);
         });
 
-        router.get(this.path + '/:type', ensureLoggedIn(), (req, res) => {
+        router.get(this.path + '/:type', securityUtils.ensureLoggedIn(), (req, res) => {
             this.sendresult(req, res, this.getMetadata(req, req.params.type));
         });
     }
