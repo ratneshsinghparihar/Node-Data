@@ -10,7 +10,7 @@ var userrepository: any;
 
 import * as dc from '../../core/dynamic/dynamic-controller';
 var router = dc.router;
-var Config = Utils.config();
+
 
 export class AuthService {
     constructor(private repository: any) {
@@ -75,9 +75,9 @@ export class AuthService {
         passport.use(new FacebookStrategy({
 
             // pull in our app id and secret from our Config.ts file
-            clientID: Config.facebookAuth.clientID,
-            clientSecret: Config.facebookAuth.clientSecret,
-            callbackURL: Config.facebookAuth.callbackURL
+            clientID: Utils.config().facebookAuth.clientID,
+            clientSecret: Utils.config().facebookAuth.clientSecret,
+            callbackURL: Utils.config().facebookAuth.callbackURL
 
         },
 
