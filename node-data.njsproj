@@ -27,21 +27,11 @@
     <Content Include="jsdocconf.json" />
     <Content Include="license" />
     <Content Include="login.html" />
-    <Content Include="node_modules\gulp-tslint\.github\ISSUE_TEMPLATE" />
-    <Content Include="node_modules\gulp-tslint\.npmignore" />
-    <Content Include="node_modules\gulp-tslint\CHANGELOG.md" />
-    <Content Include="node_modules\gulp-tslint\LICENSE" />
-    <Content Include="node_modules\gulp-tslint\package.json" />
-    <Content Include="node_modules\gulp-tslint\README.md" />
-    <Content Include="node_modules\gulp-tslint\tsconfig.json" />
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
     <Content Include="tsd.json" />
     <Content Include="README.md" />
     <Content Include="tslint.json" />
-    <Content Include="unit-test\format.js.map" />
-    <Content Include="unit-test\InitializeModels.js.map" />
-    <Content Include="unit-test\testModels.js.map" />
     <Content Include="views\home.ejs" />
     <Content Include="views\login.ejs" />
     <TypeScriptCompile Include="config.ts" />
@@ -80,7 +70,6 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\field-params.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-service.ts" />
     <TypeScriptCompile Include="mongoose\utils\index.ts" />
-    <TypeScriptCompile Include="node_modules\gulp-tslint\index.d.ts" />
     <TypeScriptCompile Include="search\elasticSearchUtils.ts" />
     <TypeScriptCompile Include="core\decorators\association.ts" />
     <TypeScriptCompile Include="core\decorators\index.ts" />
@@ -103,6 +92,7 @@
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
     <TypeScriptCompile Include="security\auth\auth-service.ts" />
+    <TypeScriptCompile Include="security\auth\authcontroller.spec.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-repository.ts" />
@@ -140,16 +130,21 @@
     <TypeScriptCompile Include="tests\repositories\student-repository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacher-repository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />
+    <TypeScriptCompile Include="core\utils\classtype.ts" />
+    <TypeScriptCompile Include="core\utils\index.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
     <TypeScriptCompile Include="unit-test\dto\format.ts" />
     <TypeScriptCompile Include="unit-test\format.ts" />
     <TypeScriptCompile Include="unit-test\InitializeModels.ts" />
     <TypeScriptCompile Include="unit-test\models\format.ts" />
+    <TypeScriptCompile Include="unit-test\models\testModels.ts" />
     <TypeScriptCompile Include="unit-test\repository\user-repository-mock.ts" />
+    <TypeScriptCompile Include="unit-test\sample-tests\format.spec.ts" />
+    <TypeScriptCompile Include="unit-test\sample-tests\GlobalObject.ts" />
+    <TypeScriptCompile Include="unit-test\sample-tests\MockService.ts" />
+    <TypeScriptCompile Include="unit-test\sample-tests\SampleClassA.ts" />
+    <TypeScriptCompile Include="unit-test\sample-tests\SampleClassB.ts" />
     <TypeScriptCompile Include="unit-test\services\format.ts" />
-    <TypeScriptCompile Include="unit-test\testModels.ts" />
-    <TypeScriptCompile Include="core\utils\classtype.ts" />
-    <TypeScriptCompile Include="core\utils\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="cache\" />
@@ -162,8 +157,6 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
-    <Folder Include="node_modules\gulp-tslint\" />
-    <Folder Include="node_modules\gulp-tslint\.github\" />
     <Folder Include="security\" />
     <Folder Include="core\api\" />
     <Folder Include="core\metadata\interfaces\" />
@@ -183,21 +176,18 @@
     <Folder Include="tests\" />
     <Folder Include="tests\models\" />
     <Folder Include="tests\repositories\" />
-    <Folder Include="unit-test\" />
-    <Folder Include="unit-test\models\" />
-    <Folder Include="unit-test\dto\" />
-    <Folder Include="unit-test\controllers\" />
-    <Folder Include="unit-test\services\" />
-    <Folder Include="unit-test\repository\" />
     <Folder Include="core\utils\" />
+    <Folder Include="unit-test\" />
+    <Folder Include="unit-test\controllers\" />
+    <Folder Include="unit-test\dto\" />
+    <Folder Include="unit-test\models\" />
+    <Folder Include="unit-test\repository\" />
+    <Folder Include="unit-test\sample-tests\" />
+    <Folder Include="unit-test\services\" />
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gulpfile.js" />
-    <Compile Include="node_modules\gulp-tslint\index.js" />
-    <Compile Include="unit-test\format.js" />
-    <Compile Include="unit-test\InitializeModels.js" />
-    <Compile Include="unit-test\testModels.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->

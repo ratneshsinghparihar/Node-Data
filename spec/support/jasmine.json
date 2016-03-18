@@ -1,0 +1,16 @@
+{
+	"spec_dir":"./",
+	"spec_files":[
+			"core/**/*[sS]pec.js",
+			"di/**/*[sS]pec.js",
+			"mongoose/**/*[sS]pec.js",
+			"search/**/*[sS]pec.js",
+			"security/**/*[sS]pec.js",
+			"tests/**/*[sS]pec.js",
+			"views/**/*[sS]pec.js",
+			"*[sS]pec.js"
+			],
+	"helpers":["helpers/**/ *.js"],
+	"stopSpecOnExpectationFailure":false,
+	"random":false
+}

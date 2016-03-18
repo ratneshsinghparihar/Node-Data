@@ -4,8 +4,8 @@
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
-    "test": "jasmine-node .",
-    "testone": "jasmine-node ",
+    "test": "jasmine ",
+    "testone": "jasmine ",
     "start": "node server.js",
     "postinstall": "tsd install"
   },
@@ -48,7 +48,6 @@
     "harmonize": "^1.4.4",
     "jasmine": "^2.4.1",
     "jasmine-node": "^1.14.5",
-    "karma-jasmine": "^0.3.7",
     "tslint-microsoft-contrib": "^2.0.2"
   }
 }
