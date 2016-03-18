@@ -51,6 +51,7 @@
     <Content Include="tsconfig.json" />
     <Content Include="tsd.json" />
     <Content Include="README.md" />
+    <Content Include="tslint.json" />
     <Content Include="unit-test\format.js.map" />
     <Content Include="unit-test\InitializeModels.js.map" />
     <Content Include="unit-test\testModels.js.map" />
