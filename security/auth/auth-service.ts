@@ -113,6 +113,7 @@ export class AuthService {
     }
 
     private addRoutes() {
+        this.facebookAuthentication();
         // route for facebook authentication and login
         router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
 

@@ -26,7 +26,7 @@ export class AuthController {
 
     private path: string;
 
-    public authService: AuthService;
+    private authService: AuthService;
 
     constructor(path: string, repository: any) {
         userrepository = repository;
@@ -36,7 +36,7 @@ export class AuthController {
         this.createAuthStrategy();
     }
 
-    public createAuthStrategy() {
+    private createAuthStrategy() {
         this.authService.authenticate();
     }
 

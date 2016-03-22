@@ -122,6 +122,7 @@
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
     <TypeScriptCompile Include="security\auth\auth-service.ts" />
+    <TypeScriptCompile Include="security\auth\authcontroller - Copy.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-repository.ts" />
@@ -190,6 +191,7 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
+    <Folder Include="node_modules\" />
     <Folder Include="node_modules\gulp-tslint\" />
     <Folder Include="node_modules\gulp-tslint\.github\" />
     <Folder Include="security\" />
