@@ -31,9 +31,9 @@ export class MetaData {
         //}
 
         if ((params && (<any>params).rel) || type === Array) {
-            this.propertyType = new ParamTypeCustom((<any>params).rel, (<any>params).itemType, type === Array, (<any>params).embedded, ((<any>params).level ? (<any>params).level : -1));
+            this.propertyType = new ParamTypeCustom((<any>params).itemType, type === Array);
         } else {
-            this.propertyType = new ParamTypeCustom(null, type, false, false, -1);
+            this.propertyType = new ParamTypeCustom(type, false);
         }
     }
 }

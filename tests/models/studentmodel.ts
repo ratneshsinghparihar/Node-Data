@@ -1,6 +1,6 @@
 import * as TeacherModel from './teachermodel';
 import * as CourseModel from './coursemodel';
-import {onetomany, manytoone, manytomany} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, onetoone} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; 
 import {IUser} from './user';
 import {Types} from 'mongoose';
@@ -20,17 +20,11 @@ export class StudentModel {
     @field()
     gender: string;
 
-    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true })
-    course: CourseModel.CourseModel;
+    @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
+    subjects: Array<CourseModel.CourseModel>;
 
-    @onetomany({ rel: 'courses', itemType: CourseModel, embedded: true})
-    courses: Array<CourseModel.CourseModel>;
-
-    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded:true})
-    teachers: Array<TeacherModel.TeacherModel>;
-
-    @onetomany({ rel: 'teachers', itemType: TeacherModel, embedded: true })
-    favouriteTeacher: TeacherModel.TeacherModel;
+    @onetoone({ rel: 'courses', itemType: CourseModel, embedded: true })
+    mainSubjects: CourseModel.CourseModel;
 }
 
 export default StudentModel;
