@@ -9,8 +9,8 @@ var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 
 var jwt = require('jsonwebtoken');
-import * as dc from '../../core/dynamic/dynamic-controller';
-var router = dc.router;
+import {router} from '../../core/exports';
+
 var userrepository: any;
 
 import {inject} from '../../di/decorators/inject';

@@ -8,8 +8,7 @@ import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 
 var userrepository: any;
 
-import * as dc from '../../core/dynamic/dynamic-controller';
-var router = dc.router;
+import {router} from '../../core/exports';
 var Config = Utils.config();
 
 export class AuthService {
