@@ -1,3 +1,3 @@
-﻿export interface ClassType {
-    new (...args: Array<any>): any;
+﻿export interface ClassType<T> {
+    new (...args: Array<any>): T;
 }

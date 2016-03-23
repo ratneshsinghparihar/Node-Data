@@ -1,5 +1,9 @@
-﻿var Enumerable: any = require('linq');
-import * as MetaUtils from '../core/metadata/utils';
+﻿/**
+ * DI module
+ * @module DI
+ */
+var Enumerable: any = require('linq');
+import {MetaUtils} from '../core/metadata/utils';
 import {Decorators} from '../core/constants';
 import {DecoratorType} from '../core/enums/decorator-type';
 import {MetaData} from '../core/metadata/metadata';
@@ -12,52 +16,57 @@ import * as Utils from '../core/utils';
 var serviceInstMap = new Map();
 var serviceMap = new Map();
 
-//var services: Array<{ fn: Function, params: {} }> = [];
-//var serviceInstances: Array<{fn: Function, inst: any}> = [];
-
 function generateToken(fn: Function) {
     return fn.toString();
 }
 
-class DependencyNode {
-    parents: Map<ClassType, boolean>;
+class DependencyNode<T> {
+    parents: Map<ClassType<T>, boolean>;
     current: any;
-    children: Map<ClassType, boolean>;
+    children: Map<ClassType<T>, boolean>;
     constructor(data) {
-        this.parents = new Map<ClassType, boolean>();
-        this.children = new Map<ClassType, boolean>();;
+        this.parents = new Map<ClassType<T>, boolean>();
+        this.children = new Map<ClassType<T>, boolean>();;
         this.current = data;
     }
 }
 
-let dependencyRoot: Map<ClassType, DependencyNode> = new Map();
+let dependencyRoot: Map<ClassType<any>, DependencyNode<any>> = new Map();
 
 let stack: Array<{ parent: any; children: Array<any>}> = [];
 
 export class DI {
-    private dependencyOrder: Map<ClassType, number>;
+    private dependencyOrder: Map<ClassType<any>, number>;
 
-    addService(fn: Function, params: any) {
-        serviceMap.set(fn, params);
-        //services.push({ fn: fn, params: params });
+    /**
+     * Registers all the services, i.e. classes having @service decorator, in the DI container.
+     * DI container will inject only those services that are registered with this method.
+     * @param {class} cls Typescript class having @service decorator
+     * @param {Object} params Decorator params
+     */
+    addService<T>(cls: ClassType<T>, params: any) {
+        serviceMap.set(cls, params);
     }
 
-    resolve<T>(cls: ClassType): T {
-        this.dependencyOrder = new Map<ClassType, number>();
+    /**
+     * 
+     * @param {class} cls Typescript class to inject
+     */
+    resolve<T>(cls: ClassType<T>): T {
+        this.dependencyOrder = new Map<ClassType<any>, number>();
         return this.resolveDependencies<T>(cls);
     }
 
-
-    private getDependencyOrderString(cls?: ClassType) {
+    private getDependencyOrderString<T>(cls?: ClassType<T>) {
         let arr = [];
-        this.dependencyOrder.forEach((value: number, key: ClassType) => {
+        this.dependencyOrder.forEach((value: number, key: ClassType<T>) => {
             arr.push(key.name);
         });
         cls && arr.push(cls.name);
         return arr.join('=>');
     }
 
-    private cycle(cls: ClassType): boolean {
+    private cycle<T>(cls: ClassType<T>): boolean {
         if (this.dependencyOrder.get(cls)) {
             //let arr = [];
             //dependencyOrder.forEach((value: number, key: ClassType) => {
@@ -68,14 +77,14 @@ export class DI {
         return false;
     }
 
-    private resolveDependencies<T>(cls: ClassType): T {
+    private resolveDependencies<T>(cls: ClassType<T>): T {
         if (serviceMap.has(cls)) {
             return this.resolveServiceDependency<T>(cls, serviceMap.get(cls));
         }
         return this.resolveRepositoryDependency<T>(cls);
     }
 
-    private resolveServiceDependency<T>(cls: ClassType, service): T {
+    private resolveServiceDependency<T>(cls: ClassType<T>, service): T {
         let inst;
         if (!service.singleton) {
             inst = this.instantiateClass<T>(cls);
@@ -89,20 +98,22 @@ export class DI {
         return inst;
     }
 
-    private resolveRepositoryDependency<T>(cls: ClassType): T {
-        return Enumerable.from(repositoryMap())
+    private resolveRepositoryDependency<T>(cls: ClassType<T>): T {
+        var map = repositoryMap();
+        var repo = Enumerable.from(repositoryMap())
             // TODO: change (keyVal.value.fn.path == cls.prototype.path) to (keyVal.value.fn == cls.prototype). This is workaround for demo.
-            .where(keyVal => keyVal.value.fn.path == cls.prototype.path)
+            .where(keyVal => keyVal.value.fn == cls.prototype)
             .select(keyVal => keyVal.value.repo)
             .firstOrDefault();
+        return repo;
     }
 
-    private getInstance(cls: ClassType): any {
+    private getInstance<T>(cls: ClassType<T>): any {
         return serviceInstMap.get(cls);
     }
 
-    private getDependencies(cls: ClassType): Array<MetaData> {
-        return Enumerable.from(MetaUtils.getAllMetaDataForDecorator(cls.prototype, Decorators.INJECT))
+    private getDependencies<T>(cls: ClassType<T>): Array<MetaData> {
+        return Enumerable.from(MetaUtils.getMetaData(cls.prototype, Decorators.INJECT))
             .select(keyVal => keyVal.value)
             .toArray();
     }
@@ -138,7 +149,7 @@ export class DI {
         return resolvedDeps;
     }
 
-    private getType(params: any): ClassType {
+    private getType(params: any): ClassType<any> {
         var type = (<IInjectParams>params).type;
         if ((<any>type).__esModule) {
             type = (<any>type).default;
@@ -154,7 +165,7 @@ export class DI {
     }
     //private instantiateClass<T extends Function>(fn: T): T {}
 
-    private getCycle(parent: ClassType, child: ClassType) {
+    private getCycle(parent: ClassType<any>, child: ClassType<any>) {
         var arr = Enumerable.from(stack)
             .select(x => x.parent.name)
             .toArray();
@@ -163,7 +174,7 @@ export class DI {
     }
 
     // todo: cyclic dependency
-    private instantiateClass<T>(cls: ClassType): T {
+    private instantiateClass<T>(cls: ClassType<T>): T {
         console.log('get dependencies: ' + cls.name);
 
         var allDependencies = this.getDependencies(cls);

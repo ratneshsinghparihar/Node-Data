@@ -2,13 +2,13 @@
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
-export var router = express.Router();
+import {router} from '../exports';
 var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/searchUtils";
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import  * as SecurityConfig from '../../security-config';
-import * as MetaUtils from "../metadata/utils";
+import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
@@ -27,6 +27,7 @@ export class DynamicController {
     }
 
     addRoutes() {
+        console.log(this.path);
         router.get(this.path,
             MetaUtils.ensureLoggedIn(),
             (req, res) => {
@@ -84,7 +85,7 @@ export class DynamicController {
 
                         var parent = (<any>result).toObject();
                         var association = parent[req.params.prop];
-                        var metaData = MetaUtils.getAllRelationalMetaDataForField(this.repository.getEntityType(), req.params.prop);
+                        var metaData = MetaUtils.getMetaDataForPropKey(this.repository.getEntityType(), req.params.prop);
 
                         if (metaData != null && metaData.length > 0 &&
                             association !== undefined && association !== null) {
@@ -215,7 +216,7 @@ export class DynamicController {
     addSearchPaths() {
         let model = this.repository.getModel();
         let modelRepo = this.repository.getModelRepo();
-        let decoratorFields = MetaUtils.getAllMetaDataForDecorator(this.repository.getEntityType(), Decorators.FIELD);
+        let decoratorFields = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.FIELD);
         let fieldsWithSearchIndex = Enumerable.from(decoratorFields).where(ele => {
             return ele.key && decoratorFields[ele.key] && decoratorFields[ele.key].params && (<any>decoratorFields[ele.key].params).searchIndex;
         })
@@ -314,7 +315,7 @@ export class DynamicController {
         
         //add associations 
         //read metadata and get all relations names
-        var relations: Array<MetaData> =MetaUtils.getAllRelationsForTargetInternal(resourceType);
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(resourceType);
         
         relations.forEach(relation => {
             if(relation.propertyKey)
@@ -373,7 +374,7 @@ export class DynamicController {
         var isAutherize: boolean = false;
         //check for autherization
         //1. get resource name         
-        var resourceName = MetaUtils.getResourceNameFromModel(this.repository.getEntityType())
+        var resourceName = Utils.getResourceNameFromModel(this.repository.getEntityType())
         //2. get auth config from security config
         var authCofig = Enumerable.from(SecurityConfig.SecurityConfig.ResourceAccess)
             .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
@@ -412,7 +413,7 @@ export class DynamicController {
         fullbaseUr = req.protocol + '://' + req.get('host') + "/" + Utils.config().Config.basePath;
         return fullbaseUr;
     }
-    
+
     private getFullBaseUrl(req): string {
         var fullbaseUr: string = "";
         fullbaseUr = req.protocol + '://' + req.get('host') + req.originalUrl;

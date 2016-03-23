@@ -60,6 +60,7 @@
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="core\config.ts" />
     <TypeScriptCompile Include="core\constants\index.ts" />
+    <TypeScriptCompile Include="core\constants\metadata.ts" />
     <TypeScriptCompile Include="core\constants\reflect.ts" />
     <TypeScriptCompile Include="core\constants\decorators.ts">
       <SubType>Code</SubType>
@@ -71,6 +72,7 @@
     <TypeScriptCompile Include="constants\reflect.ts" />
     <TypeScriptCompile Include="core\decorators\entityservice.ts" />
     <TypeScriptCompile Include="core\exports\index.ts" />
+    <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
@@ -151,8 +153,12 @@
     <TypeScriptCompile Include="tests\repositories\student-repository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacher-repository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />
+    <TypeScriptCompile Include="tests\test-di.ts" />
+    <TypeScriptCompile Include="tests\service-b.ts" />
+    <TypeScriptCompile Include="tests\service-a.ts" />
     <TypeScriptCompile Include="typings\express\express.d.ts" />
     <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
+    <TypeScriptCompile Include="typings\jasmine\jasmine.d.ts" />
     <TypeScriptCompile Include="typings\linq\linq.3.0.3-Beta4.d.ts" />
     <TypeScriptCompile Include="typings\mime\mime.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
@@ -203,6 +209,7 @@
     <Folder Include="typings\" />
     <Folder Include="typings\express\" />
     <Folder Include="typings\form-data\" />
+    <Folder Include="typings\jasmine\" />
     <Folder Include="typings\linq\" />
     <Folder Include="typings\mime\" />
     <Folder Include="typings\mongoose\" />

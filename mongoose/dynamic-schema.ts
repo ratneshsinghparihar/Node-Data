@@ -9,7 +9,7 @@ import {Decorators} from '../core/constants/decorators';
 import {IMongooseSchemaOptions,schemaGenerator} from "./mongooseSchemaGenerator";
 
 import {DecoratorType} from '../core/enums/decorator-type';
-import * as Utils from "../core/metadata/utils";
+import {MetaUtils} from "../core/metadata/utils";
 import {MetaData} from '../core/metadata/metadata';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 
@@ -25,7 +25,7 @@ export class DynamicSchema {
     }
     
     public getSchema() {
-        var fieldMetaArr = Utils.getAllMetaDataForDecorator(this.target, Decorators.FIELD);
+        var fieldMetaArr = MetaUtils.getMetaData(this.target, Decorators.FIELD);
         var idx = Enumerable.from(fieldMetaArr)
             .where((keyVal) => keyVal.value && keyVal.value.params && (keyVal.value.params).searchIndex).any();
             var options = this.getMongooseOptions(this.target);
@@ -115,7 +115,7 @@ export class DynamicSchema {
     }
 
     private getMongooseOptions(target: Object) {
-        var documentMeta = Utils.getMetaData(<any>target, Decorators.DOCUMENT, null);
+        var documentMeta = MetaUtils.getMetaData(<any>target, Decorators.DOCUMENT, null);
         var options = <any>{};
         var params = <IDocumentParams>(documentMeta.params || <any>{});
         switch (params.strict) {
@@ -132,7 +132,7 @@ export class DynamicSchema {
     }
 
     private getAllMetadataForSchema(target: Object): { [key: string]: MetaData } {
-        var metaDataMap = Utils.getAllMetaDataForAllDecorator(<any>target);
+        var metaDataMap = MetaUtils.getMetaData(<any>target);
         var metaDataMapFiltered: {[key: string]: MetaData} = <any>{};
         for (var field in metaDataMap) {
             var schemaDecorators = Enumerable.from(metaDataMap[field])

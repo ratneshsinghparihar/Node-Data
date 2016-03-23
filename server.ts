@@ -6,7 +6,7 @@ var bodyParser = require("body-parser");
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 import * as config from './config';
-import {router} from './core/dynamic/dynamic-controller';
+import {router} from './core/exports';
 
 import * as data from './mongoose';
 var Main = require('./core')(config, __dirname, data.entityServiceInst);
@@ -21,6 +21,11 @@ app.use(require('cookie-parser')());
 var expressSession = require('express-session');
 app.use(expressSession({ secret: 'mySecretKey', resave: false, saveUninitialized: false }));
 app.use(bodyParser.json());
+
+var aa = bodyParser.json();
+var bb = bodyParser.urlencoded({
+    extended: true
+});
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -29,3 +34,10 @@ app.use(passport.session());
 app.use("/", router);
 var server = http.createServer(app);
 server.listen(23548);
+
+import {TestDI} from './tests/test-di';
+console.log('-------------------------------------------------------');
+console.log('Testing DI');
+var testDI = new TestDI();
+var ditest = testDI.b;
+console.log('-------------------------------------------------------');

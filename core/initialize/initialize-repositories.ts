@@ -1,4 +1,4 @@
-﻿import * as MetaUtils from "../metadata/utils";
+﻿import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {MetaData} from '../metadata/metadata';
 
@@ -44,7 +44,7 @@ export class InitializeRepositories {
     }
 
     private initializeRepo() {
-        let repositories = MetaUtils.getMetaDataForDecoratorInAllTargets(Decorators.REPOSITORY);
+        let repositories = MetaUtils.getMetaDataForDecorators([Decorators.REPOSITORY]);
 
         let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
 

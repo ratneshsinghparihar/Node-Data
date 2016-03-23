@@ -1,4 +1,4 @@
-﻿import * as MetaUtils from '../../core/metadata/utils';
+﻿import {MetaUtils} from '../../core/metadata/utils';
 import * as Utils from '../../core/utils';
 import {Decorators} from '../../core/constants';
 import {DecoratorType} from '../../core/enums/decorator-type';

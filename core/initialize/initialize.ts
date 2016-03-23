@@ -1,16 +1,42 @@
 ﻿import {InitializeRepositories} from "./initialize-repositories";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../metadata/param-type-custom';
+import {router} from '../exports';
 import path = require('path');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
-import * as Utils from '../utils';
+import {MetaUtils} from "../metadata/utils";
+import * as Utils from "../utils";
 
 export class Initalize {
     constructor(files: Array<String>) {
         new InitializeRepositories();
         new InitializeControllers();
         //this.configureAcl();
+        this.configureBase();
+    }
+
+    configureBase() {
+        var path = Utils.config().Config.basePath.indexOf('/') === 0 ? Utils.config().Config.basePath : '/' + Utils.config().Config.basePath;
+        router.get(path,
+            MetaUtils.ensureLoggedIn(),
+            (req, res) => {
+                //fetch all resources name (not the model name) in an array
+                var allresourcesNames: Array<string> = Utils.getAllResourceNames();
+                var allresourceJson = [];
+                var fullbaseUrl: string = "";
+                fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                allresourcesNames.forEach(resource => {
+                    var resoucejson = {};
+                    resoucejson[resource] = fullbaseUrl + (resource[0] === '/' ? resource : '/' + resource);//+ tokenUrl;
+                    allresourceJson.push(resoucejson);
+                });
+                //loop through rsources and push in json array with name as key and url as value
+                res.set("Content-Type", "application/json");
+
+                res.send(JSON.stringify(allresourceJson, null, 4));
+            }
+        )
     }
 
     configureAcl() {

@@ -2,7 +2,7 @@
 import Q = require('q');
 import {EntityChange} from '../core/enums/entity-change';
 import {IEntityService} from '../core/interfaces/entity-service';
-import * as MetaUtils from "../core/metadata/utils";
+import {MetaUtils} from "../core/metadata/utils";
 import * as CoreUtils from "../core/utils";
 import * as Utils from "./utils";
 import {Decorators} from '../core/constants/decorators';
@@ -246,7 +246,7 @@ export class MongooseService implements IEntityService {
 
     isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
         var asyncCalls = [];
-        var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
+        var metas = CoreUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
         Enumerable.from(metas).forEach(x => {
             var m: MetaData = x;
             if (val[m.propertyKey]) {
@@ -328,7 +328,7 @@ export class MongooseService implements IEntityService {
      * throws TypeError if field type is not String, ObjectId or Object
      */
     autogenerateIdsForAutoFields(model: Mongoose.Model<any>, obj: any): void {
-        var fieldMetaArr = MetaUtils.getAllMetaDataForDecorator(GetEntity(model.modelName), Decorators.FIELD);
+        var fieldMetaArr = MetaUtils.getMetaData(GetEntity(model.modelName), Decorators.FIELD);
         if (!fieldMetaArr) {
             return;
         }
@@ -356,7 +356,7 @@ export class MongooseService implements IEntityService {
     }
 
     updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any) {
-        var allReferencingEntities = MetaUtils.getAllRelationsForTarget(GetEntity(model.modelName));
+        var allReferencingEntities = CoreUtils.getAllRelationsForTarget(GetEntity(model.modelName));
         var asyncCalls = [];
         Enumerable.from(allReferencingEntities)
             .forEach((x: MetaData) => {
@@ -366,7 +366,7 @@ export class MongooseService implements IEntityService {
     }
 
     updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange): Q.Promise<any> {
-        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
+        var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT, null);
         if (!targetModelMeta) {
             throw 'Could not fetch metadata for target object';
         }
@@ -381,7 +381,7 @@ export class MongooseService implements IEntityService {
     processEmbedding(model: Mongoose.Model<any>, obj: any) {
         var asyncCalls = [];
         for (var prop in obj) {
-            var metaArr = MetaUtils.getAllMetaDataForField(GetEntity(model.modelName), prop);
+            var metaArr = MetaUtils.getMetaDataForPropKey(GetEntity(model.modelName), prop);
             var relationDecoratorMeta: [MetaData] = <any>Enumerable.from(metaArr)
                 .where((x: MetaData) => CoreUtils.isRelationDecorator(x.decorator))
                 .toArray();
@@ -437,7 +437,7 @@ export class MongooseService implements IEntityService {
     }
 
     castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
-        var primaryMetaDataForRelation = MetaUtils.getPrimaryKeyMetadata(relMetaData.target);
+        var primaryMetaDataForRelation = CoreUtils.getPrimaryKeyMetadata(relMetaData.target);
 
         if (!primaryMetaDataForRelation) {
             throw 'primary key not found for relation';

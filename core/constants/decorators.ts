@@ -10,3 +10,5 @@ export class Decorators {
     public static REPOSITORY = 'repository';
     public static SERVICE = 'service';
 }
+
+export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];

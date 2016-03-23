@@ -1,6 +1,6 @@
-﻿import * as dc from '../dynamic/dynamic-controller';
-var router = dc.router;
-import * as Utils from "../metadata/utils";
+﻿import {router} from '../exports';
+import {MetaUtils} from "../metadata/utils";
+import * as Utils from "../utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -71,7 +71,7 @@ export class MetadataController {
         if (!repo)
             return null;
 
-        var metas = Utils.getAllMetaDataForAllDecorator(repo.getEntityType());
+        var metas = MetaUtils.getMetaData(repo.getEntityType());
         //var props: { [key: string]: MetaData } = <any>{};
         var props = [];
         var metaData = {};

@@ -2,9 +2,24 @@ import {DecoratorType} from '../enums/decorator-type';
 import {ParamTypeCustom} from './param-type-custom';
 import {ReflectConstants} from '../constants';
 
+/**
+ * Creates new metadata object.
+ * @class
+ */
 export class MetaData {
-    target: Object;
+    /** Function prototype where decorator is declared.
+    * @member {Object}
+    */
+    target: Object = null;
+    /**
+    * The decorator is declared on static method/property.
+    * @member {Boolean}
+    */
     isStatic: boolean;
+    /**
+    * The name of the method/property/paramter.
+    * @member {string}
+    */
     propertyKey: string;
     decorator: string;
     propertyType: ParamTypeCustom;
