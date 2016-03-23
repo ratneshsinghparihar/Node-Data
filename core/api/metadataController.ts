@@ -1,26 +1,12 @@
-﻿import {router} from '../exports';
+﻿/// <reference path="../../security/auth/security-utils.ts" />
+import {router} from '../exports';
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
+import {IAssociationParams} from '../decorators/interfaces';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-
-var ensureLoggedIn = () => {
-    // Ask ritesh to call appropriate function
-
-    //by token
-    //if (Config.Security.isAutheticationByToken) {
-    //    return authenticateByToken;
-    //}
-
-    ////by password
-    //if (Config.Security.isAutheticationByUserPasswd) {
-    //    return loggedIn();
-    //}
-    return function (req, res, next) {
-        next();
-    }
-}
+import * as securityUtils from '../../security/auth/security-utils';
 
 export class MetadataController {
     private path: string;
@@ -31,12 +17,12 @@ export class MetadataController {
     }
 
     private AddRoutes() {
-        router.get(this.path, ensureLoggedIn(), (req, res) => {
+        router.get(this.path, securityUtils.ensureLoggedIn(), (req, res) => {
             this.metaData['All'] = this.metaData['All'] ? this.metaData['All'] : this.getAllMetadata(req);
             this.sendresult(req, res, this.metaData['All']);
         });
 
-        router.get(this.path + '/:type', ensureLoggedIn(), (req, res) => {
+        router.get(this.path + '/:type', securityUtils.ensureLoggedIn(), (req, res) => {
             this.sendresult(req, res, this.getMetadata(req, req.params.type));
         });
     }
@@ -78,11 +64,12 @@ export class MetadataController {
         var properties = [];
         Enumerable.from(metas).selectMany(x=> x.value).forEach(x=> {
             var m = x as MetaData;
-            if ((!props[m.propertyKey] || !m.propertyType.rel) && m.propertyType.itemType) {
+            var params = <IAssociationParams>m.params;
+            if ((!props[m.propertyKey] || !params.rel) && m.propertyType.itemType) {
                 var info = {};
                 info['name'] = m.propertyKey;
-                if (m.propertyType.rel) {
-                    var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + m.propertyType.rel;
+                if (params.rel) {
+                    var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + params.rel;
                     info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
                 }
                 else {

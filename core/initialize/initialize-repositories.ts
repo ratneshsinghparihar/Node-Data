@@ -16,21 +16,6 @@ import {ISchemaGenerator} from '../interfaces/schema-generator';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
-var schemaNameModel: { [key: string]: any } = {};
-
-export function GetEntity(schemaName: string): any {
-    if (!schemaNameModel[schemaName])
-        return null;
-
-    return schemaNameModel[schemaName]['entity'];
-}
-
-export function GetModel(schemaName: string): any {
-    if (!schemaNameModel[schemaName])
-        return null;
-
-    return schemaNameModel[schemaName]['model'];
-}
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;

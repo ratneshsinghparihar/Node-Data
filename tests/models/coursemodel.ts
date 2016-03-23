@@ -1,6 +1,6 @@
 import * as TM from './teachermodel';
 import * as SM from './studentmodel';
-import {onetomany, manytoone, manytomany} from '../../core/decorators'; 
+import {onetomany, manytoone, manytomany, onetoone} from '../../core/decorators'; 
 import {field, document} from '../../mongoose/decorators'; 
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
@@ -12,12 +12,6 @@ export class CourseModel {
 
     @field()
     name: String;
-
-    //@onetomany({ rel: 'teachers', biDirectional: true, itemType: TM, persist: true })
-    //teachers: Array<TM.TeacherModel>;
-
-    //@manytomany({rel: 'students', biDirectional: false, itemType: SM, persist: true})
-    //students: Array<SM.StudentModel>;
 }
 
 export default CourseModel;

@@ -1,4 +1,5 @@
-﻿//var Config1 = require('../repos');
+﻿/// <reference path="../../security/auth/security-utils.ts" />
+//var Config1 = require('../repos');
 var express = require('express');
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
@@ -11,7 +12,9 @@ import  * as SecurityConfig from '../../security-config';
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
+import {IAssociationParams} from '../decorators/interfaces';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
+import * as securityUtils from '../../security/auth/security-utils';
 
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
@@ -29,7 +32,7 @@ export class DynamicController {
     addRoutes() {
         console.log(this.path);
         router.get(this.path,
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
 
                 if (!this.isAuthorize(req, 1))
@@ -47,7 +50,7 @@ export class DynamicController {
             });
 
         router.get(this.path + '/:id',
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 if (!this.isAuthorize(req, 1))
                     this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
@@ -63,7 +66,7 @@ export class DynamicController {
             });
         
         router.get(this.path + '/:id/:prop',
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
@@ -91,12 +94,13 @@ export class DynamicController {
                             association !== undefined && association !== null) {
 
                             var meta = metaData[0]; // by deafult take first relation
-                            var repo = GetRepositoryForName(meta.propertyType.rel);
+                            var params = <IAssociationParams>meta.params;
+                            var repo = GetRepositoryForName(params.rel);
                             if (repo == null) return;
 
                             var resourceName = this.getFullBaseUrlUsingRepo(req, repo.modelName());
 
-                            if (meta.propertyType.embedded) {
+                            if (params.embedded) {
                                 if (meta.propertyType.isArray) {
                                     Enumerable.from(association).forEach(x=> {
                                         this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
@@ -143,7 +147,7 @@ export class DynamicController {
             });
 
         router.post(this.path,
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 this.getModelFromHalModel(req.body);
                 return this.repository.post(req.body)
@@ -163,7 +167,7 @@ export class DynamicController {
 
         // delete any property value
         router.delete(this.path + "/:id/:prop",
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.delete(req.params.id)
                     .then(result => {
@@ -176,7 +180,7 @@ export class DynamicController {
 
         // add or update any property value
         router.put(this.path + "/:id",
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
@@ -188,7 +192,7 @@ export class DynamicController {
             });
 
         router.delete(this.path + "/:id",
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.delete(req.params.id)
                     .then((result) => {
@@ -200,7 +204,7 @@ export class DynamicController {
             });
 
         router.patch(this.path + "/:id",
-            MetaUtils.ensureLoggedIn(),
+            securityUtils.ensureLoggedIn(),
             (req, res) => {
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
@@ -230,7 +234,7 @@ export class DynamicController {
             this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
             links[map.key] = { "href": "/" + map.key, "params": map.args };
         });
-        router.get(this.path + "/search", MetaUtils.ensureLoggedIn(), (req, res) => {
+        router.get(this.path + "/search", securityUtils.ensureLoggedIn(), (req, res) => {
             this.sendresult(req, res, links);
         });
     }
@@ -245,7 +249,7 @@ export class DynamicController {
         // If all the search fields are not indexed in the elasticsearch, return data from the database
         // Keeping different router.get to avoid unncessary closure at runtime
         if (searchFromDb) {
-            router.get(this.path + "/search/" + map.key, MetaUtils.ensureLoggedIn(),(req, res) => {
+            router.get(this.path + "/search/" + map.key, securityUtils.ensureLoggedIn(),(req, res) => {
                 var queryObj = req.query;
                 console.log("Querying Database");
                 return this.repository

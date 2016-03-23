@@ -1,2 +1,2 @@
-export {onetomany, manytoone, manytomany} from './association';
+export {onetomany, manytoone, manytomany, onetoone} from './association';
 export {repository} from './repository';

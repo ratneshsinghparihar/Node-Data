@@ -9,7 +9,7 @@ import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 var userrepository: any;
 
 import {router} from '../../core/exports';
-var Config = Utils.config();
+
 
 export class AuthService {
     constructor(private repository: any) {
@@ -74,9 +74,9 @@ export class AuthService {
         passport.use(new FacebookStrategy({
 
             // pull in our app id and secret from our Config.ts file
-            clientID: Config.facebookAuth.clientID,
-            clientSecret: Config.facebookAuth.clientSecret,
-            callbackURL: Config.facebookAuth.callbackURL
+            clientID: Utils.config().facebookAuth.clientID,
+            clientSecret: Utils.config().facebookAuth.clientSecret,
+            callbackURL: Utils.config().facebookAuth.callbackURL
 
         },
 
@@ -112,6 +112,7 @@ export class AuthService {
     }
 
     private addRoutes() {
+        this.facebookAuthentication();
         // route for facebook authentication and login
         router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
 

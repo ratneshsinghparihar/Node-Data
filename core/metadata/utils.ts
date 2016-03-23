@@ -9,11 +9,6 @@ import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
 import {IAssociationParams} from '../decorators/interfaces/association-params';
 import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 
-var loggedIn = require('connect-ensure-login').ensureLoggedIn;
-var expressJwt = require('express-jwt');
-import * as Config from '../../config';
-import * as SecurityConfig from '../../security-config';
-
 export var metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
 
 interface IMetadataHelper {
@@ -26,7 +21,6 @@ interface IMetadataHelper {
     getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }>;
     getMetaDataForPropKey(target: Object, propertyKey?: string): Array<MetaData>;
     getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData>;
-    ensureLoggedIn();
 }
 
 class MetadataHelper {
@@ -204,52 +198,9 @@ class MetadataHelper {
         }
         return false;
     }
-
-    // TODO: remove this once refactor is complete
-    public static ensureLoggedIn() {
-        return ensureLoggedIn();
-    }
 }
 
 export var MetaUtils: IMetadataHelper = MetadataHelper;
-
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var authenticateByToken = expressJwt({
-    secret: SecurityConfig.SecurityConfig.tokenSecretkey,
-    credentialsRequired: true,
-    getToken: function fromHeaderOrQuerystring(req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-            return req.query.token;
-        } else if (req.cookies && req.cookies.authorization) {
-            return req.cookies.authorization;
-        }
-        return null;
-    }
-});
-
-export function ensureLoggedIn() {
-    if (Config.Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled]) {
-        return function (req, res, next) {
-            next();
-        }
-    }
-
-    //by token
-    if (Config.Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
-        return authenticateByToken;
-    }
-
-    //by password
-    if (Config.Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
-        return loggedIn();
-    }
-
-    return function (req, res, next) {
-        next();
-    }
-}
 
 

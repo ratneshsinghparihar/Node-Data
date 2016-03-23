@@ -13,12 +13,12 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 // Ignore .d.ts and all other non .ts files
 function ignoreFile(file: string, stats: fs.Stats) {
-    return path.extname(file) !== '.ts' || file.endsWith('.d.ts');
+    return path.extname(file) !== '.ts' || file.endsWith('.d.ts') || file.endsWith('.spec.ts');
 }
 
 // ignore node_modules or folders starting with '.', eg. '.git'
 function ignoreDirectory(file: string, stats: fs.Stats) {
-    return path.basename(file) == "node_modules" || path.basename(file).startsWith('.');
+    return path.basename(file) == "node_modules" || path.basename(file).startsWith('.') || path.basename(file) == "unit-test";
 }
 
 function readIgnore(file: string, stats: fs.Stats) {

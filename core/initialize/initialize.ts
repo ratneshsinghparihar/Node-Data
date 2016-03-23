@@ -19,7 +19,6 @@ export class Initalize {
     configureBase() {
         var path = Utils.config().Config.basePath.indexOf('/') === 0 ? Utils.config().Config.basePath : '/' + Utils.config().Config.basePath;
         router.get(path,
-            MetaUtils.ensureLoggedIn(),
             (req, res) => {
                 //fetch all resources name (not the model name) in an array
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
@@ -41,7 +40,7 @@ export class Initalize {
 
     configureAcl() {
         var acl = require('acl');
-        acl = new acl(new acl.mongodbBackend(Utils.config().DbConnection, "acl"));
+        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));
         var SecurityConfig = require('../security-config');
 
         SecurityConfig.SecurityConfig.ResourceAccess.forEach(resource => {
