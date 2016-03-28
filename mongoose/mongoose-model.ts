@@ -14,8 +14,20 @@ import {getEntity, getModel} from '../core/dynamic/model-entity';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function saveObjs(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
-    return Q.nbind(model.create, model)()
-        .then(result => result)
+    var asyncCalls = [];
+
+    Enumerable.from(objArr).forEach(x => {
+        asyncCalls.push(put(model, x['_id'], x));
+    });
+
+    return Q.allSettled(asyncCalls)
+        .then(result => {
+            var res = [];
+            Enumerable.from(result).forEach(x => {
+                res.push(toObject(x));
+            });
+            return res;
+        })
         .catch(error => error);
 }
 
