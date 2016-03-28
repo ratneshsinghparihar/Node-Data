@@ -139,7 +139,7 @@ describe('metautils', () => {
 
     describe('getMetaDataForDecorators', function () {
         it('should return metadata for that target that have the given propertyKey', () => {
-            let meta = MetadataUtils.MetaUtils.getMetaDataForPropKey('method1');
+            let meta = MetadataUtils.MetaUtils.getMetaDataForPropKey(MyTestClass1.prototype, 'method1');
             expect(meta.length).toEqual(3);
 
             meta.forEach(x => {
@@ -149,7 +149,7 @@ describe('metautils', () => {
         });
 
         it('should return metadata for that target that have the given propertyKey and paramIndex', () => {
-            let meta = MetadataUtils.MetaUtils.getMetaDataForPropKey('method1', 0);
+            let meta = MetadataUtils.MetaUtils.getMetaDataForPropKey(MyTestClass1.prototype, 'method1', 0);
             expect(meta.length).toEqual(3);
 
             meta.forEach(x => {
