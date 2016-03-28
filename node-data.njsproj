@@ -25,15 +25,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="jsdocconf.json" />
-    <Content Include="node_modules\gulp-tslint\.github\ISSUE_TEMPLATE" />
-    <Content Include="node_modules\gulp-tslint\.npmignore" />
-    <Content Include="node_modules\gulp-tslint\CHANGELOG.md" />
-    <Content Include="node_modules\gulp-tslint\LICENSE" />
-    <Content Include="node_modules\gulp-tslint\package.json" />
-    <Content Include="node_modules\gulp-tslint\README.md" />
-    <Content Include="node_modules\gulp-tslint\tsconfig.json" />
     <Content Include="package.json" />
     <Content Include="search\elasticSearchUtils.js.map" />
+    <Content Include="spec\support\jasmine.json" />
     <Content Include="tests\models\adress.js.map" />
     <Content Include="tests\models\blog.js.map" />
     <Content Include="tests\models\blogmodel.js.map" />
@@ -81,6 +75,7 @@
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
+    <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />
@@ -101,7 +96,6 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\field-params.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-service.ts" />
     <TypeScriptCompile Include="mongoose\utils\index.ts" />
-    <TypeScriptCompile Include="node_modules\gulp-tslint\index.d.ts" />
     <TypeScriptCompile Include="search\elasticSearchUtils.ts" />
     <TypeScriptCompile Include="core\decorators\association.ts" />
     <TypeScriptCompile Include="core\decorators\index.ts" />
@@ -197,9 +191,6 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
-    <Folder Include="node_modules\" />
-    <Folder Include="node_modules\gulp-tslint\" />
-    <Folder Include="node_modules\gulp-tslint\.github\" />
     <Folder Include="security\" />
     <Folder Include="core\api\" />
     <Folder Include="core\metadata\interfaces\" />
@@ -216,6 +207,8 @@
     <Folder Include="core\enums\" />
     <Folder Include="di\" />
     <Folder Include="core\" />
+    <Folder Include="spec\" />
+    <Folder Include="spec\support\" />
     <Folder Include="tests\" />
     <Folder Include="tests\models\" />
     <Folder Include="tests\repositories\" />
@@ -239,7 +232,6 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="node_modules\gulp-tslint\index.js" />
     <Compile Include="search\elasticSearchUtils.js" />
     <Compile Include="tests\models\adress.js" />
     <Compile Include="tests\models\blog.js" />

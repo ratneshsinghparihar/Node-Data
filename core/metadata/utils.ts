@@ -9,7 +9,14 @@ import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
 import {IAssociationParams} from '../decorators/interfaces/association-params';
 import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 
-export var metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
+let _metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
+
+export function metadataRoot(metadataRoot?): MetaRoot {
+    if (metadataRoot !== undefined) {
+        _metadataRoot = metadataRoot;
+    }
+    return _metadataRoot;
+}
 
 interface IMetadataHelper {
     addMetaData(target: Object | Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number);
@@ -58,7 +65,7 @@ class MetadataHelper {
 
         let metaKey = MetadataHelper.getMetaKey(target);
 
-        let decoratorMetadata: DecoratorMetaData = metadataRoot.get(metaKey) ? metadataRoot.get(metaKey) : {};
+        let decoratorMetadata: DecoratorMetaData = _metadataRoot.get(metaKey) ? _metadataRoot.get(metaKey) : {};
         decoratorMetadata[decorator] = decoratorMetadata[decorator] || {};
         if (decoratorMetadata[decorator][propertyKey]) {
             // Metadata for given combination already exists.
@@ -66,7 +73,7 @@ class MetadataHelper {
         }
         let metData: MetaData = new MetaData(target, MetadataHelper.isFunction(target), decorator, decoratorType, params, propertyKey, paramIndex);
         decoratorMetadata[decorator][propertyKey] = metData;
-        metadataRoot.set(metaKey, decoratorMetadata);
+        _metadataRoot.set(metaKey, decoratorMetadata);
     }
 
     /**
@@ -98,8 +105,8 @@ class MetadataHelper {
      */
     public static getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }> {
         var returnObj = [];
-        for (let key of metadataRoot.keys()) {
-            var metaArrForKey = Enumerable.from(metadataRoot.get(key)) // decoratormetadata: { [key: string]: { [key: string]: MetaData } };
+        for (let key of _metadataRoot.keys()) {
+            var metaArrForKey = Enumerable.from(_metadataRoot.get(key)) // decoratormetadata: { [key: string]: { [key: string]: MetaData } };
                 .where(keyVal => decorators.indexOf(keyVal.key) !== -1)
                 .selectMany(keyval => {
                     return keyval.value;
@@ -120,11 +127,11 @@ class MetadataHelper {
 
         propertyKey = propertyKey || MetadataConstants.CLASSDECORATOR_PROPKEY;
         var metaKey = MetadataHelper.getMetaKey(target);
-        if (!metadataRoot.get(metaKey)) {
+        if (!_metadataRoot.get(metaKey)) {
             return null;
         }
 
-        return Enumerable.from(metadataRoot.get(metaKey))
+        return Enumerable.from(_metadataRoot.get(metaKey))
             .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
             .where(keyVal => keyVal.key === propertyKey) // keyval = {[key(propName): string]: Metadata};
             .select(keyVal => keyVal.value) // keyval = {[key(propName): string]: Metadata};
@@ -139,11 +146,11 @@ class MetadataHelper {
         var meta: { [key: string]: Array<MetaData> } = <any>{};
         var metaKey = MetadataHelper.getMetaKey(target);
 
-        if (!metadataRoot.get(metaKey)) {
+        if (!_metadataRoot.get(metaKey)) {
             return null;
         }
 
-        Enumerable.from(metadataRoot.get(metaKey))
+        Enumerable.from(_metadataRoot.get(metaKey))
             .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
             .forEach(keyVal => {
                 // keyval = {[key(propName): string]: Metadata};
@@ -160,8 +167,8 @@ class MetadataHelper {
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
-        if (metadataRoot.get(metaKey)) {
-            return metadataRoot.get(metaKey)[decorator]
+        if (_metadataRoot.get(metaKey)) {
+            return _metadataRoot.get(metaKey)[decorator]
         }
 
         return null;
@@ -179,11 +186,11 @@ class MetadataHelper {
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
-        if (!metadataRoot.get(metaKey)) {
+        if (!_metadataRoot.get(metaKey)) {
             return null;
         }
-        if (metadataRoot.get(metaKey)[decorator]) {
-            return metadataRoot.get(metaKey)[decorator][propertyKey];
+        if (_metadataRoot.get(metaKey)[decorator]) {
+            return _metadataRoot.get(metaKey)[decorator][propertyKey];
         }
         return null;
     }
