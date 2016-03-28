@@ -1,18 +1,23 @@
+/// <reference path="../../tests/repositories/userRepository.ts" />
 import * as Utils from '../../core/utils';
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
+import {service} from '../../di/decorators/service';
 
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
+import {inject} from '../../di/decorators/inject';
+import UserRepository from '../../tests/repositories/userRepository';
 
 var userrepository: any;
 
 import {router} from '../../core/exports';
 
 
+@service()
 export class AuthService {
-    constructor(private repository: any) {
+    constructor( @inject(UserRepository) private repository: UserRepository) {
         userrepository = repository;
         this.addRoutes();
     }

@@ -26,11 +26,11 @@ export class AuthController {
 
     private path: string;
 
+    @inject()
     private authService: AuthService;
 
     constructor(path: string, repository: any) {
         userrepository = repository;
-        this.authService = new AuthService(userrepository);
         this.path = path;
         this.addRoutes();
         this.createAuthStrategy();
