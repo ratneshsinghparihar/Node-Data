@@ -22,11 +22,7 @@ export function saveObjs(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
 
     return Q.allSettled(asyncCalls)
         .then(result => {
-            var res = [];
-            Enumerable.from(result).forEach(x => {
-                res.push(toObject(x));
-            });
-            return res;
+            return Enumerable.from(result).select(x => x.value).toArray();
         })
         .catch(error => error);
 }
