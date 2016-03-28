@@ -54,6 +54,7 @@ export class DI {
      */
     resolve<T>(cls: ClassType<T>): T {
         this.dependencyOrder = new Map<ClassType<any>, number>();
+        return this.resolveDependencies<T>(cls);
     }
 
     private getDependencyOrderString<T>(cls?: ClassType<T>) {

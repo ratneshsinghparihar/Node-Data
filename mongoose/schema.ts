@@ -5,24 +5,10 @@ import {Decorators as CoreDecorators, MetadataConstants} from '../core/constants
 import {Decorators} from './constants';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
+import {updateModelEntity} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 
 export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
-var schemaNameModel: { [key: string]: any } = {};
-
-export function getEntity(schemaName: string): any {
-    if (!schemaNameModel[schemaName])
-        return null;
-
-    return schemaNameModel[schemaName]['entity'];
-}
-
-export function getModel(schemaName: string): any {
-    if (!schemaNameModel[schemaName])
-        return null;
-
-    return schemaNameModel[schemaName]['model'];
-}
 
 export function generateSchema() {
     var repositoryMetadata = MetaUtils.getMetaDataForDecorators([CoreDecorators.REPOSITORY]);
@@ -39,9 +25,7 @@ export function generateSchema() {
         let model = Mongoose.model(schemaName, <any>mongooseSchema);
         pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: model };
 
-        if (!schemaNameModel[schemaName]) {
-            schemaNameModel[schemaName] = { entity: entity, model: model };
-        }
+        updateModelEntity(schemaName, entity, model);
     });
 }
 

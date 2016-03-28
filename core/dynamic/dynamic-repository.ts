@@ -7,6 +7,7 @@ import Q = require('q');
 import {IEntityService} from "../interfaces/entity-service";
 import {Container} from '../../di';
 import * as Utils from '../utils';
+import {getEntity, getModel} from './model-entity';
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
  
@@ -15,6 +16,7 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 }
 
 export interface IDynamicRepository {
+    getModelRepo();
     getModel();
     addRel();
     modelName();
@@ -29,12 +31,13 @@ export class DynamicRepository implements IDynamicRepository {
     //private model: Mongoose.Model<any>;
     private metaModel: any;
     private entity: any;
+    private schemaName: string;
     //private modelRepo: any;
 
     constructor(repositoryPath: string, target: Function|Object) {
         //console.log(schema);
         this.path = repositoryPath;
-        var modelName = this.path.substring(1);
+        this.schemaName = this.path.substring(1) as string;
         this.entity = target;
         //this.metaModel=new this.entityType();
         //this.model = model;
@@ -44,11 +47,11 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getModelRepo() {
-        throw 'Not implemented';
+        return getEntity(this.schemaName);
     }
 
     public getModel() {
-        throw 'Not implemented';
+        return getModel(this.schemaName);
     }
 
     public saveObjs(objArr: Array<any>) {
@@ -56,7 +59,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public modelName() {
-        throw 'Not implemented';
+        return this.modelName;
     }
 
     public getEntityType() {

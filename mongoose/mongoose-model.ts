@@ -10,7 +10,7 @@ import {MetaData} from '../core/metadata/metadata';
 import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
-import {getEntity, getModel} from './';
+import {getEntity, getModel} from '../core/dynamic/model-entity';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function saveObjs(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
@@ -281,15 +281,10 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
     });
 }
 
-function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
-    var asyncCalls = [];
-    var ret: boolean = true;
-    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
-
 function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
     var asyncCalls = [];
     var ret: boolean = true;
-    var metas = MetaUtils.getAllRelationsForTargetInternal(GetEntity(model.modelName));
+    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         if (val[m.propertyKey]) {

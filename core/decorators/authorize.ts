@@ -1,6 +1,7 @@
-﻿import * as MetaUtils from './metadata/utils';
-import {Decorators} from '../constants';
-import {DecoratorType} from '../enums';
+﻿
+import {MetaUtils} from "../metadata/utils";
+import {Decorators} from '../constants/decorators';
+import {DecoratorType} from '../enums/decorator-type';
 
 export function authorize(params: { roles: Array<string> }): any {
     params = params || <any>{};

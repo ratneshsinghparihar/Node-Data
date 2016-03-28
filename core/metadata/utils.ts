@@ -205,6 +205,7 @@ class MetadataHelper {
         }
         return false;
     }
+
 }
 
 export var MetaUtils: IMetadataHelper = MetadataHelper;

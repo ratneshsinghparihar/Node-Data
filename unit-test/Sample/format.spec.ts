@@ -2,7 +2,7 @@
 // each spyon should be checked with number of paramaters and type of parameters and return type if any
 require('reflect-metadata/reflect');
 
-import {AuthService} from '../../services/auth-service';
+import {AuthService} from '../../security/auth/auth-service';
 import {MockAuthService} from './MockService';
 import {Container} from '../../di';
 var service = require('./Service');

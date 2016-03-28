@@ -1,7 +1,6 @@
 import {DecoratorType} from '../enums/decorator-type';
 import {ParamTypeCustom} from './param-type-custom';
 import {ReflectConstants} from '../constants';
-import {IAuthorizeParams} from '../interfaces/authorization-params';
 
 /**
  * Creates new metadata object.

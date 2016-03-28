@@ -1,7 +1,7 @@
 ﻿import * as global from './GlobalObject';
 import {B} from './SampleClassB';
-import {service, inject} from '../../decorators';
-import {AuthService} from '../../services/auth-service';
+import {service, inject} from '../../di/decorators';
+import {AuthService} from '../../security/auth/auth-service';
 
 export class A {
     @inject()

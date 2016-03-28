@@ -376,8 +376,8 @@ export class DynamicController {
         if (configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
             return true;
         }
-        var metadata = Utils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
-        var param = metadata && <IAuthorizeParams>metadata.params;
+        var metadata = MetaUtils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
+        var param = metadata && <any>metadata.params;
         if (param && param.roles) {
             var currentUser = req.user;
             if (currentUser && currentUser.roles && currentUser.roles != "" && currentUser.roles.length > 0) {

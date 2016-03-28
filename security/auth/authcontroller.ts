@@ -1,7 +1,7 @@
 ﻿/// <reference path="security-utils.ts" />
 var express = require('express');
 //import UserRepository from '../repositories/userRepository';
-import * as configUtil from '../utils';
+import * as configUtil from '../../core/utils';
 var crypto = require('crypto');
 import {MetaUtils} from "../../core/metadata/utils";
 //Passport
@@ -21,6 +21,7 @@ import {AuthService} from './auth-service';
 import * as Utils from '../../core/utils';
 
 import * as securityUtils from './security-utils';
+import * as SecurityConfig from '../../security-config';
 
 export class AuthController {
 
@@ -59,7 +60,6 @@ export class AuthController {
             (req, res) => {
                 res.render('login');
             });
-       if (Utils.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
         if (configUtil.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",

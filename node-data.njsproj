@@ -71,10 +71,12 @@
     <TypeScriptCompile Include="constants\index.ts" />
     <TypeScriptCompile Include="constants\reflect.ts" />
     <TypeScriptCompile Include="core\decorators\entityservice.ts" />
+    <TypeScriptCompile Include="core\dynamic\model-entity.ts" />
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
+    <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />
@@ -82,6 +84,7 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\index.ts" />
     <TypeScriptCompile Include="mongoose\enums\index.ts" />
     <TypeScriptCompile Include="mongoose\index.ts" />
+    <TypeScriptCompile Include="mongoose\mongoose-model.ts" />
     <TypeScriptCompile Include="mongoose\schema.ts" />
     <TypeScriptCompile Include="mongoose\mongooseSchemaGenerator.ts" />
     <TypeScriptCompile Include="core\exports\repositories.ts" />
@@ -188,6 +191,7 @@
     <Folder Include="constants\" />
     <Folder Include="core\initialize\" />
     <Folder Include="core\interfaces\" />
+    <Folder Include="decorators\" />
     <Folder Include="mongoose\" />
     <Folder Include="mongoose\decorators\" />
     <Folder Include="mongoose\decorators\interfaces\" />

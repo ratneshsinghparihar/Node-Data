@@ -1,6 +1,5 @@
 /// <reference path="../../tests/repositories/userRepository.ts" />
-import * as Utils from '../../core/utils';
-import * as configUtil from '../utils';
+import * as configUtil from '../../core/utils';
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;

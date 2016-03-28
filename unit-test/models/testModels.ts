@@ -1,16 +1,11 @@
 ﻿import {Types} from 'mongoose';
-import {Strict} from '../../enums';
-import {Types} from 'mongoose';
 
 //@document({ name: 'students', strict: Strict.true })
 export class student {
     _id: Types.ObjectId;
-    _id: Types.ObjectId;
 
     //@field()
     name: string;
-    addresses: Array<string>;
-    //@field({})
     addresses: Array<string>;
 
     //@onetomany({ rel: 'subjects', itemType: subject, embedded: true })
@@ -27,13 +22,6 @@ export class teacher {
     _id: string;
     name: string;
 }
-
-export class division {
-    _id: string;
-
-    //@field()
-    name: string;
-    students: Array<student>;
 
 //@document({ name: 'divisions', strict: Strict.true })
 export class division {
