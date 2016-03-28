@@ -1,5 +1,5 @@
-﻿import {service, inject} from '../../decorators';
-import {AuthService} from '../../services/auth-service';
+﻿/// <reference path="../../security/auth/auth-service.ts" />
+import {AuthService} from '../../security/auth/auth-service';
 
 export class MockAuthService {
 
