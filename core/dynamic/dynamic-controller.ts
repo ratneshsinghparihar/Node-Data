@@ -26,8 +26,6 @@ export class DynamicController {
 
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
-        this.path = "/"+configUtil.config().Config.basePath + "/" + path;
-        //this.addSearchPaths();
         this.addRoutes();
     }
 
