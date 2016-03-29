@@ -1,4 +1,5 @@
 ﻿/// <reference path="../../security/auth/security-utils.ts" />
+/// <reference path="../constants/decorators.ts" />
 import * as configUtil from '../utils';
 //var Config1 = require('../repos');
 var express = require('express');
@@ -36,7 +37,7 @@ export class DynamicController {
             securityUtils.ensureLoggedIn(),
             (req, res) => {
                     
-                if (!this.isAuthorize(req, 1, 'findAll'))
+                if (!securityUtils.isAuthorize(req, 1, 'findAll'))
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 var promise = this.repository.findAll();
                 return promise
@@ -53,7 +54,7 @@ export class DynamicController {
         router.get(this.path + '/:id',
             securityUtils.ensureLoggedIn(),
             (req, res) => {
-                if (!this.isAuthorize(req, 1,'findOne'))
+                if (!securityUtils.isAuthorize(req, 1,'findOne'))
                     this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
@@ -371,61 +372,6 @@ export class DynamicController {
         res.set("Content-Type", "application/json");
         res.send(JSON.stringify(result, null, 4));
     }
-
-    private isAuthorize(req: any, access: number, invokedFunction?: string): boolean {
-        if (configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtil.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
-            return true;
-        }
-        var metadata = MetaUtils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
-        var param = metadata && <any>metadata.params;
-        if (param && param.roles) {
-            var currentUser = req.user;
-            if (currentUser && currentUser.roles && currentUser.roles != "" && currentUser.roles.length > 0) {
-               var isRolePresent = Enumerable.from(param.roles)
-                    .select(role => this.presentInArray(role, currentUser.roles) == true)
-                    .firstOrDefault(null);
-               if (isRolePresent) {
-                   return true;
-               }
-            }
-            return false;
-        }
-        var isAutherize: boolean = false;
-        //check for autherization
-        //1. get resource name         
-        var resourceName = Utils.getResourceNameFromModel(this.repository.getEntityType())
-        //2. get auth config from security config
-        var authCofig = Enumerable.from(SecurityConfig.SecurityConfig.ResourceAccess)
-            .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
-            .firstOrDefault();
-        //if none found then carry on                                     
-        if (authCofig) {
-                 
-            //3. get user object in session
-            var userInsession = req.user;
-            //4. get roles for current user
-                  
-            if (!userInsession.rolenames) return false;
-
-            var userRoles: string = userInsession.rolenames;
-
-            var rolesForRead: Array<any> = Enumerable.from(authCofig.acl)
-                .where((acl: any) => { return (acl.accessmask & 1) == 1; })
-                .toArray();
-            //5 match auth config and user roles 
-            rolesForRead.forEach(element => {
-                if (userRoles.indexOf(element.role) >= 0) {
-                    isAutherize = true;
-                }
-
-
-            });
-            return isAutherize;
-        }
-
-        return true;
-    }
-
 
     private presentInArray(key: string, roleArray: Array<string>) {
         var isAvailable = Enumerable.from(roleArray)
