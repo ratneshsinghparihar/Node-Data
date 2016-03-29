@@ -1,6 +1,6 @@
 {
   "name": "nodedata",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "testone": "jasmine ",
     "start": "node server.js",
     "postinstall": "tsd install",
-    "preinstall": "npm install -g tsd jasmine-node"
+    "preinstall": "npm install -g tsd jasmine-node",
+	"publish" : "gulp compile-ts && npm publish"
   },
   "author": "pratikv",
   "license": "ISC",
