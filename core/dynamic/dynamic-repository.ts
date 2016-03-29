@@ -59,7 +59,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public modelName() {
-        return this.modelName;
+        return this.path;
     }
 
     public getEntityType() {

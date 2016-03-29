@@ -75,6 +75,7 @@
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
+    <TypeScriptCompile Include="core\metadata\actionUtils.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />

@@ -7,7 +7,8 @@ import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 import {router} from '../exports';
 var jwt = require('jsonwebtoken');
-import {ISearchPropertyMap, GetAllFindBySearchFromPrototype, GetAllActionFromPrototype} from "../metadata/searchUtils";
+import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/searchUtils";
+import {IActionPropertyMap, GetAllActionFromPrototype} from "../metadata/actionUtils";
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import  * as SecurityConfig from '../../security-config';
@@ -252,12 +253,17 @@ export class DynamicController {
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
 
-        let links = { "self": { "href": "/search" } };
+        var search = {};
         searchPropMap.forEach(map=> {
             this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
-            links[map.key] = { "href": "/" + map.key, "params": map.args };
+            search[map.key] = { "href": map.key, "params": map.args };
         });
         router.get(this.path + "/search", securityUtils.ensureLoggedIn(), (req, res) => {
+            let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search" } };
+            for (var prop in search) {
+                search[prop]["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search/" + search[prop]["href"];
+                links[prop] = search[prop];
+            }
             this.sendresult(req, res, links);
         });
     }
@@ -274,9 +280,9 @@ export class DynamicController {
                         && (<any>decoratorFields[ele.key].params).searchIndex;
                 }).toArray();
 
-        let searchPropMap = GetAllActionFromPrototype(modelRepo);
+        let searchPropMap = GetAllActionFromPrototype(modelRepo) as Array<IActionPropertyMap>;
 
-        let links = { "self": { "href": "/action" } };
+        var actions = {};
         searchPropMap.forEach(map => {
             router.post(this.path + "/action/" + map.key, (req, res) => {
                 try {
@@ -292,9 +298,14 @@ export class DynamicController {
                     this.sendError(res, err);
                 }
             });
-            links[map.key] = { "href": "/" + map.key, "params": map.args };
+            actions[map.key] = { "href": map.key, "params": map.args };
         });
         router.get(this.path + "/action", securityUtils.ensureLoggedIn(), (req, res) => {
+            let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action" } };
+            for (var prop in actions) {
+                actions[prop]["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action/" + actions[prop]["href"];
+                links[prop] = actions[prop];
+            }
             this.sendresult(req, res, links);
         });
     }
