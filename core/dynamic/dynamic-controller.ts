@@ -193,6 +193,24 @@ export class DynamicController {
                     });
             });
 
+        // add or update any property value
+        router.put(this.path,
+            securityUtils.ensureLoggedIn(),
+            (req, res) => {
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
+
+                return this.repository.saveObjs(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
+            });
+
         router.delete(this.path + "/:id",
             securityUtils.ensureLoggedIn(),
             (req, res) => {
