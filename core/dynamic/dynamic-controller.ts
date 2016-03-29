@@ -26,6 +26,8 @@ export class DynamicController {
 
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
+        this.path = "/" + Utils.config().Config.basePath + "/" + path;
+        this.addSearchPaths();
         this.addRoutes();
     }
 
@@ -236,14 +238,16 @@ export class DynamicController {
     }
 
     addSearchPaths() {
-        let model = this.repository.getModel();
-        let modelRepo = this.repository.getModelRepo();
-        let decoratorFields = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.FIELD);
-        let fieldsWithSearchIndex = Enumerable.from(decoratorFields).where(ele => {
-            return ele.key && decoratorFields[ele.key] && decoratorFields[ele.key].params && (<any>decoratorFields[ele.key].params).searchIndex;
-        })
-            .select(ele => ele.key)
-            .toArray();
+        let modelRepo = this.repository.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
+        let fieldsWithSearchIndex =
+            Enumerable.from(decoratorFields)
+                .where(ele => {
+                    return ele.key
+                        && decoratorFields[ele.key]
+                        && decoratorFields[ele.key].params
+                        && (<any>decoratorFields[ele.key].params).searchIndex;
+                }).toArray();
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
 
