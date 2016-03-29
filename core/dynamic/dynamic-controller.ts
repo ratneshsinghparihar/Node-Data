@@ -8,7 +8,7 @@ var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/searchUtils";
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-import  * as SecurityConfig from '../../security-config';
+import * as SecurityConfig from '../../security-config';
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
@@ -25,7 +25,7 @@ export class DynamicController {
     constructor(path: string, repository: DynamicRepository) {
         this.repository = repository;
         this.path = "/" + Utils.config().Config.basePath + "/" + path;
-        //this.addSearchPaths();
+        this.addSearchPaths();
         this.addRoutes();
     }
 
@@ -40,8 +40,8 @@ export class DynamicController {
                 var promise = this.repository.findAll();
                 return promise
                     .then((result) => {
-                        var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
-                        result = this.getHalModels(result,resourceName);
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        result = this.getHalModels(result, resourceName);
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
@@ -53,18 +53,18 @@ export class DynamicController {
             securityUtils.ensureLoggedIn(),
             (req, res) => {
                 if (!this.isAuthorize(req, 1))
-                    this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
-                        var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
-                        this.getHalModel1(result,resourceName , this.repository.getEntityType());
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, this.repository.getEntityType());
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
                         this.sendError(res, error);
                     });
             });
-        
+
         router.get(this.path + '/:id/:prop',
             securityUtils.ensureLoggedIn(),
             (req, res) => {
@@ -79,7 +79,7 @@ export class DynamicController {
                         ///2. get moongoose model from metadata
                         ///3. call findAll 
                         ///4 return object or array of object
-                        
+
                         //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
                         // var resourceName= Reflect.getMetadata("design:type", association);
                         //this.getHalModel(association,req.params.prop);
@@ -102,7 +102,7 @@ export class DynamicController {
 
                             if (params.embedded) {
                                 if (meta.propertyType.isArray) {
-                                    Enumerable.from(association).forEach(x=> {
+                                    Enumerable.from(association).forEach(x => {
                                         this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
                                     });
                                     association = this.getHalModels(association, resourceName);
@@ -122,7 +122,7 @@ export class DynamicController {
                                     .then((result) => {
                                         if (result.length > 0) {
                                             if (meta.propertyType.isArray) {
-                                                Enumerable.from(result).forEach(x=> {
+                                                Enumerable.from(result).forEach(x => {
                                                     this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
                                                 });
 
@@ -158,8 +158,8 @@ export class DynamicController {
                         this.sendError(res, error);
                     });
             });
-        
-        
+
+
 
         //router.post(this.path + '/:id/:prop/:value', (req, res) => {
         //    return this.sendresult(req, res, req.params);
@@ -218,19 +218,20 @@ export class DynamicController {
     }
 
     addSearchPaths() {
-        let model = this.repository.getModel();
-        let modelRepo = this.repository.getModelRepo();
-        let decoratorFields = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.FIELD);
-        let fieldsWithSearchIndex = Enumerable.from(decoratorFields).where(ele => {
-            return ele.key && decoratorFields[ele.key] && decoratorFields[ele.key].params && (<any>decoratorFields[ele.key].params).searchIndex;
-        })
-            .select(ele => ele.key)
-            .toArray();
+        let modelRepo = this.repository.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
+        let fieldsWithSearchIndex =
+            Enumerable.from(decoratorFields)
+                .where(ele => {
+                    return ele.key
+                        && decoratorFields[ele.key]
+                        && decoratorFields[ele.key].params
+                        && (<any>decoratorFields[ele.key].params).searchIndex;
+                }).toArray();
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
-
         let links = { "self": { "href": "/search" } };
-        searchPropMap.forEach(map=> {
+        searchPropMap.forEach(map => {
             this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
             links[map.key] = { "href": "/" + map.key, "params": map.args };
         });
@@ -249,7 +250,7 @@ export class DynamicController {
         // If all the search fields are not indexed in the elasticsearch, return data from the database
         // Keeping different router.get to avoid unncessary closure at runtime
         if (searchFromDb) {
-            router.get(this.path + "/search/" + map.key, securityUtils.ensureLoggedIn(),(req, res) => {
+            router.get(this.path + "/search/" + map.key, securityUtils.ensureLoggedIn(), (req, res) => {
                 var queryObj = req.query;
                 console.log("Querying Database");
                 return this.repository
@@ -313,31 +314,30 @@ export class DynamicController {
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
         var selfUrl = {};
-        selfUrl["href"] = resourceName ;// + "/" + model._id;
-        model["_links"]={};
-        model["_links"]["self"]=selfUrl;
-        
+        selfUrl["href"] = resourceName;// + "/" + model._id;
+        model["_links"] = {};
+        model["_links"]["self"] = selfUrl;
+
         //add associations 
         //read metadata and get all relations names
         var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(resourceType);
-        
+
         relations.forEach(relation => {
-            if(relation.propertyKey)
-            {
-                var relUrl={};
-                relUrl["href"] = resourceName+"/"+relation.propertyKey;
-                model["_links"][relation.propertyKey]=relUrl;
+            if (relation.propertyKey) {
+                var relUrl = {};
+                relUrl["href"] = resourceName + "/" + relation.propertyKey;
+                model["_links"][relation.propertyKey] = relUrl;
             }
-            
+
         });
-        
+
         //loop through relation names and add into model["_links"]
-        
+
         return model;
-        
+
         // var dbModel = model;
         // var entityModel: any = new resourceType(dbModel);
-       
+
         // //var selfObjec={};
         // // selfObjec["self"]=selfUrl;      
         // entityModel["_links"]["self"] = selfUrl;
@@ -348,7 +348,7 @@ export class DynamicController {
 
     private getHalModels(models: Array<any>, resourceName: string): any {
         var halresult = {};
-        halresult["_links"] = { "self": { "href":  resourceName }, "search": { "href": "/search" } };
+        halresult["_links"] = { "self": { "href": resourceName }, "search": { "href": "/search" } };
         models.forEach(model => {
             this.getHalModel(model, resourceName);
         });
@@ -385,11 +385,11 @@ export class DynamicController {
             .firstOrDefault();
         //if none found then carry on                                     
         if (authCofig) {
-                 
+
             //3. get user object in session
             var userInsession = req.user;
             //4. get roles for current user
-                  
+
             if (!userInsession.rolenames) return false;
 
             var userRoles: string = userInsession.rolenames;
@@ -411,9 +411,9 @@ export class DynamicController {
         return true;
     }
 
-    
-    private getFullDataUrl(req): string{
-        var fullbaseUr:string="";
+
+    private getFullDataUrl(req): string {
+        var fullbaseUr: string = "";
         fullbaseUr = req.protocol + '://' + req.get('host') + "/" + Utils.config().Config.basePath;
         return fullbaseUr;
     }
