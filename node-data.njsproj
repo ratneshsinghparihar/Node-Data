@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -78,6 +78,7 @@
     <TypeScriptCompile Include="core\metadata\actionUtils.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
+    <TypeScriptCompile Include="core\metadata\utils-mock.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />

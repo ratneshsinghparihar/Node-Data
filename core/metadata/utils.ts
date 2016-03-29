@@ -18,11 +18,28 @@ export function metadataRoot(metadataRoot?): MetaRoot {
     return _metadataRoot;
 }
 
+export function getMetaPropKey(decoratorType, propertyKey, paramIndex) {
+    let metaPropKey = propertyKey;
+
+    // class decorator or param decorator for constructor
+    if (decoratorType === DecoratorType.CLASS || (decoratorType === DecoratorType.PARAM && !propertyKey)) {
+        metaPropKey = MetadataConstants.CLASSDECORATOR_PROPKEY;
+    }
+    if (decoratorType === DecoratorType.PARAM) {
+        if (paramIndex === null || paramIndex === undefined) {
+            throw new SyntaxError('paramIndex should be greater than equal to 0 for param decorator');
+        }
+        // special case for param decorators
+        metaPropKey = metaPropKey + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
+    }
+    return metaPropKey;
+}
+
 interface IMetadataHelper {
     addMetaData(target: Object | Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number);
 
-    getMetaData(target: Object): { [key: string]: Array<MetaData> };
-    getMetaData(target: Object, decorator: string): { [key: string]: MetaData };
+    getMetaData(target: Object): Array<MetaData>;
+    getMetaData(target: Object, decorator: string): Array<MetaData>;
     getMetaData(target: Object, decorator: string, propertyKey: string): MetaData;
     getMetaData(target: Object, decorator: string, propertyKey: string, paramIndex: number): MetaData;
     getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }>;
@@ -42,7 +59,14 @@ class MetadataHelper {
      * @throws {TypeError} Target cannot be null.
      * @throws {SyntaxError} PropertyKey cannot be null for method/paramter decorator.
      */
-    public static addMetaData(target: Object | Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number) {
+    public static addMetaData(
+        target: Object | Function,
+        decorator: string,
+        decoratorType: DecoratorType,
+        params: {},
+        propertyKey?: string,
+        paramIndex?: number
+    ) {
         if (!target) {
             throw TypeError;
         }
@@ -51,28 +75,19 @@ class MetadataHelper {
             throw new SyntaxError('propertyKey cannot be null or undefined for method/property decorator');
         }
 
-        // class decorator and param decorator for constructor
-        if (decoratorType === DecoratorType.CLASS || decoratorType === DecoratorType.PARAM) {
-            propertyKey = MetadataConstants.CLASSDECORATOR_PROPKEY;
-        }
-        if (decoratorType === DecoratorType.PARAM) {
-            if (paramIndex === null || paramIndex === undefined) {
-                throw new SyntaxError('paramIndex should be greater than equal to 0 for param decorator');
-            }
-            // special case for param decorators
-            propertyKey = propertyKey + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
-        }
+        let metaPropKey = getMetaPropKey(decoratorType, propertyKey, paramIndex);
 
         let metaKey = MetadataHelper.getMetaKey(target);
 
         let decoratorMetadata: DecoratorMetaData = _metadataRoot.get(metaKey) ? _metadataRoot.get(metaKey) : {};
         decoratorMetadata[decorator] = decoratorMetadata[decorator] || {};
-        if (decoratorMetadata[decorator][propertyKey]) {
+        if (decoratorMetadata[decorator][metaPropKey]) {
             // Metadata for given combination already exists.
             return;
         }
-        let metData: MetaData = new MetaData(target, MetadataHelper.isFunction(target), decorator, decoratorType, params, propertyKey, paramIndex);
-        decoratorMetadata[decorator][propertyKey] = metData;
+        let metaTarget = MetadataHelper.isFunction(target) ? (<Function>target).prototype : target;
+        let metadata: MetaData = new MetaData(metaTarget, MetadataHelper.isFunction(target), decorator, decoratorType, params, propertyKey, paramIndex);
+        decoratorMetadata[decorator][metaPropKey] = metadata;
         _metadataRoot.set(metaKey, decoratorMetadata);
     }
 
@@ -87,14 +102,14 @@ class MetadataHelper {
      */
     public static getMetaData(target: Object, decorator?: string, propertyKey?: string, paramIndex?: number): any {
         if (!target) {
-            throw TypeError;
+            throw TypeError('target cannot be null or undefined');
         }
 
         switch (arguments.length) {
             case 1: return MetadataHelper.getMetaDataForTarget(target);
             case 2: return MetadataHelper.getAllMetaDataForDecorator(target, decorator);
-            case 3:
-            case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(target, decorator, propertyKey, paramIndex);
+            case 3: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.METHOD, target, decorator, propertyKey, paramIndex);
+            case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.PARAM, target, decorator, propertyKey, paramIndex);
             default: return null;
         }
     }
@@ -138,59 +153,57 @@ class MetadataHelper {
             .toArray();
     }
 
-    private static getMetaDataForTarget(target: Object): { [key: string]: Array<MetaData> } {
+    private static getMetaDataForTarget(target: Object): Array<MetaData> {
         if (!target) {
             throw TypeError;
         }
 
-        var meta: { [key: string]: Array<MetaData> } = <any>{};
         var metaKey = MetadataHelper.getMetaKey(target);
 
         if (!_metadataRoot.get(metaKey)) {
             return null;
         }
 
-        Enumerable.from(_metadataRoot.get(metaKey))
-            .selectMany(keyval => keyval.value) // keyval = {[key(decoratorName): string]: {[key(propName)]: Metadata}};
-            .forEach(keyVal => {
-                // keyval = {[key(propName): string]: Metadata};
-                var metaData: MetaData = keyVal.value;
-                meta[keyVal.key] ? meta[keyVal.key].push(metaData) : meta[keyVal.key] = [metaData];
-            });
-
-        return meta;
+        return Enumerable.from(_metadataRoot.get(metaKey))
+            .selectMany(keyval => keyval.value)
+            .select(keyVal => keyVal.value)
+            .toArray();
     }
 
-    private static getAllMetaDataForDecorator(target: Object, decorator: string): { [key: string]: MetaData } {
+    private static getAllMetaDataForDecorator(target: Object, decorator: string): Array<MetaData> {
         if (!target || !decorator) {
             throw TypeError;
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
-        if (_metadataRoot.get(metaKey)) {
-            return _metadataRoot.get(metaKey)[decorator]
-        }
 
-        return null;
+        if (!_metadataRoot.get(metaKey)) {
+            return null;
+        }
+        return Enumerable.from(_metadataRoot.get(metaKey)[decorator])
+            .select(keyVal => keyVal.value)
+            .toArray();
     }
 
-    private static getMetaDataForTargetDecoratorAndPropKey(target: Object, decorator: string, propertyKey: string, paramIndex?: number): MetaData {
+    private static getMetaDataForTargetDecoratorAndPropKey(
+        decoratorType: DecoratorType,
+        target: Object,
+        decorator: string,
+        propertyKey: string,
+        paramIndex?: number
+    ): MetaData {
         if (!target || !decorator) {
             throw TypeError;
         }
 
-        propertyKey = propertyKey || MetadataConstants.CLASSDECORATOR_PROPKEY;
-
-        if (paramIndex) {
-            propertyKey += MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
-        }
+        let metaPropKey = getMetaPropKey(decoratorType, propertyKey, paramIndex);
 
         var metaKey = MetadataHelper.getMetaKey(target);
         if (!_metadataRoot.get(metaKey)) {
             return null;
         }
         if (_metadataRoot.get(metaKey)[decorator]) {
-            return _metadataRoot.get(metaKey)[decorator][propertyKey];
+            return _metadataRoot.get(metaKey)[decorator][metaPropKey];
         }
         return null;
     }
@@ -205,10 +218,6 @@ class MetadataHelper {
         }
         return false;
     }
-
 }
 
 export var MetaUtils: IMetadataHelper = MetadataHelper;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-

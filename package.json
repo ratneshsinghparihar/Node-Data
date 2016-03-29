@@ -48,8 +48,9 @@
     "gulp-tslint": "^4.3.3",
     "gulp-typescript": "^2.12.0",
     "harmonize": "^1.4.4",
+    "istanbul": "^0.4.2",
     "jasmine": "^2.4.1",
     "jasmine-node": "^1.14.5",
     "tslint-microsoft-contrib": "^2.0.2"
   }
-  }
+}

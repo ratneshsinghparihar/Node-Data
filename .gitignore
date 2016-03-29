@@ -9,3 +9,4 @@ obj/**/*.*
 *.htm
 **/*.orig
 out/**
+coverage/**

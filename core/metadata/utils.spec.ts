@@ -10,11 +10,20 @@ import * as models from '../../unit-test/models/testModels';
 import {initializeModels} from '../../unit-test/InitializeModels';
 import {DecoratorType} from '../enums';
 import {Decorators, MetadataConstants} from '../constants';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {MetaRoot} from '../metadata/interfaces/metaroot';
 import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
-import {generateMockMetaRoot, MyTestClass1, MyTestClass2, MyTestClass3} from './utils-mock.spec.ts';
-var jasmine = require('jasmine');
+import {generateMockMetaRoot, MyTestClass1, MyTestClass2, MyTestClass3} from './utils-mock';
+
+
+function compareAddedMetadata(meta: MetaData, target, decorator, decType, isStatic, params, propKey, paramIndex): void {
+    expect(meta.target).toEqual(target);
+    expect(meta.decorator).toEqual(decorator);
+    expect(meta.decoratorType).toEqual(decType);
+    expect(meta.isStatic).toEqual(isStatic);
+    expect(meta.params).toEqual(params);
+    expect(meta.propertyKey).toEqual(propKey);
+    expect(meta.paramIndex).toEqual(paramIndex);
+}
 
 describe('metautils', () => {
     let metadataRoot: MetaRoot;
@@ -24,92 +33,90 @@ describe('metautils', () => {
     });
     describe('addMetaData', () => {
         class TestClassNew { }
-        let param = { a: 1 };
+        let param = { a: 1 }
+            , propKey = 'testmethod'
+            , dec = 'testdecorator'
+            , paramIndex = 0;
+
         it('should add metadata in the metadata root for class type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            MetadataUtils.MetaUtils.addMetaData(TestClassNew, 'dec1', DecoratorType.CLASS, param);
+            MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.CLASS, param);
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
-            let meta = metadataRoot.get(TestClassNew.prototype)['dec1'][MetadataConstants.CLASSDECORATOR_PROPKEY];
-            expect(meta.target === TestClassNew.prototype
-                && meta.decorator === 'dec1'
-                && meta.decoratorType === DecoratorType.CLASS
-                && meta.isStatic === true
-                && meta.params === param
-                && meta.propertyKey === MetadataConstants.CLASSDECORATOR_PROPKEY
-                && meta.paramIndex === undefined).toBeTruthy();
+            let meta = metadataRoot.get(TestClassNew.prototype)[dec][MetadataConstants.CLASSDECORATOR_PROPKEY];
+            expect(meta).toBeTruthy();
+            compareAddedMetadata(meta, TestClassNew.prototype, dec, DecoratorType.CLASS, true, param, undefined, undefined);
         });
+
         it('should add metadata in the metadata root for method type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, 'dec1', DecoratorType.METHOD, param, 'm1');
+            MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.METHOD, param, propKey);
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
-            let meta = metadataRoot.get(TestClassNew.prototype)['dec1'][MetadataConstants.CLASSDECORATOR_PROPKEY];
-            expect(meta.target === TestClassNew.prototype
-                && meta.decorator === 'dec1'
-                && meta.decoratorType === DecoratorType.METHOD
-                && meta.isStatic === false
-                && meta.params === param
-                && meta.propertyKey === 'm1'
-                && meta.paramIndex === undefined).toBeTruthy();
+            let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey];
+            expect(meta).toBeTruthy();
+            compareAddedMetadata(meta, TestClassNew.prototype, dec, DecoratorType.METHOD, false, param, propKey, undefined);
         });
+
         it('should add metadata in the metadata root for method type decorator for static method', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            MetadataUtils.MetaUtils.addMetaData(TestClassNew, 'dec1', DecoratorType.METHOD, param, 'm1');
+            MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, propKey);
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
-            let meta = metadataRoot.get(TestClassNew.prototype)['dec1'][MetadataConstants.CLASSDECORATOR_PROPKEY];
-            expect(meta.target === TestClassNew.prototype
-                && meta.decorator === 'dec1'
-                && meta.decoratorType === DecoratorType.METHOD
-                && meta.isStatic === true
-                && meta.params === param
-                && meta.propertyKey === 'm1'
-                && meta.paramIndex === undefined).toBeTruthy();
+            let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey];
+            expect(meta).toBeTruthy();
+            compareAddedMetadata(meta, TestClassNew.prototype, dec, DecoratorType.METHOD, true, param, propKey, undefined);
         });
+
+        it('should add metadata in the metadata root for param type decorator for constructor', () => {
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
+            MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.PARAM, param, undefined, paramIndex);
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
+            let key = MetadataConstants.CLASSDECORATOR_PROPKEY + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
+            let meta = metadataRoot.get(TestClassNew.prototype)[dec][key];
+            expect(meta).toBeTruthy();
+            compareAddedMetadata(meta, TestClassNew.prototype, dec, DecoratorType.PARAM, true, param, undefined, 0);
+        });
+
         it('should add metadata in the metadata root for param type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, 'dec1', DecoratorType.PARAM, param, 'm1', 0);
+            MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.PARAM, param, propKey, paramIndex);
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
-            let meta = metadataRoot.get(TestClassNew.prototype)['dec1'][MetadataConstants.CLASSDECORATOR_PROPKEY];
-            expect(meta.target === TestClassNew.prototype
-                && meta.decorator === 'dec1'
-                && meta.decoratorType === DecoratorType.PARAM
-                && meta.isStatic === false
-                && meta.params === param
-                && meta.propertyKey === 'm1'
-                && meta.paramIndex === 0).toBeTruthy();
+            let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex];
+            expect(meta).toBeTruthy();
+            compareAddedMetadata(meta, TestClassNew.prototype, dec, DecoratorType.PARAM, false, param, propKey, 0);
         });
     });
+
     describe('getMetadata', function () {
+        it('should throw typeerror with proper message if target is null or undefined', () => {
+            expect(() => MetadataUtils.MetaUtils.getMetaData(null)).toThrowError(<any>TypeError, 'target cannot be null or undefined');
+            expect(() => MetadataUtils.MetaUtils.getMetaData(undefined)).toThrowError(<any>TypeError, 'target cannot be null or undefined');
+        });
+
         it('with target should return metadata for that target only', () => {
-            let meta = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype);
-            expect(Object.keys(meta)).toEqual(12);
-            let metaArray: Array<MetaData> = Enumerable.from(meta)
-                .select(keyVal => keyVal.value)
-                .select(keyVal => keyVal.value)
-                .toArray();
+            debugger;
+            let metaArray = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype);
+            expect(metaArray.length).toEqual(14);
             metaArray.forEach(x => expect(x.target).toBe(MyTestClass1.prototype));
         });
+
         it('with target and decorator should return metadata for that combination only', () => {
-            let meta = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype, 'decorator1');
-            expect(Object.keys(meta)).toEqual(8);
-            let metaArray: Array<MetaData> = Enumerable.from(meta)
-                .select(keyVal => keyVal.value)
-                .select(keyVal => keyVal.value)
-                .toArray();
+            let metaArray = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype, 'decorator1');
+            expect(metaArray.length).toEqual(7);
             metaArray.forEach(x => expect(x.target === MyTestClass1.prototype && x.decorator === 'decorator1').toBeTruthy());
         });
+
         it('with target, decorator and propertyKey should return metadata for that combination only', () => {
             let meta = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype, 'decorator1', 'method1');
-            expect(Object.keys(meta)).toEqual(3);
-            expect(meta
-                && meta.target === MyTestClass1.prototype
+            debugger;
+            expect(meta.target === MyTestClass1.prototype
                 && meta.decorator === 'decorator1'
                 && meta.propertyKey === 'method1'
                 && meta.paramIndex === undefined).toBeTruthy();
         });
+
         it('with target, decorator, propertyKey and paramIndex should return metadata for that combination only', () => {
             let meta = MetadataUtils.MetaUtils.getMetaData(MyTestClass1.prototype, 'decorator1', 'method1', 0);
-            expect(meta
-                && meta.target === MyTestClass1.prototype
+            debugger;
+            expect(meta.target === MyTestClass1.prototype
                 && meta.decorator === 'decorator1'
                 && meta.propertyKey === 'method1'
                 && meta.paramIndex === 0).toBeTruthy();
@@ -158,63 +165,4 @@ describe('metautils', () => {
             });
         });
     });
-
-    //describe('Count of relational properties', function () {
-    //    it('student', () => {
-    //        met = utils.getAllRelationsForTargetInternal(models.student.prototype);
-    //        expect(met.length).toEqual(1);
-    //    });
-
-    //    it('subject', () => {
-    //        met = utils.getAllRelationsForTargetInternal(models.subject.prototype);
-    //        expect(met.length).toEqual(0);
-    //    });
-
-    //    it('teacher', () => {
-    //        met = utils.getAllRelationsForTargetInternal(models.teacher.prototype);
-    //        expect(met.length).toEqual(0);
-    //    });
-
-    //    it('division', () => {
-    //        met = utils.getAllRelationsForTargetInternal(models.division.prototype);
-    //        expect(met.length).toEqual(1);
-    //    });
-    //});
-
-    //describe('Student properties metadata exists', function () {
-    //    var prop;
-
-    //    it('student[_id]', function () {
-    //        prop = '_id';
-    //        var m: MetaData = MetaUtils.getMetaData(models.student.prototype, Decorators.FIELD, prop);
-    //        expect(m).toBeDefined();
-    //        expect(m.propertyKey).toEqual(prop);
-    //    });
-
-    //    it('student[name]', function () {
-    //        prop = 'name';
-    //        var m: MetaData = MetaUtils.getMetaData(models.student.prototype, Decorators.FIELD, prop);
-    //        expect(m).toBeDefined();
-    //        expect(m.propertyKey).toEqual(prop);
-    //    });
-
-    //    it('student[subjects]', function () {
-    //        prop = 'subjects';
-    //        var m: MetaData = MetaUtils.getMetaData(models.student.prototype, Decorators.ONETOMANY, prop);
-    //        var param = <IAssociationParams>m.params;
-    //        console.log(m.propertyType);
-    //        expect(m).toBeDefined();
-    //        expect(m.propertyKey).toEqual(prop);
-    //        expect(param.rel).toBeDefined();
-    //        //expect(m.propertyType.isArray).toEqual(true);
-    //        expect(m.propertyType.itemType).toEqual(models.subject);
-    //    });
-
-    //    it('student[addresses]', function () {
-    //        prop = 'addresses';
-    //        var m: MetaData = MetaUtils.getMetaData(models.student.prototype, Decorators.FIELD, prop);
-    //        console.log(m.propertyType);
-    //        expect(m).toBeDefined();
-    //    });
-    //});
 });
