@@ -47,11 +47,11 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getModelRepo() {
-        return getEntity(this.schemaName);
+        return getEntity(this.path);
     }
 
     public getModel() {
-        return getModel(this.schemaName);
+        return getModel(this.path);
     }
 
     public saveObjs(objArr: Array<any>) {

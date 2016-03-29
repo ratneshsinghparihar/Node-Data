@@ -48,3 +48,63 @@ export function GetAllFindBySearchFromPrototype(targetProtoType: any): Array<ISe
     });
     return namePropMap;
 }
+
+export function GetAllActionFromPrototype(targetProtoType: any): Array<ISearchPropertyMap> {
+    // Check if the model has any fields
+    //   if( 
+    //         targetProtoType.model 
+    //   &&    targetProtoType.model.prototype 
+    //   &&    targetProtoType.model.prototype.decorators 
+    //   &&    targetProtoType.model.prototype.decorators.field ){
+    //       console.log("There are fields");
+    //   }
+    //   else{
+    //       return;
+    //   }
+    // get all model fields
+    var properties: string[] = Object.getOwnPropertyNames(targetProtoType);
+    // Get all the properties starting with findBy
+    var action = "do";
+    var queryRegEx = new RegExp("^" + action, "i");
+
+    var searchProperties: Array<string> = Enumerable.from(properties).where(p => {
+        return queryRegEx.test(p);
+    }).toArray();
+
+    var namePropMap: Array<ISearchPropertyMap> = [];
+    var descs = [];
+    Enumerable.from(searchProperties).forEach(x => {
+        var desc = Object.getOwnPropertyDescriptor(targetProtoType, x);
+        var arg = argumentNames(desc.value);
+        namePropMap.push({ key: x, args: arg });
+        //descs.push(desc);
+    });
+
+    // Do all this exercise only if there is anything to search over.
+    //   if(searchProperties.length === 0 ){
+    //       return;
+    //   }
+
+    //   var fieldProperties = Object.getOwnPropertyNames(targetProtoType.model.prototype.decorators.field);
+    //   var fieldPropIter = Enumerable.from(fieldProperties);
+    //   searchProperties.every(p=>{
+    //       return fieldPropIter.contains(p);
+    //   });
+
+
+    //Enumerable.from(searchProperties).forEach(p => {
+    //    var trimmed: string = p.substr(findBy.length, p.length);
+    //    var splits = Enumerable.from(trimmed.split("And")).select(s => {
+    //        return s.toLowerCase();
+    //    }).toArray();
+    //    namePropMap.push({ key: p, args: splits });
+    //});
+    return namePropMap;
+}
+
+function argumentNames(fun) {
+    var names = fun.toString().match(/^[\s\(]*[^(]*\(([^)]*)\)/)[1]
+        .replace(/\/\/.*?[\r\n]|\/\*(?:.|[\r\n])*?\*\//g, '')
+        .replace(/\s+/g, '').split(',');
+    return names.length == 1 && !names[0] ? [] : names;
+}

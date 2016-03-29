@@ -7,7 +7,7 @@ import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 import {router} from '../exports';
 var jwt = require('jsonwebtoken');
-import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/searchUtils";
+import {ISearchPropertyMap, GetAllFindBySearchFromPrototype, GetAllActionFromPrototype} from "../metadata/searchUtils";
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import  * as SecurityConfig from '../../security-config';
@@ -28,6 +28,7 @@ export class DynamicController {
         this.repository = repository;
         this.path = "/" + Utils.config().Config.basePath + "/" + path;
         this.addSearchPaths();
+        this.addActionPaths();
         this.addRoutes();
     }
 
@@ -257,6 +258,43 @@ export class DynamicController {
             links[map.key] = { "href": "/" + map.key, "params": map.args };
         });
         router.get(this.path + "/search", securityUtils.ensureLoggedIn(), (req, res) => {
+            this.sendresult(req, res, links);
+        });
+    }
+
+    addActionPaths() {
+        let modelRepo = this.repository.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
+        let fieldsWithSearchIndex =
+            Enumerable.from(decoratorFields)
+                .where(ele => {
+                    return ele.key
+                        && decoratorFields[ele.key]
+                        && decoratorFields[ele.key].params
+                        && (<any>decoratorFields[ele.key].params).searchIndex;
+                }).toArray();
+
+        let searchPropMap = GetAllActionFromPrototype(modelRepo);
+
+        let links = { "self": { "href": "/action" } };
+        searchPropMap.forEach(map => {
+            router.post(this.path + "/action/" + map.key, (req, res) => {
+                try {
+                    let modelRepo = this.repository.getEntityType();
+                    var param = [];
+                    for (var prop in req.body) {
+                        param.push(req.body[prop]);
+                    }
+                    modelRepo[map.key].apply(modelRepo, param);
+                    this.sendresult(req, res, 'success');
+                }
+                catch (err) {
+                    this.sendError(res, err);
+                }
+            });
+            links[map.key] = { "href": "/" + map.key, "params": map.args };
+        });
+        router.get(this.path + "/action", securityUtils.ensureLoggedIn(), (req, res) => {
             this.sendresult(req, res, links);
         });
     }

@@ -13,4 +13,15 @@ export default  class PersonRepository {
     findByNameAndLastname(){
     }
 
+    doPublish(valid: boolean) {
+        console.log(valid);
+    }
+
+    doPublishForce(always: any, like: any) {
+        console.log('always:' + always + ' like:' + like);
+    }
+
+    doWrite() {
+        console.log('write');
+    }
 }
