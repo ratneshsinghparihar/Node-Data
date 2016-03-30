@@ -166,7 +166,7 @@ class MetadataHelper {
 
         return Enumerable.from(_metadataRoot.get(metaKey))
             .selectMany(keyval => keyval.value)
-            .select(keyVal => keyVal.value)
+            .select(keyVal => keyVal)
             .toArray();
     }
 
