@@ -36,7 +36,7 @@ export class DynamicController {
             securityImpl.ensureLoggedIn(),
             (req, res) => {
                     
-                if (!securityImpl.isAuthorize(req, 1, 'findAll'))
+                if (!securityImpl.isAuthorize(req, this.repository, 'findAll'))
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 var promise = this.repository.findAll();
                 return promise
@@ -53,7 +53,7 @@ export class DynamicController {
         router.get(this.path + '/:id',
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, 1,'findOne'))
+                if (!securityImpl.isAuthorize(req, this.repository,'findOne'))
                     this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {

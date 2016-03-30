@@ -5,6 +5,6 @@ export function ensureLoggedIn() {
     }
 }
 
-export function isAuthorize(req: any, access: number, invokedFunction?: string): boolean {
+export function isAuthorize(req: any, repository: any, invokedFunction?: string): boolean {
     return true;
 }

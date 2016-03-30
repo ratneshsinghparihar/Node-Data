@@ -122,8 +122,10 @@
     <TypeScriptCompile Include="di\decorators\service.ts" />
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
+    <TypeScriptCompile Include="security\auth\auth-service.spec.ts" />
     <TypeScriptCompile Include="security\auth\auth-service.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller - Copy.ts" />
+    <TypeScriptCompile Include="security\auth\authcontroller.spec.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-repository.ts" />
