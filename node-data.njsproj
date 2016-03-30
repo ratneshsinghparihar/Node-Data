@@ -77,6 +77,13 @@
     <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.ts" />
+    <TypeScriptCompile Include="di\di.spec.ts" />
+    <TypeScriptCompile Include="di\tests\cyclic-b.ts" />
+    <TypeScriptCompile Include="di\tests\service-a.ts" />
+    <TypeScriptCompile Include="di\tests\cyclic-a.ts" />
+    <TypeScriptCompile Include="di\tests\service-d.ts" />
+    <TypeScriptCompile Include="di\tests\service-c.ts" />
+    <TypeScriptCompile Include="di\tests\service-b.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />
@@ -188,6 +195,7 @@
     <Folder Include="core\initialize\" />
     <Folder Include="core\interfaces\" />
     <Folder Include="decorators\" />
+    <Folder Include="di\tests\" />
     <Folder Include="mongoose\" />
     <Folder Include="mongoose\decorators\" />
     <Folder Include="mongoose\decorators\interfaces\" />
