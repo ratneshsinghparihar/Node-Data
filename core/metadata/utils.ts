@@ -18,17 +18,19 @@ export function metadataRoot(metadataRoot?): MetaRoot {
     return _metadataRoot;
 }
 
-export function getMetaPropKey(decoratorType, propertyKey, paramIndex) {
+export function getMetaPropKey(decoratorType, propertyKey?, paramIndex?) {
     let metaPropKey = propertyKey;
 
-    // class decorator or param decorator for constructor
+    if (decoratorType === DecoratorType.METHOD && !propertyKey) {
+        throw TypeError('propertyKey should not be null for method decorator');
+    }
+    if (decoratorType === DecoratorType.PARAM && (paramIndex === null || paramIndex === undefined || paramIndex < 0)) {
+        throw TypeError('paramIndex should be greater than equal to 0 for param decorator');
+    }
     if (decoratorType === DecoratorType.CLASS || (decoratorType === DecoratorType.PARAM && !propertyKey)) {
         metaPropKey = MetadataConstants.CLASSDECORATOR_PROPKEY;
     }
     if (decoratorType === DecoratorType.PARAM) {
-        if (paramIndex === null || paramIndex === undefined) {
-            throw new SyntaxError('paramIndex should be greater than equal to 0 for param decorator');
-        }
         // special case for param decorators
         metaPropKey = metaPropKey + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
     }
@@ -57,7 +59,7 @@ class MetadataHelper {
      * @param {string} [propertyKey] The property/parameter/method name.
      * @param {number} [paramIndex] The index if the decorator is paramter decorator.
      * @throws {TypeError} Target cannot be null.
-     * @throws {SyntaxError} PropertyKey cannot be null for method/paramter decorator.
+     * @throws {TypeError} PropertyKey cannot be null for method/paramter decorator.
      */
     public static addMetaData(
         target: Object | Function,
@@ -66,13 +68,13 @@ class MetadataHelper {
         params: {},
         propertyKey?: string,
         paramIndex?: number
-    ) {
+    ): boolean {
         if (!target) {
-            throw TypeError;
+            throw TypeError('target cannot be null/undefined');
         }
 
         if (!propertyKey && (decoratorType === DecoratorType.PROPERTY || decoratorType === DecoratorType.METHOD)) {
-            throw new SyntaxError('propertyKey cannot be null or undefined for method/property decorator');
+            throw TypeError('propertyKey cannot be null or undefined for method/property decorator');
         }
 
         let metaPropKey = getMetaPropKey(decoratorType, propertyKey, paramIndex);
@@ -83,12 +85,13 @@ class MetadataHelper {
         decoratorMetadata[decorator] = decoratorMetadata[decorator] || {};
         if (decoratorMetadata[decorator][metaPropKey]) {
             // Metadata for given combination already exists.
-            return;
+            return false;
         }
         let metaTarget = MetadataHelper.isFunction(target) ? (<Function>target).prototype : target;
         let metadata: MetaData = new MetaData(metaTarget, MetadataHelper.isFunction(target), decorator, decoratorType, params, propertyKey, paramIndex);
         decoratorMetadata[decorator][metaPropKey] = metadata;
         _metadataRoot.set(metaKey, decoratorMetadata);
+        return true;
     }
 
     /**
@@ -101,16 +104,11 @@ class MetadataHelper {
      * @returns {MetaData} The metadata for the given target, decorator and propertyKey.
      */
     public static getMetaData(target: Object, decorator?: string, propertyKey?: string, paramIndex?: number): any {
-        if (!target) {
-            throw TypeError('target cannot be null or undefined');
-        }
-
         switch (arguments.length) {
             case 1: return MetadataHelper.getMetaDataForTarget(target);
             case 2: return MetadataHelper.getAllMetaDataForDecorator(target, decorator);
             case 3: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.METHOD, target, decorator, propertyKey, paramIndex);
             case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.PARAM, target, decorator, propertyKey, paramIndex);
-            default: return null;
         }
     }
 
@@ -120,6 +118,9 @@ class MetadataHelper {
      */
     public static getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }> {
         var returnObj = [];
+        if (!(decorators && decorators.length)){
+            return returnObj;
+        }
         for (let key of _metadataRoot.keys()) {
             var metaArrForKey = Enumerable.from(_metadataRoot.get(key)) // decoratormetadata: { [key: string]: { [key: string]: MetaData } };
                 .where(keyVal => decorators.indexOf(keyVal.key) !== -1)
@@ -137,7 +138,7 @@ class MetadataHelper {
 
     public static getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData> {
         if (!target) {
-            throw TypeError;
+            throw TypeError('target cannot be null');
         }
 
         propertyKey = propertyKey || MetadataConstants.CLASSDECORATOR_PROPKEY;
@@ -155,7 +156,7 @@ class MetadataHelper {
 
     private static getMetaDataForTarget(target: Object): Array<MetaData> {
         if (!target) {
-            throw TypeError;
+            throw TypeError('target cannot be null or undefined');
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
@@ -172,7 +173,7 @@ class MetadataHelper {
 
     private static getAllMetaDataForDecorator(target: Object, decorator: string): Array<MetaData> {
         if (!target || !decorator) {
-            throw TypeError;
+            throw TypeError('target and decorator cannot be null or undefined');
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
@@ -193,7 +194,7 @@ class MetadataHelper {
         paramIndex?: number
     ): MetaData {
         if (!target || !decorator) {
-            throw TypeError;
+            throw TypeError('target and decorator cannot be null or undefined');
         }
 
         let metaPropKey = getMetaPropKey(decoratorType, propertyKey, paramIndex);
