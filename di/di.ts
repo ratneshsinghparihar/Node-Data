@@ -1,87 +1,79 @@
-﻿/**
- * DI module
- * @module DI
- */
-var Enumerable: any = require('linq');
+﻿let Enumerable: any = require('linq');
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators} from '../core/constants';
 import {DecoratorType} from '../core/enums/decorator-type';
 import {MetaData} from '../core/metadata/metadata';
 import {ClassType} from '../core/utils/classtype';
 import {IInjectParams} from './decorators/interfaces/inject-params';
-import {repositoryMap} from '../core/exports/repositories';
 
 import * as Utils from '../core/utils';
 
-var serviceInstMap = new Map();
-var serviceMap = new Map();
+let _extSources: Array<(any) => Object> = [];
+let _depInstMap = new Map();
+let _serviceMap = new Map<ClassType<any>, Object>();
+
+export function extSources(extSources?: Array<(any) => Object>) {
+    if (extSources !== undefined) {
+        _extSources = extSources;
+    }
+    return _extSources;
+}
+
+export function serviceMap(serviceMap?: Map<ClassType<any>, Object>) {
+    if (serviceMap !== undefined) {
+        _serviceMap = serviceMap;
+    }
+    return _serviceMap;
+}
+//var services: Array<{ fn: Function, params: {} }> = [];
+//var serviceInstances: Array<{fn: Function, inst: any}> = [];
 
 function generateToken(fn: Function) {
     return fn.toString();
 }
 
-class DependencyNode<T> {
-    parents: Map<ClassType<T>, boolean>;
+class DependencyNode {
+    parents: Map<ClassType<any>, boolean>;
     current: any;
-    children: Map<ClassType<T>, boolean>;
+    children: Map<ClassType<any>, boolean>;
     constructor(data) {
-        this.parents = new Map<ClassType<T>, boolean>();
-        this.children = new Map<ClassType<T>, boolean>();;
+        this.parents = new Map<ClassType<any>, boolean>();
+        this.children = new Map<ClassType<any>, boolean>();;
         this.current = data;
     }
 }
 
-let dependencyRoot: Map<ClassType<any>, DependencyNode<any>> = new Map();
+let dependencyRoot: Map<ClassType<any>, DependencyNode> = new Map();
 
-let stack: Array<{ parent: any; children: Array<any>}> = [];
+let dependencyOrder: Map<ClassType<any>, number>;
 
-export class DI {
-    private dependencyOrder: Map<ClassType<any>, number>;
+class DI {
+    private stack: Array<{ parent: any; children: Array<any> }> = [];
 
-    /**
-     * Registers all the services, i.e. classes having @service decorator, in the DI container.
-     * DI container will inject only those services that are registered with this method.
-     * @param {class} cls Typescript class having @service decorator
-     * @param {Object} params Decorator params
-     */
-    addService<T>(cls: ClassType<T>, params: any) {
-        serviceMap.set(cls, params);
+    public resolveDependencies<T>(cls: ClassType<T>): T {
+        if (_serviceMap.has(cls)) {
+            return this.resolveServiceDependency<T>(cls, _serviceMap.get(cls));
+        }
+        return this.getFromExtSources<T>(cls);
     }
 
-    /**
-     * 
-     * @param {class} cls Typescript class to inject
-     */
-    resolve<T>(cls: ClassType<T>): T {
-        this.dependencyOrder = new Map<ClassType<any>, number>();
-        return this.resolveDependencies<T>(cls);
+    private getFromExtSources<T>(cls: ClassType<any>): T {
+        let inst;
+        _extSources.forEach(func => {
+            if (!inst) {
+                inst = func(cls);
+            }
+        });
+        return inst;
     }
 
-    private getDependencyOrderString<T>(cls?: ClassType<T>) {
+    private getDependencyOrderString(cls?: ClassType<any>) {
         let arr = [];
-        this.dependencyOrder.forEach((value: number, key: ClassType<T>) => {
+        dependencyOrder.forEach((value: number, key: ClassType<any>) => {
             arr.push(key.name);
         });
         cls && arr.push(cls.name);
         return arr.join('=>');
-    }
-
-    private cycle<T>(cls: ClassType<T>): boolean {
-        if (this.dependencyOrder.get(cls)) {
-            //let arr = [];
-            //dependencyOrder.forEach((value: number, key: ClassType) => {
-            //    arr.push(key.name);
-            //});
-            return true;
-        }
-        return false;
-    }
-
-    private resolveDependencies<T>(cls: ClassType<T>): T {
-        if (serviceMap.has(cls)) {
-            return this.resolveServiceDependency<T>(cls, serviceMap.get(cls));
-        }
-        return this.resolveRepositoryDependency<T>(cls);
     }
 
     private resolveServiceDependency<T>(cls: ClassType<T>, service): T {
@@ -98,24 +90,12 @@ export class DI {
         return inst;
     }
 
-    private resolveRepositoryDependency<T>(cls: ClassType<T>): T {
-        var map = repositoryMap();
-        var repo = Enumerable.from(repositoryMap())
-            // TODO: change (keyVal.value.fn.path == cls.prototype.path) to (keyVal.value.fn == cls.prototype). This is workaround for demo.
-            .where(keyVal => keyVal.value.fn == cls.prototype)
-            .select(keyVal => keyVal.value.repo)
-            .firstOrDefault();
-        return repo;
+    private getInstance<T>(cls: ClassType<T>): T {
+        return _depInstMap.get(cls);
     }
 
-    private getInstance<T>(cls: ClassType<T>): any {
-        return serviceInstMap.get(cls);
-    }
-
-    private getDependencies<T>(cls: ClassType<T>): Array<MetaData> {
-        return Enumerable.from(MetaUtils.getMetaData(cls.prototype, Decorators.INJECT))
-            .select(keyVal => keyVal.value)
-            .toArray();
+    private getDependencies(cls: ClassType<any>): Array<MetaData> {
+        return Enumerable.from(MetaUtils.getMetaData(cls.prototype, Decorators.INJECT));
     }
 
     private publicDeps(deps: Array<MetaData>): Array<MetaData> {
@@ -131,7 +111,7 @@ export class DI {
     }
 
     private resolveConstructorDeps(deps): Array<any> {
-        var resolvedDeps = [];
+        let resolvedDeps = [];
         Enumerable.from(deps)
             .orderBy((x: MetaData) => x.paramIndex)
             .forEach((x: MetaData) => {
@@ -144,13 +124,13 @@ export class DI {
                     console.log(x);
                     throw 'no type found';
                 }
-                resolvedDeps.push(this.resolve(type));
+                resolvedDeps.push(this.resolveDependencies(type));
             });
         return resolvedDeps;
     }
 
     private getType(params: any): ClassType<any> {
-        var type = (<IInjectParams>params).type;
+        let type = (<IInjectParams>params).type;
         if ((<any>type).__esModule) {
             type = (<any>type).default;
         }
@@ -160,13 +140,13 @@ export class DI {
     private resolvePropDeps(inst: any, propDeps: Array<any>) {
         Enumerable.from(propDeps)
             .forEach((x: MetaData) => {
-                inst[x.propertyKey] = this.resolve((<IInjectParams>x.params).type);
+                inst[x.propertyKey] = this.resolveDependencies((<IInjectParams>x.params).type);
             });
     }
     //private instantiateClass<T extends Function>(fn: T): T {}
 
-    private getCycle(parent: ClassType<any>, child: ClassType<any>) {
-        var arr = Enumerable.from(stack)
+    private getCycle<T>(parent: ClassType<T>, child: ClassType<T>) {
+        let arr = Enumerable.from(this.stack)
             .select(x => x.parent.name)
             .toArray();
         arr.push(parent.name, child.name);
@@ -177,10 +157,10 @@ export class DI {
     private instantiateClass<T>(cls: ClassType<T>): T {
         console.log('get dependencies: ' + cls.name);
 
-        var allDependencies = this.getDependencies(cls);
-        var deps = this.constructorDeps(allDependencies);
+        let allDependencies = this.getDependencies(cls);
+        let deps = this.constructorDeps(allDependencies);
 
-        var str = Enumerable.from(deps)
+        let str = Enumerable.from(deps)
             .select((x: MetaData) => this.getType(x.params) ? this.getType(x.params).name : ' @ ')
             .toArray()
             .join(",");
@@ -193,7 +173,7 @@ export class DI {
         Enumerable.from(deps)
             .forEach((x: MetaData) => {
 
-                var type = this.getType(x.params);
+                let type = this.getType(x.params);
                 if (!dependencyRoot.get(type)) {
                     dependencyRoot.set(type, new DependencyNode(type));
                 }
@@ -201,24 +181,54 @@ export class DI {
 
                 if (dependencyRoot.get(type).children.get(cls)) {
                     let cycleDepStr = this.getCycle(cls, type);
-                    throw 'Cycle found: ' + cycleDepStr;
+                    throw Error('Cycle found: ' + cycleDepStr);
                 }
 
                 dependencyRoot.get(type).parents.set(cls, true);
             });
 
-        stack.push({ parent: cls, children: deps });
-        var injectedProps = this.publicDeps(allDependencies);
+        this.stack.push({ parent: cls, children: deps });
+        let injectedProps = this.publicDeps(allDependencies);
 
-        var resolvedDeps = this.resolveConstructorDeps(deps);
-        var inst = Utils.activator<T>(cls, resolvedDeps);
+        let resolvedDeps = this.resolveConstructorDeps(deps);
+        let inst = Utils.activator<T>(cls, resolvedDeps);
         this.resolvePropDeps(inst, injectedProps);
 
-        serviceInstMap.set(cls, inst);
+        _depInstMap.set(cls, inst);
 
-        stack.pop();
+        this.stack.pop();
         return inst;
     }
 }
+export class Container {
+    /**
+     * Registers all the services, i.e. classes having @service decorator, in the DI container.
+     * DI container will inject only those services that are registered with this method.
+     * @param {class} cls Typescript class having @service decorator
+     * @param {Object} params Decorator params
+     */
+    public static addService<T>(cls: ClassType<T>, params: any) {
+        _serviceMap.set(cls, params);
+    }
 
-export var Container = new DI();
+    /**
+     * 
+     * @param cls
+     */
+    public static resolve<T>(cls: ClassType<T>): T {
+        dependencyOrder = dependencyOrder || new Map<ClassType<any>, number>();
+        let di = new DI();
+        return di.resolveDependencies<T>(cls);
+    }
+
+
+    public static addSource(source: (any) => Object) {
+        _extSources.push(source);
+        //source.forEach((x, y) => {
+        //    if (_depInstMap.has(y)) {
+        //        throw 'key already present in the map';
+        //    }
+        //    _depInstMap.set(y, x);
+        //});
+    }
+}
