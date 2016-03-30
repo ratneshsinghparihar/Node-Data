@@ -67,9 +67,6 @@
       <TestFramework>ExportRunner</TestFramework>
     </TypeScriptCompile>
     <TypeScriptCompile Include="config.ts" />
-    <TypeScriptCompile Include="constants\decorators.ts" />
-    <TypeScriptCompile Include="constants\index.ts" />
-    <TypeScriptCompile Include="constants\reflect.ts" />
     <TypeScriptCompile Include="core\decorators\entityservice.ts" />
     <TypeScriptCompile Include="core\dynamic\model-entity.ts" />
     <TypeScriptCompile Include="core\dynamic\security-impl.ts" />
@@ -80,6 +77,13 @@
     <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.ts" />
+    <TypeScriptCompile Include="di\di.spec.ts" />
+    <TypeScriptCompile Include="di\tests\cyclic-b.ts" />
+    <TypeScriptCompile Include="di\tests\service-a.ts" />
+    <TypeScriptCompile Include="di\tests\cyclic-a.ts" />
+    <TypeScriptCompile Include="di\tests\service-d.ts" />
+    <TypeScriptCompile Include="di\tests\service-c.ts" />
+    <TypeScriptCompile Include="di\tests\service-b.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />
@@ -122,10 +126,7 @@
     <TypeScriptCompile Include="di\decorators\service.ts" />
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
-    <TypeScriptCompile Include="security\auth\auth-service.spec.ts" />
     <TypeScriptCompile Include="security\auth\auth-service.ts" />
-    <TypeScriptCompile Include="security\auth\authcontroller - Copy.ts" />
-    <TypeScriptCompile Include="security\auth\authcontroller.spec.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-controller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-repository.ts" />
@@ -152,7 +153,6 @@
     <TypeScriptCompile Include="tests\models\personModel.ts" />
     <TypeScriptCompile Include="tests\models\role.ts" />
     <TypeScriptCompile Include="tests\models\rolemodel.ts" />
-    <TypeScriptCompile Include="tests\models\studentmodel.ts" />
     <TypeScriptCompile Include="tests\models\teachermodel.ts" />
     <TypeScriptCompile Include="tests\models\user.ts" />
     <TypeScriptCompile Include="tests\models\usermodel.ts" />
@@ -186,17 +186,16 @@
     <TypeScriptCompile Include="unit-test\Sample\SampleClassB.ts" />
     <TypeScriptCompile Include="unit-test\Sample\SampleClassA.ts" />
     <TypeScriptCompile Include="unit-test\Sample\MockService.ts" />
-    <TypeScriptCompile Include="unit-test\services\format.ts" />
     <TypeScriptCompile Include="unit-test\services\MockService.ts" />
     <TypeScriptCompile Include="core\utils\classtype.ts" />
     <TypeScriptCompile Include="core\utils\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="cache\" />
-    <Folder Include="constants\" />
     <Folder Include="core\initialize\" />
     <Folder Include="core\interfaces\" />
     <Folder Include="decorators\" />
+    <Folder Include="di\tests\" />
     <Folder Include="mongoose\" />
     <Folder Include="mongoose\decorators\" />
     <Folder Include="mongoose\decorators\interfaces\" />
@@ -245,28 +244,12 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="search\elasticSearchUtils.js" />
     <Compile Include="tests\models\adress.js" />
     <Compile Include="tests\models\blog.js" />
-    <Compile Include="tests\models\blogmodel.js" />
-    <Compile Include="tests\models\coursemodel.js" />
     <Compile Include="tests\models\decorator.js" />
-    <Compile Include="tests\models\modelBase.js" />
     <Compile Include="tests\models\person.js" />
-    <Compile Include="tests\models\personModel.js" />
     <Compile Include="tests\models\role.js" />
-    <Compile Include="tests\models\rolemodel.js" />
-    <Compile Include="tests\models\studentmodel.js" />
-    <Compile Include="tests\models\teachermodel.js" />
     <Compile Include="tests\models\user.js" />
-    <Compile Include="tests\models\usermodel.js" />
-    <Compile Include="tests\repositories\blogrepository.js" />
-    <Compile Include="tests\repositories\course-repository.js" />
-    <Compile Include="tests\repositories\personrepository.js" />
-    <Compile Include="tests\repositories\rolerepository.js" />
-    <Compile Include="tests\repositories\student-repository.js" />
-    <Compile Include="tests\repositories\teacher-repository.js" />
-    <Compile Include="tests\repositories\userRepository.js" />
     <Compile Include="unit-test\format.js" />
     <Compile Include="unit-test\InitializeModels.js" />
   </ItemGroup>

@@ -452,18 +452,7 @@ export class DynamicController {
     private sendresult(req, res, result) {
         res.set("Content-Type", "application/json");
         res.send(JSON.stringify(result, null, 4));
-    }
-
-    private presentInArray(key: string, roleArray: Array<string>) {
-        var isAvailable = Enumerable.from(roleArray)
-            .where(role => role.name == key)
-            .firstOrDefault(null);
-        if (isAvailable) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    }   
     
     private getFullDataUrl(req): string{
         var fullbaseUr:string="";

@@ -22,7 +22,7 @@ describe('SecurityUtilsFunc', () => {
                 },
                 'Config': {
                     'DbConnection': 'mongodb://localhost:27017/userDatabase',
-                    'basePath': "data",
+                    'basePath': 'data',
                     'apiversion': "v1",
                     'ElasticSearchConnection': 'http://localhost:9200',
                     'ApplyElasticSearch': false

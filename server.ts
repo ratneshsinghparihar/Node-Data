@@ -7,6 +7,8 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 import * as config from './config';
 import {router} from './core/exports';
+import {repositoryMap} from './core/exports';
+import {Container} from './di';
 
 import * as data from './mongoose';
 var Main = require('./core')(config, __dirname, data.entityServiceInst);
