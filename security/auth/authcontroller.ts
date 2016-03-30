@@ -54,7 +54,27 @@ export class AuthController {
                 var aa = this.authService;
             // Display the Login page with any flash message, if any
                 res.render('home', {user: req.user});
-        });
+            });
+
+        router.get('/'+configUtil.config().Config.basePath,
+            securityUtils.ensureLoggedIn(),
+            (req, res) => {
+                //fetch all resources name (not the model name) in an array
+                var allresourcesNames: Array<string> = Utils.getAllResourceNames();
+                var allresourceJson = [];
+                var fullbaseUrl: string = "";
+                fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                allresourcesNames.forEach(resource => {
+                    var resoucejson = {};
+                    resoucejson[resource] = fullbaseUrl + (resource[0] === '/' ? resource : '/' + resource);//+ tokenUrl;
+                    allresourceJson.push(resoucejson);
+                });
+                //loop through rsources and push in json array with name as key and url as value
+                res.set("Content-Type", "application/json");
+
+                res.send(JSON.stringify(allresourceJson, null, 4));
+            }
+        )
 
         router.get('/login',
             (req, res) => {

@@ -6,6 +6,8 @@ import {MetaUtils} from "../../core/metadata/utils";
 import * as Utils from '../../core/utils';
 import {Decorators} from '../../core/constants/decorators';
 
+import * as securityImplCore from '../../core/dynamic/security-impl';
+
 var authenticateByToken = expressJwt({
     secret: SecurityConfig.SecurityConfig.tokenSecretkey,
     credentialsRequired: true,
@@ -20,7 +22,8 @@ var authenticateByToken = expressJwt({
         return null;
     }
 });
-
+securityImplCore.ensureLoggedIn = ensureLoggedIn;
+securityImplCore.isAuthorize = isAuthorize;
 
 export function ensureLoggedIn() {
     if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled]) {

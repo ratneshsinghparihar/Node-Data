@@ -72,6 +72,7 @@
     <TypeScriptCompile Include="constants\reflect.ts" />
     <TypeScriptCompile Include="core\decorators\entityservice.ts" />
     <TypeScriptCompile Include="core\dynamic\model-entity.ts" />
+    <TypeScriptCompile Include="core\dynamic\security-impl.ts" />
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
