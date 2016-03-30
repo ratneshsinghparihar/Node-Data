@@ -21,4 +21,8 @@
         }
         return userObject;
     }
+
+    public getModelRepo() {
+        return true;
+    }
 }

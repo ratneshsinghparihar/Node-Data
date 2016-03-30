@@ -7,18 +7,12 @@ import {MockAuthService} from '../../unit-test/services/MockService';
 import * as securityUtils from './security-utils';
 import * as configUtils from '../../core/utils';
 
-describe('AuthControllerFunc', () => {
+describe('SecurityUtilsFunc', () => {
     beforeEach(() => {
-        spyOn(Container, 'resolve').and.callFake((val) => {
-            switch (val) {
-                case AuthService:
-                    return new MockAuthService();
-            }
-        });
         spyOn(configUtils, 'config').and.returnValue(
             {
                 'Security': {
-                    'isAutheticationEnabled': 'disabled',
+                    'isAutheticationEnabled': 'enabledWithoutAuthorization',
                     'authenticationType': 'passwordBased'
                 },
                 'facebookAuth': {
@@ -37,8 +31,12 @@ describe('AuthControllerFunc', () => {
         );
     });
 
-    it('authController constructor', () => {
-        var authController = new AuthController("/", <any>UserRepositoryMock);
-        expect(authController).not.toBeNull();
+    it('security utils ensuredLoggin method invoked', () => {
+        securityUtils.ensureLoggedIn();
+    });
+    it('security utils isAuthorize method invoked', () => {
+        var req = { 'user': {}};
+        req.user = new UserRepositoryMock().findByField('a','b');
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
     });
 });

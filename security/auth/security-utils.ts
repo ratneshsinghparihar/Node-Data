@@ -47,11 +47,11 @@ export function ensureLoggedIn() {
     }
 }
 
-export function isAuthorize(req: any, access: number, invokedFunction?: string): boolean {
+export function isAuthorize(req: any, repository: any, invokedFunction?: string): boolean {
     if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
         return true;
     }
-    var metadata = MetaUtils.getMetaData(this.repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
+    var metadata = MetaUtils.getMetaData(repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
     var param = metadata && <any>metadata.params;
     if (param && param.roles) {
         var currentUser = req.user;

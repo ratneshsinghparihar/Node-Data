@@ -3,7 +3,6 @@ var express = require('express');
 //import UserRepository from '../repositories/userRepository';
 import * as configUtil from '../../core/utils';
 var crypto = require('crypto');
-import {MetaUtils} from "../../core/metadata/utils";
 //Passport
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
