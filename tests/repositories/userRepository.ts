@@ -17,4 +17,9 @@ export default class UserRepository extends DynamicRepository {
     //    return super.findByField(fieldName, value);
     //}
 
+    //@authorize({ roles: ['ROLE_ADMIN'] })
+    //public findAll(): Q.Promise<any> {
+    //    return super.findAll();
+    //}
+
 }

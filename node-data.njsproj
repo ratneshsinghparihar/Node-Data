@@ -140,6 +140,7 @@
     <TypeScriptCompile Include="core\enums\index.ts" />
     <TypeScriptCompile Include="core\index.ts" />
     <TypeScriptCompile Include="security-config.ts" />
+    <TypeScriptCompile Include="security\auth\security-utils.spec.ts" />
     <TypeScriptCompile Include="security\auth\security-utils.ts" />
     <TypeScriptCompile Include="server.ts" />
     <TypeScriptCompile Include="tests\models\adress.ts" />

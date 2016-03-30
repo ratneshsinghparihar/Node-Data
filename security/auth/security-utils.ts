@@ -1,4 +1,5 @@
-﻿var loggedIn = require('connect-ensure-login').ensureLoggedIn;
+﻿var Enumerable: linqjs.EnumerableStatic = require('linq');
+var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
 import * as SecurityConfig from '../../security-config';
 import * as configUtils from '../../core/utils';
@@ -51,13 +52,23 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
     if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
         return true;
     }
-    var metadata = MetaUtils.getMetaData(repository.getModelRepo(), Decorators.AUTHORIZE, invokedFunction);
+    var metadata = MetaUtils.getMetaData(repository.getEntityType(), Decorators.AUTHORIZE, invokedFunction);
     var param = metadata && <any>metadata.params;
     if (param && param.roles) {
         var currentUser = req.user;
         if (currentUser && currentUser.roles && currentUser.roles != "" && currentUser.roles.length > 0) {
             var isRolePresent = Enumerable.from(param.roles)
-                .select(role => this.presentInArray(role, currentUser.roles) == true)
+                .select(role => {
+                    var isAvailable = Enumerable.from(currentUser.roles)
+                        .where(roleUser => roleUser.name == role)
+                        .firstOrDefault(null);
+                    if (isAvailable) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+
+                })
                 .firstOrDefault(null);
             if (isRolePresent) {
                 return true;
@@ -100,3 +111,5 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
 
     return true;
 }
+
+
