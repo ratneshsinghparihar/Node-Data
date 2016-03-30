@@ -4,7 +4,7 @@ import {ClassType} from './classtype';
 import {IEntityService} from '../interfaces/entity-service';
 import {MetaData} from '../metadata/metadata';
 import {MetaUtils} from '../metadata/utils';
-import {Decorators, RelationDecorators, MetadataConstants} from '../constants';
+import {Decorators, RelationDecorators} from '../constants';
 import {IAssociationParams} from '../decorators/interfaces/association-params';
 
 let _config: any = {};
@@ -87,9 +87,6 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
     }
 
     return Enumerable.from(meta)
-        .selectMany((keyVal: any) => {
-            return keyVal.value
-        })
         .where((x: any) => {
             return RelationDecorators.indexOf((<MetaData>x).decorator) !== -1;
         })
@@ -102,10 +99,10 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
 export function getResourceNameFromModel(object: Object): string {
     var meta = MetaUtils.getMetaData(object, Decorators.DOCUMENT);
     
-    if (!meta || !meta[MetadataConstants.CLASSDECORATOR_PROPKEY] || !meta[MetadataConstants.CLASSDECORATOR_PROPKEY].params) {
+    if (!meta || !meta[0] || !meta[0].params) {
         return null;
     }
-    return meta[MetadataConstants.CLASSDECORATOR_PROPKEY].params.name;
+    return meta[0].params.name;
 }
 
 //@document({ name: 'blogs', isStrict: false })
@@ -127,8 +124,8 @@ export function getAllResourceNames(): Array<string> {
 export function getPrimaryKeyMetadata(target: Object) {
     var meta = MetaUtils.getMetaData(target, Decorators.FIELD);
     return Enumerable.from(meta)
-        .where(keyval => keyval.value.params.primary) // keyval = {[key(propName): string]: Metadata};
-        .select(keyVal => keyVal.value)
+        .where(keyval => keyval.params.primary) // keyval = {[key(propName): string]: Metadata};
+        .select(keyVal => keyVal)
         .firstOrDefault();
 }
 

@@ -171,7 +171,7 @@ class MetadataHelper {
             .toArray();
     }
 
-    private static getAllMetaDataForDecorator(target: Object, decorator: string): any {
+    private static getAllMetaDataForDecorator(target: Object, decorator: string): Array<MetaData> {
         if (!target || !decorator) {
             throw TypeError('target and decorator cannot be null or undefined');
         }
@@ -182,7 +182,9 @@ class MetadataHelper {
             return null;
         }
 
-        return _metadataRoot.get(metaKey)[decorator];
+        return Enumerable.from(_metadataRoot.get(metaKey)[decorator])
+            .select(keyVal => keyVal.value)
+            .toArray();
     }
 
     private static getMetaDataForTargetDecoratorAndPropKey(

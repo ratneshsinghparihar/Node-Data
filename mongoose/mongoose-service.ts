@@ -9,8 +9,12 @@ export class MongooseService implements IEntityService {
     constructor() {
     }
 
-    saveObjs(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return MongooseModel.saveObjs(this.getMongooseModel(repoPath), objArr);
+    bulkPost(repoPath: string, objArr: Array<any>): Q.Promise<any> {
+        return MongooseModel.bulkPost(this.getMongooseModel(repoPath), objArr);
+    }
+
+    bulkPut(repoPath: string, objArr: Array<any>): Q.Promise<any> {
+        return MongooseModel.bulkPut(this.getMongooseModel(repoPath), objArr);
     }
 
     findAll(repoPath: string): Q.Promise<any> {

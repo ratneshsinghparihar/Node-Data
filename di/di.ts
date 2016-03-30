@@ -114,7 +114,7 @@ export class DI {
 
     private getDependencies<T>(cls: ClassType<T>): Array<MetaData> {
         return Enumerable.from(MetaUtils.getMetaData(cls.prototype, Decorators.INJECT))
-            .select(keyVal => keyVal.value)
+            .select(keyVal => keyVal)
             .toArray();
     }
 

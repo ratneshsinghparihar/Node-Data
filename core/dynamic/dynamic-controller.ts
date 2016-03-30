@@ -150,14 +150,27 @@ export class DynamicController {
         router.post(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                this.getModelFromHalModel(req.body);
-                return this.repository.post(req.body)
-                    .then((result) => {
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
+                if (!Array.isArray(req.body)) {
+
+                    this.getModelFromHalModel(req.body);
+                    return this.repository.post(req.body)
+                        .then((result) => {
+                            this.sendresult(req, res, result);
+                        }).catch(error => {
+                            console.log(error);
+                            this.sendError(res, error);
+                        });
+                }
+                else {
+
+                    return this.repository.bulkPost(req.body as Array<any>)
+                        .then((result) => {
+                            this.sendresult(req, res, result);
+                        }).catch(error => {
+                            console.log(error);
+                            this.sendError(res, error);
+                        });
+                }
             });
         
         
@@ -201,7 +214,7 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.saveObjs(req.body as Array<any>)
+                return this.repository.bulkPut(req.body as Array<any>)
                     .then((result) => {
                         this.sendresult(req, res, result);
                     }).catch(error => {
@@ -242,10 +255,11 @@ export class DynamicController {
         let fieldsWithSearchIndex =
             Enumerable.from(decoratorFields)
                 .where(ele => {
-                    return ele.key
-                        && decoratorFields[ele.key]
-                        && decoratorFields[ele.key].params
-                        && (<any>decoratorFields[ele.key].params).searchIndex;
+                    var meta: MetaData = ele as MetaData;
+                    return meta.propertyKey
+                        && meta
+                        && meta.params
+                        && (<any>meta.params).searchIndex;
                 }).toArray();
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
@@ -271,10 +285,11 @@ export class DynamicController {
         let fieldsWithSearchIndex =
             Enumerable.from(decoratorFields)
                 .where(ele => {
-                    return ele.key
-                        && decoratorFields[ele.key]
-                        && decoratorFields[ele.key].params
-                        && (<any>decoratorFields[ele.key].params).searchIndex;
+                    var meta: MetaData = ele as MetaData;
+                    return meta.propertyKey
+                        && meta
+                        && meta.params
+                        && (<any>meta.params).searchIndex;
                 }).toArray();
 
         let searchPropMap = GetAllActionFromPrototype(modelRepo) as Array<IActionPropertyMap>;

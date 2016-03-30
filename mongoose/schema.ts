@@ -1,7 +1,7 @@
 ﻿import {DynamicSchema} from './dynamic-schema';
 import {repositoryMap} from '../core/exports';
 import {MetaUtils} from '../core/metadata/utils';
-import {Decorators as CoreDecorators, MetadataConstants} from '../core/constants';
+import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
@@ -19,7 +19,7 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
-        let documentMeta = meta[MetadataConstants.CLASSDECORATOR_PROPKEY];
+        let documentMeta = meta[0];
         let schemaName = (<IDocumentParams>documentMeta.params).name;
         let schema = new DynamicSchema(documentMeta.target, (<IDocumentParams>x.metadata[0].params).name);
         let mongooseSchema = schema.getSchema();

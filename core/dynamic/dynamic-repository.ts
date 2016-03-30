@@ -54,8 +54,12 @@ export class DynamicRepository implements IDynamicRepository {
         return getModel(this.path);
     }
 
-    public saveObjs(objArr: Array<any>) {
-        return Utils.entityService().saveObjs(this.path, objArr);
+    public bulkPost(objArr: Array<any>) {
+        return Utils.entityService().bulkPost(this.path, objArr);
+    }
+
+    public bulkPut(objArr: Array<any>) {
+        return Utils.entityService().bulkPut(this.path, objArr);
     }
 
     public modelName() {
