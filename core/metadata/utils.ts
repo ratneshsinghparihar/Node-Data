@@ -182,7 +182,7 @@ class MetadataHelper {
             return null;
         }
         return Enumerable.from(_metadataRoot.get(metaKey)[decorator])
-            .select(keyVal => keyVal.value)
+            .select(keyVal => keyVal)
             .toArray();
     }
 
