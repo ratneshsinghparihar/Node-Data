@@ -28,7 +28,7 @@ export class DynamicSchema {
     public getSchema() {
         var fieldMetaArr = MetaUtils.getMetaData(this.target, Decorators.FIELD);
         var idx = Enumerable.from(fieldMetaArr)
-            .where((keyVal) => keyVal.value && keyVal.value.params && (keyVal.value.params).searchIndex).any();
+            .where((keyVal) => keyVal && keyVal.params && (keyVal.params).searchIndex).any();
             var options = this.getMongooseOptions(this.target);
         var mongooseOptions : IMongooseSchemaOptions = { options:options,searchIndex : idx };
         return schemaGenerator.createSchema(this.parsedSchema, mongooseOptions);
@@ -117,7 +117,7 @@ export class DynamicSchema {
 
     private getMongooseOptions(target: Object) {
         var meta = MetaUtils.getMetaData(<any>target, Decorators.DOCUMENT);
-        var documentMeta = meta[MetadataConstants.CLASSDECORATOR_PROPKEY];
+        var documentMeta = meta[0];
         var options = <any>{};
         var params = <IDocumentParams>(documentMeta.params || <any>{});
         switch (params.strict) {
@@ -134,20 +134,19 @@ export class DynamicSchema {
     }
 
     private getAllMetadataForSchema(target: Object): { [key: string]: MetaData } {
-        var metaDataMap = MetaUtils.getMetaData(<any>target);
-        var metaDataMapFiltered: {[key: string]: MetaData} = <any>{};
-        for (var field in metaDataMap) {
-            var schemaDecorators = Enumerable.from(metaDataMap[field])
-                .where((x: MetaData) => this.isSchemaDecorator(x.decorator))
-                .toArray();
-            if (!schemaDecorators || !schemaDecorators.length) {
+        var metaDataMap: Array<MetaData> = MetaUtils.getMetaData(<any>target);
+        var metaDataMapFiltered: { [key: string]: MetaData } = <any>{};
+        for (var i in metaDataMap) {
+            var meta: MetaData = metaDataMap[i] as MetaData;
+
+            if (!this.isSchemaDecorator(meta.decorator))
                 continue;
-            }
-            if (schemaDecorators.length > 1) {
+
+            if (metaDataMapFiltered[meta.propertyKey])
                 throw "A property cannot have more than one schema decorator";
-            }
-            metaDataMapFiltered[field] = schemaDecorators[0];
-        } 
+
+            metaDataMapFiltered[meta.propertyKey] = meta;
+        }
         return metaDataMapFiltered;
     }
 }
