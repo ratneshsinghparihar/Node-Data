@@ -5,6 +5,13 @@ import {MetaRoot} from '../metadata/interfaces/metaroot';
 import {MetaData} from '../metadata/metadata';
 import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
 
+export class Constants {
+    public static DECORATOR1 = 'decorator1';
+    public static DECORATOR2 = 'decorator2';
+    public static METHOD1 = 'method1';
+    public static METHOD2 = 'method2';
+}
+
 export class MyTestClass1 {
     method1(param1, param2) { }
 }
@@ -40,10 +47,10 @@ function mockMetadata(target, decorator, params, propertyKey?, paramIndex?) {
 export function generateMockMetaRoot() {
     let mockMetaRoot: MetaRoot = new Map();
     let obj = {}
-        , decorator1 = 'decorator1'
-        , decorator2 = 'decorator2'
-        , method1 = 'method1'
-        , method2 = 'method2';
+        , decorator1 = Constants.DECORATOR1
+        , decorator2 = Constants.DECORATOR2
+        , method1 = Constants.METHOD1
+        , method2 = Constants.METHOD2;
 
     mockDecoratorObject(obj, MyTestClass1.prototype, DecoratorType.CLASS, decorator1, {});
     mockDecoratorObject(obj, MyTestClass1.prototype, DecoratorType.CLASS, decorator2, {});
