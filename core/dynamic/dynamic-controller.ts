@@ -297,7 +297,7 @@ export class DynamicController {
             });
             actions[map.key] = { "href": map.key, "params": map.args };
         });
-        router.get(this.path + "/action", securityUtils.ensureLoggedIn(), (req, res) => {
+        router.get(this.path + "/action", securityImpl.ensureLoggedIn(), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action" } };
             for (var prop in actions) {
                 actions[prop]["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action/" + actions[prop]["href"];
