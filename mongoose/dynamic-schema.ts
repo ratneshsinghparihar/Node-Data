@@ -5,6 +5,7 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 import * as Types from './datatype';
 import {Strict} from './enums/document-strict';
 import {Decorators} from '../core/constants/decorators';
+import {MetadataConstants} from '../core/constants';
 
 import {IMongooseSchemaOptions,schemaGenerator} from "./mongooseSchemaGenerator";
 
@@ -115,7 +116,8 @@ export class DynamicSchema {
     }
 
     private getMongooseOptions(target: Object) {
-        var documentMeta = MetaUtils.getMetaData(<any>target, Decorators.DOCUMENT, null);
+        var meta = MetaUtils.getMetaData(<any>target, Decorators.DOCUMENT);
+        var documentMeta = meta[MetadataConstants.CLASSDECORATOR_PROPKEY];
         var options = <any>{};
         var params = <IDocumentParams>(documentMeta.params || <any>{});
         switch (params.strict) {

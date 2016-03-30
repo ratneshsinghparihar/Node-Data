@@ -167,11 +167,11 @@ class MetadataHelper {
 
         return Enumerable.from(_metadataRoot.get(metaKey))
             .selectMany(keyval => keyval.value)
-            .select(keyVal => keyVal)
+            .select(keyVal => keyVal.value)
             .toArray();
     }
 
-    private static getAllMetaDataForDecorator(target: Object, decorator: string): Array<MetaData> {
+    private static getAllMetaDataForDecorator(target: Object, decorator: string): any {
         if (!target || !decorator) {
             throw TypeError('target and decorator cannot be null or undefined');
         }
@@ -181,9 +181,8 @@ class MetadataHelper {
         if (!_metadataRoot.get(metaKey)) {
             return null;
         }
-        return Enumerable.from(_metadataRoot.get(metaKey)[decorator])
-            .select(keyVal => keyVal)
-            .toArray();
+
+        return _metadataRoot.get(metaKey)[decorator];
     }
 
     private static getMetaDataForTargetDecoratorAndPropKey(

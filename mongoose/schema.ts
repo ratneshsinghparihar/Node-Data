@@ -18,7 +18,8 @@ export function generateSchema() {
         }
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
-        let documentMeta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT, null);
+        let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
+        let documentMeta = meta[MetadataConstants.CLASSDECORATOR_PROPKEY];
         let schemaName = (<IDocumentParams>documentMeta.params).name;
         let schema = new DynamicSchema(documentMeta.target, (<IDocumentParams>x.metadata[0].params).name);
         let mongooseSchema = schema.getSchema();

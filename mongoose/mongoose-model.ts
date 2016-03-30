@@ -2,6 +2,7 @@
 import Q = require('q');
 import {EntityChange} from '../core/enums/entity-change';
 import {MetaUtils} from "../core/metadata/utils";
+import {MetadataConstants} from '../core/constants';
 import * as CoreUtils from "../core/utils";
 import * as Utils from "./utils";
 import {Decorators} from '../core/constants/decorators';
@@ -434,10 +435,12 @@ function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: 
 }
 
 function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange): Q.Promise<any> {
-    var targetModelMeta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT, null);
+    var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
+    var targetModelMeta = meta[MetadataConstants.CLASSDECORATOR_PROPKEY];
     if (!targetModelMeta) {
         throw 'Could not fetch metadata for target object';
     }
+    
     var repoName = (<IDocumentParams>targetModelMeta.params).name;
     var model = getModel(repoName);
     if (!model) {
