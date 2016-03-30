@@ -67,3 +67,22 @@ module.exports = function (config: any, appRoot?: string, entityServiceInst?: IE
     Utils.entityService(entityServiceInst);
     new Dynamic(config);
 }
+
+let components: Array<any> = [];
+
+export function addComponent(comp: any) {
+    components.push(comp);
+}
+
+export function initialize(config: any, appRoot?: string, entityServiceInst?: IEntityService) {
+    // application root (where we scan the components) set priority: 
+    // 1. User provided 
+    // 2. Environment Variable 
+    // 3. Current working directory
+    _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
+    Utils.entityService(entityServiceInst);
+    new Dynamic(config);
+    components.forEach(x => {
+        x.default();
+    });
+}

@@ -1,6 +1,6 @@
 {
   "name": "nodedata",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "testone": "jasmine ",
     "start": "node server.js",
     "postinstall": "tsd install",
-    "preinstall": "npm install -g tsd jasmine-node"
+    "preinstall": "npm install -g tsd jasmine-node",
+	"publish" : "gulp compile-ts && npm publish"
   },
   "author": "pratikv",
   "license": "ISC",
@@ -47,8 +48,9 @@
     "gulp-tslint": "^4.3.3",
     "gulp-typescript": "^2.12.0",
     "harmonize": "^1.4.4",
+    "istanbul": "^0.4.2",
     "jasmine": "^2.4.1",
     "jasmine-node": "^1.14.5",
     "tslint-microsoft-contrib": "^2.0.2"
   }
-  }
+}

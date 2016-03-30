@@ -65,3 +65,5 @@ gulp.task("watch", function () {
 
 // Task
 gulp.task('default', ["nodemon", "watch"]);
+
+gulp.task('ts', ["compile-ts"]);
