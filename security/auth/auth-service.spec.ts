@@ -10,12 +10,6 @@ import * as configUtils from '../../core/utils';
 
 describe('AuthServiceFunc', () => {
     beforeEach(() => {
-        spyOn(Container, 'resolve').and.callFake((val) => {
-            switch (val) {
-                case UserRepository:
-                    return new UserRepositoryMock();
-            }
-        });
         spyOn(configUtils, 'config').and.returnValue(
             {
                 'Security': {
