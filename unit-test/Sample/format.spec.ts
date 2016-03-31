@@ -10,10 +10,10 @@ import * as global from './GlobalObject';
 import {A} from './SampleClassA';
 import {B} from './SampleClassB';
 
-describe('sample', function () {
+xdescribe('sample', function () {
     
     var getCounterValue = global.GetCounterValue;
-    var a_obj, b_obj;
+    var a_obj: A, b_obj: B;
     
     beforeEach(() => {
         // Before creating object, mock the service first
@@ -53,9 +53,37 @@ describe('sample', function () {
         expect(global.GetSquare).toHaveBeenCalled();
     });
 
-    it('dependency injection for Authservice using mock object', function () {
+    xit('dependency injection for Authservice using mock object', function () {
         a_obj = new A(b_obj);
         var val = a_obj.authenticate();
         expect(val).toEqual(true);
     });
+
+    it('making actual promise call and resolving', function () {
+        var res = b_obj.asyncEvaluation().then(x => {
+        });
+        expect(res).toEqual(true);
+    });
+});
+
+describe('asynchronous', function () {
+    var b_obj: B;
+    var res;
+    b_obj = new B();
+    beforeEach(function (done) {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+        setTimeout(function () {
+            b_obj.asyncEvaluation().then(x => {
+                res = x;
+                console.log('value returned from async');
+                done();
+            });
+        }, 500);
+    });
+    it('passes', function (done) {
+        console.log('testing started');
+        expect(res).toEqual(true);
+        done();
+    });
+
 });

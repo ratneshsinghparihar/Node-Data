@@ -162,7 +162,9 @@ export class DynamicController {
                         });
                 }
                 else {
-
+                    Enumerable.from(req.body).forEach(x => {
+                        this.getModelFromHalModel(x);
+                    });
                     return this.repository.bulkPost(req.body as Array<any>)
                         .then((result) => {
                             this.sendresult(req, res, result);
@@ -196,6 +198,7 @@ export class DynamicController {
         router.put(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                this.getModelFromHalModel(req.body);
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -214,6 +217,9 @@ export class DynamicController {
                     return;
                 }
 
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x);
+                });
                 return this.repository.bulkPut(req.body as Array<any>)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -238,6 +244,7 @@ export class DynamicController {
         router.patch(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                this.getModelFromHalModel(req.body);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
