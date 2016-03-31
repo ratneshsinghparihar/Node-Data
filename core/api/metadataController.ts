@@ -62,7 +62,7 @@ export class MetadataController {
         var props = [];
         var metaData = {};
         var properties = [];
-        Enumerable.from(metas).selectMany(x=> x.value).forEach(x=> {
+        Enumerable.from(metas).forEach(x=> {
             var m = x as MetaData;
             var params = <IAssociationParams>m.params;
             if ((!props[m.propertyKey] || !params.rel) && m.propertyType.itemType) {
