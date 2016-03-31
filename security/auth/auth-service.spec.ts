@@ -38,11 +38,33 @@ describe('AuthServiceFunc', () => {
         );
     });
 
-    it('authservice constructor', () => {
+    it('authservice constructor with authentication disabled', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'disabled';
         var authService = new AuthService(<any>UserRepositoryMock);
         expect(authService).not.toBeNull();
     });
-    it('authservice authenticate method invoked', () => {
+    it('authservice constructor with authentication enabled without authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
+        var authService = new AuthService(<any>UserRepositoryMock);
+        expect(authService).not.toBeNull();
+    });
+    it('authservice constructor with authentication enabled with authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var authService = new AuthService(<any>UserRepositoryMock);
+        expect(authService).not.toBeNull();
+    });
+    it('authservice authenticate method invoked with authentication disabled', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'disabled';
+        var authService = new AuthService(<any>UserRepositoryMock);
+        authService.authenticate();
+    });
+    it('authservice authenticate method invoked with authentication enabled without authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
+        var authService = new AuthService(<any>UserRepositoryMock);
+        authService.authenticate();
+    });
+    it('authservice authenticate method invoked with authentication enabled with authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
         var authService = new AuthService(<any>UserRepositoryMock);
         authService.authenticate();
     });

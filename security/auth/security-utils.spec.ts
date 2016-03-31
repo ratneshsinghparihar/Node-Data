@@ -6,6 +6,7 @@ import {AuthService} from './auth-service';
 import {MockAuthService} from '../../unit-test/services/MockService';
 import * as securityUtils from './security-utils';
 import * as configUtils from '../../core/utils';
+import {MetaUtils} from "../../core/metadata/utils";
 
 describe('SecurityUtilsFunc', () => {
     beforeEach(() => {
@@ -29,14 +30,39 @@ describe('SecurityUtilsFunc', () => {
                 }
             }
         );
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': {'roles':['ROLE_ADMIN']} };
+        });
     });
 
-    it('security utils ensuredLoggin method invoked', () => {
+    it('security utils ensuredLoggin method invoked  with authentication disabled', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'disabled';
         securityUtils.ensureLoggedIn();
     });
-    it('security utils isAuthorize method invoked', () => {
+    it('security utils ensuredLoggin method invoked  with authentication enabled without authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
+        securityUtils.ensureLoggedIn();
+    });
+    it('security utils ensuredLoggin method invoked  with authentication enabled with authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        securityUtils.ensureLoggedIn();
+    });
+    it('security utils isAuthorize method invoked with authentication disabled', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'disabled';
         var req = { 'user': {}};
         req.user = new UserRepositoryMock().findByField('a','b');
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+    it('security utils isAuthorize method invoked with authentication enabled without authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().findByField('a', 'b');
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+    it('security utils isAuthorize method invoked with authentication enabled with authorization', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().findByField('a', 'b');
         securityUtils.isAuthorize(req, new UserRepositoryMock());
     });
 });

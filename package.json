@@ -9,7 +9,7 @@
     "start": "node server.js",
     "postinstall": "tsd install",
     "preinstall": "npm install -g tsd jasmine-node",
-	"publish" : "gulp compile-ts && npm publish"
+    "publish": "gulp compile-ts && npm publish"
   },
   "author": "pratikv",
   "license": "ISC",
@@ -51,6 +51,7 @@
     "istanbul": "^0.4.2",
     "jasmine": "^2.4.1",
     "jasmine-node": "^1.14.5",
+    "supertest": "^1.2.0",
     "tslint-microsoft-contrib": "^2.0.2"
   }
 }
