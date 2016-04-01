@@ -1,8 +1,15 @@
-﻿import * as global from './GlobalObject';
+﻿import {router} from "../../core/exports/router";
+import * as global from './GlobalObject';
 var Q = require('q');
 
 export class B {
-    constructor() {
+
+    counter: number = 0;
+    private name;
+
+    constructor(name?: string) {
+        this.name = name;
+        this.addRoutes();
     }
 
     getName(): string {
@@ -11,13 +18,36 @@ export class B {
         return "class B";
     }
 
+    private addRoutes() {
+        router.get('/',
+            this.ensureLoggedIn(),
+            (req, res) => {
+                console.log('callback is called');
+                res.set("Content-Type", "application/json");
+                this.counter++;
+                var result = {};
+                result['name'] = this.name;
+                res.send(result);
+            });
+    }
+
+    private ensureLoggedIn() {
+        return function (req, res, next) {
+            next();
+        }
+    }
+
     // should not be tested seperately
     private privatePrint() {
         console.log("private function from B");
     }
 
     asyncEvaluation(): Q.Promise<any> {
-        var prom = Q.fcall(this.wait);
+        var prom = Q.fcall(this.wait).then(x => {
+            console.log('async completed');
+            x = !x;
+            return x;
+        });
         console.log('asyncEvaluation() is called');
         return prom;
     }
