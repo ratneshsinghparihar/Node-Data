@@ -3,7 +3,7 @@ import {MetaUtils} from '../core/metadata/utils';
 import {Decorators} from '../core/constants';
 import {DecoratorType} from '../core/enums/decorator-type';
 import {MetaData} from '../core/metadata/metadata';
-import {ClassType} from '../core/utils/classtype';
+import {ClassType, NodeModuleType} from '../core/utils/types';
 import {IInjectParams} from './decorators/interfaces/inject-params';
 
 import * as Utils from '../core/utils';
@@ -200,6 +200,14 @@ class DI {
         return inst;
     }
 }
+
+export interface IContainer {
+    addService<T>(cls: ClassType<T>, params: any);
+    resolve<T>(cls: ClassType<T>): T;
+    resolve<T>(module: NodeModuleType<T>): T;
+    addSource(source: (any) => Object);
+}
+
 export class Container {
     /**
      * Registers all the services, i.e. classes having @service decorator, in the DI container.
@@ -215,12 +223,15 @@ export class Container {
      * 
      * @param cls
      */
-    public static resolve<T>(cls: ClassType<T>): T {
+    public static resolve<T>(key: ClassType<T>|NodeModuleType<T>): T {
+        let srvKey: ClassType<T> = <any>key;
+        if ((<NodeModuleType<any>>key).__esModule) {
+            srvKey = (<NodeModuleType<any>>key).default;
+        }
         dependencyOrder = dependencyOrder || new Map<ClassType<any>, number>();
         let di = new DI();
-        return di.resolveDependencies<T>(cls);
+        return di.resolveDependencies<T>(srvKey);
     }
-
 
     public static addSource(source: (any) => Object) {
         _extSources.push(source);

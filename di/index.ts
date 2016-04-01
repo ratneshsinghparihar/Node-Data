@@ -18,4 +18,4 @@ let repoSource = function (target: ClassType<any>) {
 
 DI.Container.addSource(repoSource);
 
-export let Container = DI.Container;
+export let Container: DI.IContainer = DI.Container;

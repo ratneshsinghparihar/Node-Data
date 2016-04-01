@@ -3,7 +3,7 @@ import {MetaUtils} from '../core/metadata/utils';
 import {MetaData} from '../core/metadata/metadata';
 import {Decorators} from '../core/constants';
 import {DecoratorType} from '../core/enums/decorator-type';
-import {ClassType} from '../core/utils/classtype';
+import {ClassType, NodeModuleType} from '../core/utils/types';
 
 import {ServiceA} from './tests/service-a';
 import {ServiceB} from './tests/service-b';
@@ -11,6 +11,7 @@ import {ServiceC} from './tests/service-c';
 import {ServiceD} from './tests/service-d';
 import {CyclicA} from './tests/cyclic-a';
 import {CyclicB} from './tests/cyclic-b';
+import * as SrvE from './tests/service-e';
 
 describe('di - Container', () => {
     let _srvMap = DI.serviceMap();
@@ -23,7 +24,6 @@ describe('di - Container', () => {
             DI.Container.addService(ServiceA, params);
             expect(_srvMap.get(ServiceA)).toBe(params);
         });
-
     });
 
     describe('resolve', () => {
@@ -37,6 +37,7 @@ describe('di - Container', () => {
             _serviceMap.set(ServiceD, singletonParam);
             _serviceMap.set(CyclicA, {});
             _serviceMap.set(CyclicB, {});
+            _serviceMap.set(SrvE.ServiceE, {});
             DI.serviceMap(_serviceMap);
 
             // inject decorators
@@ -50,6 +51,9 @@ describe('di - Container', () => {
             let srvCycAMeta = new MetaData(CyclicA.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicB }, null, 0);
             let srvCycBMeta = new MetaData(CyclicB.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicA }, null, 0);
 
+            let srvDefault1Meta = new MetaData(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
+            let srvDefault2Meta = new MetaData(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
+
             spyOn(MetaUtils, 'getMetaData').and.callFake((target, decorator) => {
                 switch (target) {
                     case ServiceB.prototype: return [srvBMeta];
@@ -57,6 +61,7 @@ describe('di - Container', () => {
                     case ServiceD.prototype: return [srvD1Meta, srvD2Meta, srvD3Meta];
                     case CyclicA.prototype: return [srvCycAMeta];
                     case CyclicB.prototype: return [srvCycBMeta];
+                    case SrvE.ServiceE.prototype: return [srvDefault1Meta, srvDefault2Meta];
                     default: return [];
                 }
             });
@@ -65,6 +70,13 @@ describe('di - Container', () => {
         it('should resolve services', () => {
             expect(DI.Container.resolve(ServiceA) instanceof ServiceA).toBeTruthy();
             expect(DI.Container.resolve(ServiceB) instanceof ServiceB).toBeTruthy();
+        });
+
+        it('should resolve with default type if the given type is a module', () => {
+            let inst = DI.Container.resolve<SrvE.ServiceE>(<any>SrvE);
+            expect(inst instanceof SrvE.ServiceE).toBeTruthy();
+            expect(inst.serviceA).toBeTruthy();
+            expect(inst.serviceB).toBeTruthy();
         });
 
         it('should be singleton is singleton=true in params', () => {
