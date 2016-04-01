@@ -1,6 +1,6 @@
 {
   "name": "nodedata",
-  "version": "0.0.19",
+  "version": "0.0.22",
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
@@ -9,10 +9,10 @@
     "start": "node server.js",
     "postinstall": "tsd install",
     "preinstall": "npm install -g tsd jasmine-node",
-    "publish": "gulp compile-ts && npm publish"
+    "pub": "gulp compile-ts && npm publish"
   },
   "author": "pratikv",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "acl": "^0.4.9",
     "body-parser": "^1.14.2",
