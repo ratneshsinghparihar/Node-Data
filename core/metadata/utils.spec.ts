@@ -40,6 +40,22 @@ describe('metautils', () => {
             , dec = 'testdecorator'
             , paramIndex = 0;
 
+        it('should store function prototype as metadata key', () => {
+            expect(metadataRoot.has(TestClassNew)).toBeFalsy();
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(metadataRoot.has(TestClassNew)).toBeFalsy();
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
+        });
+
+        it('should store function prototype as metadata key (even if function is given as target)', () => {
+            expect(metadataRoot.has(TestClassNew)).toBeFalsy();
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(metadataRoot.has(TestClassNew)).toBeFalsy();
+            expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
+        });
+
         it('should throw typeerror if target is null/undefined', () => {
             expect(() => MetadataUtils.MetaUtils.addMetaData(undefined, dec, DecoratorType.CLASS, param)).toThrowError(<any>TypeError);
             expect(() => MetadataUtils.MetaUtils.addMetaData(null, dec, DecoratorType.CLASS, param)).toThrowError(<any>TypeError);
