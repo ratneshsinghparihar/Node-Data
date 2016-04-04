@@ -121,14 +121,15 @@ function RegisterRoutesForObject(object: Object) {
         // do nothing
     };
 
-    spyOn(router, 'get').and.callFake(function (name, param, fn) {
+    spyOn(router, 'get').and.callFake(function () {
+        var name = arguments[0];
+        var fn = arguments[arguments.length - 1];
         object['get_' + name] = function (name) {
             var result = {};
             res['send'] = function (data) {
                 console.log('callback completed');
                 result = data;
             };
-
             fn(req, res);
             return result;
         };
