@@ -10,10 +10,11 @@ let repoSource = function (target: ClassType<any>) {
     Object.keys(repositoryMap())
         .forEach(x => {
             // TODO: Decide repository map will hold the prototype or the function
-            if (repositoryMap()[x].fn === target || (<Function>repositoryMap()[x].fn).prototype === target) {
+            if (repositoryMap()[x].fn === target || <Function>repositoryMap()[x].fn === target.prototype) {
                 repo = repositoryMap()[x].repo;
             }
         });
+    return repo;
 }
 
 DI.Container.addSource(repoSource);

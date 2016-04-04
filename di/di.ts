@@ -61,7 +61,7 @@ class DI {
         let inst;
         _extSources.forEach(func => {
             if (!inst) {
-                inst = func(cls);
+                inst = func.apply(this, [cls]);
             }
         });
         return inst;
@@ -159,7 +159,6 @@ class DI {
 
         let allDependencies = this.getDependencies(cls);
         let deps = this.constructorDeps(allDependencies);
-
         let str = Enumerable.from(deps)
             .select((x: MetaData) => this.getType(x.params) ? this.getType(x.params).name : ' @ ')
             .toArray()
