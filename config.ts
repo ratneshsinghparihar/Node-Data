@@ -7,8 +7,8 @@ export class Config {
     public static ApplyElasticSearch : boolean = false;
 }
 
-export class Security {
-    public static isAutheticationEnabled = "enabledWithAuthorization";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
+export class Security {k
+    public static isAutheticationEnabled = "enabledWithoutAuthorization";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
     public static authenticationType = "passwordBased";//allowed values: "passwordBased","TokenBased"
 }
 

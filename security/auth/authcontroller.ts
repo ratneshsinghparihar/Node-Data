@@ -62,7 +62,7 @@ export class AuthController {
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
                 var fullbaseUrl: string = "";
-                fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                fullbaseUrl = this.getFullBaseUrl(req);
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
                     resoucejson[resource] = fullbaseUrl + (resource[0] === '/' ? resource : '/' + resource);//+ tokenUrl;
