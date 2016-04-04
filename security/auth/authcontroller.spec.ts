@@ -74,10 +74,35 @@ describe('AuthControllerFunc', () => {
         expect(router.get).toHaveBeenCalled();
         authController['get_/data']();
     });
+    it('authcontroller test for /login route', () => {
+        var authController = new AuthController("/", <any>UserRepositoryMock);
+        expect(router.get).toHaveBeenCalled();
+        authController['get_/login']();
+    });
+    it('authcontroller test for /logout route', () => {
+        var authController = new AuthController("/", <any>UserRepositoryMock);
+        expect(router.get).toHaveBeenCalled();
+        authController['get_/logout']();
+    });
+    it('authcontroller test for /token route', () => {
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
+        configUtils.config().Security.authenticationType = 'TokenBased';
+        var authController = new AuthController("/", <any>UserRepositoryMock);
+        expect(router.get).toHaveBeenCalled();
+        authController['get_/token']();
+    });
+
+    it('authcontroller test for /login post route', () => {
+        var authController = new AuthController("/", <any>UserRepositoryMock);
+        expect(router.get).toHaveBeenCalled();
+        authController['post_/login']();
+    });
 });
 
 function RegisterRoutesForObject(object: Object) {
-    var res = {}, req = {};
+    var res = {}, req = {}, next = function () {
+        next();
+    };
     res['render'] = function (a, b) {
         // do nothing
     };
@@ -87,17 +112,41 @@ function RegisterRoutesForObject(object: Object) {
     req['get'] = function (a, b) {
         // do nothing
     };
+    req['logout'] = function (a, b) {
+        // do nothing
+    };
+    res['redirect'] = function (a, b) {
+        // do nothing
+    };
     req['originalUrl'] = 'abc';
     req['user'] = UserRepositoryMock;
 
-    spyOn(router, 'get').and.callFake(function (name, param, fn) {
+    spyOn(router, 'get').and.callFake(function () {
+        var name = arguments[0];
+        var fn = arguments[arguments.length - 1];
         object['get_' + name] = function (name) {
             var result = {};
             res['send'] = function (data) {
                 console.log('callback completed');
                 result = data;
             };
-
+            fn(req, res);
+            if (arguments.length >= 4) {
+                var fun = arguments[1];
+                fun(req,res,next);
+            }
+            return result;
+        };
+    });
+    spyOn(router, 'post').and.callFake(function () {
+        var name = arguments[0];
+        var fn = arguments[arguments.length - 1];
+        object['post_' + name] = function (name) {
+            var result = {};
+            res['send'] = function (data) {
+                console.log('callback completed');
+                result = data;
+            };
             fn(req, res);
             return result;
         };
