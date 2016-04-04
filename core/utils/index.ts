@@ -43,7 +43,7 @@ export function activator<T>(cls: ClassType<T>, args?: Array<any>): T {
 }
 
 export function isRelationDecorator(decorator: string) {
-    return decorator === 'onetomany' || decorator === 'manytoone' || decorator === 'manytomany';
+    return decorator === Decorators.ONETOMANY || decorator === Decorators.MANYTOONE || decorator === Decorators.MANYTOMANY || decorator === Decorators.ONETOONE;
 }
 
 
@@ -65,7 +65,7 @@ export function getAllRelationsForTarget(target: Object): Array<MetaData> {
     var metaForRelations = MetaUtils.getMetaDataForDecorators(RelationDecorators);
 
     return Enumerable.from(metaForRelations)
-        .selectMany(keyVal => keyVal.value)
+        .selectMany(keyVal => keyVal.metadata)
         .where(x => (<IAssociationParams>(<MetaData>x).params).rel === name)
         .toArray();
 }

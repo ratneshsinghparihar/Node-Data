@@ -12,6 +12,9 @@ export default class UserRepository extends DynamicRepository {
     findByNameAndAge() {
     }
 
+    doProcess(name: string) {
+    }
+
     //@authorize({roles: ['ROLE_ADMIN']})
     //public findByField(fieldName, value): Q.Promise<any> {
     //    return super.findByField(fieldName, value);

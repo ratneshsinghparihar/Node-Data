@@ -5,6 +5,7 @@ var nodemon = require('gulp-nodemon');
 var livereload = require('gulp-livereload');
 var tslint = require('gulp-tslint');
 var ignore = require('gulp-ignore');
+var ciDevVersion = require('./scripts/ci-version-devbuild');
 //var nodeDebug = require("gulp-node-debug");
 
 var tsProject = tsc.createProject('tsconfig.json', { sortOutput: true });
@@ -62,6 +63,10 @@ gulp.task("nodemon", ["compile-ts"], function () {
 gulp.task("watch", function () {
     gulp.watch("./**/*.ts", ["compile-ts", "live-reload"]);
 })
+
+gulp.task("ci-dev", function () {
+    ciDevVersion.setNewDevBuildVersion('package.json');
+});
 
 // Task
 gulp.task('default', ["nodemon", "watch"]);
