@@ -142,7 +142,7 @@ export class AuthController {
         res.redirect('/data/');
     }
 
-   private  generateRefreshToken(req, res, next) {
+   private generateRefreshToken(req, res, next) {
         req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
         //TODO dont put it in user object in db
         res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
