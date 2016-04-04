@@ -1,15 +1,15 @@
 {
   "name": "nodedata",
-  "version": "0.0.25",
+  "version": "1.0.0-dev.160404130728",
   "description": "This is a work in progress. DO NOT USE IT.",
   "main": "server.js",
   "scripts": {
     "test": "jasmine",
     "testone": "jasmine ",
     "start": "node server.js",
-    "postinstall": "tsd install",
-    "preinstall": "npm install -g tsd jasmine-node",
-    "pub": "gulp compile-ts && npm publish"
+    "tsd": "",
+    "pub": "gulp ts && npm publish",
+    "ci": "gulp ts && gulp ci-dev && npm test && npm publish"
   },
   "author": "pratikv",
   "license": "MIT",

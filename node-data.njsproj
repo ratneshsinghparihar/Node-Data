@@ -108,6 +108,7 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\field-params.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-service.ts" />
     <TypeScriptCompile Include="mongoose\utils\index.ts" />
+    <TypeScriptCompile Include="scripts\ci-version-devbuild.ts" />
     <TypeScriptCompile Include="search\elasticSearchUtils.ts" />
     <TypeScriptCompile Include="core\decorators\association.ts" />
     <TypeScriptCompile Include="core\decorators\index.ts" />
@@ -205,6 +206,7 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
+    <Folder Include="scripts\" />
     <Folder Include="security\" />
     <Folder Include="core\api\" />
     <Folder Include="core\metadata\interfaces\" />
@@ -247,6 +249,7 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="scripts\set_dev_version.ts" />
     <Compile Include="tests\models\adress.js" />
     <Compile Include="tests\models\blog.js" />
     <Compile Include="tests\models\decorator.js" />
