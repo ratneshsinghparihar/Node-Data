@@ -7,7 +7,7 @@ export class Config {
     public static ApplyElasticSearch : boolean = false;
 }
 
-export class Security {k
+export class Security {
     public static isAutheticationEnabled = "enabledWithoutAuthorization";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
     public static authenticationType = "passwordBased";//allowed values: "passwordBased","TokenBased"
 }
@@ -17,3 +17,4 @@ export class facebookAuth {
     public static clientSecret = 'aa';// your App Secret
     public static callbackURL = 'http://localhost:23548/auth/facebook/callback';
 }
+

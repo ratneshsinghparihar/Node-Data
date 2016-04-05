@@ -1,7 +1,6 @@
 ﻿var Enumerable: linqjs.EnumerableStatic = require('linq');
 var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
-import * as SecurityConfig from '../../security-config';
 import * as configUtils from '../../core/utils';
 import {MetaUtils} from "../../core/metadata/utils";
 import * as Utils from '../../core/utils';
@@ -9,37 +8,40 @@ import {Decorators} from '../../core/constants/decorators';
 
 import * as securityImplCore from '../../core/dynamic/security-impl';
 
-var authenticateByToken = expressJwt({
-    secret: SecurityConfig.SecurityConfig.tokenSecretkey,
-    credentialsRequired: true,
-    getToken: function fromHeaderOrQuerystring(req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-            return req.query.token;
-        } else if (req.cookies && req.cookies.authorization) {
-            return req.cookies.authorization;
-        }
-        return null;
-    }
-});
 securityImplCore.ensureLoggedIn = ensureLoggedIn;
 securityImplCore.isAuthorize = isAuthorize;
 
+export function expressJwtFunc() {
+    return expressJwt({
+        secret: configUtils.securityConfig().SecurityConfig.tokenSecretkey,
+        credentialsRequired: true,
+        getToken: function fromHeaderOrQuerystring(req) {
+            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+                return req.headers.authorization.split(' ')[1];
+            } else if (req.query && req.query.token) {
+                return req.query.token;
+            } else if (req.cookies && req.cookies.authorization) {
+                return req.cookies.authorization;
+            }
+            return null;
+        }
+    });
+}
+
 export function ensureLoggedIn() {
-    if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled]) {
+    if (configUtils.config().Security.isAutheticationEnabled == configUtils.securityConfig().AuthenticationEnabled[configUtils.securityConfig().AuthenticationEnabled.disabled]) {
         return function (req, res, next) {
             next();
         }
     }
 
     //by token
-    if (configUtils.config().Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
-        return authenticateByToken;
+    if (configUtils.config().Security.authenticationType == configUtils.securityConfig().AuthenticationType[configUtils.securityConfig().AuthenticationType.TokenBased]) {
+        return expressJwtFunc();
     }
 
     //by password
-    if (configUtils.config().Security.authenticationType == SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
+    if (configUtils.config().Security.authenticationType == configUtils.securityConfig().AuthenticationType[configUtils.securityConfig().AuthenticationType.passwordBased]) {
         return loggedIn();
     }
 
@@ -49,7 +51,7 @@ export function ensureLoggedIn() {
 }
 
 export function isAuthorize(req: any, repository: any, invokedFunction?: string): boolean {
-    if (configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.disabled] || configUtils.config().Security.isAutheticationEnabled == SecurityConfig.AuthenticationEnabled[SecurityConfig.AuthenticationEnabled.enabledWithoutAuthorization]) {
+    if (configUtils.config().Security.isAutheticationEnabled == configUtils.securityConfig().AuthenticationEnabled[configUtils.securityConfig().AuthenticationEnabled.disabled] || configUtils.config().Security.isAutheticationEnabled == configUtils.securityConfig().AuthenticationEnabled[configUtils.securityConfig().AuthenticationEnabled.enabledWithoutAuthorization]) {
         return true;
     }
     var metadata = MetaUtils.getMetaData(repository.getEntityType(), Decorators.AUTHORIZE, invokedFunction);
@@ -81,7 +83,7 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
     //1. get resource name         
     var resourceName = Utils.getResourceNameFromModel(repository.getEntityType())
     //2. get auth config from security config
-    var authCofig = Enumerable.from(SecurityConfig.SecurityConfig.ResourceAccess)
+    var authCofig = Enumerable.from(configUtils.securityConfig().SecurityConfig.ResourceAccess)
         .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
         .firstOrDefault();
     //if none found then carry on                                     

@@ -8,7 +8,6 @@ import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/s
 import {IActionPropertyMap, GetAllActionFromPrototype} from "../metadata/actionUtils";
 import {MetaData} from '../metadata/metadata';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
-import  * as SecurityConfig from '../../security-config';
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';

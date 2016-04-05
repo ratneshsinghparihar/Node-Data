@@ -8,6 +8,7 @@ import {Decorators, RelationDecorators} from '../constants';
 import {IAssociationParams} from '../decorators/interfaces/association-params';
 
 let _config: any = {};
+let _securityConfig: any = {};
 let _entityService: IEntityService;
 
 export function config(config?: any) {
@@ -15,6 +16,13 @@ export function config(config?: any) {
         _config = config;
     }
     return _config;
+}
+
+export function securityConfig(securityConf?: any) {
+    if (!(securityConf === undefined)) {
+        _securityConfig = securityConf;
+    }
+    return _securityConfig;
 }
 
 export function entityService(entityService?: IEntityService): IEntityService {

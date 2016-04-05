@@ -6,12 +6,13 @@ var bodyParser = require("body-parser");
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 import * as config from './config';
+import * as securityConfig from './security-config';
 import {router} from './core/exports';
 import {repositoryMap} from './core/exports';
 import {Container} from './di';
 
 import * as data from './mongoose';
-var Main = require('./core')(config, __dirname, data.entityServiceInst);
+var Main = require('./core')(config, securityConfig, __dirname, data.entityServiceInst);
 data.connect();
 data.generateSchema();
 
