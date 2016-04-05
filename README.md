@@ -377,6 +377,9 @@ All the search methods are needed to be exposed on the Repository.
 Currently only the "And" search operations are supported. 
  
 ###Configuring ElasticSearch: 
+
+###Installation:
+Elastic search can be installed from https://www.elastic.co/
 ###Config Class:  
 Set "ApplyElasticSearch" to true to enable ElasticSearch 
 Set the path of the ElasticSearch service at "ElasticSearchConnection" 
@@ -395,8 +398,8 @@ class PersonModel {
     @field({searchIndex : true}) 
     age: number; 
  
-constructor(){ 
-} 
+    constructor(){ 
+    }
 } 
 ```
 
