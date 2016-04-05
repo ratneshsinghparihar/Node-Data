@@ -10,3 +10,4 @@ obj/**/*.*
 **/*.orig
 out/**
 coverage/**
+npm-debug.log
