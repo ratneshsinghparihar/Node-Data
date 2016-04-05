@@ -1,4 +1,5 @@
-﻿require('reflect-metadata/reflect');
+﻿import * as Utils from '../../core/utils';
+require('reflect-metadata/reflect');
 import {AuthController} from './authcontroller';
 import {UserRepositoryMock} from '../../unit-test/repository/user-repository-mock';
 import {Container} from '../../di/di';
@@ -30,9 +31,7 @@ describe('SecurityUtilsFunc', () => {
                 }
             }
         );
-        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
-            return { 'params': {'roles':['ROLE_ADMIN']} };
-        });
+       
     });
 
     it('security utils ensuredLoggin method invoked  with authentication disabled', () => {
@@ -50,19 +49,83 @@ describe('SecurityUtilsFunc', () => {
     it('security utils isAuthorize method invoked with authentication disabled', () => {
         configUtils.config().Security.isAutheticationEnabled = 'disabled';
         var req = { 'user': {}};
-        req.user = new UserRepositoryMock().findByField('a','b');
+        req.user = new UserRepositoryMock().getUser();
         securityUtils.isAuthorize(req, new UserRepositoryMock());
     });
     it('security utils isAuthorize method invoked with authentication enabled without authorization', () => {
         configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
         var req = { 'user': {} };
-        req.user = new UserRepositoryMock().findByField('a', 'b');
+        req.user = new UserRepositoryMock().getUser();
         securityUtils.isAuthorize(req, new UserRepositoryMock());
     });
     it('security utils isAuthorize method invoked with authentication enabled with authorization', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': { 'roles': ['ROLE_ADMIN'] } };
+        });
         configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
         var req = { 'user': {} };
-        req.user = new UserRepositoryMock().findByField('a', 'b');
+        req.user = new UserRepositoryMock().getUser();
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+
+    it('security utils isAuthorize method invoked with authentication enabled with authorization and different user roles', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': { 'roles': ['ROLE_ABC'] } };
+        });
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().getUser();
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+
+    it('security utils isAuthorize method invoked with authentication enabled with authorization and currentuser roles null', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': { 'roles': ['ROLE_ADMIN'] } };
+        });
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().getUser();
+        req.user['roles'] = "";
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+
+    it('security utils isAuthorize method invoked with authentication enabled with authorization with resource name blogs', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': { } };
+        });
+        spyOn(Utils, 'getResourceNameFromModel').and.callFake((val) => {
+            return  'blogs' ;
+        });
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().getUser();
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+
+    it('security utils isAuthorize method invoked with authentication enabled without rolenames', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': {} };
+        });
+        spyOn(Utils, 'getResourceNameFromModel').and.callFake((val) => {
+            return 'blogs';
+        });
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().getUser();
+        req.user['rolenames'] = "";
+        securityUtils.isAuthorize(req, new UserRepositoryMock());
+    });
+
+    it('security utils isAuthorize method invoked with authentication enabled with no resource names', () => {
+        spyOn(MetaUtils, 'getMetaData').and.callFake((val) => {
+            return { 'params': {} };
+        });
+        spyOn(Utils, 'getResourceNameFromModel').and.callFake((val) => {
+            return '';
+        });
+        configUtils.config().Security.isAutheticationEnabled = 'enabledWithAuthorization';
+        var req = { 'user': {} };
+        req.user = new UserRepositoryMock().getUser();
         securityUtils.isAuthorize(req, new UserRepositoryMock());
     });
 });

@@ -79,7 +79,7 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
     var isAutherize: boolean = false;
     //check for autherization
     //1. get resource name         
-    var resourceName = Utils.getResourceNameFromModel(this.repository.getEntityType())
+    var resourceName = Utils.getResourceNameFromModel(repository.getEntityType())
     //2. get auth config from security config
     var authCofig = Enumerable.from(SecurityConfig.SecurityConfig.ResourceAccess)
         .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
