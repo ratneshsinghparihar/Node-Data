@@ -1,5 +1,9 @@
 language: node_js
 node_js:
-  - "5.6"
-
+- '5.6'
 sudo: required
+deploy:
+  provider: npm
+  email: vakilpratik@gmail.com
+  api_key:
+    secure: HvGIOtJDSNunlyMFTclm6caDv+q6HGRlPIFFtm58OlERG/UQ2U2JDGdEICsrmBSGNuLdGzJZ1Ua1iyJhEdccKHxO3tIILQb0/El0yhL6LzFFSby17wbAgDbdhYaHjPOlU1/HbAqTLu5UDSsZpAeETp97HAI7csWJWYmstc3GoQ2/ugZJYky3XQlRLuGtNa9LsT6fZQw7esOuqwM0v8I9veVafVRjxDDXICnws0+66n2vfrmeSnU4P6eblReats5WyKNWAeDHOjAEvvSg1ReJY3/1IoOCgFlpVLXr0VpiMVAKbMtHrV1ZBpUVQ+o9HHQS4RMOPGydK9CvWT7EnT3fDEa4oZhPN+assmPNzAtMh9A58X/28WzjoYOx9YmseTmulLSycTbw6KlZkM25BECA8IMzoif5DrCYw045s0Vh5KXc2+CQmOyXo2Zsm6HWF31ltRFj3wuMm7XDess9zoNOJV7EcpblV0+xllN/2s4AN/mc4848zo7aSYKDevY65bhDpOiTngVhD0SvoDlHdHMcRs16USwYS2fxzCwiXpEvs7SUrWQGnL7PFGOxWwX9z0/s7sqtIRDVKXiN4cQIjPZvIdhpfkaaL/6Y9UNHS/a+AoR7EV7zqxqw7zYok5tFGPQKlGtvZGjCRkm3kC3PfJ3qI8OASgSaB71JgTLvrqzlmv8=
