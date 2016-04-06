@@ -4,12 +4,13 @@ import {Decorators} from '../../core/constants';
 import {DecoratorType} from '../../core/enums';
 import {ClassType} from '../../core/utils/classtype';
 
-export function service(params?: { singleton?: boolean }) {
+export function service(params?: { singleton?: boolean, serviceName?: string }) {
     params = params || <any>{};
     params.singleton = true;
 
     return function (target: ClassType<any>) {
         Container.addService(target, params);
+        params['target'] = target;
         MetaUtils.addMetaData(target, Decorators.SERVICE, DecoratorType.CLASS, params);
     };
 }
