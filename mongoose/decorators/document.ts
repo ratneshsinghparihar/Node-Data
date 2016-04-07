@@ -7,6 +7,11 @@ export function document(params: { name: string, strict?: Strict }) {
     params = params || <any>{};
     return function(target: Object){
         // add metadata to prototype
-        MetaUtils.addMetaData(((<any>target).prototype || target), Decorators.DOCUMENT, DecoratorType.CLASS, params);
+        MetaUtils.addMetaData(((<any>target).prototype || target),
+            {
+                decorator: Decorators.DOCUMENT,
+                decoratorType: DecoratorType.CLASS,
+                params: params
+            });
     }
 }

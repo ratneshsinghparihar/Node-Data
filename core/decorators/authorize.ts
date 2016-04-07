@@ -7,6 +7,12 @@ export function authorize(params: { roles: Array<string> }): any {
     params = params || <any>{};
 
     return function (target: Function, propertyKey: string) {
-        MetaUtils.addMetaData(target, Decorators.AUTHORIZE, DecoratorType.METHOD, params, propertyKey);
+        MetaUtils.addMetaData(target,
+            {
+                decorator: Decorators.AUTHORIZE,
+                decoratorType: DecoratorType.METHOD,
+                params: params,
+                propertyKey: propertyKey
+            });
     };
 }

@@ -30,29 +30,6 @@ export class UserModel {
 
     @field()
     age: string;
-
-    @onetomany({ rel: 'roles', itemType: RM, embedded: true })
-    roles: Array<RM.RoleModel>;
-
-    _links: any;  
-    
-    // constructor(){
-    //     this._id=0;
-    //     this.name="";
-    //     this.roles=new Array<RoleModel>();
-    // }
-    constructor(userDto: IUser) {
-        this._links = {};
-        this._id = <any>userDto._id;
-        this.name = userDto.name;
-        //this.age = userDto.age;
-        //this.password = userDto.password;
-        //this.email = userDto.email;
-        if (userDto.roles)
-            this.roles = userDto.roles;
-        else
-            this.roles = new Array<RM.RoleModel>();
-    }
 }
 
 export default UserModel;

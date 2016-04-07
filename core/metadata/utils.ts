@@ -3,8 +3,9 @@ import {DecoratorType} from '../enums';
 import {Decorators, MetadataConstants} from '../constants';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {MetaRoot} from '../metadata/interfaces/metaroot';
-import {MetaData} from './metadata';
+import {MetaData, IMetaOptions} from './metadata';
 import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
+import * as ReflectUtils from '../reflect/reflect-utils';
 
 import {IAssociationParams} from '../decorators/interfaces/association-params';
 import {IRepositoryParams} from '../decorators/interfaces/repository-params';
@@ -38,7 +39,7 @@ export function getMetaPropKey(decoratorType, propertyKey?, paramIndex?) {
 }
 
 interface IMetadataHelper {
-    addMetaData(target: Object | Function, decorator: string, decoratorType: DecoratorType, params: {}, propertyKey?: string, paramIndex?: number);
+    addMetaData(target: Object | Function, metaOptions: IMetaOptions): boolean;
 
     getMetaData(target: Object): Array<MetaData>;
     getMetaData(target: Object, decorator: string): Array<MetaData>;
@@ -61,35 +62,31 @@ class MetadataHelper {
      * @throws {TypeError} Target cannot be null.
      * @throws {TypeError} PropertyKey cannot be null for method/paramter decorator.
      */
-    public static addMetaData(
-        target: Object | Function,
-        decorator: string,
-        decoratorType: DecoratorType,
-        params: {},
-        propertyKey?: string,
-        paramIndex?: number
-    ): boolean {
+    public static addMetaData(target: Object | Function, metaOptions: IMetaOptions): boolean {
         if (!target) {
             throw TypeError('target cannot be null/undefined');
         }
 
-        if (!propertyKey && (decoratorType === DecoratorType.PROPERTY || decoratorType === DecoratorType.METHOD)) {
+        if (!metaOptions.propertyKey && (metaOptions.decoratorType === DecoratorType.PROPERTY || metaOptions.decoratorType === DecoratorType.METHOD)) {
             throw TypeError('propertyKey cannot be null or undefined for method/property decorator');
         }
 
-        let metaPropKey = getMetaPropKey(decoratorType, propertyKey, paramIndex);
+        let metaPropKey = getMetaPropKey(metaOptions.decoratorType, metaOptions.propertyKey, metaOptions.paramIndex);
 
         let metaKey = MetadataHelper.getMetaKey(target);
 
         let decoratorMetadata: DecoratorMetaData = _metadataRoot.get(metaKey) ? _metadataRoot.get(metaKey) : {};
-        decoratorMetadata[decorator] = decoratorMetadata[decorator] || {};
-        if (decoratorMetadata[decorator][metaPropKey]) {
+        decoratorMetadata[metaOptions.decorator] = decoratorMetadata[metaOptions.decorator] || {};
+        if (decoratorMetadata[metaOptions.decorator][metaPropKey]) {
             // Metadata for given combination already exists.
             return false;
         }
         let metaTarget = MetadataHelper.isFunction(target) ? (<Function>target).prototype : target;
-        let metadata: MetaData = new MetaData(metaTarget, MetadataHelper.isFunction(target), decorator, decoratorType, params, propertyKey, paramIndex);
-        decoratorMetadata[decorator][metaPropKey] = metadata;
+        let metadata: MetaData = new MetaData(
+            metaTarget,
+            MetadataHelper.isFunction(target),
+            metaOptions);
+        decoratorMetadata[metaOptions.decorator][metaPropKey] = metadata;
         _metadataRoot.set(metaKey, decoratorMetadata);
         return true;
     }
