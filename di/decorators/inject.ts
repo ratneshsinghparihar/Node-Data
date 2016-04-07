@@ -121,6 +121,12 @@ export function injectbyname(injectName?) {
             configurable: true
         });
 
-        MetaUtils.addMetaData(target, Decorators.INJECT, DecoratorType.PROPERTY, { type: injectType }, propertyKey);
+        MetaUtils.addMetaData(target,
+            {
+                decorator: Decorators.INJECT,
+                decoratorType: DecoratorType.PROPERTY,
+                params: { type: injectType },
+                propertyKey: propertyKey
+            });
     }
 }

@@ -52,19 +52,5 @@ export class MetaData {
         this.propertyType = metaOptions.type || ReflectUtils.getDesignType(target, metaOptions.propertyKey);
         this.returnType = metaOptions.returnType || ReflectUtils.getReturnType(target, metaOptions.propertyKey);
         this.paramTypes = metaOptions.paramTypes || ReflectUtils.getParamTypes(target, metaOptions.propertyKey);      
-        var type = (<any>Reflect).getMetadata(ReflectConstants.DESIGNTYPE, target, this.propertyKey);
-           if (type === Array && !this.params) {
-            this.propertyType = new ParamTypeCustom(undefined, true);
-        }else
-        // If it is not relation type/array type
-        //if (type !== Array && !(params && (<any>params).rel)) {
-        //    this.propertyType = new ParamTypeCustom((<any>params).rel, this.propertyType, (<any>params).itemType);
-        //}
-
-               if ((this.params && (<any>this.params).rel) || type === Array) {
-                   this.propertyType = new ParamTypeCustom((<any>this.params).itemType, type === Array);
-        } else {
-            this.propertyType = new ParamTypeCustom(type, false);
-        }
     }
 }
