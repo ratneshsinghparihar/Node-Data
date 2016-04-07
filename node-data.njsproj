@@ -68,16 +68,15 @@
       <TestFramework>ExportRunner</TestFramework>
     </TypeScriptCompile>
     <TypeScriptCompile Include="config.ts" />
-    <TypeScriptCompile Include="core\decorators\entityservice.ts" />
     <TypeScriptCompile Include="core\dynamic\model-entity.ts" />
     <TypeScriptCompile Include="core\dynamic\security-impl.ts" />
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="core\metadata\actionUtils.ts" />
-    <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.ts" />
+    <TypeScriptCompile Include="core\reflect\reflect-utils.ts" />
     <TypeScriptCompile Include="core\utils\nodemodule-type.ts" />
     <TypeScriptCompile Include="core\utils\types.ts" />
     <TypeScriptCompile Include="di\di.spec.ts" />
@@ -202,6 +201,7 @@
     <Folder Include="cache\" />
     <Folder Include="core\initialize\" />
     <Folder Include="core\interfaces\" />
+    <Folder Include="core\reflect\" />
     <Folder Include="decorators\" />
     <Folder Include="di\tests\" />
     <Folder Include="mongoose\" />

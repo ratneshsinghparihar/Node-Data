@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
+      "commit": "5217b3c97257eecc724aac5872ecd76e9ad68252"
     },
     "serve-static/serve-static.d.ts": {
       "commit": "627b6c158b73494c803f36fc2fe00ad75faa8fde"
@@ -31,6 +31,9 @@
     },
     "jasmine/jasmine.d.ts": {
       "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
+    },
+    "winston/winston.d.ts": {
+      "commit": "5217b3c97257eecc724aac5872ecd76e9ad68252"
     }
   }
 }

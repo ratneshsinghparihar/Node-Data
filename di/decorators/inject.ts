@@ -35,11 +35,13 @@ export function inject(injectType?) {
         // param decorator
         if (arguments.length === 3) {
             MetaUtils.addMetaData(target,
-                Decorators.INJECT,
-                DecoratorType.PARAM,
-                { type: getInjectType(target, propertyKey, parameterIndex, DecoratorType.PARAM) },
-                propertyKey,
-                parameterIndex);
+                {
+                    decorator: Decorators.INJECT,
+                    decoratorType: DecoratorType.PARAM,
+                    params: { type: getInjectType(target, propertyKey, parameterIndex, DecoratorType.PARAM) },
+                    propertyKey: propertyKey,
+                    paramIndex: parameterIndex
+                });
             return;
         }
         // property decorator
@@ -73,7 +75,13 @@ export function inject(injectType?) {
                 configurable: true
             });
 
-            MetaUtils.addMetaData(target, Decorators.INJECT, DecoratorType.PROPERTY, { type: injectType }, propertyKey);
+            MetaUtils.addMetaData(target,
+                {
+                    decorator: Decorators.INJECT,
+                    decoratorType: DecoratorType.PROPERTY,
+                    params: { type: injectType },
+                    propertyKey: propertyKey
+                });
         }
     }
 }

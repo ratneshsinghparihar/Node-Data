@@ -43,7 +43,13 @@ describe('metautils', () => {
         it('should store function prototype as metadata key', () => {
             expect(metadataRoot.has(TestClassNew)).toBeFalsy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: propKey
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew)).toBeFalsy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
         });
@@ -51,34 +57,103 @@ describe('metautils', () => {
         it('should store function prototype as metadata key (even if function is given as target)', () => {
             expect(metadataRoot.has(TestClassNew)).toBeFalsy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: propKey
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew)).toBeFalsy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
         });
 
         it('should throw typeerror if target is null/undefined', () => {
-            expect(() => MetadataUtils.MetaUtils.addMetaData(undefined, dec, DecoratorType.CLASS, param)).toThrowError(<any>TypeError);
-            expect(() => MetadataUtils.MetaUtils.addMetaData(null, dec, DecoratorType.CLASS, param)).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(undefined,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.CLASS,
+                    params: param
+                })).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(null,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.CLASS,
+                    params: param
+                })).toThrowError(<any>TypeError);
         });
 
         it('should throw typeerror if propKey is null/undefined for property or method decorator', () => {
-            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.PROPERTY, param, undefined)).toThrowError(<any>TypeError);
-            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.PROPERTY, param, null)).toThrowError(<any>TypeError);
-            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, undefined)).toThrowError(<any>TypeError);
-            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, null)).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.PROPERTY,
+                    params: param,
+                    propertyKey: undefined
+                })).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.PARAM,
+                    params: param,
+                    propertyKey: null
+                })).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: undefined
+                })).toThrowError(<any>TypeError);
+            expect(() => MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: null
+                })).toThrowError(<any>TypeError);
         });
 
         it('should return false if metadata is already added for the given target, decorator, prop and/or param', () => {
             // Add duplicates
-            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1, Constants.DECORATOR1, DecoratorType.CLASS, param)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1.prototype, Constants.DECORATOR1, DecoratorType.METHOD, param, Constants.METHOD1)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1, Constants.DECORATOR1, DecoratorType.METHOD, param, Constants.METHOD1)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1.prototype, Constants.DECORATOR1, DecoratorType.PARAM, param, Constants.METHOD1, paramIndex)).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1,
+                {
+                    decorator: Constants.DECORATOR1,
+                    decoratorType: DecoratorType.CLASS,
+                    params: param
+                })).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1.prototype,
+                {
+                    decorator: Constants.DECORATOR1,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: Constants.METHOD1
+                })).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1,
+                {
+                    decorator: Constants.DECORATOR1,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: Constants.METHOD1
+                })).toBeFalsy();
+            expect(MetadataUtils.MetaUtils.addMetaData(MyTestClass1.prototype,
+                {
+                    decorator: Constants.DECORATOR1,
+                    decoratorType: DecoratorType.PARAM,
+                    params: param,
+                    propertyKey: Constants.METHOD1,
+                    paramIndex: paramIndex
+                })).toBeFalsy();
         });
 
         it('should add metadata in the metadata root for class type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.CLASS, param)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.CLASS,
+                    params: param
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
             let meta = metadataRoot.get(TestClassNew.prototype)[dec][MetadataConstants.CLASSDECORATOR_PROPKEY];
             expect(meta).toBeTruthy();
@@ -87,7 +162,13 @@ describe('metautils', () => {
 
         it('should add metadata in the metadata root for method type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: propKey
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
             let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey];
             expect(meta).toBeTruthy();
@@ -96,7 +177,13 @@ describe('metautils', () => {
 
         it('should add metadata in the metadata root for method type decorator for static method', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.METHOD, param, propKey)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+            {
+                    decorator: dec,
+                    decoratorType: DecoratorType.METHOD,
+                    params: param,
+                    propertyKey: propKey
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
             let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey];
             expect(meta).toBeTruthy();
@@ -105,7 +192,14 @@ describe('metautils', () => {
 
         it('should add metadata in the metadata root for param type decorator for constructor', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew, dec, DecoratorType.PARAM, param, undefined, paramIndex)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.PARAM,
+                    params: param,
+                    propertyKey: undefined,
+                    paramIndex: paramIndex
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
             let key = MetadataConstants.CLASSDECORATOR_PROPKEY + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex;
             let meta = metadataRoot.get(TestClassNew.prototype)[dec][key];
@@ -115,7 +209,14 @@ describe('metautils', () => {
 
         it('should add metadata in the metadata root for param type decorator', () => {
             expect(metadataRoot.has(TestClassNew.prototype)).toBeFalsy();
-            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype, dec, DecoratorType.PARAM, param, propKey, paramIndex)).toBeTruthy();
+            expect(MetadataUtils.MetaUtils.addMetaData(TestClassNew.prototype,
+                {
+                    decorator: dec,
+                    decoratorType: DecoratorType.PARAM,
+                    params: param,
+                    propertyKey: propKey,
+                    paramIndex: paramIndex
+                })).toBeTruthy();
             expect(metadataRoot.has(TestClassNew.prototype)).toBeTruthy();
             let meta = metadataRoot.get(TestClassNew.prototype)[dec][propKey + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex];
             expect(meta).toBeTruthy();

@@ -11,6 +11,10 @@ export function service(params?: { singleton?: boolean, serviceName?: string }) 
     return function (target: ClassType<any>) {
         Container.addService(target, params);
         params['target'] = target;
-        MetaUtils.addMetaData(target, Decorators.SERVICE, DecoratorType.CLASS, params);
+        MetaUtils.addMetaData(target, {
+            decorator: Decorators.SERVICE,
+            decoratorType: DecoratorType.CLASS,
+            params: params
+        });
     };
 }

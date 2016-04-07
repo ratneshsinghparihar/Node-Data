@@ -11,6 +11,11 @@ export function repository(params: { path: string, model: any }) {
         target.prototype.path = params.path;
         target.prototype.model = params.model;
 
-        MetaUtils.addMetaData(((<any>target).prototype || target), Decorators.REPOSITORY, DecoratorType.CLASS, params);
+        MetaUtils.addMetaData(((<any>target).prototype || target),
+            {
+                decorator: Decorators.REPOSITORY,
+                decoratorType: DecoratorType.CLASS,
+                params: params
+            });
     };
 }

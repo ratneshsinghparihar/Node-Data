@@ -37,10 +37,3 @@ app.use(passport.session());
 app.use("/", router);
 var server = http.createServer(app);
 server.listen(23548);
-
-import {TestDI} from './tests/test-di';
-console.log('-------------------------------------------------------');
-console.log('Testing DI');
-var testDI = new TestDI();
-var ditest = testDI.b;
-console.log('-------------------------------------------------------');

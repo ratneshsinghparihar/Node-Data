@@ -1,46 +1,44 @@
 import {Decorators} from '../constants';
 import {DecoratorType} from '../enums';
+import {ParamTypeCustom} from '../metadata/param-type-custom';
 
 import {MetaUtils} from "../metadata/utils";
-import {MetaData} from '../metadata/metadata';
+import {IAssociationParams} from './interfaces/association-params';
+import * as ReflectUtils from '../reflect/reflect-utils';
 
-export function onetomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
-    params = params || <any>{};
-
-    return function (target: Object, key: string) {
-
-        var name = (<any>target.constructor).name;
-        console.log('onetomany - propertyKey: ', key, ', target:', name);
-        MetaUtils.addMetaData(target, Decorators.ONETOMANY, DecoratorType.PROPERTY, params, key);
-    }
+export function onetomany(params: IAssociationParams) {
+    return (target: Object, propertyKey: string) => addMetadata(target, propertyKey, Decorators.ONETOMANY, params);
 }
 
-export function manytoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
-    params = params || <any>{};
-
-    return function (target: Object, propertyKey: string) {
-        var name = (<any>target.constructor).name;
-        console.log('manytoone - propertyKey: ', propertyKey, ', target:', name);
-        MetaUtils.addMetaData(target, Decorators.MANYTOONE, DecoratorType.PROPERTY, params, propertyKey);
-    }
+export function manytoone(params: IAssociationParams) {
+    return (target: Object, propertyKey: string) => addMetadata(target, propertyKey, Decorators.MANYTOONE, params);
 }
 
-export function manytomany(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
-    params = params || <any>{};
-
-    return function (target: Object, propertyKey: string) {
-        var name = (<any>target.constructor).name;
-        console.log('manytomany - propertyKey: ', propertyKey, ', target:', name);
-        MetaUtils.addMetaData(target, Decorators.MANYTOMANY, DecoratorType.PROPERTY, params, propertyKey);
-    }
+export function manytomany(params: IAssociationParams) {
+    return (target: Object, propertyKey: string) => addMetadata(target, propertyKey, Decorators.MANYTOMANY, params);
 }
 
-export function onetoone(params: { biDirectional?: boolean, rel: string, itemType: Object, embedded?: boolean, persist?: boolean, eagerLoading?: boolean }) {
-    params = params || <any>{};
+export function onetoone(params: IAssociationParams) {
+    return (target: Object, propertyKey: string) => addMetadata(target, propertyKey, Decorators.ONETOONE, params);
+}
 
-    return function (target: Object, propertyKey: string) {
-        var name = (<any>target.constructor).name;
-        console.log('onetoone - propertyKey: ', propertyKey, ', target:', name);
-        MetaUtils.addMetaData(target, Decorators.ONETOONE, DecoratorType.PROPERTY, params, propertyKey);
-    }
+function addMetadata(target: Object, propertyKey: string, decorator: string, params: IAssociationParams) {
+    params = params || <any>{};
+    
+    var name = target.constructor.name;
+    console.log(decorator, ' - propertyKey: ', propertyKey, ', target:', target.constructor && target.constructor.name);
+
+    let itemType = ReflectUtils.getDesignType(target, propertyKey);
+    let type = (params && params.itemType)
+        ? new ParamTypeCustom(params.itemType, itemType === Array)
+        : new ParamTypeCustom(itemType, false);
+    MetaUtils.addMetaData(
+        target,
+        {
+            decorator: decorator,
+            decoratorType: DecoratorType.PROPERTY,
+            params: params,
+            propertyKey: propertyKey,
+            type: type
+        });
 }
