@@ -127,7 +127,6 @@ describe('di - Container', () => {
         });
 
         it('should throw cyclic dependency error if there is a cycle', () => {
-            debugger;
             expect(() => DI.Container.resolve(CyclicA)).toThrowError(/Cycle found.*/);
         });
     });

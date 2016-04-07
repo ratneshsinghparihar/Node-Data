@@ -30,7 +30,7 @@ export class DynamicSchema {
         var idx = Enumerable.from(fieldMetaArr)
             .where((keyVal) => keyVal && keyVal.params && (keyVal.params).searchIndex).any();
             var options = this.getMongooseOptions(this.target);
-        var mongooseOptions : IMongooseSchemaOptions = { options:options,searchIndex : idx };
+            var mongooseOptions: IMongooseSchemaOptions = { options: options, searchIndex: idx };
         return schemaGenerator.createSchema(this.parsedSchema, mongooseOptions);
     }
 
@@ -109,6 +109,7 @@ export class DynamicSchema {
             case Date: return Date;
             case Boolean: return Boolean;
             case Array: return Array;
+            //case undefined: return Mongoose.Schema.Types.Mixed;
             // any or no types
             case Object:
             default: return Mongoose.Schema.Types.Mixed;

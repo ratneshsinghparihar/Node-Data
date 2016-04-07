@@ -7,14 +7,12 @@ var jwt = require('jsonwebtoken');
 import {ISearchPropertyMap, GetAllFindBySearchFromPrototype} from "../metadata/searchUtils";
 import {IActionPropertyMap, GetAllActionFromPrototype} from "../metadata/actionUtils";
 import {MetaData} from '../metadata/metadata';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
 import {IAssociationParams} from '../decorators/interfaces';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
-
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export class DynamicController {
@@ -30,7 +28,6 @@ export class DynamicController {
     }
 
     addRoutes() {
-        console.log(this.path);
         router.get(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {

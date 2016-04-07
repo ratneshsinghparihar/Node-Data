@@ -38,13 +38,12 @@ export class MetaData {
         var type = (<any>Reflect).getMetadata(ReflectConstants.DESIGNTYPE, target, propertyKey);
 
         if (type === Array && !params) {
-            throw TypeError;
-        }
+            this.propertyType = new ParamTypeCustom(undefined, true);
+        }else
         // If it is not relation type/array type
         //if (type !== Array && !(params && (<any>params).rel)) {
         //    this.propertyType = new ParamTypeCustom((<any>params).rel, this.propertyType, (<any>params).itemType);
         //}
-
         if ((params && (<any>params).rel) || type === Array) {
             this.propertyType = new ParamTypeCustom((<any>params).itemType, type === Array);
         } else {

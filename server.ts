@@ -24,11 +24,11 @@ app.use(require('cookie-parser')());
 var expressSession = require('express-session');
 app.use(expressSession({ secret: 'mySecretKey', resave: false, saveUninitialized: false }));
 app.use(bodyParser.json());
-
 var aa = bodyParser.json();
 var bb = bodyParser.urlencoded({
     extended: true
 });
+
 app.use(bodyParser.urlencoded({
     extended: true
 }));
