@@ -57,6 +57,7 @@
     <Content Include="unit-test\InitializeModels.js.map" />
     <Content Include="views\home.ejs" />
     <Content Include="views\login.ejs" />
+    <TypeScriptCompile Include="current-user-detail-service.ts" />
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="core\config.ts" />
     <TypeScriptCompile Include="core\constants\index.ts" />
@@ -67,16 +68,15 @@
       <TestFramework>ExportRunner</TestFramework>
     </TypeScriptCompile>
     <TypeScriptCompile Include="config.ts" />
-    <TypeScriptCompile Include="core\decorators\entityservice.ts" />
     <TypeScriptCompile Include="core\dynamic\model-entity.ts" />
     <TypeScriptCompile Include="core\dynamic\security-impl.ts" />
     <TypeScriptCompile Include="core\exports\index.ts" />
     <TypeScriptCompile Include="core\exports\router.ts" />
     <TypeScriptCompile Include="core\metadata\interfaces\decorator-metadata.ts" />
     <TypeScriptCompile Include="core\metadata\actionUtils.ts" />
-    <TypeScriptCompile Include="core\metadata\utils-mock.spec.ts" />
     <TypeScriptCompile Include="core\decorators\authorize.ts" />
     <TypeScriptCompile Include="core\metadata\utils-mock.ts" />
+    <TypeScriptCompile Include="core\reflect\reflect-utils.ts" />
     <TypeScriptCompile Include="core\utils\nodemodule-type.ts" />
     <TypeScriptCompile Include="core\utils\types.ts" />
     <TypeScriptCompile Include="di\di.spec.ts" />
@@ -130,6 +130,9 @@
     <TypeScriptCompile Include="di\decorators\service.ts" />
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
+    <TypeScriptCompile Include="security\auth\user.ts" />
+    <TypeScriptCompile Include="security\auth\user-details.ts" />
+    <TypeScriptCompile Include="security\auth\user-detail-service.ts" />
     <TypeScriptCompile Include="security\auth\auth-service.ts" />
     <TypeScriptCompile Include="security\auth\authcontroller.ts" />
     <TypeScriptCompile Include="core\dynamic\dynamic-controller.ts" />
@@ -176,7 +179,6 @@
     <TypeScriptCompile Include="typings\linq\linq.3.0.3-Beta4.d.ts" />
     <TypeScriptCompile Include="typings\mime\mime.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
-    <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\q\Q.d.ts" />
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
@@ -203,6 +205,7 @@
     <Folder Include="cache\" />
     <Folder Include="core\initialize\" />
     <Folder Include="core\interfaces\" />
+    <Folder Include="core\reflect\" />
     <Folder Include="decorators\" />
     <Folder Include="di\tests\" />
     <Folder Include="mongoose\" />
@@ -240,7 +243,6 @@
     <Folder Include="typings\linq\" />
     <Folder Include="typings\mime\" />
     <Folder Include="typings\mongoose\" />
-    <Folder Include="typings\node\" />
     <Folder Include="typings\q\" />
     <Folder Include="typings\serve-static\" />
     <Folder Include="unit-test\" />

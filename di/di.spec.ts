@@ -13,6 +13,17 @@ import {CyclicA} from './tests/cyclic-a';
 import {CyclicB} from './tests/cyclic-b';
 import * as SrvE from './tests/service-e';
 
+function getMetadata(target, isStatic, decorator, decoratorType, params, propertyKey, paramIndex) {
+    return new MetaData(target, isStatic,
+        {
+            decorator: decorator,
+            decoratorType: decoratorType,
+            params: params,
+            propertyKey: propertyKey,
+            paramIndex: paramIndex
+        });
+}
+
 describe('di - Container', () => {
     let _srvMap = DI.serviceMap();
     let params = { a: 1 };
@@ -41,18 +52,18 @@ describe('di - Container', () => {
             DI.serviceMap(_serviceMap);
 
             // inject decorators
-            let srvBMeta = new MetaData(ServiceB.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
-            let srvC1Meta = new MetaData(ServiceC.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
-            let srvC2Meta = new MetaData(ServiceC.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
-            let srvD1Meta = new MetaData(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
-            let srvD2Meta = new MetaData(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
-            let srvD3Meta = new MetaData(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceC }, null, 2);
+            let srvBMeta =  getMetadata(ServiceB.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
+            let srvC1Meta = getMetadata(ServiceC.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
+            let srvC2Meta = getMetadata(ServiceC.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
+            let srvD1Meta = getMetadata(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
+            let srvD2Meta = getMetadata(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
+            let srvD3Meta = getMetadata(ServiceD.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceC }, null, 2);
 
-            let srvCycAMeta = new MetaData(CyclicA.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicB }, null, 0);
-            let srvCycBMeta = new MetaData(CyclicB.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicA }, null, 0);
+            let srvCycAMeta = getMetadata(CyclicA.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicB }, null, 0);
+            let srvCycBMeta = getMetadata(CyclicB.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: CyclicA }, null, 0);
 
-            let srvDefault1Meta = new MetaData(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
-            let srvDefault2Meta = new MetaData(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
+            let srvDefault1Meta = getMetadata(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceA }, null, 0);
+            let srvDefault2Meta = getMetadata(SrvE.ServiceE.prototype, true, Decorators.INJECT, DecoratorType.PARAM, { type: ServiceB }, null, 1);
 
             spyOn(MetaUtils, 'getMetaData').and.callFake((target, decorator) => {
                 switch (target) {
@@ -127,7 +138,6 @@ describe('di - Container', () => {
         });
 
         it('should throw cyclic dependency error if there is a cycle', () => {
-            debugger;
             expect(() => DI.Container.resolve(CyclicA)).toThrowError(/Cycle found.*/);
         });
     });

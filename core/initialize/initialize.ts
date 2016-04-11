@@ -40,10 +40,9 @@ export class Initalize {
 
     configureAcl() {
         var acl = require('acl');
-        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));
-        var SecurityConfig = require('../security-config');
+        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));        
 
-        SecurityConfig.SecurityConfig.ResourceAccess.forEach(resource => {
+        Utils.securityConfig().SecurityConfig.ResourceAccess.forEach(resource => {
             resource.acl.forEach(access => {
                 var aclString: Array<string> = this.aclStringFromMask(access["accessmask"]);
                 acl.allow(access["role"], resource["name"], aclString, function (err, res) {

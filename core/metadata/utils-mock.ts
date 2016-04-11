@@ -41,7 +41,16 @@ function mockDecoratorObject(obj, target, decoratorType: DecoratorType, decorato
 }
 
 function mockMetadata(target, decorator, params, propertyKey?, paramIndex?) {
-    return new MetaData(target, false, decorator, DecoratorType.METHOD, params, propertyKey, paramIndex);
+    return new MetaData(
+        target,
+        false,
+        {
+            decorator: decorator,
+            decoratorType: DecoratorType.METHOD,
+            params: params,
+            propertyKey: propertyKey,
+            paramIndex: paramIndex
+        });
 }
 
 export function generateMockMetaRoot() {

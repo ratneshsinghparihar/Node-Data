@@ -37,7 +37,7 @@ export class DynamicRepository implements IDynamicRepository {
     constructor(repositoryPath: string, target: Function|Object) {
         //console.log(schema);
         this.path = repositoryPath;
-        this.schemaName = this.path.substring(1) as string;
+        this.schemaName = this.path;
         this.entity = target;
         //this.metaModel=new this.entityType();
         //this.model = model;

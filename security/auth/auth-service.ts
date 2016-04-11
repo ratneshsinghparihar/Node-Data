@@ -1,4 +1,3 @@
-/// <reference path="../../tests/repositories/userRepository.ts" />
 import * as configUtil from '../../core/utils';
 
 var passport = require('passport');
@@ -7,18 +6,19 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 import {service} from '../../di/decorators/service';
 
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
-import {inject} from '../../di/decorators/inject';
+import {inject, injectbyname} from '../../di/decorators/inject';
 import UserRepository from '../../tests/repositories/userRepository';
-
-var userrepository: any;
-
+import {UserDetailService} from './user-detail-service';
 import {router} from '../../core/exports';
 
 
 @service()
 export class AuthService {
-    constructor( @inject(UserRepository) private repository: UserRepository) {
-        userrepository = repository;
+
+    @injectbyname("UserDetailService")
+    private userDetailService: UserDetailService;
+
+    constructor() {
         this.addRoutes();
     }
 
@@ -30,17 +30,16 @@ export class AuthService {
     private authenticateByPasswordorToken() {
             passport.use(new LocalStrategy(
                 (username, password, done) => {
-                    userrepository.findByField("name", username).then(
+                    this.userDetailService.loadUserByUsername(username).then(
                         (user) => {
-
                             if (!user) {
                                 return done(null, false, { message: 'Incorrect username.' });
                             }
-                            if (user.password != password) {
+                            if (user.getPassword() != password) {
                                 return done(null, false, { message: 'Incorrect password.' });
                             }
 
-                            return done(null, user);
+                            return done(null, user.getUserObject());
 
                         },
                         (error) => {
@@ -62,10 +61,10 @@ export class AuthService {
 
 
         passport.deserializeUser((id, cb) => {
-            userrepository.findOne(id).
+            this.userDetailService.loadUserById(id).
                 then(
                 (user) => {
-                    cb(null, user);
+                    cb(null, user.getUserObject());
                 },
                 (err) => {
                     return cb(err);
@@ -87,7 +86,7 @@ export class AuthService {
 
             // facebook will send back the token and profile
             (token, refreshToken, profile, done) => {
-                userrepository.findByField("facebookId", profile.id).then(
+                this.userDetailService.loadUserByField("facebookId", profile.id).then(
                     (user) => {
 
                         if (!user) {
@@ -96,14 +95,14 @@ export class AuthService {
                             // set all of the facebook information in our user model
                             newUser['facebookId'] = profile.id; // set the users facebook id                   
                             newUser['facebookToken'] = token; // we will save the token that facebook provides to the user  
-                            userrepository.post(newUser).then((finalUser) => {
-                                return done(null, finalUser);
+                            this.userDetailService.createNewUser(newUser).then((finalUser) => {
+                                return done(null, finalUser.getUserObject());
                             }, (error) => {
                                 return done(null, error);
                             });
 
                         } else {
-                            return done(null, user); // user found, return that user
+                            return done(null, user.getUserObject()); // user found, return that user
                         }
                     },
                     (error) => {

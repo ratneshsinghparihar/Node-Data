@@ -27,9 +27,11 @@ function readIgnore(file: string, stats: fs.Stats) {
 let _appRoot = process.cwd();
 
 class Dynamic {
-    constructor(config: any) {
+    constructor(config: any, securityConfig: any) {
         Utils.config(config);
+        Utils.securityConfig(securityConfig);
         config = config;
+        securityConfig = securityConfig;
         var files = this.scanDirectories();
         this.loadComponents(files);
         this.initialize(files);
@@ -58,14 +60,14 @@ class Dynamic {
     }
 }
 
-module.exports = function (config: any, appRoot?: string, entityServiceInst?: IEntityService) {
+module.exports = function (config: any, securityConfig: any, appRoot?: string, entityServiceInst?: IEntityService) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
     Utils.entityService(entityServiceInst);
-    new Dynamic(config);
+    new Dynamic(config, securityConfig);
 }
 
 let components: Array<any> = [];
@@ -74,14 +76,14 @@ export function addComponent(comp: any) {
     components.push(comp);
 }
 
-export function initialize(config: any, appRoot?: string, entityServiceInst?: IEntityService) {
+export function initialize(config: any, securityConfig: any, appRoot?: string, entityServiceInst?: IEntityService) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
     Utils.entityService(entityServiceInst);
-    new Dynamic(config);
+    new Dynamic(config, securityConfig);
     components.forEach(x => {
         x.default();
     });

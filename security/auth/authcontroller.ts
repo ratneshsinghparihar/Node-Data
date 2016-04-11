@@ -20,7 +20,6 @@ import {AuthService} from './auth-service';
 import * as Utils from '../../core/utils';
 
 import * as securityUtils from './security-utils';
-import * as SecurityConfig from '../../security-config';
 
 export class AuthController {
 
@@ -79,7 +78,7 @@ export class AuthController {
             (req, res) => {
                 res.render('login');
             });
-        if (configUtil.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.TokenBased]) {
+        if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",
                     {
@@ -95,7 +94,7 @@ export class AuthController {
             (req, res, next) => this.generateToken(req, res, next),
             (req, res) => this.respond(req, res));
 
-        if (configUtil.config().Security.authenticationType === SecurityConfig.AuthenticationType[SecurityConfig.AuthenticationType.passwordBased]) {
+        if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.passwordBased]) {
             router.post('/login',
             passport.authenticate("local"), (req, res) => {
                 res.redirect('/' + Utils.config().Config.basePath);
@@ -126,10 +125,10 @@ export class AuthController {
 };
 
     private generateToken(req, res, next) {
-        req.token = jwt.sign({
-            id: req.user.id,
-        }, SecurityConfig.SecurityConfig.tokenSecretkey, {
-                expiresInMinutes: SecurityConfig.SecurityConfig.tokenExpiresInMinutes
+        req.token = jwt.sign(
+           req.user
+        , configUtil.securityConfig().SecurityConfig.tokenSecretkey, {
+                expiresInMinutes: configUtil.securityConfig().SecurityConfig.tokenExpiresInMinutes
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
