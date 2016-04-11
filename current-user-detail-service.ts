@@ -32,9 +32,7 @@ export class CurrentUserDetailService implements UserDetailService {
             var usr: any;
             var userDetail: UserDetails;
             var _id: string = id; 
-            debugger;
             return this.userRepo.findOne(_id).then((user) => {
-                debugger
                 usr = user;
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;

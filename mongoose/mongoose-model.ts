@@ -56,13 +56,10 @@ export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
 }
 
 export function findOne(model: Mongoose.Model<any>, id) {
-    debugger
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            debugger
             return embeddedChildren(model, result)
                 .then(r => {
-                    debugger
                     return toObject(r);
                 });
         });
@@ -87,7 +84,6 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
             $in: ids
         }
     }).then((result: any) => {
-        debugger
         if (result.length !== ids.length) {
             var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length;
             console.error(error);
