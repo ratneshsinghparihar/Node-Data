@@ -28,19 +28,19 @@ export class CurrentUserDetailService implements UserDetailService {
         });
     };
 
-    loadUserById(id: number): Q.Promise<any> {
-        return Q.fcall(() => {
+    loadUserById(id: any): Q.Promise<any> {
             var usr: any;
             var userDetail: UserDetails;
-            return this.userRepo.findOne(id).then((user) => {
+            var _id: string = id; 
+            debugger;
+            return this.userRepo.findOne(_id).then((user) => {
+                debugger
                 usr = user;
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
-        });
     };
     loadUserByField(field: any, value: any): Q.Promise<any> {
-        return Q.fcall(() => {
             var usr: any;
             var userDetail: UserDetails;
             return this.userRepo.findByField(field, value).then((user) => {
@@ -48,11 +48,9 @@ export class CurrentUserDetailService implements UserDetailService {
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
-        });
     };
 
     createNewUser(userObject): Q.Promise<any> {
-        return Q.fcall(() => {
             var usr: any;
             var userDetail: UserDetails;
             return this.userRepo.post(userObject).then((user) => {
@@ -60,6 +58,5 @@ export class CurrentUserDetailService implements UserDetailService {
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
-        });
     };
 }

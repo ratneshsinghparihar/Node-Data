@@ -11,25 +11,25 @@ export class UserModel {
     _id: Types.ObjectId;
 
     @field()
-    name: string;
+    name: String;
 
     @field({ itemType: String})
-    courses: Array<string>;
+    courses: Array<String>;
 
     @field()
-    email: string;
+    email: String;
 
     @field()
-    accessToken: string;
+    accessToken: String;
 
     @field()
-    refreshToken: string;
+    refreshToken: String;
 
     @field()
-    password: string;
+    password: String;
 
     @field()
-    age: string;
+    age: String;
 
     @field()
     arr: Array<any>;

@@ -179,7 +179,6 @@
     <TypeScriptCompile Include="typings\linq\linq.3.0.3-Beta4.d.ts" />
     <TypeScriptCompile Include="typings\mime\mime.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
-    <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\q\Q.d.ts" />
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
@@ -239,7 +238,6 @@
     <Folder Include="typings\linq\" />
     <Folder Include="typings\mime\" />
     <Folder Include="typings\mongoose\" />
-    <Folder Include="typings\node\" />
     <Folder Include="typings\q\" />
     <Folder Include="typings\serve-static\" />
     <Folder Include="unit-test\" />
