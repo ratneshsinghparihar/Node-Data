@@ -69,26 +69,9 @@ xdescribe('sample', function () {
     });
 });
 
-
-function fakeCall(func: Function, model: any): (arg: any) => Q.Promise<any> {
-    console.log(func.name);
-    console.log(model.constructor);
-    switch (model.constructor) {
-        case B:
-            B.prototype[func.name] = find;
-            return prom;
-        case A:
-            A.prototype[func.name] = prom;
-    }
-    return prom;
-}
-
 function find(arg: any): Q.Promise<any> {
     console.log('fake is called with argument ', arg);
     return Q.when(arg);
-}
-
-private function InitializeFakeFucntions() {
 }
 
 describe('asynchronous', function () {
@@ -98,7 +81,6 @@ describe('asynchronous', function () {
 
     describe('replicated nbind', () => {
         beforeEach(function (done) {
-            spyOn(Q, 'nbind').and.callFake((func, model) => fakeCall(func, model));
 
             jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
             setTimeout(function () {

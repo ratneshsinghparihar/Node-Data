@@ -53,4 +53,13 @@ export class MetaData {
         this.returnType = metaOptions.returnType || ReflectUtils.getReturnType(target, metaOptions.propertyKey);
         this.paramTypes = metaOptions.paramTypes || ReflectUtils.getParamTypes(target, metaOptions.propertyKey);      
     }
+
+    getType(): any {
+        if (this.params && this.params.itemType) {
+            return this.params.itemType;
+        }
+        else {
+            return this.propertyType;
+        }
+    }
 }

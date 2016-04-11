@@ -50,7 +50,7 @@ export class B {
             });
     }
 
-    asyncEvaluation(val): Q.Promise<any> {
+    asyncEvaluation(): Q.Promise<any> {
         var prom = Q.fcall(this.wait).then(x => {
             console.log('async completed');
             x = !x;

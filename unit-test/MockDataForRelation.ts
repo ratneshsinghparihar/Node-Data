@@ -1,6 +1,4 @@
-﻿/// <reference path="../tests/models/coursemodel.ts" />
-require('reflect-metadata/reflect');
-import {CourseModel} from '../tests/models/coursemodel';
+﻿require('reflect-metadata/reflect');
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators} from '../core/constants';
 import {DecoratorType} from '../core/enums/decorator-type';

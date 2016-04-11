@@ -27,13 +27,11 @@ describe('testing relation', () => {
         console.log('initialized successfully');
     });
 
-    xdescribe(': fake objects', () => {
+    describe(': fake objects', () => {
         beforeAll(() => {
             // create fake objects
             sub1 = mockData.createMongooseModel(course, { 'name': 'subject1' });
-            sub2 = mockData.createMongooseModel(course, { 'name': 'subject2' });
             student1 = mockData.createMongooseModel(student, { 'name': 'student1' });
-            student2 = mockData.createMongooseModel(student, { 'name': 'student2' });
         });
 
         describe(': course object', () => {
@@ -47,10 +45,9 @@ describe('testing relation', () => {
             });
 
             it(': exists', (done) => {
-                console.log(res);
                 expect(res).toBeDefined();
                 expect(res instanceof Array).toBeTruthy();
-                expect(res.length).toEqual(2);
+                expect(res.length).toEqual(1);
                 done();
             });
         });
@@ -66,10 +63,9 @@ describe('testing relation', () => {
             });
 
             it(': exists', (done) => {
-                console.log(res);
                 expect(res).toBeDefined();
                 expect(res instanceof Array).toBeTruthy();
-                expect(res.length).toEqual(2);
+                expect(res.length).toEqual(1);
                 done();
             });
         });
@@ -79,13 +75,12 @@ describe('testing relation', () => {
         });
     });
 
-    xdescribe(': student-course (one to one)(Embedded = true)', () => {
+    describe(': student-course (one to one)(Embedded = true)', () => {
         beforeAll(() => {
             // create fake objects
             sub1 = mockData.createMongooseModel(course, { 'name': 'subject1' });
-            sub2 = mockData.createMongooseModel(course, { 'name': 'subject2' });
             student1 = mockData.createMongooseModel(student, { 'name': 'student1' });
-            student2 = mockData.createMongooseModel(student, { 'name': 'student2' });
+            console.log('#### started - (one to one)(Embedded = true)');
         });
 
         describe(': add', () => {
@@ -99,8 +94,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log(res);
+            it(': test', (done) => {
+                console.log('add res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseOTO']).toBeDefined();
                 expect(res['courseOTO']['_id']).toEqual(sub1['_id']);
@@ -123,7 +118,6 @@ describe('testing relation', () => {
 
                             MongooseModel.put(mockData.getMongooseModel(course), sub1['_id'], { 'name': 'subject3' })
                                 .then(cor => {
-                                    console.log('find one');
                                     MongooseModel.findOne(mockData.getMongooseModel(student), student1['_id'])
                                         .then(x => {
                                             res = x;
@@ -134,8 +128,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log('res:',res);
+            it(': test', (done) => {
+                console.log('update res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseOTO']).toBeDefined();
                 expect(res['courseOTO']['_id']).toEqual(sub1['_id']);
@@ -170,8 +164,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log('del, res:', del, res);
+            it(': test', (done) => {
+                console.log('delete del:', del, ' res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseOTO']).toBeNull();
                 expect(del.delete).toEqual('success');
@@ -181,16 +175,16 @@ describe('testing relation', () => {
 
         afterAll(() => {
             mockData.clearDatabase();
+            console.log('#### completed - (one to one)(Embedded = true)');
         });
     });
 
-    xdescribe(': student-course (one to one)(Embedded = false)', () => {
+    describe(': student-course (one to one)(Embedded = false)', () => {
         beforeAll(() => {
             // create fake objects
             sub1 = mockData.createMongooseModel(course, { 'name': 'subject1' });
-            sub2 = mockData.createMongooseModel(course, { 'name': 'subject2' });
             student1 = mockData.createMongooseModel(student, { 'name': 'student1' });
-            student2 = mockData.createMongooseModel(student, { 'name': 'student2' });
+            console.log('#### started - (one to one)(Embedded = false)');
         });
 
         describe(': add', () => {
@@ -204,8 +198,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log('res: ', res);
+            it(': test', (done) => {
+                console.log('add res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseIdOTO']).toEqual(sub1['_id']);
                 done();
@@ -226,7 +220,6 @@ describe('testing relation', () => {
 
                             MongooseModel.put(mockData.getMongooseModel(course), sub1['_id'], { 'name': 'subject3' })
                                 .then(cor => {
-                                    console.log('find one');
                                     MongooseModel.findOne(mockData.getMongooseModel(student), student1['_id'])
                                         .then(x => {
                                             res = x;
@@ -237,8 +230,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log('res:', res);
+            it(': test', (done) => {
+                console.log('update res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseIdOTO']).toEqual(sub1['_id']);
                 done();
@@ -271,8 +264,8 @@ describe('testing relation', () => {
                 }, 500);
             });
 
-            it(': exists', (done) => {
-                console.log('del, res:', del, res);
+            it(': test', (done) => {
+                console.log('delete del:', del, ' res:', res);
                 expect(res).toBeDefined();
                 expect(res['courseIdOTO']).toBeNull();
                 expect(del.delete).toEqual('success');
@@ -282,22 +275,21 @@ describe('testing relation', () => {
 
         afterAll(() => {
             mockData.clearDatabase();
+            console.log('#### completed - (one to one)(Embedded = false)');
         });
     });
 
-    xdescribe(': student-course (one to many)(Embedded = true)', () => {
+    describe(': student-course (one to many)(Embedded = true)', () => {
         beforeAll(() => {
             // create fake objects
             sub1 = mockData.createMongooseModel(course, { 'name': 'subject1' });
             sub2 = mockData.createMongooseModel(course, { 'name': 'subject2' });
             student1 = mockData.createMongooseModel(student, { 'name': 'student1' });
-            console.log('started - (one to many)(Embedded = true) with following data');
-            console.log(sub1, sub2, student1);
+            console.log('#### started - (one to many)(Embedded = true)');
         });
 
         describe(': add', () => {
             beforeEach((done) => {
-                console.log('first');
                 setTimeout(function () {
                     MongooseModel.put(mockData.getMongooseModel(student), student1['_id'], { 'courseOTM': [sub1['_id'], sub2['_id']] })
                         .then(x => {
@@ -320,7 +312,6 @@ describe('testing relation', () => {
         });
 
         describe(': update', () => {
-            console.log('second');
             beforeEach((done) => {
                 setTimeout(function () {
                     MongooseModel.put(mockData.getMongooseModel(student), student1['_id'], { 'courseOTM': [sub1['_id'], sub2['_id']] })
@@ -398,18 +389,17 @@ describe('testing relation', () => {
 
         afterAll(() => {
             mockData.clearDatabase();
-            console.log('completed - (one to many)(Embedded = true)');
+            console.log('#### completed - (one to many)(Embedded = true)');
         });
     });
 
-    xdescribe(': student-course (one to many)(Embedded = false)', () => {
+    describe(': student-course (one to many)(Embedded = false)', () => {
         beforeAll(() => {
             // create fake objects
             sub1 = mockData.createMongooseModel(course, { 'name': 'subject1' });
             sub2 = mockData.createMongooseModel(course, { 'name': 'subject2' });
             student1 = mockData.createMongooseModel(student, { 'name': 'student1' });
-            console.log('started - (one to many)(Embedded = false) with following data');
-            console.log(sub1, sub2, student1);
+            console.log('#### started - (one to many)(Embedded = false)');
         });
 
         describe(': add', () => {
@@ -510,7 +500,7 @@ describe('testing relation', () => {
 
         afterAll(() => {
             mockData.clearDatabase();
-            console.log('completed - (one to many)(Embedded = false)');
+            console.log('#### completed - (one to many)(Embedded = false)');
         });
     });
 });
