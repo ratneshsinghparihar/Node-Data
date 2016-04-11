@@ -71,25 +71,11 @@ export class DynamicController {
             (req, res) => {
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
-                        //result=this.getHalModel1(result,this.repository.modelName(),this.repository.getEntityType());
-                        //var propTypeName = Reflect.getMetadata("design:type", result.toObject()[req.params.prop], req.params.prop);
 
-                        //1. embedded
-                        //2. foreign key
-                        ///1. get metadata for thsi prop
-                        ///2. get moongoose model from metadata
-                        ///3. call findAll 
-                        ///4 return object or array of object
-                        
-                        //var propName=Reflect.getMetadata("design:type", association, req.params.prop);
-                        // var resourceName= Reflect.getMetadata("design:type", association);
-                        //this.getHalModel(association,req.params.prop);
-                        //this.getHalModel1(association, this.repository.modelName(), this.repository.getEntityType());
-                        //this.sendresult(req, res, association);
-
-                        var parent = (<any>result).toObject();
+                        var parent = (<any>result);
                         var association = parent[req.params.prop];
-                        var metaData = MetaUtils.getMetaDataForPropKey(this.repository.getEntityType(), req.params.prop);
+                        var metaDatas = Utils.getAllRelationsForTargetInternal(this.repository.getModelRepo());
+                        var metaData = Enumerable.from(metaDatas).firstOrDefault(x => x.propertyKey == req.params.prop);
 
                         if (metaData != null && metaData.length > 0 &&
                             association !== undefined && association !== null) {
@@ -103,13 +89,13 @@ export class DynamicController {
 
                             if (params.embedded) {
                                 if (meta.propertyType.isArray) {
-                                    Enumerable.from(association).forEach(x=> {
-                                        this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
+                                    Enumerable.from(association).forEach(x => {
+                                        this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getModelRepo());
                                     });
                                     association = this.getHalModels(association, resourceName);
                                 }
                                 else {
-                                    this.getHalModel1(association, resourceName + '/' + association['_id'], repo.getEntityType());
+                                    this.getHalModel1(association, resourceName + '/' + association['_id'], repo.getModelRepo());
                                 }
                                 this.sendresult(req, res, association);
                             }
@@ -124,14 +110,14 @@ export class DynamicController {
                                         if (result.length > 0) {
                                             if (meta.propertyType.isArray) {
                                                 Enumerable.from(result).forEach(x=> {
-                                                    this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getEntityType());
+                                                    this.getHalModel1(x, resourceName + '/' + x['_id'], repo.getModelRepo());
                                                 });
 
                                                 result = this.getHalModels(result, resourceName);
                                             }
                                             else {
                                                 result = result[0];
-                                                this.getHalModel1(result, resourceName + '/' + result['_id'], repo.getEntityType());
+                                                this.getHalModel1(result, resourceName + '/' + result['_id'], repo.getModelRepo());
                                             }
                                             this.sendresult(req, res, result);
                                         }
@@ -279,8 +265,10 @@ export class DynamicController {
         router.get(this.path + "/search", securityImpl.ensureLoggedIn(), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search" } };
             for (var prop in search) {
-                search[prop]["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search/" + search[prop]["href"];
-                links[prop] = search[prop];
+                var lnk = {};
+                lnk['href'] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search/" + search[prop]["href"];
+                lnk['params'] = search[prop]['params'];
+                links[prop] = lnk;
             }
             this.sendresult(req, res, links);
         });
@@ -288,17 +276,6 @@ export class DynamicController {
 
     addActionPaths() {
         let modelRepo = this.repository.getEntityType();
-        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
-        let fieldsWithSearchIndex =
-            Enumerable.from(decoratorFields)
-                .where(ele => {
-                    var meta: MetaData = ele as MetaData;
-                    return meta.propertyKey
-                        && meta
-                        && meta.params
-                        && (<any>meta.params).searchIndex;
-                }).toArray();
-
         let searchPropMap = GetAllActionFromPrototype(modelRepo) as Array<IActionPropertyMap>;
 
         var actions = {};
@@ -310,8 +287,7 @@ export class DynamicController {
                     for (var prop in req.body) {
                         param.push(req.body[prop]);
                     }
-                    modelRepo[map.key].apply(modelRepo, param);
-                    this.sendresult(req, res, 'success');
+                    this.sendresult(req, res, modelRepo[map.key].apply(modelRepo, param));
                 }
                 catch (err) {
                     this.sendError(res, err);
@@ -322,8 +298,10 @@ export class DynamicController {
         router.get(this.path + "/action", securityImpl.ensureLoggedIn(), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action" } };
             for (var prop in actions) {
-                actions[prop]["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action/" + actions[prop]["href"];
-                links[prop] = actions[prop];
+                var lnk = {};
+                lnk["href"] = this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action/" + actions[prop]["href"];
+                lnk['params'] = actions[prop]["params"];
+                links[prop] = lnk;
             }
             this.sendresult(req, res, links);
         });

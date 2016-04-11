@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -181,7 +181,12 @@
     <TypeScriptCompile Include="typings\serve-static\serve-static.d.ts" />
     <TypeScriptCompile Include="unit-test\controllers\format.ts" />
     <TypeScriptCompile Include="unit-test\dto\format.ts" />
+    <TypeScriptCompile Include="unit-test\models\student.ts" />
+    <TypeScriptCompile Include="unit-test\models\teacher.ts" />
+    <TypeScriptCompile Include="unit-test\models\course.ts" />
     <TypeScriptCompile Include="unit-test\models\testModels.ts" />
+    <TypeScriptCompile Include="unit-test\MockDataForRelation.ts" />
+    <TypeScriptCompile Include="unit-test\Relation.spec.ts" />
     <TypeScriptCompile Include="unit-test\Sample\format.spec.ts" />
     <TypeScriptCompile Include="unit-test\Sample\GlobalObject.ts" />
     <TypeScriptCompile Include="unit-test\InitializeModels.ts" />

@@ -23,7 +23,7 @@ export class StudentModel {
     @manytomany({ rel: 'courses', itemType: CourseModel, embedded: true })
     subjects: Array<CourseModel.CourseModel>;
 
-    @onetoone({ rel: 'courses', itemType: CourseModel, embedded: true })
+    @onetoone({ rel: 'courses', itemType: CourseModel, embedded: false })
     mainSubjects: CourseModel.CourseModel;
 }
 

@@ -42,7 +42,15 @@ export class B {
         console.log("private function from B");
     }
 
-    asyncEvaluation(): Q.Promise<any> {
+    asyncWithQnBind(): Q.Promise<any> {
+        return Q.nbind(this.asyncEvaluation, this)({})
+            .then(result => {
+                console.log('nbind executed');
+                return result;
+            });
+    }
+
+    asyncEvaluation(val): Q.Promise<any> {
         var prom = Q.fcall(this.wait).then(x => {
             console.log('async completed');
             x = !x;

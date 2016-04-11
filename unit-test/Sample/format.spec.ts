@@ -1,6 +1,7 @@
 ﻿// spyon should be created for all the external dependencies
 // each spyon should be checked with number of paramaters and type of parameters and return type if any
 require('reflect-metadata/reflect');
+var Q = require('q');
 
 import {AuthService} from '../../security/auth/auth-service';
 import {MockAuthService} from './MockService';
@@ -68,31 +69,56 @@ xdescribe('sample', function () {
     });
 });
 
-xdescribe('asynchronous', function () {
+
+function fakeCall(func: Function, model: any): (arg: any) => Q.Promise<any> {
+    console.log(func.name);
+    console.log(model.constructor);
+    switch (model.constructor) {
+        case B:
+            B.prototype[func.name] = find;
+            return prom;
+        case A:
+            A.prototype[func.name] = prom;
+    }
+    return prom;
+}
+
+function find(arg: any): Q.Promise<any> {
+    console.log('fake is called with argument ', arg);
+    return Q.when(arg);
+}
+
+private function InitializeFakeFucntions() {
+}
+
+describe('asynchronous', function () {
     var b_obj: B;
     var res;
     b_obj = new B();
-    beforeEach(function (done) {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-        setTimeout(function () {
-            b_obj.asyncEvaluation().then(x => {
-                res = x;
-                console.log('value returned from async');
-                done();
-            });
-        }, 500);
+    describe('replicated nbind', () => {
+        beforeEach(function (done) {
+            spyOn(Q, 'nbind').and.callFake((func, model) => fakeCall(func, model));
+
+            jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+            setTimeout(function () {
+                b_obj.asyncWithQnBind().then(x => {
+                    res = x;
+                    console.log('value returned from async');
+                    done();
+                });
+            }, 500);
+        });
+
+        it('passes', function (done) {
+            console.log('testing started');
+            expect(res).toEqual({});
+            done();
+        });
     });
-
-    it('passes', function (done) {
-        console.log('testing started');
-        expect(res).toEqual(false);
-        done();
-    });
-
 });
 
-describe('testing callback', function () {
+xdescribe('testing callback', function () {
     var b_obj: B;
 
     beforeEach(function () {

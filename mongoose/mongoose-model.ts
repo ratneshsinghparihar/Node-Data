@@ -198,7 +198,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                     return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                         .then(result => {
-                            console.log(result);
+                            //console.log(result);
                             var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
                             return findAndUpdateEmbeddedData(model, ids);
                         });
@@ -211,7 +211,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                     return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                         .then(result => {
-                            console.log(result);
+                            //console.log(result);
                             var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
                             return findAndUpdateEmbeddedData(model, ids);
                         });
@@ -231,7 +231,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.find, model)(queryCond)
                 .then(updated => {
-                    console.log(cond + ' :count:' + (updated as any[]).length);
+                    //console.log(cond + ' :count:' + (updated as any[]).length);
 
                     var pullObj = {};
                     pullObj[prop] = {};
@@ -240,7 +240,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                         pullObj[prop] = updateObj['_id'];
                         return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                             .then(result => {
-                                console.log(result);
+                                //console.log(result);
                                 var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
                                 return findAndUpdateEmbeddedData(model, ids);
                             });
@@ -252,7 +252,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                         return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
                             .then(result => {
-                                console.log(result);
+                                //console.log(result);
                                 var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
                                 return findAndUpdateEmbeddedData(model, ids);
                             });

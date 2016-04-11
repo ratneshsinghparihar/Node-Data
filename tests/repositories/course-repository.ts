@@ -2,8 +2,8 @@
 import {CourseModel} from '../models/coursemodel';
 
 
-@repository({ path: 'course', model: CourseModel })
-//@decorator.repository('/course', CourseModel)
+@repository({ path: 'courses', model: CourseModel })
+//@decorator.repository('/courses', CourseModel)
 export default  class CourseRepository {
     constructor() {}
 }
