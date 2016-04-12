@@ -79,6 +79,10 @@ export class AuthController {
             (req, res) => {
                 res.render('login');
             });
+        router.get('/authlogin',
+            (req, res) => {
+                res.render('authlogin');
+            });
         if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.TokenBased]) {
             router.post('/login',
                 passport.authenticate("local",
@@ -88,6 +92,17 @@ export class AuthController {
                 (req, res, next) => this.generateToken(req, res, next),
                 (req, res, next) => this.generateRefreshToken(req, res, next),
                 (req, res) => this.respond(req, res));
+        }
+
+        if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.TokenBased]) {
+            router.post('/authlogin',
+                passport.authenticate("local",
+                    {
+                        session: false
+                    }), (req, res, next) => this.serialize(req, res, next),
+                (req, res, next) => this.generateToken(req, res, next),
+                (req, res, next) => this.generateRefreshToken(req, res, next),
+                (req, res) => this.authRespond(req, res));
         }
 
         router.get('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
@@ -145,9 +160,16 @@ export class AuthController {
         next();
     }
 
-   private respond(req, res) {
+    private respond(req, res) {
         res.redirect('/data/');
     }
+
+    private authRespond(req, res) {
+        var responseJson = {};
+        responseJson['token'] = req.token;
+        responseJson['refreshToken'] = req.user.refreshToken;
+        res.send(responseJson);
+   }
 
    private generateRefreshToken(req, res, next) {
         req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
