@@ -31,7 +31,7 @@ export class UserModel {
     @field()
     age: String;
 
-    @field()
+    @field({ itemType: Object })
     arr: Array<any>;
 }
 
