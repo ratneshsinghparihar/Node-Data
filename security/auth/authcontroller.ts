@@ -11,15 +11,14 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var jwt = require('jsonwebtoken');
 import {router} from '../../core/exports';
 
-var userrepository: any;
-
-import {inject} from '../../di/decorators/inject';
+import {inject, injectbyname} from '../../di/decorators/inject';
 
 import {Container} from '../../di';
 import {AuthService} from './auth-service';
 import * as Utils from '../../core/utils';
 
 import * as securityUtils from './security-utils';
+import {UserDetailService} from './user-detail-service';
 
 export class AuthController {
 
@@ -28,8 +27,10 @@ export class AuthController {
     @inject()
     private authService: AuthService;
 
-    constructor(path: string, repository: any) {
-        userrepository = repository;
+    @injectbyname("UserDetailService")
+    private userDetailService: UserDetailService;
+
+    constructor(path: string) {
         this.path = path;
         this.addRoutes();
         this.createAuthStrategy();
@@ -133,7 +134,14 @@ export class AuthController {
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
         res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });
-        userrepository.put(req.user.id, req.user);
+        this.userDetailService.updateExistingUser(req.user.id, req.user).then(
+            (user) => {
+                req.user = user.getUserObject();
+                next();
+            },
+            (error) => {
+                return error;
+            });
         next();
     }
 
@@ -145,14 +153,20 @@ export class AuthController {
         req.user.refreshToken = req.user.id.toString() + '.' + crypto.randomBytes(40).toString('hex');
         //TODO dont put it in user object in db
         res.cookie('refreshToken', req.user.refreshToken, { maxAge: 900000, httpOnly: true });
-        userrepository.put(req.user.id, req.user);
-        next();
+        this.userDetailService.updateExistingUser(req.user.id,req.user).then(
+            (user) => {
+                req.user = user.getUserObject();
+                next();
+            },
+            (error) => {
+                return error;
+            });
     }
 
    private validateRefreshToken(req, res, next) {
-        userrepository.findByField("refreshToken", req.cookies.refreshToken).then(
+       this.userDetailService.loadUserByField("refreshToken", req.cookies.refreshToken).then(
             (user) => {
-                req.user = user;
+                req.user = user.getUserObject();
                 next();
             },
             (error) => {

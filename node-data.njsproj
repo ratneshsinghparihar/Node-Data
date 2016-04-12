@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -245,6 +245,7 @@
     <Folder Include="typings\linq\" />
     <Folder Include="typings\mime\" />
     <Folder Include="typings\mongoose\" />
+    <Folder Include="typings\node\" />
     <Folder Include="typings\q\" />
     <Folder Include="typings\serve-static\" />
     <Folder Include="unit-test\" />

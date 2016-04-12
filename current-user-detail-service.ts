@@ -23,6 +23,9 @@ export class CurrentUserDetailService implements UserDetailService {
         var userDetail: UserDetails;
         return this.userRepo.findByField("name", userName).then((user) => {
             usr = user;
+            if (user == null || user == undefined) {
+                throw 'user doesnot exist';
+            }
             userDetail = new User(user.name, user.password, user);
             return userDetail;
         });
@@ -34,6 +37,9 @@ export class CurrentUserDetailService implements UserDetailService {
             var _id: string = id; 
             return this.userRepo.findOne(_id).then((user) => {
                 usr = user;
+                if (user == null || user == undefined) {
+                    throw 'user doesnot exist';
+                }
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
@@ -43,6 +49,9 @@ export class CurrentUserDetailService implements UserDetailService {
             var userDetail: UserDetails;
             return this.userRepo.findByField(field, value).then((user) => {
                 usr = user;
+                if (user == null || user == undefined) {
+                    throw 'user doesnot exist';
+                }
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
@@ -53,8 +62,24 @@ export class CurrentUserDetailService implements UserDetailService {
             var userDetail: UserDetails;
             return this.userRepo.post(userObject).then((user) => {
                 usr = user;
+                if (user == null || user == undefined) {
+                    throw 'user doesnot exist';
+                }
                 userDetail = new User(user.name, user.password, user);
                 return userDetail;
             });
     };
+
+    updateExistingUser(id, userObject): Q.Promise<any> {
+        var usr: any;
+        var userDetail: UserDetails;
+        return this.userRepo.put(id, userObject).then((user) => {
+            usr = user;
+            if (user == null || user == undefined) {
+                throw 'user doesnot exist';
+            }
+            userDetail = new User(user.name, user.password, user);
+            return userDetail;
+        });
+    }
 }
