@@ -14,6 +14,7 @@ import {IAssociationParams} from '../decorators/interfaces';
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
+var Q = require('q');
 
 export class DynamicController {
     private repository: DynamicRepository;
@@ -283,7 +284,16 @@ export class DynamicController {
                     for (var prop in req.body) {
                         param.push(req.body[prop]);
                     }
-                    this.sendresult(req, res, modelRepo[map.key].apply(modelRepo, param));
+                    var ret = modelRepo[map.key].apply(modelRepo, param);
+                    if (ret['then'] instanceof Function) { // is thenable
+                        var prom: Q.Promise<any> = <Q.Promise<any>>ret;
+                        prom.then(x => {
+                            this.sendresult(req, res, x);
+                        });
+                    }
+                    else {
+                        this.sendresult(req, res, ret);
+                    }
                 }
                 catch (err) {
                     this.sendError(res, err);
