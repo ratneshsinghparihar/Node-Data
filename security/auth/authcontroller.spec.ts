@@ -11,18 +11,13 @@ import * as securityUtils from './security-utils';
 import * as configUtils from '../../core/utils';
 import {router} from '../../core/exports';
 import * as securityConfig from "../../security-config";
-import {CurrentUserDetailService} from "../../current-user-detail-service";
+var CurrentUserDetailService = require("../../current-user-detail-service");
 
 describe('AuthControllerFunc', () => {
     beforeEach((done) => {
         var mockRepo = new UserRepositoryMock();
         spyOn(Container, 'resolve').and.callFake((val) => {
-            switch (val) {
-                case AuthService:
-                    return new MockAuthService();
-                case CurrentUserDetailService:
-                    return new MockAuthService();
-            }
+            return new MockAuthService();
         });
         spyOn(configUtils, 'config').and.returnValue(
             {
@@ -105,7 +100,6 @@ describe('AuthControllerFunc', () => {
         expect(router.get).toHaveBeenCalled();
         authController['get_/token']();
     });
-
 
     it('authcontroller test for /login post route for 3 arguments', () => {
         configUtils.config().Security.isAutheticationEnabled = 'enabledWithoutAuthorization';
