@@ -378,11 +378,12 @@ function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData,
             break;
         case Decorators.MANYTOONE: // for single object
             // do nothing
-            return Q(undefined);
+            return Q.when(true);
         case Decorators.MANYTOMANY: // for array of objects
             // do nothing
-            return Q(undefined);
+            return Q.when(true);
     }
+    return Q.when(true);
 }
 
 function getQueryCondition(id: any, cond: any): any {
@@ -484,37 +485,92 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
         if (relationDecoratorMeta.length > 1) {
             throw 'too many relations in single model';
         }
+
         asyncCalls.push(embedChild(obj, prop, relationDecoratorMeta[0]));
     }
     return Q.all(asyncCalls);
 }
 
 function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
-    if (!obj[prop] || (obj[prop] instanceof Array && obj[prop].length == 0)) {
-        return Q.when();
-    }
+    if (!obj[prop])
+        return;
+
     if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
         throw 'Expected array, found non-array';
     }
     if (!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
         throw 'Expected single item, found array';
     }
+
+    var createNewObj = [];
     var params: IAssociationParams = <any>relMetadata.params;
     var relModel = getModel(params.rel);
+    var val = obj[prop];
+    var newVal = val;
+    var prom: Q.Promise<any> = Q.when();
 
-    return findMany(relModel, castAndGetPrimaryKeys(obj, prop, relMetadata))
-        .then(result => {
-            if (params.embedded) {
-                obj[prop] = obj[prop] instanceof Array ? result : result[0];
+    if (relMetadata.propertyType.isArray) {
+        newVal = [];
+        var objs = [];
+        for (var i in val) {
+            if (val[i].toString() == "[object Object]") {
+                if (val[i]['_id']) {
+                    newVal.push(val[i]['_id']);
+                }
+                else {
+                    objs.push(val[i]);
+                }
             }
             else {
-                // Verified that foriegn keys are correct and now update the Id
-                obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x => x['_id']).toArray() : result[0]['_id'];
+                newVal.push(val[i]);
             }
-        }).catch(error => {
-            console.error(error);
-            return Q.reject(error);
-        });
+        }
+        if (objs.length > 0) {
+            prom = bulkPost(relModel, objs);
+        } else {
+            obj[prop] = newVal;
+        }
+    }
+    else {
+        if (val.toString() == "[object Object]") {
+            if (val['_id']) {
+                obj[prop] = val['_id'];
+            }
+            else {
+                prom = post(relModel, val);
+            }
+        }
+    }
+
+    return prom.then(x => {
+        if (x) {
+            if (x instanceof Array) {
+                x.forEach(v => {
+                    newVal.push(v['_id']);
+                });
+            }
+            else {
+                newVal = x['_id'];
+            }
+            obj[prop] = newVal;
+        }
+
+        return findMany(relModel, castAndGetPrimaryKeys(obj, prop, relMetadata))
+            .then(result => {
+                if (result && result.length > 0) {
+                    if (params.embedded) {
+                        obj[prop] = obj[prop] instanceof Array ? result : result[0];
+                    }
+                    else {
+                        // Verified that foriegn keys are correct and now update the Id
+                        obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x => x['_id']).toArray() : result[0]['_id'];
+                    }
+                }
+            }).catch(error => {
+                console.error(error);
+                return Q.reject(error);
+            });
+    });
 }
 
 function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
