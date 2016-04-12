@@ -1,4 +1,5 @@
-﻿import * as Utils from '../../core/utils';
+﻿/// <reference path="../../config.ts" />
+import * as Utils from '../../core/utils';
 require('reflect-metadata/reflect');
 import {AuthController} from './authcontroller';
 import {UserRepositoryMock} from '../../unit-test/repository/user-repository-mock';
@@ -8,30 +9,13 @@ import {MockAuthService} from '../../unit-test/services/MockService';
 import * as securityUtils from './security-utils';
 import * as configUtils from '../../core/utils';
 import {MetaUtils} from "../../core/metadata/utils";
+import * as securityConfig from "../../security-config";
+import * as config from "../../config";
 
 describe('SecurityUtilsFunc', () => {
     beforeEach(() => {
-        spyOn(configUtils, 'config').and.returnValue(
-            {
-                'Security': {
-                    'isAutheticationEnabled': 'enabledWithoutAuthorization',
-                    'authenticationType': 'passwordBased'
-                },
-                'facebookAuth': {
-                    'clientID': '11',
-                    'clientSecret': 'aa',
-                    'callbackURL': 'http://localhost:23548/auth/facebook/callback'
-                },
-                'Config': {
-                    'DbConnection': 'mongodb://localhost:27017/userDatabase',
-                    'basePath': 'data',
-                    'apiversion': "v1",
-                    'ElasticSearchConnection': 'http://localhost:9200',
-                    'ApplyElasticSearch': false
-                }
-            }
-        );
-       
+        spyOn(configUtils, 'config').and.returnValue(config);
+        spyOn(configUtils, 'securityConfig').and.returnValue(securityConfig);
     });
 
     it('security utils ensuredLoggin method invoked  with authentication disabled', () => {
