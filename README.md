@@ -675,6 +675,6 @@ class UserModel {
 The user will have freedom to choose the entity attribute to be validated before save or update.
 
 
-![Alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.jpg "Talentica")
-![alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/atlassian.png "Atlassian")
-![alt text](/images/realsociable.png "RealSociable")
+![Alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png "Talentica")
+![alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png "Atlassian")
+![alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png "RealSociable")
