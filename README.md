@@ -676,7 +676,6 @@ The user will have freedom to choose the entity attribute to be validated before
 
 
 
-![Alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/talentica.png "Talentica")
-![alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/atlassian.png "Atlassian")
-![alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/realsociable.png "RealSociable")
-![sample image render](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/talentica.png "Talentica")
+![Alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/talentica.png "Talentica")
+![alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/atlassian.png "Atlassian")
+![alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/realsociable.png "RealSociable")
