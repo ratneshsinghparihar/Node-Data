@@ -678,4 +678,4 @@ The user will have freedom to choose the entity attribute to be validated before
 
 ![Alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/talentica.jpg "Talentica")
 ![alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/atlassian.png "Atlassian")
-![alt text](https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/realsociable.png "RealSociable")
+![alt text](/images/realsociable.png "RealSociable")
