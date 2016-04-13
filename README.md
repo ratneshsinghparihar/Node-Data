@@ -674,12 +674,7 @@ class UserModel {
 
 The user will have freedom to choose the entity attribute to be validated before save or update.
 
-Here's our logo (hover to see the title text):
 
-Inline-style: 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
-
-Reference-style: 
-![alt text][logo]
-
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
+![alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/talentica.png "Talentica")
+![alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/atlassian.png "Atlassian")
+![alt text](https://github.com/ratneshsinghparihar/Node-Data/tree/master/images/realsociable.png "RealSociable")
