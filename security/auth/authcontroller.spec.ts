@@ -1,6 +1,4 @@
-﻿var supertest = require('supertest');
-var application = require('../../server');
-require('reflect-metadata/reflect');
+﻿require('reflect-metadata/reflect');
 import {AuthController} from './authcontroller';
 import {UserRepositoryMock} from '../../unit-test/repository/user-repository-mock';
 import * as Utils from '../../core/utils';
