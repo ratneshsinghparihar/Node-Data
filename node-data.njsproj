@@ -154,7 +154,6 @@
     <TypeScriptCompile Include="unit-test\models\course.ts" />
     <TypeScriptCompile Include="unit-test\models\testModels.ts" />
     <TypeScriptCompile Include="unit-test\MockDataForRelation.ts" />
-    <TypeScriptCompile Include="unit-test\Relation.spec.ts" />
     <TypeScriptCompile Include="unit-test\Sample\format.spec.ts" />
     <TypeScriptCompile Include="unit-test\Sample\GlobalObject.ts" />
     <TypeScriptCompile Include="unit-test\InitializeModels.ts" />
