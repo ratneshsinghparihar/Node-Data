@@ -157,7 +157,6 @@ export class AuthController {
             (error) => {
                 return error;
             });
-        next();
     }
 
     private respond(req, res) {

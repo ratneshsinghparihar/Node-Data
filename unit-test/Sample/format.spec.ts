@@ -6,7 +6,6 @@ var Q = require('q');
 import {AuthService} from '../../security/auth/auth-service';
 import {MockAuthService} from './MockService';
 import {Container} from '../../di';
-var service = require('./Service');
 import * as global from './GlobalObject';
 import {A} from './SampleClassA';
 import {B} from './SampleClassB';
