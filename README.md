@@ -676,7 +676,6 @@ The user will have freedom to choose the entity attribute to be validated before
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="20">
-![Alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png "Talentica")
-![alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png "Atlassian")
-![alt text](https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png "RealSociable")
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200">
