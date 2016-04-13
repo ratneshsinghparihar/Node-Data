@@ -28,6 +28,11 @@ function compareAddedMetadata(meta: MetaData, target, decorator, decType, isStat
 describe('metautils', () => {
     class TestClassNew { }
     let metadataRoot: MetaRoot;
+    var meta;
+
+    beforeAll(() => {
+        meta = MetadataUtils.metadataRoot();
+    });
 
     beforeEach(() => {
         MetadataUtils.metadataRoot(generateMockMetaRoot());
@@ -390,5 +395,9 @@ describe('metautils', () => {
             expect(MetadataUtils.getMetaPropKey(DecoratorType.PARAM, testMethod, paramIndex))
                 .toEqual(testMethod + MetadataConstants.PROPKEY_PARAMINDEX_JOIN + paramIndex);
         })
+    });
+
+    afterAll(() => {
+        MetadataUtils.metadataRoot(meta);
     });
 });

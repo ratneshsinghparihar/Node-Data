@@ -1,7 +1,7 @@
 ﻿import {repository} from "../../core/decorators";
-import {course} from '../models/course';
+import {subject} from '../models/subject';
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 
-@repository({ path: 'course', model: course })
+@repository({ path: 'subject', model: subject })
 export default class CourseRepository extends DynamicRepository {
 }

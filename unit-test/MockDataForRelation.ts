@@ -8,7 +8,6 @@ import {Strict} from '../mongoose/enums/';
 import Mongoose = require("mongoose");
 import {course} from './models/course';
 import {student} from './models/student';
-import {teacher} from './models/teacher';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 
@@ -19,7 +18,6 @@ var _databaseCalls: { [key: string]: any } = <any>{};
 class ModelNames {
     public static course: string = course.prototype.constructor.name;
     public static student: string = student.prototype.constructor.name;
-    public static teacher: string = teacher.prototype.constructor.name;
 }
 
 class courseRepository{
@@ -72,32 +70,6 @@ class studentRepository{
 
     update(query: any, object: any, param: any): Q.Promise<any> {
         return MongoDbMock.update(query, object, param, database[ModelNames.student]);
-    }
-}
-
-class teacherRepository{
-    find(param: any): Q.Promise<any> {
-        return MongoDbMock.find(param, database[ModelNames.teacher]);
-    }
-
-    findOne(param: any): Q.Promise<any> {
-        return MongoDbMock.findOne(param, database[ModelNames.teacher]);
-    }
-
-    create(object: any): Q.Promise<any> {
-        return MongoDbMock.create(object, database[ModelNames.teacher]);
-    }
-
-    findOneAndRemove(query: any): Q.Promise<any> {
-        return MongoDbMock.findOneAndRemove(query, database[ModelNames.teacher]);
-    }
-
-    findOneAndUpdate(query: any, object: any, param: any): Q.Promise<any> {
-        return MongoDbMock.findOneAndUpdate(query, object, param, database[ModelNames.teacher]);
-    }
-
-    update(query: any, object: any, param: any): Q.Promise<any> {
-        return MongoDbMock.update(query, object, param, database[ModelNames.teacher]);
     }
 }
 
@@ -229,10 +201,6 @@ export function AddAllFakeFunctions() {
     _mongooseModel[ModelNames.student] = Mongoose.model(ModelNames.student, new Mongoose.Schema(student.prototype.schema()));
     _databaseCalls[ModelNames.student] = new studentRepository();
 
-    database[ModelNames.teacher] = [];
-    _mongooseModel[ModelNames.teacher] = Mongoose.model(ModelNames.teacher, new Mongoose.Schema(teacher.prototype.schema()));
-    _databaseCalls[ModelNames.teacher] = new teacherRepository();
-
     console.log('added all faked function');
 }
 
@@ -260,7 +228,6 @@ export function getFakeFunctionForMongoose(func, model): any {
 export function clearDatabase() {
     database[ModelNames.course] = [];
     database[ModelNames.student] = [];
-    database[ModelNames.teacher] = [];
 }
 
 export class mockedFunctions {
@@ -278,8 +245,6 @@ export class mockedFunctions {
                 return course;
             case ModelNames.student:
                 return student;
-            case ModelNames.teacher:
-                return teacher;
         }
     }
 

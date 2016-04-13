@@ -1,4 +1,5 @@
-﻿import * as DI from './di';
+﻿require('reflect-metadata/reflect');
+import * as DI from './di';
 import {MetaUtils} from '../core/metadata/utils';
 import {MetaData} from '../core/metadata/metadata';
 import {Decorators} from '../core/constants';
