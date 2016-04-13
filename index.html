@@ -19,7 +19,12 @@
     </section>
 
     <section class="main-content">
-      <h2>
+      <p><a href="https://travis-ci.org/ratneshsinghparihar/Node-Data"><img src="https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master" alt="Build Status"></a></p>
+
+<h2>
+<a id="this-is-a-work-in-progress-do-not-use-it" class="anchor" href="#this-is-a-work-in-progress-do-not-use-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>This is a work in progress. DO NOT USE IT.</h2>
+
+<h2>
 <a id="what-is-node-data" class="anchor" href="#what-is-node-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is Node-Data</h2>
 
 <p>Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).</p>
@@ -446,6 +451,11 @@ Currently only the "And" search operations are supported. </p>
 <a id="configuring-elasticsearch" class="anchor" href="#configuring-elasticsearch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuring ElasticSearch:</h3>
 
 <h3>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation:</h3>
+
+<p>Elastic search can be installed from <a href="https://www.elastic.co/">https://www.elastic.co/</a></p>
+
+<h3>
 <a id="config-class" class="anchor" href="#config-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Config Class:</h3>
 
 <p>Set "ApplyElasticSearch" to true to enable ElasticSearch 
@@ -467,8 +477,8 @@ e.g. As in the "name" and "age" properties, the searchIndex is set to true. </p>
     @<span class="pl-en">field</span>({<span class="pl-v">searchIndex</span> : true}) 
     age: <span class="pl-k">number</span>; 
 
-<span class="pl-en">constructor</span>(){ 
-} 
+    <span class="pl-en">constructor</span>(){ 
+    }
 } </pre></div>
 
 <h3>
@@ -566,7 +576,7 @@ version: int;</pre></div>
 
 <p>Example GraphQL query (request body for post on /user/grpahql/):</p>
 
-<div class="highlight highlight-source-js"><pre><span class="pl-en">user</span>(<span class="pl-smi">id</span>: <span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span>) {
+<div class="highlight highlight-source-js"><pre><span class="pl-en">user</span>(<span class="pl-smi">id</span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span>) {
   name
   friends {
     name
@@ -592,8 +602,8 @@ version: int;</pre></div>
 
 <p>Example GraphQL mutation:</p>
 
-<div class="highlight highlight-source-js"><pre>mutation <span class="pl-en">updateUser</span>(<span class="pl-smi">$userId</span>: <span class="pl-smi">String</span>! <span class="pl-smi">$name</span>: <span class="pl-smi">String</span>!) {
-  <span class="pl-en">updateUser</span>(<span class="pl-smi">id</span>: <span class="pl-smi">$userId</span> <span class="pl-smi">name</span>: <span class="pl-smi">$name</span>) {
+<div class="highlight highlight-source-js"><pre>mutation <span class="pl-en">updateUser</span>(<span class="pl-smi">$userId</span><span class="pl-k">:</span> <span class="pl-c1">String</span><span class="pl-k">!</span> <span class="pl-smi">$name</span><span class="pl-k">:</span> <span class="pl-c1">String</span><span class="pl-k">!</span>) {
+  <span class="pl-en">updateUser</span>(<span class="pl-smi">id</span><span class="pl-k">:</span> <span class="pl-smi">$userId</span> <span class="pl-smi">name</span><span class="pl-k">:</span> <span class="pl-smi">$name</span>) {
     name
   }
 }</pre></div>
@@ -759,6 +769,10 @@ To enable it the only thing needs to be done is in the config.ts file. </p>
 } </pre></div>
 
 <p>The user will have freedom to choose the entity attribute to be validated before save or update.</p>
+
+<p><img src="https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/talentica.jpg" alt="Alt text" title="Talentica">
+<img src="https://github.com/ratneshsinghparihar/Node-Data/blob/master/images/atlassian.png" alt="alt text" title="Atlassian">
+<img src="/images/realsociable.png" alt="alt text" title="RealSociable"></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/ratneshsinghparihar/Node-Data">Node-data</a> is maintained by <a href="https://github.com/ratneshsinghparihar">ratneshsinghparihar</a>.</span>
