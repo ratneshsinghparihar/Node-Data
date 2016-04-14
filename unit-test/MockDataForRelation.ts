@@ -31,7 +31,7 @@ class courseRepository{
     }
 
     create(object: any): Q.Promise<any> {
-        return MongoDbMock.create(object, database[ModelNames.course]);
+        return MongoDbMock.create(object, _mongooseModel[ModelNames.course], database[ModelNames.course]);
     }
 
     findOneAndRemove(query: any): Q.Promise<any> {
@@ -57,7 +57,7 @@ class studentRepository{
     }
 
     create(object: any): Q.Promise<any> {
-        return MongoDbMock.create(object, database[ModelNames.student]);
+        return MongoDbMock.create(object, _mongooseModel[ModelNames.student], database[ModelNames.student]);
     }
 
     findOneAndRemove(query: any): Q.Promise<any> {
@@ -99,6 +99,9 @@ export class MongoDbMock {
                     var arr: Array<any> = param[prop]['$in'];
                     res = Enumerable.from(collection).where(x => arr.find(id => x['_id'] == id)).toArray();
                 }
+                else {
+                    res = Enumerable.from(collection).where(x => x['_doc'][prop] == param[prop].toString()).firstOrDefault();
+                }
             }
             else {
                 var arr: Array<any> = param[prop]['$in'];
@@ -112,6 +115,9 @@ export class MongoDbMock {
                         }
                     });
                 }
+                else {
+                    res = Enumerable.from(collection).where(x => x['_doc'][prop] == param[prop].toString()).firstOrDefault();
+                }
             }
         }
         //console.log('find (', param, ') => ', res);
@@ -122,25 +128,24 @@ export class MongoDbMock {
         var res = {};
         for (var item in param) {
             var id = param[item].toString();
-            res = Enumerable.from(collection).where(x => x[item] == id).firstOrDefault();
+            res = Enumerable.from(collection).where(x => x['_doc'][item] == param[item].toString()).firstOrDefault();
             break;
         }
         //console.log('findOne (', param, ') => ', res);
         return Q.when(res);
     }
 
-    public static create(object: any, collection: Array<any>): Q.Promise<any> {
-        object['toObject'] = function () {
-            object;
-        }
-        collection.push(object);
-        return Q.when(object);
+    public static create(object: any, model: any, collection: Array<any>): Q.Promise<any> {
+        var obj = new model(object);
+        collection.push(obj);
+        //console.log('create(', object, ')=> ', obj);
+        return Q.when(obj);
     }
 
     public static findOneAndRemove(query: any, collection: Array<any>): Q.Promise<any> {
         var res = {};
         for (var item in query) {
-            res = Enumerable.from(collection).where(x => x[item] == query[item]).firstOrDefault();
+            res = Enumerable.from(collection).where(x => x['_doc'][item] == query[item].toString()).firstOrDefault();
             if (res) {
                 collection.splice(collection.indexOf(res), 1);
             }
@@ -153,7 +158,7 @@ export class MongoDbMock {
     public static findOneAndUpdate(query: any, object: any, param: any, collection: Array<any>): Q.Promise<any> {
         var res = {};
         for (var item in query) {
-            res = Enumerable.from(collection).where(x => x[item] == query[item]).firstOrDefault();
+            res = Enumerable.from(collection).where(x => x['_doc'][item] == query[item].toString()).firstOrDefault();
             if (res) {
                 for (var prop in object) {
                     res['_doc'][prop] = object[prop];
@@ -233,8 +238,13 @@ export function clearDatabase() {
 export class mockedFunctions {
 
     castToMongooseType(value, schemaType) {
-        //console.log('castToMongooseType - ', value);
-        return value;
+        //console.log('castToMongooseType - ', value, schemaType);
+        if (value['_id']) {
+            return value['_id'];
+        }
+        else {
+            return value;
+        }
     }
 
     getEntity(object: any) {

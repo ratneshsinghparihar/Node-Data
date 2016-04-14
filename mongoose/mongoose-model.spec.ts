@@ -74,6 +74,224 @@ describe('testing relation', () => {
         });
     });
 
+    describe(': mongoose functions', () => {
+        describe(': bulk post', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        res = x;
+                        done();
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('bulk post res:', res);
+                expect(res).toBeDefined();
+                expect(res instanceof Array).toBeTruthy();
+                expect(res.length).toEqual(2);
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        describe(': bulk put', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        x[0]['name'] = 'student3';
+                        x[1]['name'] = 'student4';
+                        MongooseModel.bulkPut(mockData.getMongooseModel(student), x).then(x => {
+                            res = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('bulk put res:', res);
+                expect(res).toBeDefined();
+                expect(res instanceof Array).toBeTruthy();
+                expect(res.length).toEqual(2);
+                expect((res[0]['name'] == 'student3') || (res[0]['name'] == 'student4')).toBeTruthy();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        describe(': findByField', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        MongooseModel.findByField(mockData.getMongooseModel(student), 'name', 'student1').then(x => {
+                            res = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('findByField res:', res);
+                expect(res).toBeDefined();
+                expect(res['name'] == 'student1').toBeTruthy();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        describe(': findChild', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        MongooseModel.findChild(mockData.getMongooseModel(student), x[0]['_id'], 'name').then(x => {
+                            res = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('findChild res:', res);
+                expect(res).toBeDefined();
+                expect(res['name'] == 'student1').toBeTruthy();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        describe(': findWhere', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        var con = {};
+                        con['name'] = 'student1';
+                        MongooseModel.findWhere(mockData.getMongooseModel(student), con).then(x => {
+                            res = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('findWhere res:', res);
+                expect(res).toBeDefined();
+                expect(res['name'] == 'student1').toBeTruthy();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        describe(': patch', () => {
+            var objs = [];
+            objs.push({ 'name': 'student1' });
+            objs.push({ 'name': 'student2' });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    MongooseModel.bulkPost(mockData.getMongooseModel(student), objs).then(x => {
+                        x[0]['name'] = 'student3';
+                        MongooseModel.patch(mockData.getMongooseModel(student), x[0]['_id'], x[0]).then(x => {
+                            res = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('patch res:', res);
+                expect(res).toBeDefined();
+                expect(res['name'] == 'student3').toBeTruthy();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+
+        xdescribe(': post embedded one object', () => {
+            var stud1 = {};
+            var resStud1, resStud2, resSub1;
+            var sub1 = {};
+
+            beforeAll(() => {
+                stud1['name'] = 'student1';
+                sub1['name'] = 'subject1';
+                stud1['courseOTO'] = sub1;
+                resSub1 = mockData.createMongooseModel(course, { 'name':'subject1'});
+            });
+
+            beforeEach((done) => {
+                setTimeout(function () {
+                    console.log(stud1);
+                    MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
+                        resStud1 = x;
+
+                        sub1 = {};
+                        sub1['_id'] = resSub1['_id'];
+                        stud1['courseOTO'] = sub1;
+                        console.log(stud1);
+                        MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
+                            resStud2 = x;
+                            done();
+                        });
+                    });
+                }, 500);
+            });
+
+            it(': test', (done) => {
+                console.log('embed 1 object stud1, stud2', resStud1, resStud2);
+                expect(resStud1).toBeDefined();
+                expect(resStud2).toBeDefined();
+                done();
+            });
+
+            afterAll(() => {
+                mockData.clearDatabase();
+            });
+        });
+    });
+
     describe(': student-course (one to one)(Embedded = true)', () => {
         beforeAll(() => {
             // create fake objects
