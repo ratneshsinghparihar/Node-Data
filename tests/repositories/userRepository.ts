@@ -19,18 +19,19 @@ export default class UserRepository extends DynamicRepository {
         return name + '   ' + name;
     }
 
+    @authorize({ roles: ['ROLE_A'] })
     doProcess(name: string) {
         return name;
     }
 
-    //@authorize({roles: ['ROLE_ADMIN']})
-    //public findByField(fieldName, value): Q.Promise<any> {
-    //    return super.findByField(fieldName, value);
-    //}
+    @authorize({roles: ['ROLE_A']})
+    public findByField(fieldName, value): Q.Promise<any> {
+        return super.findByField(fieldName, value);
+    }
 
-    //@authorize({ roles: ['ROLE_ADMIN'] })
-    //public findAll(): Q.Promise<any> {
-    //    return super.findAll();
-    //}
+    @authorize({ roles: ['ROLE_s'] })
+    public findAll(): Q.Promise<any> {
+        return super.findAll();
+    }
 
 }

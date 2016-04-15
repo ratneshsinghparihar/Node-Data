@@ -33,8 +33,11 @@ export class DynamicController {
             securityImpl.ensureLoggedIn(),
             (req, res) => {
                     
-                if (!securityImpl.isAuthorize(req, this.repository, 'findAll'))
+                if (!securityImpl.isAuthorize(req, this.repository, 'findAll')) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 var promise = this.repository.findAll();
                 return promise
                     .then((result) => {
@@ -50,8 +53,11 @@ export class DynamicController {
         router.get(this.path + '/:id',
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository,'findOne'))
-                    this.sendUnauthorizeError( res, 'unauthorize access for resource ' + this.path);
+                if (!securityImpl.isAuthorize(req, this.repository, 'findOne')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
@@ -66,6 +72,11 @@ export class DynamicController {
         router.get(this.path + '/:id/:prop',
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'findChild')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
 
@@ -133,6 +144,11 @@ export class DynamicController {
         router.post(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'post')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 if (!Array.isArray(req.body)) {
 
                     this.getModelFromHalModel(req.body);
@@ -168,6 +184,11 @@ export class DynamicController {
         router.delete(this.path + "/:id/:prop",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'delete')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 return this.repository.delete(req.params.id)
                     .then(result => {
                         this.sendresult(req, res, result);
@@ -181,6 +202,11 @@ export class DynamicController {
         router.put(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 this.getModelFromHalModel(req.body);
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
@@ -195,6 +221,11 @@ export class DynamicController {
         router.put(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 if (!Array.isArray(req.body)) {
                     this.sendError(res, 'Invalid data.');
                     return;
@@ -215,6 +246,11 @@ export class DynamicController {
         router.delete(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'delete')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 return this.repository.delete(req.params.id)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -227,6 +263,11 @@ export class DynamicController {
         router.patch(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'patch')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
                 this.getModelFromHalModel(req.body);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
@@ -278,12 +319,18 @@ export class DynamicController {
         var actions = {};
         searchPropMap.forEach(map => {
             router.post(this.path + "/action/" + map.key, (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+                
                 try {
                     let modelRepo = this.repository.getEntityType();
                     var param = [];
                     for (var prop in req.body) {
                         param.push(req.body[prop]);
                     }
+                    param.push(req);
                     var ret = modelRepo[map.key].apply(modelRepo, param);
                     if (ret['then'] instanceof Function) { // is thenable
                         var prom: Q.Promise<any> = <Q.Promise<any>>ret;
