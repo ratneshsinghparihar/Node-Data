@@ -52,7 +52,10 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
 }
 
 export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
-    return Q.nbind(model.find, model)(query);
+    return Q.nbind(model.find, model)(query)
+        .then(result => {
+            return toObject(result);
+        });
 }
 
 export function findOne(model: Mongoose.Model<any>, id) {
@@ -541,7 +544,6 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             }
         }
     }
-
     return prom.then(x => {
         if (x) {
             if (x instanceof Array) {
