@@ -5,12 +5,22 @@ import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {updateModelEntity} from '../core/dynamic/model-entity';
+import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 
 export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
 
 export function generateSchema() {
+    var documents = MetaUtils.getMetaDataForDecorators([CoreDecorators.DOCUMENT]);
+    documents.forEach(x => {
+        let documentMeta = x.metadata[0];
+        let schemaName = (<IDocumentParams>documentMeta.params).name;
+        let schema = new DynamicSchema(documentMeta.target, schemaName);
+        let mongooseSchema = schema.getSchema();
+        let model = Mongoose.model(schemaName, <any>mongooseSchema);
+        updateModelEntity(schemaName, documentMeta.target, model);
+    });
+
     var repositoryMetadata = MetaUtils.getMetaDataForDecorators([CoreDecorators.REPOSITORY]);
     repositoryMetadata.forEach(x => {
         if (!x.metadata || !x.metadata.length) {
@@ -21,12 +31,7 @@ export function generateSchema() {
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
         let documentMeta = meta[0];
         let schemaName = (<IDocumentParams>documentMeta.params).name;
-        let schema = new DynamicSchema(documentMeta.target, (<IDocumentParams>x.metadata[0].params).name);
-        let mongooseSchema = schema.getSchema();
-        let model = Mongoose.model(schemaName, <any>mongooseSchema);
-        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: model };
-
-        updateModelEntity(schemaName, entity, model);
+        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: getModel(schemaName)};
     });
 }
 
