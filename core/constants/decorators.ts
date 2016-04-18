@@ -11,6 +11,7 @@ export class Decorators {
     public static REPOSITORY = 'repository';
     public static SERVICE = 'service';
     public static AUTHORIZE = 'authorize';
+    public static PREAUTHORIZE = 'preauthorize';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];

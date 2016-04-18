@@ -2,6 +2,7 @@
 import {UserModel} from '../models/usermodel';
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 import {authorize} from '../../core/decorators/authorize';
+import {preauthorize} from '../../core/decorators/preauthorize';
 var Q = require('q');
 
 @repository({ path: 'users', model: UserModel })
@@ -30,6 +31,7 @@ export default class UserRepository extends DynamicRepository {
     }
 
     @authorize({ roles: ['ROLE_s'] })
+    //@preauthorize({ serviceName: "", methodName: "", params: ['id','entity']})
     public findAll(): Q.Promise<any> {
         return super.findAll();
     }
