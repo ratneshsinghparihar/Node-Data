@@ -319,7 +319,7 @@ export class DynamicController {
 
         var actions = {};
         searchPropMap.forEach(map => {
-            router.post(this.path + "/action/" + map.key, (req, res) => {
+            router.post(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
                 if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
                     return;
@@ -334,10 +334,10 @@ export class DynamicController {
                     if (service) {
                         var param = [];
                         if (preAuthParam.params.id == '#id') {
-                            param.push(req.id);
+                            param.push(req.user._id.toString());
                         }
                         if (preAuthParam.params.entity == '#entity') {
-                            param.push(req.entity);
+                            param.push(this.repository.getEntityType());
                         }
                         if (preAuthParam.params.other) {
                             for (var i in preAuthParam.params.other) {
