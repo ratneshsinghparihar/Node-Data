@@ -337,7 +337,7 @@ export class DynamicController {
                             param.push(req.user._id.toString());
                         }
                         if (preAuthParam.params.entity == '#entity') {
-                            param.push(this.repository.getEntityType());
+                            param.push(req.body);
                         }
                         if (preAuthParam.params.other) {
                             for (var i in preAuthParam.params.other) {
