@@ -37,6 +37,8 @@
     <Content Include="views\home.ejs" />
     <Content Include="views\authlogin.ejs" />
     <Content Include="views\login.ejs" />
+    <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
+    <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
     <TypeScriptCompile Include="current-user-detail-service.ts" />
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="core\config.ts" />
@@ -137,6 +139,7 @@
     <TypeScriptCompile Include="tests\models\teacher.ts" />
     <TypeScriptCompile Include="tests\models\user.ts" />
     <TypeScriptCompile Include="tests\models\usermodel.ts" />
+    <TypeScriptCompile Include="tests\preauth-service.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />

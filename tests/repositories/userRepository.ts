@@ -21,7 +21,13 @@ export default class UserRepository extends DynamicRepository {
     }
 
     @authorize({ roles: ['ROLE_A'] })
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity'} })
     doProcess(name: string) {
+        return name;
+    }
+
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams", params: { id: '#id', entity: '#entity', other: [true] } })
+    doProcess1(name: string) {
         return name;
     }
 
@@ -30,8 +36,7 @@ export default class UserRepository extends DynamicRepository {
         return super.findByField(fieldName, value);
     }
 
-    @authorize({ roles: ['ROLE_s'] })
-    //@preauthorize({ serviceName: "", methodName: "", params: ['id','entity']})
+    //@authorize({ roles: ['ROLE_s'] })
     public findAll(): Q.Promise<any> {
         return super.findAll();
     }

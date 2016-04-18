@@ -1,9 +1,11 @@
-﻿
+﻿/// <reference path="interfaces/preauthorize-params.ts" />
+
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
+import {IPreauthorizeParams} from './interfaces/preauthorize-params';
 
-export function preauthorize(params: { serviceName: string, methodName: string, params: Array<string> }): any {
+export function preauthorize(params: IPreauthorizeParams): any {
     params = params || <any>{};
 
     return function (target: Function, propertyKey: string) {

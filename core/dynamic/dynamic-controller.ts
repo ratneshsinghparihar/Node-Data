@@ -10,7 +10,8 @@ import {MetaData} from '../metadata/metadata';
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
-import {IAssociationParams} from '../decorators/interfaces';
+import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces';
+
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -320,10 +321,37 @@ export class DynamicController {
         searchPropMap.forEach(map => {
             router.post(this.path + "/action/" + map.key, (req, res) => {
                 if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
-                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
                     return;
                 }
-                
+
+                var preAuth = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.PREAUTHORIZE, map.key);
+                if (preAuth) {
+                    var preAuthParam = <IPreauthorizeParams>preAuth.params;
+                    var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
+                    var service = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == preAuthParam.serviceName).select(x => x.metadata[0]).firstOrDefault();
+
+                    if (service) {
+                        var param = [];
+                        if (preAuthParam.params.id == '#id') {
+                            param.push(req.id);
+                        }
+                        if (preAuthParam.params.entity == '#entity') {
+                            param.push(req.entity);
+                        }
+                        if (preAuthParam.params.other) {
+                            for (var i in preAuthParam.params.other) {
+                                param.push(preAuthParam.params.other[i]);
+                            }
+                        }
+
+                        if (!service.target[preAuthParam.methodName].apply(service.target, param)) {
+                            this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
+                            return;
+                        }
+                    }
+                }
+
                 try {
                     let modelRepo = this.repository.getEntityType();
                     var param = [];
