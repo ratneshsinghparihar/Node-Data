@@ -318,13 +318,14 @@ export class DynamicController {
         let searchPropMap = GetAllActionFromPrototype(modelRepo) as Array<IActionPropertyMap>;
 
         var actions = {};
-        searchPropMap.forEach(map => {
-            router.post(this.path + "/action/" + map.key, (req, res) => {
+        searchPropMap.forEach(map =>
+
+        {
+            router.post(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
                 if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
                     return;
                 }
-
                 var preAuth = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.PREAUTHORIZE, map.key);
                 if (preAuth) {
                     var preAuthParam = <IPreauthorizeParams>preAuth.params;
@@ -334,10 +335,10 @@ export class DynamicController {
                     if (service) {
                         var param = [];
                         if (preAuthParam.params.id == '#id') {
-                            param.push(req.id);
+                            param.push(req.user._id.toString());
                         }
                         if (preAuthParam.params.entity == '#entity') {
-                            param.push(req.entity);
+                            param.push(req.body);
                         }
                         if (preAuthParam.params.other) {
                             for (var i in preAuthParam.params.other) {
@@ -345,37 +346,26 @@ export class DynamicController {
                             }
                         }
 
-                        if (!service.target[preAuthParam.methodName].apply(service.target, param)) {
-                            this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
-                            return;
-                        }
+                        service.target[preAuthParam.methodName].apply(service.target, param)
+                            .then((isAllowed) => {
+                                if (!isAllowed) {
+                                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
+                                    return;
+                                }
+                                this.invokeModelFunction(map, req, res, actions);
+                            })
+                            .catch((err) => {
+                                throw err;
+                            })
                     }
+                } else {
+                    this.invokeModelFunction(map, req, res, actions);
                 }
-
-                try {
-                    let modelRepo = this.repository.getEntityType();
-                    var param = [];
-                    for (var prop in req.body) {
-                        param.push(req.body[prop]);
-                    }
-                    param.push(req);
-                    var ret = modelRepo[map.key].apply(modelRepo, param);
-                    if (ret['then'] instanceof Function) { // is thenable
-                        var prom: Q.Promise<any> = <Q.Promise<any>>ret;
-                        prom.then(x => {
-                            this.sendresult(req, res, x);
-                        });
-                    }
-                    else {
-                        this.sendresult(req, res, ret);
-                    }
-                }
-                catch (err) {
-                    this.sendError(res, err);
-                }
+                
             });
-            actions[map.key] = { "href": map.key, "params": map.args };
+            
         });
+
         router.get(this.path + "/action", securityImpl.ensureLoggedIn(), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action" } };
             for (var prop in actions) {
@@ -386,6 +376,31 @@ export class DynamicController {
             }
             this.sendresult(req, res, links);
         });
+    }
+
+    private invokeModelFunction(map: ISearchPropertyMap, req: any, res: any, actions) {
+        try {
+            let modelRepo = this.repository.getEntityType();
+            var param = [];
+            for (var prop in req.body) {
+                param.push(req.body[prop]);
+            }
+            param.push(req);
+            var ret = modelRepo[map.key].apply(modelRepo, param);
+            if (ret['then'] instanceof Function) { // is thenable
+                var prom: Q.Promise<any> = <Q.Promise<any>>ret;
+                prom.then(x => {
+                    this.sendresult(req, res, x);
+                });
+            }
+            else {
+                this.sendresult(req, res, ret);
+            }
+        }
+        catch (err) {
+            this.sendError(res, err);
+        }
+        actions[map.key] = { "href": map.key, "params": map.args };
     }
 
     private addRoutesForAllSearch(map: ISearchPropertyMap, fieldsWithSearchIndex: any[]) {
