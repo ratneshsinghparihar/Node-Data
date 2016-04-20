@@ -26,7 +26,7 @@ export default class UserRepository extends DynamicRepository {
         return name;
     }
 
-    @preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams", params: { id: '#id', entity: '#entity', other: [true] } })
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams", params: { id: '#id', entity: '#entity', other: [false] } })
     doProcess1(name: string) {
         return name;
     }
