@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -133,6 +133,7 @@
     <TypeScriptCompile Include="security-config.ts" />
     <TypeScriptCompile Include="security\auth\security-utils.ts" />
     <TypeScriptCompile Include="server.ts" />
+    <TypeScriptCompile Include="tests\models\baseModel.ts" />
     <TypeScriptCompile Include="tests\models\subject.ts" />
     <TypeScriptCompile Include="tests\models\role.ts" />
     <TypeScriptCompile Include="tests\models\rolemodel.ts" />

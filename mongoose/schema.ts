@@ -11,6 +11,8 @@ import Mongoose = require('mongoose');
 export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
 
 export function generateSchema() {
+    MetaUtils.refreshDerivedObjectsMetadata();
+
     var documents = MetaUtils.getMetaDataForDecorators([CoreDecorators.DOCUMENT]);
     documents.forEach(x => {
         let documentMeta = x.metadata[0];

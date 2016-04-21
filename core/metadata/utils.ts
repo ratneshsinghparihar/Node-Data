@@ -48,6 +48,7 @@ interface IMetadataHelper {
     getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }>;
     getMetaDataForPropKey(target: Object, propertyKey?: string): Array<MetaData>;
     getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData>;
+    refreshDerivedObjectsMetadata();
 }
 
 class MetadataHelper {
@@ -149,6 +150,33 @@ class MetadataHelper {
             .where(keyVal => keyVal.key === propertyKey) // keyval = {[key(propName): string]: Metadata};
             .select(keyVal => keyVal.value) // keyval = {[key(propName): string]: Metadata};
             .toArray();
+    }
+
+    public static refreshDerivedObjectsMetadata() {
+        var documents = MetadataHelper.getMetaDataForDecorators([Decorators.DOCUMENT]);
+        var proto = '__proto__';
+        Enumerable.from(documents).forEach(x => {
+            var tar = x.metadata[0].target;
+            var pro = tar[proto];
+            console.log(tar);
+            while (pro != null) {
+                var met = MetadataHelper.getMetaData(pro);
+                Enumerable.from(met).forEach(prop => {
+                    MetadataHelper.addMetaData(tar,
+                        {
+                            propertyKey: prop.propertyKey,
+                            paramIndex: prop.paramIndex,
+                            decorator: prop.decorator,
+                            decoratorType: prop.decoratorType,
+                            params: prop.params,
+                            type: prop.propertyType,
+                            returnType: prop.returnType,
+                            paramTypes: prop.paramTypes
+                        });
+                });
+                pro = pro[proto];
+            }
+        });
     }
 
     private static getMetaDataForTarget(target: Object): Array<MetaData> {
