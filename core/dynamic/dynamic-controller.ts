@@ -319,8 +319,7 @@ export class DynamicController {
 
         var actions = {};
         searchPropMap.forEach(map =>
-            router.post(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
-        {
+            {
             router.post(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
                 if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
