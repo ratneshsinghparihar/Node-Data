@@ -472,7 +472,6 @@ export class DynamicController {
         if (model["_lniks"]) {
             delete model["_lniks"];
         }
-        debugger
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
