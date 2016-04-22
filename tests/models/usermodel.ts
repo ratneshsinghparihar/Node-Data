@@ -1,5 +1,5 @@
 import * as RM from './rolemodel';
-import {onetomany, manytoone, manytomany} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
@@ -29,6 +29,7 @@ export class UserModel {
     password: String;
 
     @field()
+    @jsonignore()
     age: String;
 
     @field({ itemType: Object })

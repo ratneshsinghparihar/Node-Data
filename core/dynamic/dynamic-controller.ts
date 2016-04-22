@@ -43,7 +43,7 @@ export class DynamicController {
                 return promise
                     .then((result) => {
                         var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
-                        result = this.getHalModels(result,resourceName);
+                        result = this.getHalModel1(result, resourceName, this.repository.getEntityType());
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
@@ -472,6 +472,15 @@ export class DynamicController {
         if (model["_lniks"]) {
             delete model["_lniks"];
         }
+        debugger
+        //code to handle jsonignore
+        let modelRepo = this.repository.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
+        if (decoratorFields) {
+            decoratorFields.forEach(field => {
+                delete model[field.propertyKey];
+            });
+        }
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
@@ -479,11 +488,21 @@ export class DynamicController {
         selfUrl["href"] = resourceName ;// + "/" + model._id;
         model["_links"]={};
         model["_links"]["self"]=selfUrl;
-        
         //add associations 
         //read metadata and get all relations names
         var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(resourceType);
-        
+
+        //code to handle jsonignore
+        let modelRepo = this.repository.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
+        if (decoratorFields) {
+            decoratorFields.forEach(field => {
+                model.forEach(mod => {
+                    delete mod[field.propertyKey];
+                });
+            });
+        }
+
         relations.forEach(relation => {
             if(relation.propertyKey)
             {
