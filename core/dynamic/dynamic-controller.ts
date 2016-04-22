@@ -268,7 +268,6 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                debugger
                 this.getModelFromHalModel(req.body);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
@@ -472,7 +471,6 @@ export class DynamicController {
         if (model["_lniks"]) {
             delete model["_lniks"];
         }
-        debugger
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
@@ -484,20 +482,28 @@ export class DynamicController {
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
-        debugger
         var selfUrl = {};
         selfUrl["href"] = resourceName ;// + "/" + model._id;
         model["_links"]={};
         model["_links"]["self"]=selfUrl;
         //add associations 
         //read metadata and get all relations names
-        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(resourceType);
-
-        //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
-        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
-        if (decoratorFields) {
-            decoratorFields.forEach(field => {
+        this.removeJSONIgnore(modelRepo.model.prototype, model);
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(modelRepo.model.prototype);
+        relations.forEach(relation => {
+            var relUrl = {};
+            relUrl["href"] = resourceName + "/" + relation.propertyKey;
+            model["_links"][relation.propertyKey] = relUrl;
+        });
+        return model;
+    }
+
+
+    private removeJSONIgnore(entity: any, model: any) {
+        var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
+        if (decFields) {
+            decFields.forEach(field => {
                 if (model instanceof Array) {
                     model.forEach(mod => {
                         delete mod[field.propertyKey];
@@ -507,31 +513,14 @@ export class DynamicController {
                 }
             });
         }
-
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity);
         relations.forEach(relation => {
-            if(relation.propertyKey)
-            {
-                var relUrl={};
-                relUrl["href"] = resourceName+"/"+relation.propertyKey;
-                model["_links"][relation.propertyKey]=relUrl;
+            var param = <IAssociationParams>relation.params;
+            if (param.embedded || param.eagerLoading) {
+                this.removeJSONIgnore(param.itemType, model[relation.propertyKey]);
             }
-            
         });
-        
-        //loop through relation names and add into model["_links"]
-        
-        return model;
-        
-        // var dbModel = model;
-        // var entityModel: any = new resourceType(dbModel);
-       
-        // //var selfObjec={};
-        // // selfObjec["self"]=selfUrl;      
-        // entityModel["_links"]["self"] = selfUrl;
-        // model = entityModel;
-        // return model;
     }
-
 
     private getHalModels(models: Array<any>, resourceName: string): any {
         var halresult = {};

@@ -3,7 +3,7 @@ import {onetomany, manytoone, manytomany, jsonignore} from '../../core/decorator
 import {field, document} from '../../mongoose/decorators'; import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
-import * as r from './rolemodel';
+import {RoleModel} from './rolemodel';
 
 @document({ name: 'users', strict: Strict.false })
 export class UserModel {
@@ -32,8 +32,8 @@ export class UserModel {
     @jsonignore()
     age: String;
 
-    @field({ itemType: Object })
-    arr: Array<any>;
+    @onetomany({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
+    roles: Array<RoleModel>;
 }
 
 export default UserModel;
