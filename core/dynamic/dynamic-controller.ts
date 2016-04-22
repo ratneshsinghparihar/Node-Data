@@ -268,7 +268,7 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
+                debugger
                 this.getModelFromHalModel(req.body);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
@@ -472,6 +472,7 @@ export class DynamicController {
         if (model["_lniks"]) {
             delete model["_lniks"];
         }
+        debugger
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
@@ -483,6 +484,7 @@ export class DynamicController {
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
+        debugger
         var selfUrl = {};
         selfUrl["href"] = resourceName ;// + "/" + model._id;
         model["_links"]={};
@@ -496,9 +498,13 @@ export class DynamicController {
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
         if (decoratorFields) {
             decoratorFields.forEach(field => {
-                model.forEach(mod => {
-                    delete mod[field.propertyKey];
-                });
+                if (model instanceof Array) {
+                    model.forEach(mod => {
+                        delete mod[field.propertyKey];
+                    });
+                } else {
+                    delete model[field.propertyKey];
+                }
             });
         }
 
