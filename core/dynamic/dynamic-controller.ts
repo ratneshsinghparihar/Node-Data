@@ -473,7 +473,7 @@ export class DynamicController {
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
-        if (decoratorFields) {
+        if (decoratorFields && req.method == "GET") {
             decoratorFields.forEach(field => {
                 if (model[field.propertyKey]) {
                     delete model[field.propertyKey];
