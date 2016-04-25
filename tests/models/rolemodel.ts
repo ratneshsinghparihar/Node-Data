@@ -1,4 +1,4 @@
-import {onetomany, manytoone, manytomany, jsonignore} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore, required} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; 
 import {IRole} from './role';
 import * as UM from './usermodel';
@@ -15,6 +15,7 @@ export class RoleModel{
 
     @field()
     @jsonignore()
+    @required()
     test: any;
 
     constructor(userDto: IRole) {

@@ -482,18 +482,7 @@ export class DynamicController {
         }
 
         //code to handle @required fields.
-        debugger
-        let requiredDecoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.REQUIRED);
-        debugger
-        if (requiredDecoratorFields && requiredDecoratorFields.length) {
-            debugger
-            requiredDecoratorFields.forEach(field => {
-                debugger
-                if (!model[field.propertyKey]) {
-                    throw "required field not present in model";
-                }
-            });
-        }
+        this.ensureALLRequiredPresent(modelRepo.model.prototype, model);
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
@@ -538,6 +527,34 @@ export class DynamicController {
             var param = <IAssociationParams>relation.params;
             if (param.embedded || param.eagerLoading) {
                 this.removeJSONIgnore(param.itemType, model[relation.propertyKey]);
+            }
+        });
+    }
+
+
+    private ensureALLRequiredPresent(entity: any, model: any) {
+        if (!model) return;
+        var decFields = MetaUtils.getMetaData(entity, Decorators.REQUIRED);
+        if (decFields) {
+            decFields.forEach(field => {
+                if (model instanceof Array) {
+                    model.forEach(mod => {
+                        if (!mod[field.propertyKey]) {
+                            throw "required field not present in model";
+                        }
+                    });
+                } else {
+                    if (!model[field.propertyKey]) {
+                        throw "required field not present in model";
+                    }
+                }
+            });
+        }
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity);
+        relations.forEach(relation => {
+            var param = <IAssociationParams>relation.params;
+            if (param.embedded || param.eagerLoading) {
+                this.ensureALLRequiredPresent(param.itemType, model[relation.propertyKey]);
             }
         });
     }
