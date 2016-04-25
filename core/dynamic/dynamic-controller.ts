@@ -150,8 +150,7 @@ export class DynamicController {
                 }
 
                 if (!Array.isArray(req.body)) {
-
-                    this.getModelFromHalModel(req.body);
+                    this.getModelFromHalModel(req.body, req, res);
                     return this.repository.post(req.body)
                         .then((result) => {
                             this.sendresult(req, res, result);
@@ -162,7 +161,7 @@ export class DynamicController {
                 }
                 else {
                     Enumerable.from(req.body).forEach(x => {
-                        this.getModelFromHalModel(x);
+                        this.getModelFromHalModel(x, req, res);
                     });
                     return this.repository.bulkPost(req.body as Array<any>)
                         .then((result) => {
@@ -207,7 +206,7 @@ export class DynamicController {
                     return;
                 }
 
-                this.getModelFromHalModel(req.body);
+                this.getModelFromHalModel(req.body, req, res);
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -232,7 +231,7 @@ export class DynamicController {
                 }
 
                 Enumerable.from(req.body).forEach(x => {
-                    this.getModelFromHalModel(x);
+                    this.getModelFromHalModel(x, req, res);
                 });
                 return this.repository.bulkPut(req.body as Array<any>)
                     .then((result) => {
@@ -267,7 +266,7 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                this.getModelFromHalModel(req.body);
+                this.getModelFromHalModel(req.body, req, res);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -323,6 +322,7 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
                     return;
                 }
+                this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
                 var preAuth = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.PREAUTHORIZE, map.key);
                 if (preAuth) {
                     var preAuthParam = <IPreauthorizeParams>preAuth.params;
@@ -466,7 +466,7 @@ export class DynamicController {
         return model;
     }
 
-    private getModelFromHalModel(model: any) {
+    private getModelFromHalModel(model: any, req: any, res: any) {
         if (model["_lniks"]) {
             delete model["_lniks"];
         }
@@ -482,7 +482,9 @@ export class DynamicController {
         }
 
         //code to handle @required fields.
-        this.ensureALLRequiredPresent(modelRepo.model.prototype, model);
+        if (req.method == "POST") {
+            this.ensureALLRequiredPresent(modelRepo.model.prototype, model, req, res);
+        }
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any): any {
@@ -532,7 +534,7 @@ export class DynamicController {
     }
 
 
-    private ensureALLRequiredPresent(entity: any, model: any) {
+    private ensureALLRequiredPresent(entity: any, model: any, req: any, res: any) {
         if (!model) return;
         var decFields = MetaUtils.getMetaData(entity, Decorators.REQUIRED);
         if (decFields) {
@@ -540,12 +542,12 @@ export class DynamicController {
                 if (model instanceof Array) {
                     model.forEach(mod => {
                         if (!mod[field.propertyKey]) {
-                            throw "required field not present in model";
+                            this.sendBadRequest(res, "required field not present in model");
                         }
                     });
                 } else {
                     if (!model[field.propertyKey]) {
-                        throw "required field not present in model";
+                        this.sendBadRequest(res, "required field not present in model");
                     }
                 }
             });
@@ -554,7 +556,7 @@ export class DynamicController {
         relations.forEach(relation => {
             var param = <IAssociationParams>relation.params;
             if (param.embedded || param.eagerLoading) {
-                this.ensureALLRequiredPresent(param.itemType, model[relation.propertyKey]);
+                this.ensureALLRequiredPresent(param.itemType, model[relation.propertyKey], req, res);
             }
         });
     }
@@ -577,6 +579,11 @@ export class DynamicController {
     private sendError(res, error) {
         res.set("Content-Type", "application/json");
         res.send(500, JSON.stringify(error, null, 4));
+    }
+
+    private sendBadRequest(res, error) {
+        res.set("Content-Type", "application/json");
+        res.send(400, JSON.stringify(error, null, 4));
     }
 
     private sendresult(req, res, result) {
