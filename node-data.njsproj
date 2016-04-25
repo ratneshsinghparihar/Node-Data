@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -40,6 +40,7 @@
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
     <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
+    <TypeScriptCompile Include="core\decorators\required.ts" />
     <TypeScriptCompile Include="current-user-detail-service.ts" />
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="core\config.ts" />

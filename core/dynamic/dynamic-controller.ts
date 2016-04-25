@@ -33,7 +33,6 @@ export class DynamicController {
         router.get(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                    
                 if (!securityImpl.isAuthorize(req, this.repository, 'findAll')) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
@@ -476,7 +475,23 @@ export class DynamicController {
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.JSONIGNORE);
         if (decoratorFields) {
             decoratorFields.forEach(field => {
-                delete model[field.propertyKey];
+                if (model[field.propertyKey]) {
+                    delete model[field.propertyKey];
+                }
+            });
+        }
+
+        //code to handle @required fields.
+        debugger
+        let requiredDecoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.REQUIRED);
+        debugger
+        if (requiredDecoratorFields && requiredDecoratorFields.length) {
+            debugger
+            requiredDecoratorFields.forEach(field => {
+                debugger
+                if (!model[field.propertyKey]) {
+                    throw "required field not present in model";
+                }
             });
         }
     }
@@ -501,15 +516,20 @@ export class DynamicController {
 
 
     private removeJSONIgnore(entity: any, model: any) {
+        if (!model) return;
         var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
         if (decFields) {
             decFields.forEach(field => {
                 if (model instanceof Array) {
                     model.forEach(mod => {
-                        delete mod[field.propertyKey];
+                        if (mod[field.propertyKey]) {
+                            delete mod[field.propertyKey];
+                        }
                     });
                 } else {
-                    delete model[field.propertyKey];
+                    if (model[field.propertyKey]) {
+                        delete model[field.propertyKey];
+                    }
                 }
             });
         }

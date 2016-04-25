@@ -13,6 +13,7 @@ export class Decorators {
     public static AUTHORIZE = 'authorize';
     public static PREAUTHORIZE = 'preauthorize';
     public static JSONIGNORE = 'jsonignore';
+    public static REQUIRED = 'required';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];

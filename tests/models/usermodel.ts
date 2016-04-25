@@ -1,5 +1,5 @@
 import * as RM from './rolemodel';
-import {onetomany, manytoone, manytomany, jsonignore} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore, required} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
@@ -17,6 +17,7 @@ export class UserModel {
     courses: Array<String>;
 
     @field()
+    @required()
     email: String;
 
     @field()
