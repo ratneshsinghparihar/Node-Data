@@ -36,6 +36,10 @@ export class UserModel {
 
     @manytomany({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
     roles: Array<RoleModel>;
+
+    @manytoone({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
+    r: RoleModel;
+
 }
 
 export default UserModel;

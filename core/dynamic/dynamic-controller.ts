@@ -343,11 +343,11 @@ export class DynamicController {
             this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
             return;
         }
-        this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
 
         if (req.method == "POST") {
             this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
         }
+        this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
 
         if (req.method == "PUT" || req.method == "PATCH") {
             this.mergeEntity(req).then(result => {
@@ -507,11 +507,53 @@ export class DynamicController {
         }
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
-        this.removeJSONIgnore(modelRepo.model.prototype, model, req);
         //code to handle @required fields.
         if (req.method == "POST") {
             this.ensureALLRequiredPresent(modelRepo.model.prototype, model, req, res);
         }
+        this.removeJSONIgnore(modelRepo.model.prototype, model, req);
+
+        //code to change url to id, for relations.
+        if (req.method != "GET") {
+            this.changeUrlToId(model, modelRepo.model.prototype);
+        }
+    }
+
+    private changeUrlToId(model: any, entity: any) {
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity);
+        relations.forEach(relation => {
+            var param = <IAssociationParams>relation.params;
+            if (!model[relation.propertyKey]) return;
+
+            if (model[relation.propertyKey] instanceof Array) {
+                var allElements = model[relation.propertyKey];
+                if (allElements instanceof Array) {
+                    allElements.forEach((element, index) => {
+                        var arrElement = {};
+                        arrElement['value'] = element;
+                        this.trimUrl(arrElement, param);
+                        allElements[index] = arrElement['value'];
+                    });
+                }
+                return;
+            }
+            var element = {};
+            element['value'] = model[relation.propertyKey];
+            this.trimUrl(element, param);
+            model[relation.propertyKey] = element['value'];
+        });
+    }
+
+    private trimUrl(element,param) {
+        if (element.value instanceof Object) {
+            this.changeUrlToId(element.value, param.itemType);
+        } else {
+            if (element.value.indexOf('http') > -1) {
+                element.value = element.value.trim();
+                element.value = element.value.split("/").pop();
+            }
+        }
+
     }
 
     private getHalModel1(model: any, resourceName: string, resourceType: any, req): any {
