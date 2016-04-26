@@ -3,6 +3,7 @@ import {field, document} from '../../mongoose/decorators';
 import {IRole} from './role';
 import * as UM from './usermodel';
 import {Strict} from '../../mongoose/enums/';
+import {JsonIgnore} from '../../core/enums/jsonignore-enum';
 
 @document({ name: 'roles', strict: Strict.false })
 export class RoleModel{
@@ -14,7 +15,7 @@ export class RoleModel{
 
 
     @field()
-    @jsonignore()
+    @jsonignore(JsonIgnore.READ)
     @required()
     test: any;
 

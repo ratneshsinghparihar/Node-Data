@@ -4,6 +4,7 @@ import {field, document} from '../../mongoose/decorators'; import {IUser} from '
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
 import {RoleModel} from './rolemodel';
+import {JsonIgnore} from '../../core/enums/jsonignore-enum';
 
 @document({ name: 'users', strict: Strict.false })
 export class UserModel {

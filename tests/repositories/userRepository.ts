@@ -11,7 +11,7 @@ export default class UserRepository extends DynamicRepository {
     doFindByName() {
     }
 
-    doFindByNameAndAge(name: string): Q.Promise<any> {
+    doFindByNameAndAge(name: any): Q.Promise<any> {
         return Q.when(name);
         //return Q.fcall(this.getCaps(name);
     }
