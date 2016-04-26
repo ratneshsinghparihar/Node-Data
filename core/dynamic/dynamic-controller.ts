@@ -548,7 +548,7 @@ export class DynamicController {
         if (element.value instanceof Object) {
             this.changeUrlToId(element.value, param.itemType);
         } else {
-            if (element.value.indexOf('http') > -1) {
+            if (element.value.indexOf('http') > -1 && element.value.indexOf('/') > -1) {
                 element.value = element.value.trim();
                 element.value = element.value.split("/").pop();
             }
