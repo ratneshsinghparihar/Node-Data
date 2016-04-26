@@ -15,7 +15,6 @@ export class RoleModel{
 
 
     @field()
-    @jsonignore(JsonIgnore.READ)
     @required()
     test: any;
 

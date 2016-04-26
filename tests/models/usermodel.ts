@@ -34,7 +34,7 @@ export class UserModel {
     @jsonignore()
     age: String;
 
-    @onetomany({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
+    @manytomany({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
     roles: Array<RoleModel>;
 }
 

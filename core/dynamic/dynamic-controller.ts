@@ -580,12 +580,12 @@ export class DynamicController {
             decFields.forEach(field => {
                 if (model instanceof Array) {
                     model.forEach(mod => {
-                        if (!mod[field.propertyKey]) {
+                        if (mod instanceof Object && !mod[field.propertyKey]) {
                             this.sendBadRequest(res, "required field not present in model");
                         }
                     });
                 } else {
-                    if (!model[field.propertyKey]) {
+                    if (model instanceof Object && !model[field.propertyKey]) {
                         this.sendBadRequest(res, "required field not present in model");
                     }
                 }
