@@ -104,25 +104,44 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
         });
 }
 
+function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
+    var clonedObj = {};
+    Object.assign(clonedObj, obj);
+    var transientProps = Enumerable.from(MetaUtils.getMetaData(getEntity(model.modelName))).where((ele: MetaData, idx) => {
+        if (ele.decorator === Decorators.TRANSIENT) {
+            return true;
+        }
+        return false;
+    }).forEach(element => {
+        delete clonedObj[element.propertyKey];
+    });
+    return clonedObj;
+}
+
+
 /**
  * case 1: all new - create main item and child separately and embed if true
  * case 2: some new, some update - create main item and update/create child accordingly and embed if true
  * @param obj
  */
 export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
-    return addChildModelToParent(model, obj)
+    let clonedObj = removeTransientProperties(model, obj);
+    return addChildModelToParent(model, clonedObj)
         .then(result => {
-            return isDataValid(model, obj, null).then(result => {
-                try {
-                    autogenerateIdsForAutoFields(model, obj);
-                } catch (ex) {
-                    console.log(ex);
-                    return Q.reject(ex);
-                }
-                return Q.nbind(model.create, model)(new model(obj)).then(result => {
-                    return toObject(result);
+            return isDataValid(model, clonedObj, null)
+                .then(result => {
+                    try {
+                        debugger;
+                        autogenerateIdsForAutoFields(model, clonedObj);
+                        Object.assign(obj, clonedObj);
+                    } catch (ex) {
+                        console.log(ex);
+                        return Q.reject(ex);
+                    }
+                    return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
+                        return toObject(result);
+                    });
                 });
-            });
         }).catch(error => {
             console.error(error);
             return Q.reject(error);
@@ -143,10 +162,11 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
 }
 
 export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
-    return addChildModelToParent(model, obj).then(result => {
-        return isDataValid(model, obj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, obj, { upsert: true, new: true })
+    return addChildModelToParent(model, clonedObj).then(result => {
+        return isDataValid(model, clonedObj, id).then(result => {
+            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
                 .then(result => {
                     return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
                         .then(res => {
@@ -161,10 +181,11 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
 }
 
 export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
-    return addChildModelToParent(model, obj).then(result => {
-        return isDataValid(model, obj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, obj, { new: true })
+    return addChildModelToParent(model, clonedObj).then(result => {
+        return isDataValid(model, clonedObj, id).then(result => {
+            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { new: true })
                 .then(result => {
                     return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
                         .then(res => {
@@ -308,7 +329,7 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
     });
 }
 
-function isDataValid(model: Mongoose.Model<any>, val: any, id: any){
+function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
     var asyncCalls = [];
     var ret: boolean = true;
     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
