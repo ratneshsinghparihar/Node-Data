@@ -14,6 +14,7 @@ export class Decorators {
     public static PREAUTHORIZE = 'preauthorize';
     public static JSONIGNORE = 'jsonignore';
     public static REQUIRED = 'required';
+    public static TRANSIENT = 'transient';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];
