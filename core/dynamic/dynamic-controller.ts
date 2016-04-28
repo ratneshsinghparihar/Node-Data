@@ -44,7 +44,7 @@ export class DynamicController {
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
                         Enumerable.from(result).forEach(x => {
-                            x = this.getHalModel1(x, resourceName, this.repository.getEntityType(), req);
+                            x = this.getHalModel1(x, resourceName + "/" + x._id, this.repository.getEntityType(), req);
                         });
                         //result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);
