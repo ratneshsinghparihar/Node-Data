@@ -42,7 +42,10 @@ export class DynamicController {
                 var promise = this.repository.findAll();
                 return promise
                     .then((result) => {
-                        var resourceName= this.getFullBaseUrl(req);// + this.repository.modelName();
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        Enumerable.from(result).forEach(x => {
+                            this.getHalModel1(x, resourceName, this.repository.getEntityType());
+                        });
                         result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);
                     }).catch(error => {
