@@ -24,6 +24,7 @@
     <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Installation.md" />
     <Content Include="jsdocconf.json" />
     <Content Include="package.json" />
     <Content Include="search\elasticSearchUtils.js.map" />
