@@ -1,9 +1,10 @@
 import * as RM from './rolemodel';
-import {onetomany, manytoone, manytomany} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore, required} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
-import * as r from './rolemodel';
+import {RoleModel} from './rolemodel';
+import {JsonIgnore} from '../../core/enums/jsonignore-enum';
 
 @document({ name: 'users', strict: Strict.false })
 export class UserModel {
@@ -17,6 +18,7 @@ export class UserModel {
     courses: Array<String>;
 
     @field()
+    @required()
     email: String;
 
     @field()
@@ -29,10 +31,15 @@ export class UserModel {
     password: String;
 
     @field()
+    @jsonignore()
     age: String;
 
-    @field({ itemType: Object })
-    arr: Array<any>;
+    @manytomany({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
+    roles: Array<RoleModel>;
+
+    @manytoone({ rel: 'roles', itemType: RoleModel, embedded: true, persist: true, eagerLoading: true })
+    r: RoleModel;
+
 }
 
 export default UserModel;

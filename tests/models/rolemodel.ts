@@ -1,8 +1,9 @@
-import {onetomany, manytoone, manytomany} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore, required} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; 
 import {IRole} from './role';
 import * as UM from './usermodel';
 import {Strict} from '../../mongoose/enums/';
+import {JsonIgnore} from '../../core/enums/jsonignore-enum';
 
 @document({ name: 'roles', strict: Strict.false })
 export class RoleModel{
@@ -11,9 +12,11 @@ export class RoleModel{
     
     @field()
     name: any;
-    
-    //@manytoone({rel: 'users'})
-    //users: Array<UserModel>;
+
+
+    @field()
+    @required()
+    test: any;
 
     constructor(userDto: IRole) {
         this._id = userDto._id;

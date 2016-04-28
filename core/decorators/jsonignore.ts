@@ -1,16 +1,15 @@
 ﻿import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
-import {IPreauthorizeParams} from './interfaces/preauthorize-params';
+import {JsonIgnore} from '../enums/jsonignore-enum';
 
-export function preauthorize(params: IPreauthorizeParams): any {
+export function jsonignore(params?: JsonIgnore): any {
     params = params || <any>{};
-
-    return function (target: Function, propertyKey: string) {
+    return function (target: Object, propertyKey: string) {
         MetaUtils.addMetaData(target,
             {
-                decorator: Decorators.PREAUTHORIZE,
-                decoratorType: DecoratorType.METHOD,
+                decorator: Decorators.JSONIGNORE,
+                decoratorType: DecoratorType.PROPERTY,
                 params: params,
                 propertyKey: propertyKey
             });

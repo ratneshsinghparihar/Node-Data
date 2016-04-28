@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -37,8 +37,11 @@
     <Content Include="views\home.ejs" />
     <Content Include="views\authlogin.ejs" />
     <Content Include="views\login.ejs" />
+    <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
     <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
+    <TypeScriptCompile Include="core\decorators\required.ts" />
+    <TypeScriptCompile Include="core\enums\jsonignore-enum.ts" />
     <TypeScriptCompile Include="current-user-detail-service.ts" />
     <TypeScriptCompile Include="config.ts" />
     <TypeScriptCompile Include="core\config.ts" />
@@ -69,6 +72,10 @@
     <TypeScriptCompile Include="di\tests\service-d.ts" />
     <TypeScriptCompile Include="di\tests\service-c.ts" />
     <TypeScriptCompile Include="di\tests\service-b.ts" />
+    <TypeScriptCompile Include="models\auditable.entity.ts" />
+    <TypeScriptCompile Include="models\workflow.entity.ts" />
+    <TypeScriptCompile Include="models\securable.entity.ts" />
+    <TypeScriptCompile Include="models\base.entity.ts" />
     <TypeScriptCompile Include="mongoose\constants\index.ts" />
     <TypeScriptCompile Include="mongoose\datatype.ts" />
     <TypeScriptCompile Include="mongoose\db.ts" />
@@ -143,6 +150,7 @@
     <TypeScriptCompile Include="tests\preauth-service.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\role.repository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />
     <TypeScriptCompile Include="typings\express\express.d.ts" />
     <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
@@ -183,6 +191,7 @@
     <Folder Include="mongoose\enums\" />
     <Folder Include="mongoose\constants\" />
     <Folder Include="mongoose\utils\" />
+    <Folder Include="models\" />
     <Folder Include="scripts\" />
     <Folder Include="security\" />
     <Folder Include="core\api\" />
