@@ -157,7 +157,8 @@ export class DynamicController {
                     this.getModelFromHalModel(req.body, req, res);
                     return this.repository.post(req.body)
                         .then((result) => {
-                            this.getHalModel1(result, this.repository.getModel() + '/' + result['_id'], this.repository.getModelRepo(), req);
+                            var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                            this.getHalModel1(result, resourceName + '/' + result['_id'], this.repository.getModelRepo(), req);
                             this.sendresult(req, res, result);
                         }).catch(error => {
                             console.log(error);
@@ -171,7 +172,8 @@ export class DynamicController {
                     return this.repository.bulkPost(req.body as Array<any>)
                         .then((result) => {
                             Enumerable.from(result).forEach(x => {
-                                this.getHalModel1(x, this.repository.getModel() + '/' + x['_id'], this.repository.getModelRepo(), req);
+                                var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                                this.getHalModel1(x, resourceName + '/' + x['_id'], this.repository.getModelRepo(), req);
                             });
                             this.sendresult(req, res, result);
                         }).catch(error => {
