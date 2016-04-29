@@ -131,7 +131,6 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
             return isDataValid(model, clonedObj, null)
                 .then(result => {
                     try {
-                        debugger;
                         autogenerateIdsForAutoFields(model, clonedObj);
                         Object.assign(obj, clonedObj);
                     } catch (ex) {
