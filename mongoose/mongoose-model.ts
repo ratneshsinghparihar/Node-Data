@@ -132,13 +132,15 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 .then(result => {
                     try {
                         autogenerateIdsForAutoFields(model, clonedObj);
-                        Object.assign(obj, clonedObj);
+                        //Object.assign(obj, clonedObj);
                     } catch (ex) {
                         console.log(ex);
                         return Q.reject(ex);
                     }
                     return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
-                        return toObject(result);
+                        let resObj = toObject(result);
+                        Object.assign(obj, resObj);
+                        return obj;
                     });
                 });
         }).catch(error => {
@@ -169,7 +171,9 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
                 .then(result => {
                     return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
                         .then(res => {
-                            return toObject(result);
+                            let resObj = toObject(result);
+                            Object.assign(obj, resObj);
+                            return obj;
                         });
                 });
         });
@@ -188,7 +192,9 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
                 .then(result => {
                     return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
                         .then(res => {
-                            return toObject(result);
+                            let resObj = toObject(result);
+                            Object.assign(obj, resObj);
+                            return obj;
                         });
                 });
         });
