@@ -204,42 +204,36 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
         var queryCond = {};
         queryCond[prop + '._id'] = updateObj['_id'];
 
-        return Q.nbind(model.find, model)(queryCond)
-            .then(updated => {
+        if (entityChange === EntityChange.put
+            || entityChange === EntityChange.patch
+            || (entityChange === EntityChange.delete && !isArray)) {
 
-                if (entityChange === EntityChange.put
-                    || entityChange === EntityChange.patch
-                    || (entityChange === EntityChange.delete && !isArray)) {
+            var cond = {};
+            cond[prop + '._id'] = updateObj['_id'];
 
-                    var cond = {};
-                    cond[prop + '._id'] = updateObj['_id'];
+            var newUpdateObj = {};
+            isArray
+                ? newUpdateObj[prop + '.$'] = updateObj
+                : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
 
-                    var newUpdateObj = {};
-                    isArray
-                        ? newUpdateObj[prop + '.$'] = updateObj
-                        : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
+            return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
+                .then(result => {
+                    //console.log(result);
+                    updateEmbeddedParent(model, queryCond);
+                });
 
-                    return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
-                        .then(result => {
-                            //console.log(result);
-                            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                            return findAndUpdateEmbeddedData(model, ids);
-                        });
+        }
+        else {
+            var pullObj = {};
+            pullObj[prop] = {};
+            pullObj[prop]['_id'] = updateObj['_id'];
 
-                }
-                else {
-                    var pullObj = {};
-                    pullObj[prop] = {};
-                    pullObj[prop]['_id'] = updateObj['_id'];
-
-                    return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                        .then(result => {
-                            //console.log(result);
-                            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                            return findAndUpdateEmbeddedData(model, ids);
-                        });
-                }
-            });
+            return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
+                .then(result => {
+                    //console.log(result);
+                    updateEmbeddedParent(model, queryCond);
+                });
+        }
     }
     else {
         // this to handle foreign key deletion only
@@ -252,36 +246,43 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 queryCond[prop] = updateObj['_id'];
             }
 
-            return Q.nbind(model.find, model)(queryCond)
-                .then(updated => {
-                    //console.log(cond + ' :count:' + (updated as any[]).length);
+            var pullObj = {};
+            pullObj[prop] = {};
 
-                    var pullObj = {};
-                    pullObj[prop] = {};
+            if (isArray) {
+                pullObj[prop] = updateObj['_id'];
+                return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
+                    .then(result => {
+                        //console.log(result);
+                        updateEmbeddedParent(model, queryCond);
+                    });
+            }
+            else {
+                pullObj[prop] = null;
+                var cond = {};
+                cond[prop] = updateObj['_id'];
 
-                    if (isArray) {
-                        pullObj[prop] = updateObj['_id'];
-                        return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                            .then(result => {
-                                //console.log(result);
-                                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                                return findAndUpdateEmbeddedData(model, ids);
-                            });
-                    }
-                    else {
-                        pullObj[prop] = null;
-                        var cond = {};
-                        cond[prop] = updateObj['_id'];
-
-                        return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
-                            .then(result => {
-                                //console.log(result);
-                                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                                return findAndUpdateEmbeddedData(model, ids);
-                            });
-                    }
-                });
+                return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
+                    .then(result => {
+                        //console.log(result);
+                        updateEmbeddedParent(model, queryCond);
+                    });
+            }
         }
+    }
+}
+
+function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond) {
+    var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+
+    var first = Enumerable.from(allReferencingEntities).where(x => (<IAssociationParams>x.params).embedded).firstOrDefault();
+    if (first) {
+        // find the objects and then update these objects
+        return Q.nbind(model.find, model)(queryCond)
+            .then(updated => {
+                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
+                return findAndUpdateEmbeddedData(model, ids);
+            });
     }
 }
 

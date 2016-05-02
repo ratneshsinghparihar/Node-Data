@@ -89,10 +89,10 @@ export class DynamicController {
                         var metaDatas = Utils.getAllRelationsForTargetInternal(this.repository.getModelRepo());
                         var metaData = Enumerable.from(metaDatas).firstOrDefault(x => x.propertyKey == req.params.prop);
 
-                        if (metaData != null && metaData.length > 0 &&
+                        if (metaData != null &&
                             association !== undefined && association !== null) {
 
-                            var meta = metaData[0]; // by deafult take first relation
+                            var meta = metaData; // by deafult take first relation
                             var params = <IAssociationParams>meta.params;
                             var repo = GetRepositoryForName(params.rel);
                             if (repo == null) return;
