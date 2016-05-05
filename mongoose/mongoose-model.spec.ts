@@ -249,7 +249,7 @@ describe('testing relation', () => {
             });
         });
 
-        xdescribe(': post embedded one object', () => {
+        describe(': post embedded one object', () => {
             var stud1 = {};
             var resStud1, resStud2, resSub1;
             var sub1 = {};
@@ -263,14 +263,12 @@ describe('testing relation', () => {
 
             beforeEach((done) => {
                 setTimeout(function () {
-                    console.log(stud1);
                     MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
                         resStud1 = x;
 
                         sub1 = {};
                         sub1['_id'] = resSub1['_id'];
                         stud1['courseOTO'] = sub1;
-                        console.log(stud1);
                         MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
                             resStud2 = x;
                             done();
@@ -367,7 +365,6 @@ describe('testing relation', () => {
                             cond['courseOTO._id'] = sub1['_id'];
                             stud['courseOTO'] = null;
                             mockData.MongoDbMock.setOnUpdate(student, cond, stud);
-
                             MongooseModel.del(mockData.getMongooseModel(course), sub1['_id'])
                                 .then(cor => {
                                     del = cor;

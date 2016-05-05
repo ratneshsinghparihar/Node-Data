@@ -187,8 +187,10 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj).then(result => {
         var updatedProps = getUpdatedProps(clonedObj);
+        console.log('model updated=', updatedProps, 'clonedObj', clonedObj);
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
             .then(result => {
+                console.log('model=', result);
                 return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
                     .then(res => {
                         let resObj = toObject(result);
@@ -222,10 +224,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
-                    if (result['nModified'] > 0) {
-                        //console.log(result);
-                        updateEmbeddedParent(model, queryCond);
-                    }
+                    return updateEmbeddedParent(model, queryCond, result);
                 });
 
         }
@@ -236,10 +235,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
-                    if (result['nModified'] > 0) {
-                        //console.log(result);
-                        updateEmbeddedParent(model, queryCond);
-                    }
+                    return updateEmbeddedParent(model, queryCond, result);
                 });
         }
     }
@@ -261,10 +257,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 pullObj[prop] = updateObj['_id'];
                 return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                     .then(result => {
-                        if (result['nModified'] > 0) {
-                            //console.log(result);
-                            updateEmbeddedParent(model, queryCond);
-                        }
+                        return updateEmbeddedParent(model, queryCond, result);
                     });
             }
             else {
@@ -274,28 +267,30 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                 return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
                     .then(result => {
-                        if (result['nModified'] > 0) {
-                            //console.log(result);
-                            updateEmbeddedParent(model, queryCond);
-                        }
+                        //console.log(result);
+                        return updateEmbeddedParent(model, queryCond, result);
                     });
             }
         }
     }
 }
 
-function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond) {
+function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
+    if (result['nModified'] == 0)
+        return;
+
     var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
 
     var first = Enumerable.from(allReferencingEntities).where(x => (<IAssociationParams>x.params).embedded).firstOrDefault();
-    if (first) {
-        // find the objects and then update these objects
-        return Q.nbind(model.find, model)(queryCond)
-            .then(updated => {
-                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                return findAndUpdateEmbeddedData(model, ids);
-            });
-    }
+    if (!first)
+        return;
+
+    // find the objects and then update these objects
+    return Q.nbind(model.find, model)(queryCond)
+        .then(updated => {
+            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
+            return findAndUpdateEmbeddedData(model, ids);
+        });
 }
 
 function getUpdatedProps(obj: any) {
