@@ -14,17 +14,36 @@ import {getEntity, getModel} from '../core/dynamic/model-entity';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
-    var asyncCalls = [];
+    var addChildModel = [];
 
-    Enumerable.from(objArr).forEach(x => {
-        asyncCalls.push(post(model, x));
+    // create all cloned models
+    var clonedModels = [];
+    Enumerable.from(objArr).forEach(obj => {
+        var cloneObj = removeTransientProperties(model, obj);
+        clonedModels.push(cloneObj);
+        addChildModel.push(addChildModelToParent(model, cloneObj));
     });
 
-    return Q.allSettled(asyncCalls)
+    return Q.allSettled(addChildModel)
         .then(result => {
-            return Enumerable.from(result).select(x => x.value).toArray();
-        })
-        .catch(error => error);
+            // autogenerate ids of all the objects
+            Enumerable.from(clonedModels).forEach(clonedObj => {
+                try {
+                    autogenerateIdsForAutoFields(model, clonedObj);
+                    //Object.assign(obj, clonedObj);
+                } catch (ex) {
+                    console.log(ex);
+                    return Q.reject(ex);
+                }
+            });
+
+            return Q.nbind(model.create, model)(clonedModels).then(result => {
+                return Enumerable.from(result).select(x => toObject(x)).toArray();
+            })
+                .catch(error => {
+                    console.log(error);
+                })
+        });
 }
 
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
@@ -48,7 +67,6 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
         .then(result => {
             return toObject(result);
         })
-
 }
 
 export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
@@ -104,20 +122,6 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
         });
 }
 
-function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
-    var clonedObj = {};
-    Object.assign(clonedObj, obj);
-    var transientProps = Enumerable.from(MetaUtils.getMetaData(getEntity(model.modelName))).where((ele: MetaData, idx) => {
-        if (ele.decorator === Decorators.TRANSIENT) {
-            return true;
-        }
-        return false;
-    }).forEach(element => {
-        delete clonedObj[element.propertyKey];
-    });
-    return clonedObj;
-}
-
 
 /**
  * case 1: all new - create main item and child separately and embed if true
@@ -128,21 +132,18 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     let clonedObj = removeTransientProperties(model, obj);
     return addChildModelToParent(model, clonedObj)
         .then(result => {
-            return isDataValid(model, clonedObj, null)
-                .then(result => {
-                    try {
-                        autogenerateIdsForAutoFields(model, clonedObj);
-                        //Object.assign(obj, clonedObj);
-                    } catch (ex) {
-                        console.log(ex);
-                        return Q.reject(ex);
-                    }
-                    return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
-                        let resObj = toObject(result);
-                        Object.assign(obj, resObj);
-                        return obj;
-                    });
-                });
+            try {
+                autogenerateIdsForAutoFields(model, clonedObj);
+                //Object.assign(obj, clonedObj);
+            } catch (ex) {
+                console.log(ex);
+                return Q.reject(ex);
+            }
+            return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
+                let resObj = toObject(result);
+                Object.assign(obj, resObj);
+                return obj;
+            });
         }).catch(error => {
             console.error(error);
             return Q.reject(error);
@@ -166,17 +167,15 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj).then(result => {
-        return isDataValid(model, clonedObj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
-                .then(result => {
-                    return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
-                        .then(res => {
-                            let resObj = toObject(result);
-                            Object.assign(obj, resObj);
-                            return obj;
-                        });
-                });
-        });
+        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
+            .then(result => {
+                return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
+                    .then(res => {
+                        let resObj = toObject(result);
+                        Object.assign(obj, resObj);
+                        return obj;
+                    });
+            });
     }).catch(error => {
         console.error(error);
         return Q.reject(error);
@@ -187,17 +186,16 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj).then(result => {
-        return isDataValid(model, clonedObj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { new: true })
-                .then(result => {
-                    return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
-                        .then(res => {
-                            let resObj = toObject(result);
-                            Object.assign(obj, resObj);
-                            return obj;
-                        });
-                });
-        });
+        var updatedProps = getUpdatedProps(clonedObj);
+        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
+            .then(result => {
+                return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
+                    .then(res => {
+                        let resObj = toObject(result);
+                        Object.assign(obj, resObj);
+                        return obj;
+                    });
+            });
     }).catch(error => {
         console.error(error);
         return Q.reject(error);
@@ -224,8 +222,10 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
-                    //console.log(result);
-                    updateEmbeddedParent(model, queryCond);
+                    if (result.nModified > 0) {
+                        //console.log(result);
+                        updateEmbeddedParent(model, queryCond);
+                    }
                 });
 
         }
@@ -236,8 +236,10 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
-                    //console.log(result);
-                    updateEmbeddedParent(model, queryCond);
+                    if (result.nModified > 0) {
+                        //console.log(result);
+                        updateEmbeddedParent(model, queryCond);
+                    }
                 });
         }
     }
@@ -259,8 +261,10 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 pullObj[prop] = updateObj['_id'];
                 return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                     .then(result => {
-                        //console.log(result);
-                        updateEmbeddedParent(model, queryCond);
+                        if (result.nModified > 0) {
+                            //console.log(result);
+                            updateEmbeddedParent(model, queryCond);
+                        }
                     });
             }
             else {
@@ -270,8 +274,10 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                 return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
                     .then(result => {
-                        //console.log(result);
-                        updateEmbeddedParent(model, queryCond);
+                        if (result.nModified > 0) {
+                            //console.log(result);
+                            updateEmbeddedParent(model, queryCond);
+                        }
                     });
             }
         }
@@ -290,6 +296,45 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond) {
                 return findAndUpdateEmbeddedData(model, ids);
             });
     }
+}
+
+function getUpdatedProps(obj: any) {
+    var set = {};
+    var unset = {};
+    var s = false, u = false;
+    for (var i in obj) {
+        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || obj[i] == [] || obj[i] == {}) {
+            unset[i] = obj[i];
+            u = true;
+        }
+        else {
+            set[i] = obj[i];
+            s = true;
+        }
+    }
+    var json = {};
+    if (s) {
+        json['$set'] = set;
+    }
+    if (u) {
+        json['$unset'] = unset;
+    }
+
+    return json;
+}
+
+function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
+    var clonedObj = {};
+    Object.assign(clonedObj, obj);
+    var transientProps = Enumerable.from(MetaUtils.getMetaData(getEntity(model.modelName))).where((ele: MetaData, idx) => {
+        if (ele.decorator === Decorators.TRANSIENT) {
+            return true;
+        }
+        return false;
+    }).forEach(element => {
+        delete clonedObj[element.propertyKey];
+    });
+    return clonedObj;
 }
 
 function embeddedChildren(model: Mongoose.Model<any>, val: any) {
@@ -518,7 +563,9 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
 
         asyncCalls.push(embedChild(obj, prop, relationDecoratorMeta[0]));
     }
-    return Q.all(asyncCalls);
+    return Q.all(asyncCalls).then(x => {
+        return isDataValid(model, obj, null);
+    });
 }
 
 function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
