@@ -222,7 +222,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
-                    if (result.nModified > 0) {
+                    if (result['nModified'] > 0) {
                         //console.log(result);
                         updateEmbeddedParent(model, queryCond);
                     }
@@ -236,7 +236,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
-                    if (result.nModified > 0) {
+                    if (result['nModified'] > 0) {
                         //console.log(result);
                         updateEmbeddedParent(model, queryCond);
                     }
@@ -261,7 +261,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 pullObj[prop] = updateObj['_id'];
                 return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                     .then(result => {
-                        if (result.nModified > 0) {
+                        if (result['nModified'] > 0) {
                             //console.log(result);
                             updateEmbeddedParent(model, queryCond);
                         }
@@ -274,7 +274,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
                 return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
                     .then(result => {
-                        if (result.nModified > 0) {
+                        if (result['nModified'] > 0) {
                             //console.log(result);
                             updateEmbeddedParent(model, queryCond);
                         }
