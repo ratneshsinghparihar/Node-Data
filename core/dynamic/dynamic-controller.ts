@@ -81,7 +81,7 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.findChild(req.params.id, req.params.prop)
+                return this.repository.findOne(req.params.id)
                     .then((result) => {
 
                         var parent = (<any>result);
@@ -117,23 +117,26 @@ export class DynamicController {
                                     ids = [association];
                                 }
 
-                                return repo.findMany(ids)
-                                    .then((result) => {
-                                        if (result.length > 0) {
-                                            if (meta.propertyType.isArray) {
-                                                Enumerable.from(result).forEach(x => {
-                                                    this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
-                                                });
+                                var asyncCalls = [];
+                                Enumerable.from(ids).forEach(x => asyncCalls.push(repo.findOne(x)));
 
-                                                result = this.getHalModels(result, resourceName);
-                                            }
-                                            else {
-                                                result = result[0];
-                                                this.getHalModel1(result, resourceName + '/' + result['_id'], req, repo);
-                                            }
-                                            this.sendresult(req, res, result);
+                                Q.allSettled(asyncCalls).then(result => {
+                                    result = Enumerable.from(result).select(x => x.value).toArray();
+                                    if (result.length > 0) {
+                                        if (meta.propertyType.isArray) {
+                                            Enumerable.from(result).forEach(x => {
+                                                this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
+                                            });
+
+                                            result = this.getHalModels(result, resourceName);
                                         }
-                                    });
+                                        else {
+                                            result = result[0];
+                                            this.getHalModel1(result, resourceName + '/' + result['_id'], req, repo);
+                                        }
+                                        this.sendresult(req, res, result);
+                                    }
+                                });
                             }
                         }
                         else {
