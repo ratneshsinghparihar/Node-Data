@@ -3,5 +3,6 @@ export interface IAssociationParams {
     itemType: Object,
     embedded: boolean,
     persist: boolean,
-    eagerLoading: boolean
+    eagerLoading: boolean,
+    deleteCascade?: boolean
 }
