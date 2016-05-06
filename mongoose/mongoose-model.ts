@@ -110,7 +110,6 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
             console.error(error);
             return Q.reject(error);
         }
-
         return toObject(result);
     });
 }
@@ -155,7 +154,9 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
         .then((response: any) => {
             return updateEmbeddedOnEntityChange(model, EntityChange.delete, response)
                 .then(res => {
-                    return ({ delete: 'success' });
+                    return deleteCascade(model, toObject(response)).then(x => {
+                        return ({ delete: 'success' });
+                    });
                 });
         })
         .catch(err => {
@@ -167,6 +168,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj).then(result => {
+        var updatedProps = getUpdatedProps(clonedObj);
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
             .then(result => {
                 return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
@@ -187,10 +189,8 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj).then(result => {
         var updatedProps = getUpdatedProps(clonedObj);
-        console.log('model updated=', updatedProps, 'clonedObj', clonedObj);
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
             .then(result => {
-                console.log('model=', result);
                 return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
                     .then(res => {
                         let resObj = toObject(result);
@@ -201,6 +201,62 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
     }).catch(error => {
         console.error(error);
         return Q.reject(error);
+    });
+}
+
+function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
+    var relations = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+    var relationToDelete = Enumerable.from(relations).where(x => x.params.deleteCascade).toArray();
+    var ids = {};
+    var models = {};
+
+    relationToDelete.forEach(res => {
+        var x = <IAssociationParams>res.params;
+        var prop = updateObj[res.propertyKey];
+        ids[x.rel] = ids[x.rel] || [];
+        if (x.embedded) {
+            if (res.propertyType.isArray) {
+                var id = Enumerable.from(prop).select(x => x['_id']).toArray();
+                ids[x.rel] = ids[x.rel].concat(id);
+            }
+            else {
+                ids[x.rel] = ids[x.rel].concat([prop['_id']]);
+            }
+        }
+        else {
+            ids[x.rel] = ids[x.rel].concat(res.propertyType.isArray ? prop : [prop]);
+        }
+        ids[x.rel] = Enumerable.from(ids[x.rel]).select(x => x.toString()).toArray();
+    });
+
+    var asyncCalls = [];
+    for (var i in ids) {
+        if (ids[i].length > 0) {
+            models[i] = getModel(i);
+            asyncCalls.push(bulkDelete(models[i], ids[i]));
+        }
+    }
+
+    return Q.allSettled(asyncCalls);
+}
+
+function bulkDelete(model: Mongoose.Model<any>, ids: any) {
+    return findMany(model, ids).then(data => {  
+        return Q.nbind(model.remove, model)({
+            '_id': {
+                $in: ids
+            }
+        }).then(x => {
+            console.log(data);
+
+            var asyncCalls = [];
+            // will not call update embedded parent because these children should not exist without parent
+            Enumerable.from(data).forEach(res => {
+                asyncCalls.push(deleteCascade(model, res));
+            });
+
+            return Q.allSettled(asyncCalls);
+        });
     });
 }
 
@@ -294,13 +350,20 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
 }
 
 function getUpdatedProps(obj: any) {
+    var push = {};
     var set = {};
     var unset = {};
-    var s = false, u = false;
+    var s = false, u = false, p = false;
     for (var i in obj) {
         if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || obj[i] == [] || obj[i] == {}) {
             unset[i] = obj[i];
             u = true;
+        }
+        else if (obj[i] instanceof Array) {
+            push[i] = {
+                $each: obj[i]
+            }
+            p = true;
         }
         else {
             set[i] = obj[i];
@@ -313,6 +376,9 @@ function getUpdatedProps(obj: any) {
     }
     if (u) {
         json['$unset'] = unset;
+    }
+    if (p) {
+        json['$push'] = push;
     }
 
     return json;
