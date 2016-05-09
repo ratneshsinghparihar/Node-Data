@@ -241,14 +241,12 @@ function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
 }
 
 function bulkDelete(model: Mongoose.Model<any>, ids: any) {
-    return findMany(model, ids).then(data => {  
+    return findMany(model, ids).then(data => {
         return Q.nbind(model.remove, model)({
             '_id': {
                 $in: ids
             }
         }).then(x => {
-            console.log(data);
-
             var asyncCalls = [];
             // will not call update embedded parent because these children should not exist without parent
             Enumerable.from(data).forEach(res => {

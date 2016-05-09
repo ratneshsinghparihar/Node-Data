@@ -717,4 +717,41 @@ describe('testing relation', () => {
             console.log('#### completed - (one to many)(Embedded = false)');
         });
     });
+
+    describe(': student-course (many to many)(deleteCascade = true)', () => {
+        var student1;
+        var objs = [], student1;
+        beforeAll(() => {
+            student1 = {};
+            student1['name'] = 'student1';
+            objs.push({ 'name': 'subject1' });
+            objs.push({ 'name': 'subject2' });
+        });
+
+        beforeEach((done) => {
+            setTimeout(function () {
+                MongooseModel.bulkPost(mockData.getMongooseModel(course), objs).then(x => {
+                    var courseDelCascase = Enumerable.from(x).select(a => a['_id']).toArray();
+                    student1['courseDelCascase'] = courseDelCascase;
+                    MongooseModel.post(mockData.getMongooseModel(student), student1).then(x => {
+                        MongooseModel.del(mockData.getMongooseModel(student), student1['_id']).then(x => {
+                            MongooseModel.findAll(mockData.getMongooseModel(course)).then(x => {
+                                res = x;
+                                done(); 
+                            });
+                        });
+                    });
+                });
+            }, 500);
+        });
+        
+        it(': test', (done) => {
+            done();
+        });
+    });
+
+    afterAll(() => {
+        mockData.clearDatabase();
+        console.log('#### completed - (one to many)(Embedded = false)');
+    });
 });
