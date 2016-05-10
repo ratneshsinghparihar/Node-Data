@@ -513,8 +513,8 @@ export class DynamicController {
     }
 
     private getModelFromHalModel(model: any, req: any, res: any) {
-        if (model["_lniks"]) {
-            delete model["_lniks"];
+        if (model["_links"]) {
+            delete model["_links"];
         }
         //code to handle jsonignore
         let modelRepo = this.repository.getEntityType();
