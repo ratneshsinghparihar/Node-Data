@@ -21,7 +21,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = removeTransientProperties(model, obj);
         clonedModels.push(cloneObj);
-        addChildModel.push(addChildModelToParent(model, cloneObj));
+        addChildModel.push(addChildModelToParent(model, cloneObj, null));
     });
 
     return Q.allSettled(addChildModel)
@@ -129,7 +129,7 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
  */
 export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     let clonedObj = removeTransientProperties(model, obj);
-    return addChildModelToParent(model, clonedObj)
+    return addChildModelToParent(model, clonedObj, null)
         .then(result => {
             try {
                 autogenerateIdsForAutoFields(model, clonedObj);
@@ -167,7 +167,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
 export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
-    return addChildModelToParent(model, clonedObj).then(result => {
+    return addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = getUpdatedProps(clonedObj);
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
             .then(result => {
@@ -187,7 +187,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
 export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
-    return addChildModelToParent(model, clonedObj).then(result => {
+    return addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = getUpdatedProps(clonedObj);
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
             .then(result => {
@@ -605,7 +605,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
  * @param model
  * @param obj
  */
-function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
+function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
     var asyncCalls = [];
     for (var prop in obj) {
         var metaArr = MetaUtils.getMetaDataForPropKey(getEntity(model.modelName), prop);
@@ -623,7 +623,7 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
         asyncCalls.push(embedChild(obj, prop, relationDecoratorMeta[0]));
     }
     return Q.all(asyncCalls).then(x => {
-        return isDataValid(model, obj, null);
+        return isDataValid(model, obj, id);
     });
 }
 

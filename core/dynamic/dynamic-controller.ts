@@ -104,7 +104,7 @@ export class DynamicController {
                                     Enumerable.from(association).forEach(x => {
                                         this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
                                     });
-                                    association = this.getHalModels(association, resourceName);
+                                    //association = this.getHalModels(association, resourceName);
                                 }
                                 else {
                                     this.getHalModel1(association, resourceName + '/' + association['_id'], req, repo);
@@ -128,7 +128,7 @@ export class DynamicController {
                                                 this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
                                             });
 
-                                            result = this.getHalModels(result, resourceName);
+                                            //result = this.getHalModels(result, resourceName);
                                         }
                                         else {
                                             result = result[0];
@@ -582,19 +582,21 @@ export class DynamicController {
             relUrl["href"] = resourceName + "/" + relation.propertyKey;
             model["_links"][relation.propertyKey] = relUrl;
             var repo = GetRepositoryForName(relation.params.rel);
-            var param = relation.params;
-            if (!param.embedded && !param.eagerLoading) { return model };
-            if (model[relation.propertyKey] instanceof Array) {
-                if (model[relation.propertyKey] && model[relation.propertyKey].length) {
-                    model[relation.propertyKey].forEach(key => {
-                        var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
-                        this.getHalModel1(key, url + '/' + key['_id'], req, repo);
-                    });
-                }
-            } else {
-                if (model[relation.propertyKey]) {
+            if (repo) {
+                var param = relation.params;
+                if (!param.embedded && !param.eagerLoading) { return model };
+                if (model[relation.propertyKey] instanceof Array) {
+                    if (model[relation.propertyKey] && model[relation.propertyKey].length) {
+                        model[relation.propertyKey].forEach(key => {
+                            var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
+                            this.getHalModel1(key, url + '/' + key['_id'], req, repo);
+                        });
+                    }
+                } else {
+                    if (model[relation.propertyKey]) {
                         var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
                         this.getHalModel1(model[relation.propertyKey], url + '/' + model[relation.propertyKey]['_id'], req, repo);
+                    }
                 }
             }
         });
