@@ -66,28 +66,28 @@ redis | unknown | Rest middleware
 
 ##How To Use
 Follow the below steps to start using the framework.
-1.Git clone https://github.com/hariadk/demo-sample.git
+1. Git clone https://github.com/hariadk/demo-sample.git
 
-2.cd demo-sample/Demo-Sample
+2. cd demo-sample/Demo-Sample
 
 For using session based authentication use below steps:
-1.Do above steps 1 & 2
+1. Do above steps 1 & 2
 
-2.Checkout branch PasswordAuth
+2. Checkout branch PasswordAuth
 
-3.npm install
+3. npm install
 
-4.tsd install
+4. tsd install
 
-5.Mongodb running on 27017(default port).
+5. Mongodb running on 27017(default port).
 
-6.Post a JSON {"name":"john","":"john"} to http://localhost:9999/data/users. This will create a test user in db.
+6. Post a JSON {"name":"john","":"john"} to http://localhost:9999/data/users. This will create a test user in db.
 
-7.open cmd, run 'gulp compile-ts' then run gulp.
+7. open cmd, run 'gulp compile-ts' then run gulp.
 
-8.Hit http://localhost:9999 which will take you to login page.
+8. Hit http://localhost:9999 which will take you to login page.
 
-9.use john as username and password, and a session will be created.
+9. use john as username and password, and a session will be created.
 
 For using Token based auth use below steps
 1. All the steps done above except checkout branch TokenAuth.
