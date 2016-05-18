@@ -249,7 +249,7 @@ describe('testing relation', () => {
             });
         });
 
-        xdescribe(': post embedded one object', () => {
+        describe(': post embedded one object', () => {
             var stud1 = {};
             var resStud1, resStud2, resSub1;
             var sub1 = {};
@@ -263,14 +263,12 @@ describe('testing relation', () => {
 
             beforeEach((done) => {
                 setTimeout(function () {
-                    console.log(stud1);
                     MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
                         resStud1 = x;
 
                         sub1 = {};
                         sub1['_id'] = resSub1['_id'];
                         stud1['courseOTO'] = sub1;
-                        console.log(stud1);
                         MongooseModel.post(mockData.getMongooseModel(student), stud1).then(x => {
                             resStud2 = x;
                             done();
@@ -367,7 +365,6 @@ describe('testing relation', () => {
                             cond['courseOTO._id'] = sub1['_id'];
                             stud['courseOTO'] = null;
                             mockData.MongoDbMock.setOnUpdate(student, cond, stud);
-
                             MongooseModel.del(mockData.getMongooseModel(course), sub1['_id'])
                                 .then(cor => {
                                     del = cor;
@@ -719,5 +716,42 @@ describe('testing relation', () => {
             mockData.clearDatabase();
             console.log('#### completed - (one to many)(Embedded = false)');
         });
+    });
+
+    describe(': student-course (many to many)(deleteCascade = true)', () => {
+        var student1;
+        var objs = [], student1;
+        beforeAll(() => {
+            student1 = {};
+            student1['name'] = 'student1';
+            objs.push({ 'name': 'subject1' });
+            objs.push({ 'name': 'subject2' });
+        });
+
+        beforeEach((done) => {
+            setTimeout(function () {
+                MongooseModel.bulkPost(mockData.getMongooseModel(course), objs).then(x => {
+                    var courseDelCascase = Enumerable.from(x).select(a => a['_id']).toArray();
+                    student1['courseDelCascase'] = courseDelCascase;
+                    MongooseModel.post(mockData.getMongooseModel(student), student1).then(x => {
+                        MongooseModel.del(mockData.getMongooseModel(student), student1['_id']).then(x => {
+                            MongooseModel.findAll(mockData.getMongooseModel(course)).then(x => {
+                                res = x;
+                                done(); 
+                            });
+                        });
+                    });
+                });
+            }, 500);
+        });
+        
+        it(': test', (done) => {
+            done();
+        });
+    });
+
+    afterAll(() => {
+        mockData.clearDatabase();
+        console.log('#### completed - (one to many)(Embedded = false)');
     });
 });

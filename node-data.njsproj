@@ -141,6 +141,8 @@
     <TypeScriptCompile Include="security-config.ts" />
     <TypeScriptCompile Include="security\auth\security-utils.ts" />
     <TypeScriptCompile Include="server.ts" />
+    <TypeScriptCompile Include="tests\models\A.ts" />
+    <TypeScriptCompile Include="tests\models\B.ts" />
     <TypeScriptCompile Include="tests\models\baseModel.ts" />
     <TypeScriptCompile Include="tests\models\subject.ts" />
     <TypeScriptCompile Include="tests\models\role.ts" />
@@ -149,6 +151,7 @@
     <TypeScriptCompile Include="tests\models\user.ts" />
     <TypeScriptCompile Include="tests\models\usermodel.ts" />
     <TypeScriptCompile Include="tests\preauth-service.ts" />
+    <TypeScriptCompile Include="tests\repositories\BRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\role.repository.ts" />
@@ -237,7 +240,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="scripts\set_dev_version.ts" />
-    <Compile Include="tests\models\user.js" />
     <Compile Include="unit-test\format.js" />
     <Compile Include="unit-test\InitializeModels.js" />
   </ItemGroup>

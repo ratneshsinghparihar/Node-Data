@@ -44,6 +44,9 @@ export class student {
 
     @manytomany({ rel: 'course', itemType: course, embedded: false, persist: true, eagerLoading: false })
     courseIdMTM: Array<course>;
+
+    @manytomany({ rel: 'course', itemType: course, embedded: true, persist: true, eagerLoading: false, deleteCascade: true })
+    courseDelCascase: Array<course>;
 }
 
 export default student;

@@ -97,7 +97,7 @@ export class MongoDbMock {
             if (prop == '_id') {
                 if (param[prop]['$in']) {
                     var arr: Array<any> = param[prop]['$in'];
-                    res = Enumerable.from(collection).where(x => arr.find(id => x['_id'] == id)).toArray();
+                    res = Enumerable.from(collection).where(x => arr.find(id => x['_id'] == id.toString())).toArray();
                 }
                 else {
                     res = Enumerable.from(collection).where(x => x['_doc'][prop] == param[prop].toString()).firstOrDefault();
@@ -136,10 +136,22 @@ export class MongoDbMock {
     }
 
     public static create(object: any, model: any, collection: Array<any>): Q.Promise<any> {
-        var obj = new model(object);
-        collection.push(obj);
+        var res;
+        if (object instanceof Array) {
+            res = [];
+            Enumerable.from(object).forEach(x => {
+                var obj = new model(x);
+                collection.push(obj);
+                res.push(obj);
+            });
+        }
+        else {
+            var obj = new model(object);
+            collection.push(obj);
+            res = obj;
+        }
         //console.log('create(', object, ')=> ', obj);
-        return Q.when(obj);
+        return Q.when(res);
     }
 
     public static findOneAndRemove(query: any, collection: Array<any>): Q.Promise<any> {
@@ -160,6 +172,9 @@ export class MongoDbMock {
         for (var item in query) {
             res = Enumerable.from(collection).where(x => x['_doc'][item] == query[item].toString()).firstOrDefault();
             if (res) {
+                if (object['$set']) {
+                    object = object['$set'];
+                }
                 for (var prop in object) {
                     res['_doc'][prop] = object[prop];
                 }
@@ -224,8 +239,13 @@ export function getFakeFunctionForMongoose(func, model): any {
     var fn: Function = func as Function;
     var res = _databaseCalls[model.modelName][func.name];
     if (!res) {
-        //console.log('return fake function - ', model.modelName, fn);
-        return _databaseCalls[model.modelName]['findOneAndUpdate'];
+        //console.log('return fake function - ', model.modelName, fn.length, fn.arguments, fn);
+        if (fn.length == 4) {
+            return _databaseCalls[model.modelName]['findOneAndUpdate'];
+        }
+        else if (fn.length == 3) {
+            return _databaseCalls[model.modelName]['findOneAndRemove'];
+        }
     }
     return res;
 }

@@ -19,39 +19,43 @@ export class AuthService {
     private userDetailService: UserDetailService;
 
     constructor() {
-        this.addRoutes();
+        if (configUtil.config().Security.useFaceBookAuth == true) {
+            this.addRoutes();
+        }
     }
 
     authenticate() {
         this.authenticateByPasswordorToken();
-        this.facebookAuthentication();
+        if (configUtil.config().Security.useFaceBookAuth == true) {
+            this.facebookAuthentication();
+        }
     }
 
     private authenticateByPasswordorToken() {
-            passport.use(new LocalStrategy(
-                (username, password, done) => {
-                    this.userDetailService.loadUserByUsername(username).then(
-                        (user) => {
-                            if (!user) {
-                                return done(null, false, { message: 'Incorrect username.' });
-                            }
-                            if (user.getPassword() != password) {
-                                return done(null, false, { message: 'Incorrect password.' });
-                            }
+        passport.use(new LocalStrategy(
+            (username, password, done) => {
+                this.userDetailService.loadUserByUsername(username).then(
+                    (user) => {
+                        if (!user) {
+                            return done(null, false, { message: 'Incorrect username.' });
+                        }
+                        if (user.getPassword() != password) {
+                            return done(null, false, { message: 'Incorrect password.' });
+                        }
 
-                            return done(null, user.getUserObject());
+                        return done(null, user.getUserObject());
 
-                        },
-                        (error) => {
-                            return done(error);
-                        });
+                    },
+                    (error) => {
+                        return done(error);
+                    });
 
-                }
+            }
 
         ));
-            this.serializeDeserialize();
+        // this.serializeDeserialize();
 
-          
+
     }
 
     private serializeDeserialize() {

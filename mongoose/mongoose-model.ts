@@ -14,17 +14,36 @@ import {getEntity, getModel} from '../core/dynamic/model-entity';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
-    var asyncCalls = [];
+    var addChildModel = [];
 
-    Enumerable.from(objArr).forEach(x => {
-        asyncCalls.push(post(model, x));
+    // create all cloned models
+    var clonedModels = [];
+    Enumerable.from(objArr).forEach(obj => {
+        var cloneObj = removeTransientProperties(model, obj);
+        clonedModels.push(cloneObj);
+        addChildModel.push(addChildModelToParent(model, cloneObj, null));
     });
 
-    return Q.allSettled(asyncCalls)
+    return Q.allSettled(addChildModel)
         .then(result => {
-            return Enumerable.from(result).select(x => x.value).toArray();
-        })
-        .catch(error => error);
+            // autogenerate ids of all the objects
+            Enumerable.from(clonedModels).forEach(clonedObj => {
+                try {
+                    autogenerateIdsForAutoFields(model, clonedObj);
+                    //Object.assign(obj, clonedObj);
+                } catch (ex) {
+                    console.log(ex);
+                    return Q.reject(ex);
+                }
+            });
+
+            return Q.nbind(model.create, model)(clonedModels).then(result => {
+                return Enumerable.from(result).select(x => toObject(x)).toArray();
+            })
+                .catch(error => {
+                    console.log(error);
+                })
+        });
 }
 
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
@@ -48,7 +67,6 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
         .then(result => {
             return toObject(result);
         })
-
 }
 
 export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
@@ -92,7 +110,6 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
             console.error(error);
             return Q.reject(error);
         }
-
         return toObject(result);
     });
 }
@@ -102,6 +119,267 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
         .then(result => {
             return toObject(result);
         });
+}
+
+
+/**
+ * case 1: all new - create main item and child separately and embed if true
+ * case 2: some new, some update - create main item and update/create child accordingly and embed if true
+ * @param obj
+ */
+export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
+    return addChildModelToParent(model, clonedObj, null)
+        .then(result => {
+            try {
+                autogenerateIdsForAutoFields(model, clonedObj);
+                //Object.assign(obj, clonedObj);
+            } catch (ex) {
+                console.log(ex);
+                return Q.reject(ex);
+            }
+            return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
+                let resObj = toObject(result);
+                Object.assign(obj, resObj);
+                return obj;
+            });
+        }).catch(error => {
+            console.error(error);
+            return Q.reject(error);
+        });
+}
+
+export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
+    return Q.nbind(model.findOneAndRemove, model)({ '_id': id })
+        .then((response: any) => {
+            return updateEmbeddedOnEntityChange(model, EntityChange.delete, response)
+                .then(res => {
+                    return deleteCascade(model, toObject(response)).then(x => {
+                        return ({ delete: 'success' });
+                    });
+                });
+        })
+        .catch(err => {
+            return Q.reject('delete failed');
+        });
+}
+
+export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
+    // First update the any embedded property and then update the model
+    return addChildModelToParent(model, clonedObj, id).then(result => {
+        var updatedProps = getUpdatedProps(clonedObj);
+        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
+            .then(result => {
+                return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
+                    .then(res => {
+                        let resObj = toObject(result);
+                        Object.assign(obj, resObj);
+                        return obj;
+                    });
+            });
+    }).catch(error => {
+        console.error(error);
+        return Q.reject(error);
+    });
+}
+
+export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
+    // First update the any embedded property and then update the model
+    return addChildModelToParent(model, clonedObj, id).then(result => {
+        var updatedProps = getUpdatedProps(clonedObj);
+        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
+            .then(result => {
+                return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
+                    .then(res => {
+                        let resObj = toObject(result);
+                        Object.assign(obj, resObj);
+                        return obj;
+                    });
+            });
+    }).catch(error => {
+        console.error(error);
+        return Q.reject(error);
+    });
+}
+
+function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
+    var relations = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+    var relationToDelete = Enumerable.from(relations).where(x => x.params.deleteCascade).toArray();
+    var ids = {};
+    var models = {};
+
+    relationToDelete.forEach(res => {
+        var x = <IAssociationParams>res.params;
+        var prop = updateObj[res.propertyKey];
+        ids[x.rel] = ids[x.rel] || [];
+        if (x.embedded) {
+            if (res.propertyType.isArray) {
+                var id = Enumerable.from(prop).select(x => x['_id']).toArray();
+                ids[x.rel] = ids[x.rel].concat(id);
+            }
+            else {
+                ids[x.rel] = ids[x.rel].concat([prop['_id']]);
+            }
+        }
+        else {
+            ids[x.rel] = ids[x.rel].concat(res.propertyType.isArray ? prop : [prop]);
+        }
+        ids[x.rel] = Enumerable.from(ids[x.rel]).select(x => x.toString()).toArray();
+    });
+
+    var asyncCalls = [];
+    for (var i in ids) {
+        if (ids[i].length > 0) {
+            models[i] = getModel(i);
+            asyncCalls.push(bulkDelete(models[i], ids[i]));
+        }
+    }
+
+    return Q.allSettled(asyncCalls);
+}
+
+function bulkDelete(model: Mongoose.Model<any>, ids: any) {
+    return findMany(model, ids).then(data => {
+        return Q.nbind(model.remove, model)({
+            '_id': {
+                $in: ids
+            }
+        }).then(x => {
+            var asyncCalls = [];
+            // will not call update embedded parent because these children should not exist without parent
+            Enumerable.from(data).forEach(res => {
+                asyncCalls.push(deleteCascade(model, res));
+            });
+
+            return Q.allSettled(asyncCalls);
+        });
+    });
+}
+
+function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, isArray?: boolean): Q.Promise<any> {
+    if (isEmbedded) {
+
+        var queryCond = {};
+        queryCond[prop + '._id'] = updateObj['_id'];
+
+        if (entityChange === EntityChange.put
+            || entityChange === EntityChange.patch
+            || (entityChange === EntityChange.delete && !isArray)) {
+
+            var cond = {};
+            cond[prop + '._id'] = updateObj['_id'];
+
+            var newUpdateObj = {};
+            isArray
+                ? newUpdateObj[prop + '.$'] = updateObj
+                : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
+
+            return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
+                .then(result => {
+                    return updateEmbeddedParent(model, queryCond, result);
+                });
+
+        }
+        else {
+            var pullObj = {};
+            pullObj[prop] = {};
+            pullObj[prop]['_id'] = updateObj['_id'];
+
+            return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
+                .then(result => {
+                    return updateEmbeddedParent(model, queryCond, result);
+                });
+        }
+    }
+    else {
+        // this to handle foreign key deletion only
+        if (entityChange == EntityChange.delete) {
+            var queryCond = {};
+            if (isArray) {
+                queryCond[prop] = { $in: [updateObj['_id']] };
+            }
+            else {
+                queryCond[prop] = updateObj['_id'];
+            }
+
+            var pullObj = {};
+            pullObj[prop] = {};
+
+            if (isArray) {
+                pullObj[prop] = updateObj['_id'];
+                return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
+                    .then(result => {
+                        return updateEmbeddedParent(model, queryCond, result);
+                    });
+            }
+            else {
+                pullObj[prop] = null;
+                var cond = {};
+                cond[prop] = updateObj['_id'];
+
+                return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
+                    .then(result => {
+                        //console.log(result);
+                        return updateEmbeddedParent(model, queryCond, result);
+                    });
+            }
+        }
+    }
+}
+
+function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
+    if (result['nModified'] == 0)
+        return;
+
+    var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+
+    var first = Enumerable.from(allReferencingEntities).where(x => (<IAssociationParams>x.params).embedded).firstOrDefault();
+    if (!first)
+        return;
+
+    // find the objects and then update these objects
+    return Q.nbind(model.find, model)(queryCond)
+        .then(updated => {
+            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
+            return findAndUpdateEmbeddedData(model, ids);
+        });
+}
+
+function getUpdatedProps(obj: any) {
+    var push = {};
+    var set = {};
+    var unset = {};
+    var s = false, u = false, p = false;
+    for (var i in obj) {
+        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || obj[i] == [] || obj[i] == {}) {
+            unset[i] = obj[i];
+            u = true;
+        }
+        else if (obj[i] instanceof Array) {
+            push[i] = {
+                $each: obj[i]
+            }
+            p = true;
+        }
+        else {
+            set[i] = obj[i];
+            s = true;
+        }
+    }
+    var json = {};
+    if (s) {
+        json['$set'] = set;
+    }
+    if (u) {
+        json['$unset'] = unset;
+    }
+    if (p) {
+        json['$push'] = push;
+    }
+
+    return json;
 }
 
 function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
@@ -116,173 +394,6 @@ function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
         delete clonedObj[element.propertyKey];
     });
     return clonedObj;
-}
-
-
-/**
- * case 1: all new - create main item and child separately and embed if true
- * case 2: some new, some update - create main item and update/create child accordingly and embed if true
- * @param obj
- */
-export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
-    let clonedObj = removeTransientProperties(model, obj);
-    return addChildModelToParent(model, clonedObj)
-        .then(result => {
-            return isDataValid(model, clonedObj, null)
-                .then(result => {
-                    try {
-                        autogenerateIdsForAutoFields(model, clonedObj);
-                        Object.assign(obj, clonedObj);
-                    } catch (ex) {
-                        console.log(ex);
-                        return Q.reject(ex);
-                    }
-                    return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
-                        return toObject(result);
-                    });
-                });
-        }).catch(error => {
-            console.error(error);
-            return Q.reject(error);
-        });
-}
-
-export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
-    return Q.nbind(model.findOneAndRemove, model)({ '_id': id })
-        .then((response: any) => {
-            return updateEmbeddedOnEntityChange(model, EntityChange.delete, response)
-                .then(res => {
-                    return ({ delete: 'success' });
-                });
-        })
-        .catch(err => {
-            return Q.reject('delete failed');
-        });
-}
-
-export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
-    let clonedObj = removeTransientProperties(model, obj);
-    // First update the any embedded property and then update the model
-    return addChildModelToParent(model, clonedObj).then(result => {
-        return isDataValid(model, clonedObj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
-                .then(result => {
-                    return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
-                        .then(res => {
-                            return toObject(result);
-                        });
-                });
-        });
-    }).catch(error => {
-        console.error(error);
-        return Q.reject(error);
-    });
-}
-
-export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
-    let clonedObj = removeTransientProperties(model, obj);
-    // First update the any embedded property and then update the model
-    return addChildModelToParent(model, clonedObj).then(result => {
-        return isDataValid(model, clonedObj, id).then(result => {
-            return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { new: true })
-                .then(result => {
-                    return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
-                        .then(res => {
-                            return toObject(result);
-                        });
-                });
-        });
-    }).catch(error => {
-        console.error(error);
-        return Q.reject(error);
-    });
-}
-
-function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, isArray?: boolean): Q.Promise<any> {
-    if (isEmbedded) {
-
-        var queryCond = {};
-        queryCond[prop + '._id'] = updateObj['_id'];
-
-        return Q.nbind(model.find, model)(queryCond)
-            .then(updated => {
-
-                if (entityChange === EntityChange.put
-                    || entityChange === EntityChange.patch
-                    || (entityChange === EntityChange.delete && !isArray)) {
-
-                    var cond = {};
-                    cond[prop + '._id'] = updateObj['_id'];
-
-                    var newUpdateObj = {};
-                    isArray
-                        ? newUpdateObj[prop + '.$'] = updateObj
-                        : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
-
-                    return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
-                        .then(result => {
-                            //console.log(result);
-                            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                            return findAndUpdateEmbeddedData(model, ids);
-                        });
-
-                }
-                else {
-                    var pullObj = {};
-                    pullObj[prop] = {};
-                    pullObj[prop]['_id'] = updateObj['_id'];
-
-                    return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                        .then(result => {
-                            //console.log(result);
-                            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                            return findAndUpdateEmbeddedData(model, ids);
-                        });
-                }
-            });
-    }
-    else {
-        // this to handle foreign key deletion only
-        if (entityChange == EntityChange.delete) {
-            var queryCond = {};
-            if (isArray) {
-                queryCond[prop] = { $in: [updateObj['_id']] };
-            }
-            else {
-                queryCond[prop] = updateObj['_id'];
-            }
-
-            return Q.nbind(model.find, model)(queryCond)
-                .then(updated => {
-                    //console.log(cond + ' :count:' + (updated as any[]).length);
-
-                    var pullObj = {};
-                    pullObj[prop] = {};
-
-                    if (isArray) {
-                        pullObj[prop] = updateObj['_id'];
-                        return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                            .then(result => {
-                                //console.log(result);
-                                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                                return findAndUpdateEmbeddedData(model, ids);
-                            });
-                    }
-                    else {
-                        pullObj[prop] = null;
-                        var cond = {};
-                        cond[prop] = updateObj['_id'];
-
-                        return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
-                            .then(result => {
-                                //console.log(result);
-                                var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-                                return findAndUpdateEmbeddedData(model, ids);
-                            });
-                    }
-                });
-        }
-    }
 }
 
 function embeddedChildren(model: Mongoose.Model<any>, val: any) {
@@ -494,7 +605,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
  * @param model
  * @param obj
  */
-function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
+function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
     var asyncCalls = [];
     for (var prop in obj) {
         var metaArr = MetaUtils.getMetaDataForPropKey(getEntity(model.modelName), prop);
@@ -511,7 +622,9 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any) {
 
         asyncCalls.push(embedChild(obj, prop, relationDecoratorMeta[0]));
     }
-    return Q.all(asyncCalls);
+    return Q.all(asyncCalls).then(x => {
+        return isDataValid(model, obj, id);
+    });
 }
 
 function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {

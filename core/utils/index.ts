@@ -132,7 +132,7 @@ export function getAllResourceNames(): Array<string> {
 export function getPrimaryKeyMetadata(target: Object) {
     var meta = MetaUtils.getMetaData(target, Decorators.FIELD);
     return Enumerable.from(meta)
-        .where(keyval => keyval.params.primary) // keyval = {[key(propName): string]: Metadata};
+        .where(keyval => keyval.params && keyval.params.primary) // keyval = {[key(propName): string]: Metadata};
         .select(keyVal => keyVal)
         .firstOrDefault();
 }
