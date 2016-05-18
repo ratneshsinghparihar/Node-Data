@@ -64,7 +64,19 @@ Elastic search | 10.1.3 | Search and aggregation
 Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
-##How To Use
+##How To Use without security
+
+1. Git clone https://github.com/hariadk/demo-sample.git
+2. cd demo-sample/Demo-Sample
+3. npm install
+4. tsd install
+5. Mongodb running on 27017(default port).
+6. Goto config.ts and make isAutheticationEnabled = 'disabled'
+7. open cmd, run 'gulp compile-ts' then run gulp.
+8. Hit the api to get data(e.g., http://localhost:9999/data/students)
+9. Ensure node version is 5.7.0
+
+##How To Use with security
 
 Follow the below steps to start using the framework.
 
