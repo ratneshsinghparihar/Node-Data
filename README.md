@@ -65,12 +65,15 @@ Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
 ##How To Use
+
 Follow the below steps to start using the framework.
+
 1. Git clone https://github.com/hariadk/demo-sample.git
 
 2. cd demo-sample/Demo-Sample
 
 For using session based authentication use below steps:
+
 1. Do above steps 1 & 2
 
 2. Checkout branch PasswordAuth
@@ -90,6 +93,7 @@ For using session based authentication use below steps:
 9. use john as username and password, and a session will be created.
 
 For using Token based auth use below steps
+
 1. All the steps done above except checkout branch TokenAuth.
 
 2. Once logged in , a token will be created.
