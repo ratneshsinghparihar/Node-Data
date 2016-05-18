@@ -64,6 +64,30 @@ Elastic search | 10.1.3 | Search and aggregation
 Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
+##How To Use
+Follow the below steps to start using the framework.
+1.Git clone https://github.com/hariadk/demo-sample.git
+2.cd demo-sample/Demo-Sample
+
+For using session based authentication use below steps:
+1.Do above steps 1 & 2
+2.Checkout branch PasswordAuth
+3.npm install
+4.tsd install
+5.Mongodb running on 27017(default port).
+6.Post a JSON {"name":"john","":"john"} to http://localhost:9999/data/users. This will create a test user in db.
+7.open cmd, run 'gulp compile-ts' then run gulp.
+8.Hit http://localhost:9999 which will take you to login page.
+9.use john as username and password, and a session will be created.
+
+For using Token based auth use below steps
+1. All the steps done above except checkout branch TokenAuth.
+2. Once logged in , a token will be created.
+3. To change the token expiring time, change the file security-config.ts.
+ public static tokenExpiresInMinutes: number = 2;//2 minutes
+4. The number indicates minutes of token expiry not hours.
+
+
 ##Rest level 3 APIs
 
 Node-data exposes the entities as level 3 REST APIs in HAL format. 
