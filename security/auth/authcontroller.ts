@@ -91,7 +91,7 @@ export class AuthController {
                     }), (req, res, next) => this.serialize(req, res, next),
                 (req, res, next) => this.generateToken(req, res, next),
                 (req, res, next) => this.generateRefreshToken(req, res, next),
-                (req, res) => this.respond(req, res));
+                (req, res) => this.authRespond(req, res));
         }
 
         if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.TokenBased]) {
@@ -108,7 +108,7 @@ export class AuthController {
         router.get('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
             (req, res, next) => this.serialize(req, res, next),
             (req, res, next) => this.generateToken(req, res, next),
-            (req, res) => this.respond(req, res));
+            (req, res) => this.authRespond(req, res));
 
         if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.passwordBased]) {
             router.post('/login',
@@ -119,6 +119,28 @@ export class AuthController {
         router.get('/logout', (req, res) => {
             req.logout();
             res.redirect('/');
+        });
+
+        router.post('/register', (req, res) => {
+            this.userDetailService.getNewUser(req.body).then(
+                (user) => {
+                    if (user) {
+                        this.userDetailService.createNewUser(user.getUserObject()).then((finalUser) => {
+                            res.set("Content-Type", "application/json");
+                            res.send(200, JSON.stringify('user created', null, 4));
+                        }, (error) => {
+                            res.set("Content-Type", "application/json");
+                            res.send(400, JSON.stringify('cannot create user', null, 4));
+                        });
+                    } else {
+                        res.set("Content-Type", "application/json");
+                        res.send(400, JSON.stringify('user already exists', null, 4));
+                    }
+                },
+                (error) => {
+                    res.set("Content-Type", "application/json");
+                    res.send(400, JSON.stringify('cannot create user', null, 4));
+                });
         });
     }
 

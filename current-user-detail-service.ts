@@ -24,10 +24,22 @@ export class CurrentUserDetailService implements UserDetailService {
         return this.userRepo.findByField("name", userName).then((user) => {
             usr = user;
             if (user == null || user == undefined) {
-                throw 'user doesnot exist';
+                return null;
             }
             userDetail = new User(user.name, user.password, user);
             return userDetail;
+        });
+    };
+
+    getNewUser(requestBody: any): Q.Promise<any> {
+        var userDetail: UserDetails;
+        var user = requestBody.user;
+        return this.userRepo.findByField("name", user.name).then((foundUser) => {
+            if (foundUser == null || foundUser == undefined) {
+                userDetail = new User(user.name, user.password, user);
+                return userDetail;
+            }
+            return null;
         });
     };
 
