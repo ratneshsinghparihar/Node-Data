@@ -122,25 +122,7 @@ export class AuthController {
         });
 
         router.post('/register', (req, res) => {
-            this.userDetailService.getNewUser(req.body).then(
-                (user) => {
-                    if (user) {
-                        this.userDetailService.createNewUser(user.getUserObject()).then((finalUser) => {
-                            res.set("Content-Type", "application/json");
-                            res.send(200, JSON.stringify('user created', null, 4));
-                        }, (error) => {
-                            res.set("Content-Type", "application/json");
-                            res.send(400, JSON.stringify('cannot create user', null, 4));
-                        });
-                    } else {
-                        res.set("Content-Type", "application/json");
-                        res.send(400, JSON.stringify('user already exists', null, 4));
-                    }
-                },
-                (error) => {
-                    res.set("Content-Type", "application/json");
-                    res.send(400, JSON.stringify('cannot create user', null, 4));
-                });
+            this.userDetailService.getNewUser(req, res);
         });
     }
 

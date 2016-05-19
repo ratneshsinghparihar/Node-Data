@@ -31,15 +31,22 @@ export class CurrentUserDetailService implements UserDetailService {
         });
     };
 
-    getNewUser(requestBody: any): Q.Promise<any> {
+    getNewUser(req, res){
         var userDetail: UserDetails;
-        var user = requestBody.user;
-        return this.userRepo.findByField("name", user.name).then((foundUser) => {
+        var user = req.body.user;
+         this.userRepo.findByField("name", user.name).then((foundUser) => {
             if (foundUser == null || foundUser == undefined) {
-                userDetail = new User(user.name, user.password, user);
-                return userDetail;
+                this.createNewUser(user).then((finalUser) => {
+                    res.set("Content-Type", "application/json");
+                    res.send(200, JSON.stringify('user created', null, 4));
+                }, (error) => {
+                    res.set("Content-Type", "application/json");
+                    res.send(400, JSON.stringify('cannot create user', null, 4));
+                });
+            } else {
+                res.set("Content-Type", "application/json");
+                res.send(400, JSON.stringify('user already exists', null, 4));
             }
-            return null;
         });
     };
 
