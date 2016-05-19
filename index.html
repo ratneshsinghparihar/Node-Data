@@ -158,6 +158,19 @@
 <li><p>cd demo-sample/Demo-Sample</p></li>
 </ol>
 
+<h2>
+<a id="create-a-new-user" class="anchor" href="#create-a-new-user" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Create a new user</h2>
+
+<ol>
+<li><p>POST {
+"user":{"name":"a111","password":"a"}
+}
+in http://localhost:9999/register.
+This will create a new user in db.</p></li>
+<li><p>Now we can use this user information to login, for both session based and token based authentication</p></li>
+<li><p>If we need to change the logic for user creation, change the method getNewUser in current-user-detail-service.ts file.Sample code is in place.</p></li>
+</ol>
+
 <p>For using session based authentication use below steps:</p>
 
 <ol>
