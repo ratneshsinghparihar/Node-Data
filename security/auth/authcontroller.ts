@@ -169,8 +169,8 @@ export class AuthController {
 
     private authRespond(req, res) {
         var responseJson = {};
-        responseJson['token'] = req.token;
-        responseJson['refreshToken'] = req.user.refreshToken;
+        delete req.user.password;
+        responseJson['user'] = req.user;
         res.send(responseJson);
    }
 
