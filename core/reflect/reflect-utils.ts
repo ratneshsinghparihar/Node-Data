@@ -1,5 +1,9 @@
 ﻿import {ReflectConstants} from '../constants';
 
+declare namespace Reflect {
+    function getMetadata(metadataKey: any, target: Object, targetKey: string | symbol): any;
+}
+
 export function getDesignType (target, targetKey) {
     return getReflectMetadata(ReflectConstants.DESIGNTYPE, target, targetKey);
 }
