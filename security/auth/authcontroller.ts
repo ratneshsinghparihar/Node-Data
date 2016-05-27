@@ -91,7 +91,7 @@ export class AuthController {
                     }), (req, res, next) => this.serialize(req, res, next),
                 (req, res, next) => this.generateToken(req, res, next),
                 (req, res, next) => this.generateRefreshToken(req, res, next),
-                (req, res) => this.respond(req, res));
+                (req, res) => this.authRespond(req, res));
         }
 
         if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.TokenBased]) {
@@ -108,7 +108,7 @@ export class AuthController {
         router.get('/token', (req, res, next) => this.validateRefreshToken(req, res, next),
             (req, res, next) => this.serialize(req, res, next),
             (req, res, next) => this.generateToken(req, res, next),
-            (req, res) => this.respond(req, res));
+            (req, res) => this.authRespond(req, res));
 
         if (configUtil.config().Security.authenticationType === configUtil.securityConfig().AuthenticationType[configUtil.securityConfig().AuthenticationType.passwordBased]) {
             router.post('/login',
@@ -119,6 +119,10 @@ export class AuthController {
         router.get('/logout', (req, res) => {
             req.logout();
             res.redirect('/');
+        });
+
+        router.post('/register', (req, res) => {
+            this.userDetailService.getNewUser(req, res);
         });
     }
 
@@ -165,8 +169,8 @@ export class AuthController {
 
     private authRespond(req, res) {
         var responseJson = {};
-        responseJson['token'] = req.token;
-        responseJson['refreshToken'] = req.user.refreshToken;
+        delete req.user.password;
+        responseJson['user'] = req.user;
         res.send(responseJson);
    }
 

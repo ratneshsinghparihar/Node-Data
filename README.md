@@ -85,6 +85,17 @@ Follow the below steps to start using the framework.
 
 2. cd demo-sample/Demo-Sample
 
+##Create a new user
+1. POST {
+"user":{"name":"a111","password":"a"}
+}
+in http://localhost:9999/register.
+This will create a new user in db.
+
+2. Now we can use this user information to login, for both session based and token based authentication
+
+3. If we need to change the logic for user creation, change the method getNewUser in current-user-detail-service.ts file.Sample code is in place.
+
 For using session based authentication use below steps:
 
 1. Do above steps 1 & 2

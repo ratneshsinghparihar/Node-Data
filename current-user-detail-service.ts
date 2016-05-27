@@ -24,10 +24,29 @@ export class CurrentUserDetailService implements UserDetailService {
         return this.userRepo.findByField("name", userName).then((user) => {
             usr = user;
             if (user == null || user == undefined) {
-                throw 'user doesnot exist';
+                return null;
             }
             userDetail = new User(user.name, user.password, user);
             return userDetail;
+        });
+    };
+
+    getNewUser(req, res){
+        var userDetail: UserDetails;
+        var user = req.body.user;
+         this.userRepo.findByField("name", user.name).then((foundUser) => {
+            if (foundUser == null || foundUser == undefined) {
+                this.createNewUser(user).then((finalUser) => {
+                    res.set("Content-Type", "application/json");
+                    res.send(200, JSON.stringify('user created', null, 4));
+                }, (error) => {
+                    res.set("Content-Type", "application/json");
+                    res.send(400, JSON.stringify('cannot create user', null, 4));
+                });
+            } else {
+                res.set("Content-Type", "application/json");
+                res.send(400, JSON.stringify('user already exists', null, 4));
+            }
         });
     };
 

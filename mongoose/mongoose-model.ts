@@ -118,7 +118,18 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
 export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> {
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            return toObject(result);
+            var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+            if (Enumerable.from(metas).any(x => x.propertyKey == prop)) {
+                return embeddedChildren(model, result)
+                    .then(r => {
+                        var res = toObject(result);
+                        return r[prop];
+                    });
+            }
+            else {
+                var res = toObject(result);
+                return res[prop];
+            }
         });
 }
 
@@ -170,7 +181,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = getUpdatedProps(clonedObj);
-        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, clonedObj, { upsert: true, new: true })
+        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { upsert: true, new: true })
             .then(result => {
                 return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
                     .then(res => {

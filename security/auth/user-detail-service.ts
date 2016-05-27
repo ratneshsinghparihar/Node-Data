@@ -6,4 +6,5 @@ export interface UserDetailService {
     loadUserByField(field: any, value: any): Q.Promise<any>;
     createNewUser(userObject): Q.Promise<any>;
     updateExistingUser(id, userObject): Q.Promise<any>;
+    getNewUser(req, res);
 }

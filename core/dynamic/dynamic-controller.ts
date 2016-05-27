@@ -81,69 +81,13 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.findOne(req.params.id)
+                return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
-
-                        var parent = (<any>result);
-                        var association = parent[req.params.prop];
-                        
-                        var metaDatas = Utils.getAllRelationsForTargetInternal(this.repository.getModelRepo());
-                        var metaData = Enumerable.from(metaDatas).firstOrDefault(x => x.propertyKey == req.params.prop);
-
-                        if (metaData != null &&
-                            association !== undefined && association !== null) {
-
-                            var meta = metaData; // by deafult take first relation
-                            var params = <IAssociationParams>meta.params;
-                            var repo = GetRepositoryForName(params.rel);
-                            if (repo == null) {
-                                 return this.repository.findChild(req.params.id, params.rel);};
-
-                            var resourceName = this.getFullBaseUrlUsingRepo(req, repo.modelName());
-
-                            if (params.embedded) {
-                                if (meta.propertyType.isArray) {
-                                    Enumerable.from(association).forEach(x => {
-                                        this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
-                                    });
-                                    //association = this.getHalModels(association, resourceName);
-                                }
-                                else {
-                                    this.getHalModel1(association, resourceName + '/' + association['_id'], req, repo);
-                                }
-                                this.sendresult(req, res, association);
-                            }
-                            else {
-                                var ids = association;
-                                if (!meta.propertyType.isArray) {
-                                    ids = [association];
-                                }
-
-                                var asyncCalls = [];
-                                Enumerable.from(ids).forEach(x => asyncCalls.push(repo.findOne(x)));
-
-                                Q.allSettled(asyncCalls).then(result => {
-                                    result = Enumerable.from(result).select(x => x.value).toArray();
-                                    if (result.length > 0) {
-                                        if (meta.propertyType.isArray) {
-                                            Enumerable.from(result).forEach(x => {
-                                                this.getHalModel1(x, resourceName + '/' + x['_id'], req, repo);
-                                            });
-
-                                            //result = this.getHalModels(result, resourceName);
-                                        }
-                                        else {
-                                            result = result[0];
-                                            this.getHalModel1(result, resourceName + '/' + result['_id'], req, repo);
-                                        }
-                                        this.sendresult(req, res, result);
-                                    }
-                                });
-                            }
-                        }
-                        else {
-                            this.sendresult(req, res, association);
-                        }
+                        var parentObj = {};
+                        parentObj[req.params.prop] = result;
+                        var resourceName = this.getFullBaseUrl(req);
+                        this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
+                        this.sendresult(req, res, parentObj[req.params.prop]);
                     }).catch(error => {
                         console.log(error);
                         this.sendError(res, error);
@@ -294,9 +238,6 @@ export class DynamicController {
 
     addSearchPaths() {
         let modelRepo = this.repository.getEntityType();
-        if (modelRepo.model == null) {
-            console.log(modelRepo);
-        }
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
         let fieldsWithSearchIndex =
             Enumerable.from(decoratorFields)
