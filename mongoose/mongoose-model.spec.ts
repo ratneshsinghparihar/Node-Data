@@ -181,7 +181,7 @@ describe('testing relation', () => {
             it(': test', (done) => {
                 console.log('findChild res:', res);
                 expect(res).toBeDefined();
-                expect(res['name'] == 'student1').toBeTruthy();
+                expect(res == 'student1').toBeTruthy();
                 done();
             });
 

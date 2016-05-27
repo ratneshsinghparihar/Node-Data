@@ -5,10 +5,8 @@ import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
+import {updateModelEntity, pathRepoMap, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
-
-export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
 
 export function generateSchema() {
     MetaUtils.refreshDerivedObjectsMetadata();
@@ -33,7 +31,7 @@ export function generateSchema() {
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
         let documentMeta = meta[0];
         let schemaName = (<IDocumentParams>documentMeta.params).name;
-        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: getModel(schemaName)};
+        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, model: getModel(schemaName)};
     });
 }
 
