@@ -111,7 +111,8 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
             return Q.reject(error);
         }
         return toObject(result);
-    });
+        });
+
 }
 
 export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> {

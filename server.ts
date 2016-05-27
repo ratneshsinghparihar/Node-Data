@@ -12,9 +12,19 @@ import {repositoryMap} from './core/exports';
 import {Container} from './di';
 
 import * as data from './mongoose';
-var Main = require('./core')(config, securityConfig, __dirname, data.entityServiceInst);
+
+//---------sequelize setting-----------------------------
+import * as seqData  from "./sequelizeimp";
+seqData.sequelizeService.connect();
+
+var Main = require('./core')(config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService);
+
 data.connect();
 data.generateSchema();
+
+seqData.generateSchema();
+
+
 
 var app = express();
 app.set('views', __dirname + '/views');

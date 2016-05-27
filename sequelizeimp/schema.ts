@@ -3,25 +3,49 @@ import {repositoryMap} from '../core/exports';
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
-import {IDocumentParams} from './decorators/interfaces/document-params';
+import {IEntityParams} from './decorators/interfaces/entity-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
 import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
+var Enumerable: linqjs.EnumerableStatic = require('linq');
+import {sequelizeService} from './sequelizeService';
 
-export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
+export var pathRepoMap: { [key: string]: { schemaName: string, entitySchema: any } } = <any>{};
 
 export function generateSchema() {
     MetaUtils.refreshDerivedObjectsMetadata();
 
-    var documents = MetaUtils.getMetaDataForDecorators([CoreDecorators.DOCUMENT]);
-    documents.forEach(x => {
-        let documentMeta = x.metadata[0];
-        let schemaName = (<IDocumentParams>documentMeta.params).name;
-        let schema = new DynamicSchema(documentMeta.target, schemaName);
-        let mongooseSchema = schema.getSchema();
-        let model = Mongoose.model(schemaName, <any>mongooseSchema);
-        updateModelEntity(schemaName, documentMeta.target, model);
+    var entities = MetaUtils.getMetaDataForDecorators([CoreDecorators.ENTITY]);
+    var allDynamicSchemas: Array<DynamicSchema> = new Array<DynamicSchema>();
+    entities.forEach(x => {
+        let entityMeta = x.metadata[0];
+        let schemaName = (<IEntityParams>entityMeta.params).;
+        let schema = new DynamicSchema(entityMeta.target, schemaName, <IEntityParams>entityMeta.params);
+        allDynamicSchemas.push(schema);
+        let entitySchema = schema.getSchema();
+        //let model = Mongoose.model(schemaName, <any>mongooseSchema);
+        updateModelEntity(schemaName, entityMeta.target, entitySchema);
     });
+
+    allDynamicSchemas.forEach(schema => {
+        schema.getRelations()[CoreDecorators.ONETOMANY].forEach(oneToManyRelation => {
+            let sourceDynamicSchema = schema;
+            let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
+                .where(dynamicSchema => dynamicSchema.schemaName == oneToManyRelation.rel).first();
+            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.ONETOMANY, oneToManyRelation.rel, oneToManyRelation.propertyKey);
+        });
+    })
+
+    allDynamicSchemas.forEach(schema => {
+        schema.getRelations()[CoreDecorators.MANYTOONE].forEach(manyToOne => {
+            let sourceDynamicSchema = schema;
+            let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
+                .where(dynamicSchema => dynamicSchema.schemaName == manyToOne.rel).first();
+            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.MANYTOONE, manyToOne.rel, manyToOne.propertyKey);
+
+        });
+    })
+
 
     var repositoryMetadata = MetaUtils.getMetaDataForDecorators([CoreDecorators.REPOSITORY]);
     repositoryMetadata.forEach(x => {
@@ -30,12 +54,12 @@ export function generateSchema() {
         }
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
-        let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
+        let meta = MetaUtils.getMetaData(entity, Decorators.ENTITY);
         if (meta.length > 0) {
-            let documentMeta = meta[0];
-            if (documentMeta) {
-                let schemaName = (<IDocumentParams>documentMeta.params).name;
-                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: getModel(schemaName) };
+            let entityMeta = meta[0];
+            if (entityMeta) {
+                let schemaName = (<IEntityParams>entityMeta.params).tableName;
+                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, entitySchema: getModel(schemaName) };
             }
         }
     });

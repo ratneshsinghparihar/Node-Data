@@ -86,6 +86,7 @@ export class DynamicController {
 
                         var parent = (<any>result);
                         var association = parent[req.params.prop];
+                        
                         var metaDatas = Utils.getAllRelationsForTargetInternal(this.repository.getModelRepo());
                         var metaData = Enumerable.from(metaDatas).firstOrDefault(x => x.propertyKey == req.params.prop);
 
@@ -95,7 +96,8 @@ export class DynamicController {
                             var meta = metaData; // by deafult take first relation
                             var params = <IAssociationParams>meta.params;
                             var repo = GetRepositoryForName(params.rel);
-                            if (repo == null) return;
+                            if (repo == null) {
+                                 return this.repository.findChild(req.params.id, params.rel);};
 
                             var resourceName = this.getFullBaseUrlUsingRepo(req, repo.modelName());
 
@@ -292,6 +294,9 @@ export class DynamicController {
 
     addSearchPaths() {
         let modelRepo = this.repository.getEntityType();
+        if (modelRepo.model == null) {
+            console.log(modelRepo);
+        }
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD);
         let fieldsWithSearchIndex =
             Enumerable.from(decoratorFields)
