@@ -7,7 +7,7 @@ import Q = require('q');
 import {IEntityService} from "../interfaces/entity-service";
 import {Container} from '../../di';
 import * as Utils from '../utils';
-import {getEntity, getModel} from './model-entity';
+import {pathRepoMap, getEntity, getModel} from './model-entity';
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 
@@ -18,7 +18,7 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 }
 
 export interface IDynamicRepository {
-    getModelRepo();
+    getEntity();
     getModel();
     addRel();
     modelName();
@@ -33,7 +33,6 @@ export class DynamicRepository implements IDynamicRepository {
     private model: any;
     private metaModel: any;
     private entity: any;
-    private schemaName: string;
     private entityService: IEntityService;
     //private modelRepo: any;
 
@@ -56,12 +55,12 @@ export class DynamicRepository implements IDynamicRepository {
             this.entityService = Utils.entityService();
     }
 
-    public getModelRepo() {
-        return getEntity(this.path);
+    public getEntity() {
+        return getEntity(pathRepoMap[this.path].schemaName);
     }
 
     public getModel() {
-        return getModel(this.path);
+        return getModel(pathRepoMap[this.path].schemaName);
     }
 
     public bulkPost(objArr: Array<any>) {

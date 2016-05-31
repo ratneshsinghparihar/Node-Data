@@ -172,11 +172,28 @@ export class MongoDbMock {
         for (var item in query) {
             res = Enumerable.from(collection).where(x => x['_doc'][item] == query[item].toString()).firstOrDefault();
             if (res) {
+                var setObject, unsetObject, pushObject;
                 if (object['$set']) {
-                    object = object['$set'];
+                    setObject = object['$set'];
                 }
-                for (var prop in object) {
-                    res['_doc'][prop] = object[prop];
+                if (object['$unset']) {
+                    unsetObject = object['$unset'];
+                }
+                if (object['$push']) {
+                    pushObject = object['$push'];
+                }
+                for (var prop in setObject) {
+                    res['_doc'][prop] = setObject[prop];
+                }
+                for (var prop in unsetObject) {
+                    delete res['_doc'][prop];
+                }
+                for (var prop in pushObject) {
+                    var vals = pushObject[prop]['$each'];
+                    if (!res['_doc'][prop]) {
+                        res['_doc'][prop] = [];
+                    }
+                    Enumerable.from(vals).forEach(x => res['_doc'][prop].push(x));
                 }
             }
             break;

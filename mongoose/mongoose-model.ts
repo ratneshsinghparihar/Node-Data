@@ -180,7 +180,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj, id).then(result => {
-        var updatedProps = getUpdatedProps(clonedObj);
+        var updatedProps = getUpdatedProps(clonedObj, 'put');
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { upsert: true, new: true })
             .then(result => {
                 return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
@@ -200,7 +200,7 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return addChildModelToParent(model, clonedObj, id).then(result => {
-        var updatedProps = getUpdatedProps(clonedObj);
+        var updatedProps = getUpdatedProps(clonedObj, 'patch');
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
             .then(result => {
                 return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
@@ -359,7 +359,7 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
         });
 }
 
-function getUpdatedProps(obj: any) {
+function getUpdatedProps(obj: any, type: any) {
     var push = {};
     var set = {};
     var unset = {};
@@ -369,17 +369,20 @@ function getUpdatedProps(obj: any) {
             unset[i] = obj[i];
             u = true;
         }
-        else if (obj[i] instanceof Array) {
-            push[i] = {
-                $each: obj[i]
-            }
-            p = true;
-        }
         else {
-            set[i] = obj[i];
-            s = true;
+            if (type == 'patch' && obj[i] instanceof Array) {
+                push[i] = {
+                    $each: obj[i]
+                }
+                p = true;
+            }
+            else {
+                set[i] = obj[i];
+                s = true;
+            }
         }
     }
+
     var json = {};
     if (s) {
         json['$set'] = set;
@@ -421,27 +424,31 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
         if (!param.embedded && param.eagerLoading) {
             var relModel = getModel(param.rel);
             if (m.propertyType.isArray) {
-                asyncCalls.push(findMany(relModel, val[m.propertyKey])
-                    .then(result => {
-                        var childCalls = [];
-                        var updatedChild = [];
-                        Enumerable.from(result).forEach(res => {
-                            childCalls.push(embeddedChildren(relModel, res).then(r => {
-                                updatedChild.push(r);
-                            }));
-                        });
-                        return Q.all(childCalls).then(r => {
-                            val[m.propertyKey] = updatedChild;
-                        });
-                    }));
+                if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
+                    asyncCalls.push(findMany(relModel, val[m.propertyKey])
+                        .then(result => {
+                            var childCalls = [];
+                            var updatedChild = [];
+                            Enumerable.from(result).forEach(res => {
+                                childCalls.push(embeddedChildren(relModel, res).then(r => {
+                                    updatedChild.push(r);
+                                }));
+                            });
+                            return Q.all(childCalls).then(r => {
+                                val[m.propertyKey] = updatedChild;
+                            });
+                        }));
+                }
             }
             else {
-                asyncCalls.push(findOne(relModel, val[m.propertyKey])
-                    .then(result => {
-                        return Q.resolve(embeddedChildren(relModel, result).then(r => {
-                            val[m.propertyKey] = r;
+                if (val[m.propertyKey]) {
+                    asyncCalls.push(findOne(relModel, val[m.propertyKey])
+                        .then(result => {
+                            return Q.resolve(embeddedChildren(relModel, result).then(r => {
+                                val[m.propertyKey] = r;
+                            }));
                         }));
-                    }));
+                }
             }
         }
     });
