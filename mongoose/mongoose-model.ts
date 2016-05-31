@@ -79,7 +79,7 @@ export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
 export function findOne(model: Mongoose.Model<any>, id) {
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            return embeddedChildren(model, result)
+            return embeddedChildren(model, result, false)
                 .then(r => {
                     return toObject(r);
                 });
@@ -117,18 +117,18 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
 export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> {
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
+            var res = toObject(result)[prop];
             var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
             if (Enumerable.from(metas).any(x => x.propertyKey == prop)) {
-                return embeddedChildren(model, result)
+                // create new object and add only that property for which we want to do eagerloading
+                var result = {};
+                result[prop] = res;
+                return embeddedChildren(model, result, true)
                     .then(r => {
-                        var res = toObject(result);
-                        return r[prop];
+                        return result[prop];        
                     });
             }
-            else {
-                var res = toObject(result);
-                return res[prop];
-            }
+            return res;
         });
 }
 
@@ -410,7 +410,7 @@ function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
     return clonedObj;
 }
 
-function embeddedChildren(model: Mongoose.Model<any>, val: any) {
+function embeddedChildren(model: Mongoose.Model<any>, val: any, force: boolean) {
     if (!model)
         return;
 
@@ -420,7 +420,10 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         var param: IAssociationParams = <IAssociationParams>m.params;
-        if (!param.embedded && param.eagerLoading) {
+        if (param.embedded)
+            return;
+
+        if (force || param.eagerLoading){
             var relModel = getModel(param.rel);
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
@@ -429,7 +432,7 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
                             var childCalls = [];
                             var updatedChild = [];
                             Enumerable.from(result).forEach(res => {
-                                childCalls.push(embeddedChildren(relModel, res).then(r => {
+                                childCalls.push(embeddedChildren(relModel, res, false).then(r => {
                                     updatedChild.push(r);
                                 }));
                             });
@@ -443,7 +446,7 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
                 if (val[m.propertyKey]) {
                     asyncCalls.push(findOne(relModel, val[m.propertyKey])
                         .then(result => {
-                            return Q.resolve(embeddedChildren(relModel, result).then(r => {
+                            return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
                                 val[m.propertyKey] = r;
                             }));
                         }));
@@ -451,6 +454,9 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any) {
             }
         }
     });
+
+    if (asyncCalls.length == 0)
+        return Q.when(val);
 
     return Q.allSettled(asyncCalls).then(res => {
         return val;
