@@ -99,6 +99,7 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\field-params.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-service.ts" />
     <TypeScriptCompile Include="mongoose\utils\index.ts" />
+    <TypeScriptCompile Include="repositories\blogPostsqlrepository.ts" />
     <TypeScriptCompile Include="repositories\storyrepository.ts" />
     <TypeScriptCompile Include="repositories\blogsqlrepository.ts" />
     <TypeScriptCompile Include="scripts\ci-version-devbuild.ts" />

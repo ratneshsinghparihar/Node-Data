@@ -4,15 +4,15 @@ import {Strict} from '../sequelizeimp/enums';
 import * as Sequelize from "sequelize";
 import {BlogPostSqlModel} from "./blogPostSqlModel";
 
-@entity({ tableName: 'tbl_blog1', timestamps: false, freezeTableName: true })
+@entity({ tableName: 'tbl_blog2', timestamps: false, freezeTableName: true })
 export class BlogSqlModel {
-    @column({name:"id", type: Sequelize.INTEGER, allowNull:false, primaryKey: true })
+    @column({ name:"id", type: Sequelize.INTEGER, allowNull:false, primaryKey: true })
     _id: number;
 
     @column({ name: "name", type: Sequelize.STRING(128), allowNull: false })
     name: string;
 
-    @onetomany({ rel: 'tbl_blog_post', itemType: BlogPostSqlModel, embedded: false, persist: true, eagerLoading: false })
+    @onetomany({ rel: 'tbl_blog_post2', itemType: BlogPostSqlModel, embedded: false, persist: true, eagerLoading: false })
     blogPosts: Array<BlogPostSqlModel>;
 }
 

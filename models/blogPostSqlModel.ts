@@ -4,7 +4,7 @@ import {Strict} from '../sequelizeimp/enums';
 import * as Sequelize from "sequelize";
 import {BlogSqlModel} from "./blogSqlModel"
 
-@entity({ tableName: 'tbl_blog_post',timestamps:false })
+@entity({ tableName: 'tbl_blog_post2',timestamps:false })
 export class BlogPostSqlModel {
     @column({name:"id", type: Sequelize.INTEGER, allowNull:false, primaryKey: true })
     _id: number;
@@ -12,7 +12,7 @@ export class BlogPostSqlModel {
     @column({ name: "name", type: Sequelize.STRING(128), allowNull: false })
     name: string;   
 
-    @manytoone({ rel: 'tbl_blog1', itemType: BlogSqlModel, embedded: false, persist: true, eagerLoading: true })
+    @manytoone({ rel: 'tbl_blog2', itemType: BlogSqlModel, embedded: false, persist: true, eagerLoading: true })
     blog: BlogSqlModel;
 }
 

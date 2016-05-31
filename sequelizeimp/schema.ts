@@ -9,17 +9,25 @@ import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {sequelizeService} from './sequelizeService';
+import * as config from '../config';
 
 export var pathRepoMap: { [key: string]: { schemaName: string, entitySchema: any } } = <any>{};
 
+export function getPathRepoMap() {
+    return pathRepoMap;
+}
+
 export function generateSchema() {
+    if (config.SqlConfig.isSqlEnabled == false)
+        return;
+
     MetaUtils.refreshDerivedObjectsMetadata();
 
     var entities = MetaUtils.getMetaDataForDecorators([CoreDecorators.ENTITY]);
     var allDynamicSchemas: Array<DynamicSchema> = new Array<DynamicSchema>();
     entities.forEach(x => {
         let entityMeta = x.metadata[0];
-        let schemaName = (<IEntityParams>entityMeta.params).;
+        let schemaName = (<IEntityParams>entityMeta.params).tableName;
         let schema = new DynamicSchema(entityMeta.target, schemaName, <IEntityParams>entityMeta.params);
         allDynamicSchemas.push(schema);
         let entitySchema = schema.getSchema();
@@ -63,8 +71,9 @@ export function generateSchema() {
             }
         }
     });
+    sequelizeService.init();
+   
 }
-
     // need to pass this via reference
 //    var visitedNodes = new Map();
 

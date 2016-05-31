@@ -52,7 +52,6 @@ export class DynamicSchema {
         for (var field in metaDataMap) {
             var fieldMetadata: MetaData = <MetaData>metaDataMap[field];
             var name = fieldMetadata.params.name;
-            
             var params = fieldMetadata.params;
             delete params.name;
             schema[name] = params;

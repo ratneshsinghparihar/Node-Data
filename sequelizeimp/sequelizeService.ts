@@ -6,7 +6,8 @@ import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 
 import {Decorators as CoreDecorators} from '../core/constants';
-import {pathRepoMap} from './';
+//import {pathRepoMap} from './schema';
+import * as schema  from "./schema";
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 class SequelizeService implements IEntityService {
@@ -17,7 +18,14 @@ class SequelizeService implements IEntityService {
 
     }
 
+    init(force?: boolean): Promise<any> {
+        force = force || false;
+        return this.sequelize.sync({ force: force, logging: true });
+    }
+
     connect() {
+        if (config.SqlConfig.isSqlEnabled == false)
+            return;
         this.sequelize = new Sequelize(config.SqlConfig.database,
             config.SqlConfig.username,
             config.SqlConfig.password,
@@ -36,11 +44,11 @@ class SequelizeService implements IEntityService {
 
     addRelationInSchema(fromSchema: any, toSchema: any, relationType: string, relationName: string, path: string) {
         if (relationType == CoreDecorators.ONETOMANY)
-            fromSchema.hasMany(toSchema);
+            fromSchema.hasMany(toSchema, { as: path });
         if (relationType == CoreDecorators.MANYTOONE)
-            fromSchema.belongsTo(toSchema);
+            fromSchema.belongsTo(toSchema, { as: path });
         if (relationType == CoreDecorators.ONETOONE)
-            fromSchema.has(toSchema);
+            fromSchema.has(toSchema, { as: path });
 
         let relationToDictionary: any = {};
         relationToDictionary["relation"] = relationName;
@@ -53,7 +61,7 @@ class SequelizeService implements IEntityService {
 
     private getSequelizeModel(repoPath: string) {
         try {
-            var schemaNamefromPathRepomap = pathRepoMap[repoPath].schemaName;
+            var schemaNamefromPathRepomap = schema.getPathRepoMap()[repoPath].schemaName;
             return this._schemaCollection[schemaNamefromPathRepomap];
         } catch (e) {
             throw e;
@@ -81,7 +89,9 @@ class SequelizeService implements IEntityService {
     }
 
     findOne(repoPath: string, id): Q.Promise<any> {
+
         let schemaModel = this.getSequelizeModel(repoPath);
+        let primaryKey = schemaModel.primaryKeyAttribute;
         var self = this;
         return schemaModel.find({ include: [{ all: true }], where: { id: id } }).then(result => {
             let model = result.dataValues;
@@ -105,7 +115,10 @@ class SequelizeService implements IEntityService {
             include: [
                 { model: this.getSequelizeModel(prop), as: prop }
             ]
-        }).then(function (entity) { entity[prop + "s"] });
+        }).then(
+            function (entity) {
+                return entity[prop];
+            });
     }
 
     /**
@@ -132,9 +145,9 @@ class SequelizeService implements IEntityService {
     private getAssociationForSchema(model: any, schema: any) {
         var asyncCalls = [];
         Enumerable.from(this._relationCollection)
-            .where(relationSchema => relationSchema.fromSchema == schema).forEach(relation1 => {               
-                        model.dataValues[relation1.path] = model[relation1.toSchema.name+"s"];
-                    });
+            .where(relationSchema => relationSchema.fromSchema == schema).forEach(relation1 => {
+                model.dataValues[relation1.path] = model[relation1.toSchema.name + "s"];
+            });
         //return Q.allSettled(asyncCalls).then(res => {
         //    return model.dataValues;
         //});

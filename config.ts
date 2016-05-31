@@ -8,6 +8,8 @@ export class Config {
 }
 
 export class SqlConfig {
+
+    public static isSqlEnabled: boolean = false;
     public static database: string = "test";
     public static username: string = "sa";
     public static password: string = "Apr@2016";
