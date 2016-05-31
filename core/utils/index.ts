@@ -10,6 +10,7 @@ import {IAssociationParams} from '../decorators/interfaces/association-params';
 let _config: any = {};
 let _securityConfig: any = {};
 let _entityService: IEntityService;
+let _sqlEntityService: IEntityService;
 
 export function config(config?: any) {
     if (!(config === undefined)) {
@@ -30,6 +31,14 @@ export function entityService(entityService?: IEntityService): IEntityService {
         _entityService = entityService;
     }
     return _entityService;
+}
+
+
+export function sqlEntityService(sqlEntityService?: IEntityService): IEntityService {
+    if (!(sqlEntityService === undefined)) {
+        _sqlEntityService = sqlEntityService;
+    }
+    return _sqlEntityService;
 }
 
 export function getDesignType(target: Object|Function, prop: string) {

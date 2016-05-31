@@ -45,10 +45,15 @@ export class InitializeRepositories {
                 //let mongooseSchema = schema.getSchema();
                 //mongooseSchemaMap[(<any>x.target).path] = { schema: mongooseSchema, name: schema.schemaName, fn: x.target };
                 //mongooseNameSchemaMap[schema.schemaName] = mongooseSchema;
+
                 let path = (<any>x.target).path;
+                let repoParams = <IRepositoryParams>x.metadata[0].params;
+                let model = repoParams.model;
+                let newRepo = new DynamicRepository(repoParams.path, x.target,model);
+                
                 repoMap[path] = {
                     fn: x.target,
-                    repo: new DynamicRepository((<IRepositoryParams>x.metadata[0].params).path, x.target)
+                    repo: newRepo
                 };
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });

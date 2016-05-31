@@ -34,6 +34,18 @@
     },
     "winston/winston.d.ts": {
       "commit": "5217b3c97257eecc724aac5872ecd76e9ad68252"
+    },
+    "lodash/lodash.d.ts": {
+      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+    },
+    "bluebird/bluebird.d.ts": {
+      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+    },
+    "sequelize/sequelize.d.ts": {
+      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+    },
+    "validator/validator.d.ts": {
+      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
     }
   }
 }

@@ -29,9 +29,13 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
-        let documentMeta = meta[0];
-        let schemaName = (<IDocumentParams>documentMeta.params).name;
+        if (meta.length > 0) {
+            let documentMeta = meta[0];
+            if (documentMeta) {
+                let schemaName = (<IDocumentParams>documentMeta.params).name;
         pathRepoMap[repositoryParams.path] = { schemaName: schemaName, model: getModel(schemaName)};
+            }
+        }
     });
 }
 

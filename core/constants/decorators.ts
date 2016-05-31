@@ -1,7 +1,9 @@
 ﻿
 export class Decorators {
     public static DOCUMENT = 'document';
+    public static ENTITY = 'entity';
     public static FIELD = 'field';
+    public static COLUMN = 'column';
     public static INJECT = 'inject';
     public static INJECTBYNAME = 'injectbyname';
     public static MANYTOMANY = 'manytomany';
