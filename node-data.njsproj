@@ -38,6 +38,7 @@
     <Content Include="views\home.ejs" />
     <Content Include="views\authlogin.ejs" />
     <Content Include="views\login.ejs" />
+    <TypeScriptCompile Include="core\decorators\interfaces\decorator-params.ts" />
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
     <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
@@ -73,6 +74,7 @@
     <TypeScriptCompile Include="di\tests\service-d.ts" />
     <TypeScriptCompile Include="di\tests\service-c.ts" />
     <TypeScriptCompile Include="di\tests\service-b.ts" />
+    <TypeScriptCompile Include="models\baseModel.ts" />
     <TypeScriptCompile Include="models\blogPostSqlModel.ts" />
     <TypeScriptCompile Include="models\blogSqlModel.ts" />
     <TypeScriptCompile Include="models\storyModel.ts" />

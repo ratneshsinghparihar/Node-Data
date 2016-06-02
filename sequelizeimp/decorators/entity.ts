@@ -3,7 +3,7 @@ import {Decorators} from '../../core/constants';
 import {DecoratorType} from '../../core/enums/decorator-type';
 import {Strict} from '../enums/entity-strict';
 
-export function entity(params: { tableName: string, timestamps?: boolean, createdAt?: string, updatedAt?: string, freezeTableName?:boolean }) {
+export function entity(params: {name:string, tableName: string, timestamps?: boolean, createdAt?: string, updatedAt?: string, freezeTableName?:boolean }) {
     params = params || <any>{};
     return function(target: Object){
         // add metadata to prototype

@@ -2,7 +2,7 @@
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 import * as MongooseModel from './mongoose-model';
-import {pathRepoMap} from '../core/dynamic/model-entity';
+import {pathRepoMap, getModel} from '../core/dynamic/model-entity';
 
 export class MongooseService implements IEntityService {
 
@@ -64,7 +64,7 @@ export class MongooseService implements IEntityService {
 
     private getMongooseModel(repoPath: string) {
         try {
-            return pathRepoMap[repoPath].model;
+            return getModel(pathRepoMap[repoPath].schemaName);
         } catch (e) {
             throw e;
         }

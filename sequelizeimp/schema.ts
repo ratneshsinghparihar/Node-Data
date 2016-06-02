@@ -1,27 +1,25 @@
-﻿import {DynamicSchema} from './dynamic-schema';
+﻿/// <reference path="../core/dynamic/dynamic-repository.ts" />
+import {DynamicSchema} from './dynamic-schema';
 import {repositoryMap} from '../core/exports';
+import * as Utils from '../core/utils';
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
 import {IEntityParams} from './decorators/interfaces/entity-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
+import {pathRepoMap, updateModelEntity, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {sequelizeService} from './sequelizeService';
 import * as config from '../config';
-
-export var pathRepoMap: { [key: string]: { schemaName: string, entitySchema: any } } = <any>{};
-
-export function getPathRepoMap() {
-    return pathRepoMap;
-}
+import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 
 export function generateSchema() {
     if (config.SqlConfig.isSqlEnabled == false)
         return;
 
-    MetaUtils.refreshDerivedObjectsMetadata();
+    // register entity service
+    Utils.entityService(Decorators.ENTITY, sequelizeService);
 
     var entities = MetaUtils.getMetaDataForDecorators([CoreDecorators.ENTITY]);
     var allDynamicSchemas: Array<DynamicSchema> = new Array<DynamicSchema>();
@@ -67,7 +65,7 @@ export function generateSchema() {
             let entityMeta = meta[0];
             if (entityMeta) {
                 let schemaName = (<IEntityParams>entityMeta.params).tableName;
-                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, entitySchema: getModel(schemaName) };
+                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.ENTITY };
             }
         }
     });

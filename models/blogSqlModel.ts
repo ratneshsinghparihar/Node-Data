@@ -4,7 +4,7 @@ import {Strict} from '../sequelizeimp/enums';
 import * as Sequelize from "sequelize";
 import {BlogPostSqlModel} from "./blogPostSqlModel";
 
-@entity({ tableName: 'tbl_blog2', timestamps: false, freezeTableName: true })
+@entity({ name:'tbl_blog2', tableName: 'tbl_blog2', timestamps: false, freezeTableName: true })
 export class BlogSqlModel {
     @column({ name:"id", type: Sequelize.INTEGER, allowNull:false, primaryKey: true })
     _id: number;

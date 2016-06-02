@@ -4,6 +4,7 @@ var recursiveReadDir = require('recursive-readdir-synchronous');
 import path = require('path');
 import Q = require("q");
 import * as Utils from './utils';
+import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
 
 //import linq = require('../typings/linq/linq');
@@ -68,8 +69,8 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
-    Utils.entityService(entityServiceInst);
-    Utils.sqlEntityService(sqlServerInst);
+    //Utils.entityService(entityServiceInst);
+    //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig);
 }
 
@@ -87,10 +88,11 @@ export function initialize(config: any, securityConfig: any, appRoot?: string,
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
-    Utils.entityService(entityServiceInst);
+    //Utils.entityService(entityServiceInst);
     new Dynamic(config, securityConfig);
-    Utils.sqlEntityService(sqlServerInst);
+    //Utils.sqlEntityService(sqlServerInst);
     components.forEach(x => {
         x.default();
     });
+    MetaUtils.refreshDerivedObjectsMetadata();
 }

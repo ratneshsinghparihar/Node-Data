@@ -1,6 +1,6 @@
-import {Strict} from '../../enums/entity-strict';
+import {IDecoratorParams} from '../../../core/decorators/interfaces/decorator-params';
 
-export interface IEntityParams {
+export interface IEntityParams extends IDecoratorParams {
     tableName: string,
     timestamps: boolean,
     createdAt: string,

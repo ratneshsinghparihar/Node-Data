@@ -3,13 +3,17 @@ import {repositoryMap} from '../core/exports';
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
+import {MongooseService} from './mongoose-service';
+import * as Utils from '../core/utils';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
 import {updateModelEntity, pathRepoMap, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 
 export function generateSchema() {
-    MetaUtils.refreshDerivedObjectsMetadata();
+
+    // register mongoose service
+    Utils.entityService(Decorators.DOCUMENT, new MongooseService());
 
     var documents = MetaUtils.getMetaDataForDecorators([CoreDecorators.DOCUMENT]);
     documents.forEach(x => {
@@ -33,7 +37,8 @@ export function generateSchema() {
             let documentMeta = meta[0];
             if (documentMeta) {
                 let schemaName = (<IDocumentParams>documentMeta.params).name;
-        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, model: getModel(schemaName)};
+                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.DOCUMENT};
+
             }
         }
     });

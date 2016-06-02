@@ -4,6 +4,7 @@ import * as Sequelize from "sequelize";
 import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
+import {pathRepoMap} from '../core/dynamic/model-entity';
 
 import {Decorators as CoreDecorators} from '../core/constants';
 //import {pathRepoMap} from './schema';
@@ -61,7 +62,7 @@ class SequelizeService implements IEntityService {
 
     private getSequelizeModel(repoPath: string) {
         try {
-            var schemaNamefromPathRepomap = schema.getPathRepoMap()[repoPath].schemaName;
+            var schemaNamefromPathRepomap = pathRepoMap[repoPath].schemaName;
             return this._schemaCollection[schemaNamefromPathRepomap];
         } catch (e) {
             throw e;
