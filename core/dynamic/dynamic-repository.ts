@@ -36,7 +36,7 @@ export class DynamicRepository implements IDynamicRepository {
     private entityService: IEntityService;
     //private modelRepo: any;
 
-    constructor(repositoryPath: string, target: Function|Object,model?:any) {
+    constructor(repositoryPath: string, target: Function | Object, model?: any) {
         //console.log(schema);
         this.path = repositoryPath;
        // this.schemaName = this.path;
@@ -64,11 +64,11 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public bulkPost(objArr: Array<any>) {
-        return this.entityService.bulkPost(this.path, objArr);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objArr);
     }
 
     public bulkPut(objArr: Array<any>) {
-        return this.entityService.bulkPut(this.path, objArr);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objArr);
     }
 
     public modelName() {
@@ -83,27 +83,34 @@ export class DynamicRepository implements IDynamicRepository {
      * Returns all the items in a collection
      */
     public findAll(): Q.Promise<any> {
-        return this.entityService.findAll(this.path);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findAll(this.path);
     }
 
     public findWhere(query): Q.Promise<any> {
-        return this.entityService.findWhere(this.path, query);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query);
     }
 
     public findOne(id) {
-        return this.entityService.findOne(this.path, id);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id);
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
-        return this.entityService.findByField(this.path, fieldName, value);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findByField(this.path, fieldName, value);
     }
 
     public findMany(ids: Array<any>) {
-        return this.entityService.findMany(this.path, ids);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids);
     }
 
     public findChild(id, prop) {
-        return this.entityService.findChild(this.path, id, prop);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findChild(this.path, id, prop).then(result => {
+            // if child have different type of relation then it will return that model
+            //var childMeta = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
+            //if (!childMeta)
+            //    return result;
+
+            return result;
+        });
     }
 
     /**
@@ -112,19 +119,19 @@ export class DynamicRepository implements IDynamicRepository {
      * @param obj
      */
     public post(obj: any): Q.Promise<any> {
-        return this.entityService.post(this.path, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
     }
 
     public put(id: any, obj: any) {
-        return this.entityService.put(this.path, id, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj);
     }
 
     public delete(id: any) {
-        return this.entityService.del(this.path, id);
+        return Utils.entityService(pathRepoMap[this.path].modelType).del(this.path, id);
     }
 
     public patch(id: any, obj) {
-        return this.entityService.patch(this.path, id, obj);;
+        return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
     }
 
     public addRel() {

@@ -81,7 +81,6 @@ export class DynamicController {
                     return;
                 }
 
-
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
                         var parentObj = {};
