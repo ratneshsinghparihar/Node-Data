@@ -45,14 +45,14 @@ export class DynamicRepository implements IDynamicRepository {
         //this.model = model;
         //console.log(this.fn.schema);
         modelNameRepoModelMap[this.path] = this;
-        var metaForEntityModel = [];
-        try {
-            metaForEntityModel = MetaUtils.getMetaData(model, Decorators.ENTITY);
-        } catch (exception) { }
-        if (metaForEntityModel && metaForEntityModel != null && metaForEntityModel.length>0)
-            this.entityService = Utils.sqlEntityService();
-        else
-            this.entityService = Utils.entityService();
+        //var metaForEntityModel = [];
+        //try {
+        //    metaForEntityModel = MetaUtils.getMetaData(model, Decorators.ENTITY);
+        //} catch (exception) { }
+        //if (metaForEntityModel && metaForEntityModel != null && metaForEntityModel.length>0)
+        //    this.entityService = Utils.sqlEntityService();
+        //else
+        //    this.entityService = Utils.entityService();
     }
 
     public getEntity() {
@@ -102,15 +102,20 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids);
     }
 
-    public findChild(id, prop) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findChild(this.path, id, prop).then(result => {
-            // if child have different type of relation then it will return that model
-            //var childMeta = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
-            //if (!childMeta)
-            //    return result;
+    public findChild(id, prop): Q.Promise<any> {
+        //check if child model is diffrent from parent model (parent is doc and child is entity)
+        //get child repo
+        //call parent's find one and get the array of ids
+        //return child repo.findmany (ids)
 
-            return result;
-        });
+        var childMeta:string = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
+        if (childMeta)
+            return this.findOne(id).then(parent => {
+                var chilldIds = parent[prop];
+                return Utils.entityService(pathRepoMap[childMeta].modelType).findMany(childMeta,chilldIds);
+            });
+
+        return Utils.entityService(pathRepoMap[this.path].modelType).findChild(this.path, id, prop);
     }
 
     /**
