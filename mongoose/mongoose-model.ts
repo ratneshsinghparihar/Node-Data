@@ -364,7 +364,7 @@ function getUpdatedProps(obj: any) {
     var unset = {};
     var s = false, u = false, p = false;
     for (var i in obj) {
-        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || obj[i] == [] || obj[i] == {}) {
+        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || (obj[i] instanceof Array && obj[i] == []) || obj[i] == {}) {
             unset[i] = obj[i];
             u = true;
         }
