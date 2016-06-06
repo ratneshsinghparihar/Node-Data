@@ -72,6 +72,7 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     //Utils.entityService(entityServiceInst);
     //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig);
+    MetaUtils.refreshDerivedObjectsMetadata();
 }
 
 let components: Array<any> = [];
@@ -94,5 +95,4 @@ export function initialize(config: any, securityConfig: any, appRoot?: string,
     components.forEach(x => {
         x.default();
     });
-    MetaUtils.refreshDerivedObjectsMetadata();
 }

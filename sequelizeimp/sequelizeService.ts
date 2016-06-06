@@ -1,5 +1,5 @@
 ﻿/// <reference path="../config.ts" />
-import * as config from '../config';
+import {config} from '../core/utils';
 import * as Sequelize from "sequelize";
 import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';
@@ -25,12 +25,12 @@ class SequelizeService implements IEntityService {
     }
 
     connect() {
-        if (config.SqlConfig.isSqlEnabled == false)
+        if (config().SqlConfig.isSqlEnabled == false)
             return;
-        this.sequelize = new Sequelize(config.SqlConfig.database,
-            config.SqlConfig.username,
-            config.SqlConfig.password,
-            config.SqlConfig.sequlizeSetting);
+        this.sequelize = new Sequelize(config().SqlConfig.database,
+            config().SqlConfig.username,
+            config().SqlConfig.password,
+            config().SqlConfig.sequlizeSetting);
     }
 
     getSqlContext(): any {

@@ -152,7 +152,7 @@ export class AuthController {
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
-        res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });
+        res.cookie('authorization', req.token, { maxAge: 900000, httpOnly: true });        
         this.userDetailService.updateExistingUser(req.user.id, req.user).then(
             (user) => {
                 req.user = user.getUserObject();
