@@ -1,5 +1,6 @@
 ﻿
 var schemaNameModel: { [key: string]: any } = {};
+export var pathRepoMap: { [key: string]: { schemaName: string, modelType: string } } = <any>{};
 
 export function updateModelEntity(schemaName: string, entity: any, model: any) {
     if (!schemaNameModel[schemaName]) {

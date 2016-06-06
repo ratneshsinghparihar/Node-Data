@@ -5,11 +5,14 @@ import {IEntityService} from '../interfaces/entity-service';
 import {MetaData} from '../metadata/metadata';
 import {MetaUtils} from '../metadata/utils';
 import {Decorators, RelationDecorators} from '../constants';
+import {DecoratorType} from '../enums/decorator-type';
 import {IAssociationParams} from '../decorators/interfaces/association-params';
+import {IDecoratorParams} from '../decorators/interfaces/decorator-params';
+import {pathRepoMap} from '../dynamic/model-entity';
 
 let _config: any = {};
 let _securityConfig: any = {};
-let _entityService: IEntityService;
+let _entityService: Map<String, IEntityService> = new Map<String, IEntityService>();
 
 export function config(config?: any) {
     if (!(config === undefined)) {
@@ -25,12 +28,19 @@ export function securityConfig(securityConf?: any) {
     return _securityConfig;
 }
 
-export function entityService(entityService?: IEntityService): IEntityService {
-    if (!(entityService === undefined)) {
-        _entityService = entityService;
+export function entityService(entityType:string, entityService?: IEntityService): IEntityService {
+    if (!_entityService[entityType] && entityService) {
+        _entityService[entityType] = entityService;
     }
-    return _entityService;
+    return _entityService[entityType];
 }
+
+//export function sqlEntityService(sqlEntityService?: IEntityService): IEntityService {
+//    if (!(sqlEntityService === undefined)) {
+//        _sqlEntityService = sqlEntityService;
+//    }
+//    return _sqlEntityService;
+//}
 
 export function getDesignType(target: Object|Function, prop: string) {
     return (<any>Reflect).getMetadata("design:type", target, prop);
@@ -100,6 +110,41 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
         })
         .toArray();
 }
+
+export function getRepoPathForChildIfDifferent(target: Object, prop: string) {
+    if (!target) {
+        throw TypeError;
+    }
+
+    //global.models.CourseModel.decorator.manytomany.students
+    var meta = MetaUtils.getMetaData(target);
+
+    if (!meta) {
+        return null;
+    }
+
+    var type = Enumerable.from(meta).where(x => x.decoratorType == DecoratorType.CLASS).select(x => x.decorator).firstOrDefault();
+
+    var res = Enumerable.from(meta)
+        .where((x: any) => {
+            var met = <MetaData>x;
+            return (RelationDecorators.indexOf(met.decorator) !== -1 && met.propertyKey === prop);
+        })
+        .toArray();
+
+    if (res.length == 0)
+        return null;
+
+    meta = MetaUtils.getMetaData((<IAssociationParams>res[0].params).itemType);
+    var childType = Enumerable.from(meta).where(x => x.decoratorType == DecoratorType.CLASS).firstOrDefault();
+    //if (type == childType.decorator)
+    //    return null;
+
+    var param = <IDecoratorParams>childType.params;
+    var repoPath = Enumerable.from(pathRepoMap).firstOrDefault(x => x.schemaName == param.name).select(x => x.key);
+    return repoPath;
+}
+
 
 //@document({ name: 'blogs', isStrict: false })
 //export class BlogModel

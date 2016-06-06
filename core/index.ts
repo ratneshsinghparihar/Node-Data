@@ -4,6 +4,7 @@ var recursiveReadDir = require('recursive-readdir-synchronous');
 import path = require('path');
 import Q = require("q");
 import * as Utils from './utils';
+import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
 
 //import linq = require('../typings/linq/linq');
@@ -60,14 +61,18 @@ class Dynamic {
     }
 }
 
-module.exports = function (config: any, securityConfig: any, appRoot?: string, entityServiceInst?: IEntityService) {
+module.exports = function (config: any, securityConfig: any, appRoot?: string,
+    entityServiceInst?: IEntityService,
+    sqlServerInst?: IEntityService) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
-    Utils.entityService(entityServiceInst);
+    //Utils.entityService(entityServiceInst);
+    //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig);
+    MetaUtils.refreshDerivedObjectsMetadata();
 }
 
 let components: Array<any> = [];
@@ -76,14 +81,17 @@ export function addComponent(comp: any) {
     components.push(comp);
 }
 
-export function initialize(config: any, securityConfig: any, appRoot?: string, entityServiceInst?: IEntityService) {
+export function initialize(config: any, securityConfig: any, appRoot?: string,
+    entityServiceInst?: IEntityService,
+    sqlServerInst?: IEntityService) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
-    Utils.entityService(entityServiceInst);
+    //Utils.entityService(entityServiceInst);
     new Dynamic(config, securityConfig);
+    //Utils.sqlEntityService(sqlServerInst);
     components.forEach(x => {
         x.default();
     });

@@ -7,7 +7,9 @@ import Q = require('q');
 import {IEntityService} from "../interfaces/entity-service";
 import {Container} from '../../di';
 import * as Utils from '../utils';
-import {getEntity, getModel} from './model-entity';
+import {pathRepoMap, getEntity, getModel} from './model-entity';
+import {MetaUtils} from "../metadata/utils";
+import {Decorators} from '../constants';
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
  
@@ -16,7 +18,7 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 }
 
 export interface IDynamicRepository {
-    getModelRepo();
+    getEntity();
     getModel();
     addRel();
     modelName();
@@ -28,38 +30,36 @@ export interface IDynamicRepository {
 }
 export class DynamicRepository implements IDynamicRepository {
     private path: string;
-    //private model: Mongoose.Model<any>;
+    private model: any;
     private metaModel: any;
     private entity: any;
-    private schemaName: string;
+    private entityService: IEntityService;
     //private modelRepo: any;
 
-    constructor(repositoryPath: string, target: Function|Object) {
+    constructor(repositoryPath: string, target: Function | Object, model?: any) {
         //console.log(schema);
         this.path = repositoryPath;
-        this.schemaName = this.path;
         this.entity = target;
         //this.metaModel=new this.entityType();
         //this.model = model;
         //console.log(this.fn.schema);
         modelNameRepoModelMap[this.path] = this;
-        //this.modelRepo = modelRepo;
     }
 
-    public getModelRepo() {
-        return getEntity(this.path);
+    public getEntity() {
+        return getEntity(pathRepoMap[this.path].schemaName);
     }
 
     public getModel() {
-        return getModel(this.path);
+        return getModel(pathRepoMap[this.path].schemaName);
     }
 
     public bulkPost(objArr: Array<any>) {
-        return Utils.entityService().bulkPost(this.path, objArr);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objArr);
     }
 
     public bulkPut(objArr: Array<any>) {
-        return Utils.entityService().bulkPut(this.path, objArr);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objArr);
     }
 
     public modelName() {
@@ -74,27 +74,34 @@ export class DynamicRepository implements IDynamicRepository {
      * Returns all the items in a collection
      */
     public findAll(): Q.Promise<any> {
-        return Utils.entityService().findAll(this.path);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findAll(this.path);
     }
 
     public findWhere(query): Q.Promise<any> {
-        return Utils.entityService().findWhere(this.path, query);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query);
     }
 
     public findOne(id) {
-        return Utils.entityService().findOne(this.path, id);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id);
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
-        return Utils.entityService().findByField(this.path, fieldName, value);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findByField(this.path, fieldName, value);
     }
 
     public findMany(ids: Array<any>) {
-        return Utils.entityService().findMany(this.path, ids);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids);
     }
 
     public findChild(id, prop) {
-        return Utils.entityService().findChild(this.path, id, prop);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findChild(this.path, id, prop).then(result => {
+            // if child have different type of relation then it will return that model
+            //var childMeta = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
+            //if (!childMeta)
+            //    return result;
+
+            return result;
+        });
     }
 
     /**
@@ -103,19 +110,19 @@ export class DynamicRepository implements IDynamicRepository {
      * @param obj
      */
     public post(obj: any): Q.Promise<any> {
-        return Utils.entityService().post(this.path, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
     }
 
     public put(id: any, obj: any) {
-        return Utils.entityService().put(this.path, id, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj);
     }
 
     public delete(id: any) {
-        return Utils.entityService().del(this.path, id);
+        return Utils.entityService(pathRepoMap[this.path].modelType).del(this.path, id);
     }
 
     public patch(id: any, obj) {
-        return Utils.entityService().patch(this.path, id, obj);;
+        return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
     }
 
     public addRel() {

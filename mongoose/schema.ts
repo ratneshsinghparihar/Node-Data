@@ -3,15 +3,17 @@ import {repositoryMap} from '../core/exports';
 import {MetaUtils} from '../core/metadata/utils';
 import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
+import {MongooseService} from './mongoose-service';
+import * as Utils from '../core/utils';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {updateModelEntity, getModel} from '../core/dynamic/model-entity';
+import {updateModelEntity, pathRepoMap, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 
-export var pathRepoMap: { [key: string]: { schemaName: string, mongooseModel: any } } = <any>{};
-
 export function generateSchema() {
-    MetaUtils.refreshDerivedObjectsMetadata();
+
+    // register mongoose service
+    Utils.entityService(Decorators.DOCUMENT, new MongooseService());
 
     var documents = MetaUtils.getMetaDataForDecorators([CoreDecorators.DOCUMENT]);
     documents.forEach(x => {
@@ -31,9 +33,14 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
-        let documentMeta = meta[0];
-        let schemaName = (<IDocumentParams>documentMeta.params).name;
-        pathRepoMap[repositoryParams.path] = { schemaName: schemaName, mongooseModel: getModel(schemaName)};
+        if (meta.length > 0) {
+            let documentMeta = meta[0];
+            if (documentMeta) {
+                let schemaName = (<IDocumentParams>documentMeta.params).name;
+                pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.DOCUMENT};
+
+            }
+        }
     });
 }
 
