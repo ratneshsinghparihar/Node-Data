@@ -25,8 +25,8 @@ export class DynamicSchema {
         this.target = target;
         this.schemaName = name;
         this.parsedSchema = this.parse(target);
-        this._schema = sequelizeService.addScheam(this.schemaName, this.parsedSchema, this._tablespecs);
         this._tablespecs = tableSpecs;
+        this._schema = sequelizeService.addScheam(this.schemaName, this.parsedSchema, this._tablespecs);
     }
 
     public getSchema() {

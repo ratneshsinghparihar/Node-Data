@@ -2,7 +2,5 @@ import {IDecoratorParams} from '../../../core/decorators/interfaces/decorator-pa
 
 export interface IEntityParams extends IDecoratorParams {
     tableName: string,
-    timestamps: boolean,
-    createdAt: string,
-    updatedAt: string,
+    timestamps: boolean
 }
