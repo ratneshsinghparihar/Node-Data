@@ -141,12 +141,8 @@ export function getRepoPathForChildIfDifferent(target: Object, prop: string) {
     //    return null;
     var repoPath;
     var param = <IDecoratorParams>childType.params;
-    for (var key in pathRepoMap) {
-        if (pathRepoMap[key].schemaName == param.name) {
-            repoPath = key;
-        }
-    }
-   // repoPath= Enumerable.from(pathRepoMap).where(x => x.schemaName == param.name).select(x => x.key);
+    
+    repoPath = Enumerable.from(pathRepoMap).where(keyVal => pathRepoMap[keyVal.key].schemaName == param.name).select(x => x.key).firstOrDefault();
     return repoPath;
 }
 
