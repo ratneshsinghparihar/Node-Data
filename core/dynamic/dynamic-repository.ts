@@ -108,15 +108,15 @@ export class DynamicRepository implements IDynamicRepository {
         //call parent's find one and get the array of ids
         //return child repo.findmany (ids)
 
-        var childMeta:string = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
-        if (childMeta)
-            return this.findOne(id).then(parent => {
-                var chilldIds = parent[prop];
-                if (!(chilldIds instanceof Array)) {
-                    chilldIds = [chilldIds];
-                }
-                return Utils.entityService(pathRepoMap[childMeta].modelType).findMany(childMeta,chilldIds);
-            });
+        //var childMeta:string = Utils.getRepoPathForChildIfDifferent(this.getEntity(), prop);
+        //if (childMeta)
+        //    return this.findOne(id).then(parent => {
+        //        var chilldIds = parent[prop];
+        //        if (!(chilldIds instanceof Array)) {
+        //            chilldIds = [chilldIds];
+        //        }
+        //        return Utils.entityService(pathRepoMap[childMeta].modelType).findMany(childMeta,chilldIds);
+        //    });
 
         return Utils.entityService(pathRepoMap[this.path].modelType).findChild(this.path, id, prop);
     }
