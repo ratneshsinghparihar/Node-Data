@@ -112,6 +112,9 @@ export class DynamicRepository implements IDynamicRepository {
         if (childMeta)
             return this.findOne(id).then(parent => {
                 var chilldIds = parent[prop];
+                if (!(chilldIds instanceof Array)) {
+                    chilldIds = [chilldIds];
+                }
                 return Utils.entityService(pathRepoMap[childMeta].modelType).findMany(childMeta,chilldIds);
             });
 
