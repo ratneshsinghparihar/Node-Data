@@ -167,6 +167,8 @@ export class DynamicController {
                 this.getModelFromHalModel(req.body, req, res);
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, req, this.repository);
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
@@ -227,6 +229,8 @@ export class DynamicController {
                 this.getModelFromHalModel(req.body, req, res);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, req, this.repository);
                         this.sendresult(req, res, result);
                     }).catch(error => {
                         console.log(error);
