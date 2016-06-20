@@ -175,6 +175,19 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
         });
 }
 
+export function bulkDel(model: Mongoose.Model<any>, ids: Array<any>): Q.Promise<any> {
+    var asyncCalls = [];
+    ids.forEach(x => {
+        asyncCalls.push(del(model, x));
+    });
+
+    return Q.allSettled(asyncCalls)
+        .then(result => {
+            return Enumerable.from(result).select(x => x.value).toArray();
+        })
+        .catch(error => error);
+} 
+
 export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
     let clonedObj = removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model

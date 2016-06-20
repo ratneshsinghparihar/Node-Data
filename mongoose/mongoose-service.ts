@@ -13,6 +13,11 @@ export class MongooseService implements IEntityService {
         return MongooseModel.bulkPost(this.getMongooseModel(repoPath), objArr);
     }
 
+
+    bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
+        return MongooseModel.bulkDel(this.getMongooseModel(repoPath), objArr);
+    }
+
     bulkPut(repoPath: string, objArr: Array<any>): Q.Promise<any> {
         return MongooseModel.bulkPut(this.getMongooseModel(repoPath), objArr);
     }

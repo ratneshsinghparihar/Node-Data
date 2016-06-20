@@ -73,6 +73,10 @@ class SequelizeService implements IEntityService {
         return this.getSequelizeModel(repoPath).bulkCreate(objArr);
     }
 
+    bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
+        return this.getSequelizeModel(repoPath).destroy({ where: { id: objArr } });
+    }
+
     bulkPut(repoPath: string, objArr: Array<any>): Q.Promise<any> {
         return this.getSequelizeModel(repoPath).bulkUpdate(objArr);
     }

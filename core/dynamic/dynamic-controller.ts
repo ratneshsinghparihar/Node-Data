@@ -219,6 +219,32 @@ export class DynamicController {
                     });
             });
 
+        // bulk delete
+        router.delete(this.path,
+            securityImpl.ensureLoggedIn(),
+            (req, res) => {
+                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
+
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x, req, res);
+                });
+                return this.repository.bulkDel(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
+            });
+
         router.patch(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
