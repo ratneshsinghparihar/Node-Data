@@ -407,11 +407,15 @@ export class DynamicController {
         // Keeping different router.get to avoid unncessary closure at runtime
         if (searchFromDb) {
             router.get(this.path + "/search/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
+                var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
                 var queryObj = req.query;
                 console.log("Querying Database");
                 return this.repository
                     .findWhere(queryObj)
-                    .then((result) => {
+                    .then((result : Array<any>) => {
+                        result.forEach(obj => {
+                            this.getHalModel1(obj, resourceName + "/" + obj["_id"], req, this.repository);
+                        });
                         this.sendresult(req, res, result);
                     });
 
