@@ -2,6 +2,13 @@
 
 ##What is Node-Data
 
+Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
+
+A node-data user just define a model, provide an specification (sql ,nosql or graph) and node-data provides a API to write generic transaction and queries from  persistent layer .
+
+Node-data automatically create rest end points over models and service written by user.
+Node-data allows the relationships (one to one , manyto one etc ) with any kind of model , so essentially it allows a sql entity to have a no-sql document and vice versa . The consistency managed by framework and developers can treat all model as one type.
+
 Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).
 
 This framework will allow declarative style (annotations) to handle most of backend concerns (data relations, transactions, rest, graphql , security) .Yes its on javascript .
