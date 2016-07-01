@@ -86,7 +86,7 @@ export class MetadataController {
     }
 
     private getProtocol(req) : string{
-        if(req.headers["x-arr-ssl"]){
+        if(req.headers && req.headers["x-arr-ssl"]){
             return "https";
         }
         else{
