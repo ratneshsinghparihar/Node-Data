@@ -11,8 +11,8 @@ import {IEntityService} from './interfaces/entity-service';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 // Ignore .d.ts and all other non .ts files
-function ignoreFile(file: string, stats: fs.Stats) {
-    return path.extname(file) !== '.ts' || file.endsWith('.d.ts') || file.endsWith('.spec.ts');
+function ignoreFile(file: string) {
+    return !file.endsWith('.js') || file.endsWith('.spec.js');
 }
 
 // ignore node_modules or folders starting with '.', eg. '.git'
@@ -21,7 +21,7 @@ function ignoreDirectory(file: string, stats: fs.Stats) {
 }
 
 function readIgnore(file: string, stats: fs.Stats) {
-    return (stats.isFile() && ignoreFile(file, stats))
+    return (stats.isFile() && ignoreFile(file))
         || (stats.isDirectory() && ignoreDirectory(file, stats));
 }
 
