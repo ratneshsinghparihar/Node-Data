@@ -12,6 +12,7 @@ import {IFieldParams, IDocumentParams} from './decorators/interfaces';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 import {getEntity, getModel} from '../core/dynamic/model-entity';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
+import {winstonLog} from '../logging/winstonLog';
 
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
     var addChildModel = [];
@@ -32,7 +33,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
                     autogenerateIdsForAutoFields(model, clonedObj);
                     //Object.assign(obj, clonedObj);
                 } catch (ex) {
-                    console.log(ex);
+                    winstonLog.logError(`Error in bulkPost ${ex}`);
                     return Q.reject(ex);
                 }
             });
@@ -41,6 +42,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
                 return Enumerable.from(result).select(x => toObject(x)).toArray();
             })
                 .catch(error => {
+                    winstonLog.logError(`Error in bulkPost ${error}`);
                     console.log(error);
                 })
         });
@@ -59,20 +61,30 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
         .then(result => {
             return Enumerable.from(result).select(x => x.value).toArray();
         })
-        .catch(error => error);
+        .catch(error => {
+            winstonLog.logError(`Error in bulkPut ${error}`);
+            return error;
+        });
 }
 
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
     return Q.nbind(model.find, model)({})
         .then(result => {
             return toObject(result);
-        })
+        }).catch(error => {
+            winstonLog.logError(`Error in findAll ${error}`);
+            return error;
+        });
 }
 
 export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
+    winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(model.find, model)(query)
         .then(result => {
             return toObject(result);
+        }).catch(error => {
+            winstonLog.logError(`Error in findWhere ${error}`);
+            return error;
         });
 }
 
@@ -83,6 +95,9 @@ export function findOne(model: Mongoose.Model<any>, id) {
                 .then(r => {
                     return toObject(r);
                 });
+        }).catch(error => {
+            winstonLog.logError(`Error in findOne ${error}`);
+            return error;
         });
 }
 
@@ -94,7 +109,7 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
             return toObject(result);
         },
         err => {
-            console.error(err);
+            winstonLog.logError(`Error in findByField ${err}`);
             return Q.reject(err);
         });
 }
@@ -107,7 +122,7 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
     }).then((result: any) => {
         if (result.length !== ids.length) {
             var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length;
-            console.error(error);
+            winstonLog.logError(`Error in findMany ${error}`);
             return Q.reject(error);
         }
         return toObject(result);
@@ -129,6 +144,9 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
                     });
             }
             return res;
+        }).catch(error => {
+            winstonLog.logError(`Error in findChild ${error}`);
+            return error;
         });
 }
 
@@ -155,7 +173,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 return obj;
             });
         }).catch(error => {
-            console.error(error);
+            winstonLog.logError(`Error in post ${error}`);
             return Q.reject(error);
         });
 }
@@ -171,6 +189,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
                 });
         })
         .catch(err => {
+            winstonLog.logError(`delete failed ${err}`);
             return Q.reject('delete failed');
         });
 }
@@ -185,7 +204,10 @@ export function bulkDel(model: Mongoose.Model<any>, ids: Array<any>): Q.Promise<
         .then(result => {
             return Enumerable.from(result).select(x => x.value).toArray();
         })
-        .catch(error => error);
+        .catch(err => {
+            winstonLog.logError(`bulkDel failed ${err}`);
+            return Q.reject('bulkDel failed');
+        });
 } 
 
 export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
@@ -203,7 +225,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
                     });
             });
     }).catch(error => {
-        console.error(error);
+        winstonLog.logError(`Error in put ${error}`);
         return Q.reject(error);
     });
 }
@@ -223,7 +245,7 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
                     });
             });
     }).catch(error => {
-        console.error(error);
+        winstonLog.logError(`Error in patch ${error}`);
         return Q.reject(error);
     });
 }
@@ -303,6 +325,9 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
             return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
                     return updateEmbeddedParent(model, queryCond, result);
+                }).catch(error => {
+                    winstonLog.logError(`Error in patchAllEmbedded ${error}`);
+                    return Q.reject(error);
                 });
 
         }
@@ -314,6 +339,9 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
                     return updateEmbeddedParent(model, queryCond, result);
+                }).catch(error => {
+                    winstonLog.logError(`Error in patchAllEmbedded ${error}`);
+                    return Q.reject(error);
                 });
         }
     }
@@ -336,6 +364,9 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                     .then(result => {
                         return updateEmbeddedParent(model, queryCond, result);
+                    }).catch(error => {
+                        winstonLog.logError(`Error in patchAllEmbedded ${error}`);
+                        return Q.reject(error);
                     });
             }
             else {
@@ -347,6 +378,9 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                     .then(result => {
                         //console.log(result);
                         return updateEmbeddedParent(model, queryCond, result);
+                    }).catch(error => {
+                        winstonLog.logError(`Error in patchAllEmbedded ${error}`);
+                        return Q.reject(error);
                     });
             }
         }
@@ -363,11 +397,15 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
     if (!first)
         return;
 
+    winstonLog.logInfo(`updateEmbeddedParent query is ${queryCond}`);
     // find the objects and then update these objects
     return Q.nbind(model.find, model)(queryCond)
         .then(updated => {
             var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
             return findAndUpdateEmbeddedData(model, ids);
+        }).catch(error => {
+            winstonLog.logError(`Error in updateEmbeddedParent ${error}`);
+            return Q.reject(error);
         });
 }
 
@@ -462,6 +500,9 @@ function embeddedChildren(model: Mongoose.Model<any>, val: any, force: boolean) 
                             return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
                                 val[m.propertyKey] = r;
                             }));
+                        }).catch(error => {
+                            winstonLog.logError(`Error in embeddedChildren ${error}`);
+                            return Q.reject(error);
                         }));
                 }
             }
@@ -492,6 +533,7 @@ function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
     });
     return Q.all(asyncCalls).then(f => {
         if (!ret) {
+            winstonLog.logError('Invalid value. Adding these properties will break the relation.');
             throw 'Invalid value. Adding these properties will break the relation.'
         }
     });
@@ -520,6 +562,9 @@ function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData,
                                 return false;
                             else
                                 return true;
+                        }).catch(error => {
+                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
+                            return Q.reject(error);
                         });
                 }
             }
@@ -543,6 +588,9 @@ function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData,
                             if (Array.isArray(result) && result.length > 0) {
                                 return false;
                             }
+                        }).catch(error => {
+                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
+                            return Q.reject(error);
                         });
                 }
             }
@@ -606,6 +654,7 @@ function autogenerateIdsForAutoFields(model: Mongoose.Model<any>, obj: any): voi
             } else if (metaData.getType() === Mongoose.Types.ObjectId || metaData.getType() === Object) {
                 obj[metaData.propertyKey] = objectId;
             } else {
+                winstonLog.logError(model.modelName + ': ' + metaData.propertyKey + ' - ' + 'Invalid autogenerated type');
                 throw TypeError(model.modelName + ': ' + metaData.propertyKey + ' - ' + 'Invalid autogenerated type');
             }
         });
@@ -632,6 +681,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
     var repoName = (<IDocumentParams>targetModelMeta.params).name;
     var model = getModel(repoName);
     if (!model) {
+        winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
     }
     return patchAllEmbedded(model, propKey, updatedObject, entityChange, embedded, targetPropArray);
@@ -654,6 +704,7 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
             continue;
         }
         if (relationDecoratorMeta.length > 1) {
+            winstonLog.logError('too many relations in single model');
             throw 'too many relations in single model';
         }
 
@@ -669,9 +720,11 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         return;
 
     if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
+        winstonLog.logError('Expected array, found non-array');
         throw 'Expected array, found non-array';
     }
     if (!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
+        winstonLog.logError('Expected single item, found array');
         throw 'Expected single item, found array';
     }
 
@@ -739,7 +792,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                     }
                 }
             }).catch(error => {
-                console.error(error);
+                winstonLog.logError(`Error: ${error}`);
                 return Q.reject(error);
             });
     });
@@ -749,6 +802,7 @@ function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
     var primaryMetaDataForRelation = CoreUtils.getPrimaryKeyMetadata(relMetaData.target);
 
     if (!primaryMetaDataForRelation) {
+        winstonLog.logError('primary key not found for relation');
         throw 'primary key not found for relation';
     }
 
@@ -764,45 +818,3 @@ function toObject(result): any {
     }
     return result ? result.toObject() : null;
 }
-
-//export function ExampleQPromise(model: Mongoose.Model<any>, id) {
-//    return Q.nbind(model.findOne, model)({ '_id': id })
-//        .then(result => {
-//            var res = toObject(result);
-//            var asyncCalls = [];
-//            asyncCalls.push(findMany(model, [id]).then(val => {
-//                var nestedCalls = [];
-//                var nestedVal = {};
-
-//                nestedCalls.push(findMany(model, [id]).then(val => {
-//                    nestedVal['AA'] = val;
-//                }));
-
-//                nestedCalls.push(findMany(model, [id]).then(val => {
-//                    nestedVal['AB'] = val;
-//                }));
-
-//                nestedCalls.push(findMany(model, [id]).then(val => {
-//                    nestedVal['AC'] = val;
-//                }));
-
-//                return Q.all(nestedCalls).then(val => {
-//                    res['A'] = nestedVal;
-//                    return res;
-//                });
-
-//            }));
-
-//            asyncCalls.push(findMany(model, [id]).then(val => {
-//                res['B'] = val;
-//            }));
-
-//            asyncCalls.push(findMany(model, [id]).then(val => {
-//                res['C'] = val;
-//            }));
-
-//            return Q.all(asyncCalls).then(ret => {
-//                return res;
-//            });
-//        });
-//}

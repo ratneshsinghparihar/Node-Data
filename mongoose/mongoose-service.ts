@@ -3,6 +3,7 @@ import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 import * as MongooseModel from './mongoose-model';
 import {pathRepoMap, getModel} from '../core/dynamic/model-entity';
+import {winstonLog} from '../logging/winstonLog';
 
 export class MongooseService implements IEntityService {
 
@@ -71,6 +72,7 @@ export class MongooseService implements IEntityService {
         try {
             return getModel(pathRepoMap[repoPath].schemaName);
         } catch (e) {
+            winstonLog.logError(`Error in getMongooseModel ${e}`);
             throw e;
         }
     }

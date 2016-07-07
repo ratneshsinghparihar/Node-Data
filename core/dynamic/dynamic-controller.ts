@@ -1,5 +1,5 @@
 ﻿import * as configUtil from '../utils';
-var express = require('express');
+import {winstonLog} from '../../logging/winstonLog';
 import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 import {router} from '../exports';
@@ -49,7 +49,6 @@ export class DynamicController {
                         //result = this.getHalModels(result,resourceName);
                         this.sendresult(req, res, result);
                     }).catch(error => {
-                        console.log(error);
                         this.sendError(res, error);
                     });
             });
@@ -68,7 +67,6 @@ export class DynamicController {
                         this.getHalModel1(result, resourceName, req, this.repository);
                         this.sendresult(req, res, result);
                     }).catch(error => {
-                        console.log(error);
                         this.sendError(res, error);
                     });
             });
@@ -89,7 +87,6 @@ export class DynamicController {
                         this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
                         this.sendresult(req, res, parentObj[req.params.prop]);
                     }).catch(error => {
-                        console.log(error);
                         this.sendError(res, error);
                     });
             });
@@ -109,7 +106,6 @@ export class DynamicController {
                             this.getHalModel1(result, resourceName + '/' + result['_id'], req, this.repository);
                             this.sendresult(req, res, result);
                         }).catch(error => {
-                            console.log(error);
                             this.sendError(res, error);
                         });
                 }
@@ -125,7 +121,6 @@ export class DynamicController {
                             });
                             this.sendresult(req, res, result);
                         }).catch(error => {
-                            console.log(error);
                             this.sendError(res, error);
                         });
                 }
@@ -259,7 +254,6 @@ export class DynamicController {
                         this.getHalModel1(result, resourceName, req, this.repository);
                         this.sendresult(req, res, result);
                     }).catch(error => {
-                        console.log(error);
                         this.sendError(res, error);
                     });
             });
@@ -355,7 +349,7 @@ export class DynamicController {
                 }
             });
         }).catch(error => {
-
+            winstonLog.logError('[DynamicController: mergeEntity]: mergeEntity error ' + error);
         });
     }
 
@@ -389,6 +383,7 @@ export class DynamicController {
                         this.invokeModelFunction(map, req, res, actions);
                     })
                     .catch((err) => {
+                        winstonLog.logError('[DynamicController: preAuthFunc]: error ' + err);
                         throw err;
                     })
             }
@@ -467,6 +462,7 @@ export class DynamicController {
                         }
                     }
                 };
+                winstonLog.logInfo('[DynamicController: addRoutesForAllSearch]: query ' + JSON.stringify(query));
                 console.log("Querying Elastic search with %s", JSON.stringify(query));
                 return model
                     .search(query, (err, rr) => {
@@ -664,16 +660,19 @@ export class DynamicController {
     }
 
     private sendUnauthorizeError(res, error) {
+        winstonLog.logError('[DynamicController: sendUnauthorizeError]: authorization error ' + error);
         res.set("Content-Type", "application/json");
         res.send(401, JSON.stringify(error, null, 4));
     }
 
     private sendError(res, error) {
+        winstonLog.logError('[DynamicController: sendError]: error ' + error);
         res.set("Content-Type", "application/json");
         res.send(500, JSON.stringify(error, null, 4));
     }
 
     private sendBadRequest(res, error) {
+        winstonLog.logError('[DynamicController: sendBadRequest]: bad request ' + error);
         res.set("Content-Type", "application/json");
         res.send(400, JSON.stringify(error, null, 4));
     }

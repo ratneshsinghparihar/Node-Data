@@ -31,7 +31,7 @@ export class SqlConfig {
 }
 
 export class Security {
-    public static isAutheticationEnabled = "enabledWithoutAuthorization";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
+    public static isAutheticationEnabled = "disabled";//allowed values: "disabled","enabledWithoutAuthorization","enabledWithAuthorization"
     public static authenticationType = "TokenBased";//allowed values: "passwordBased","TokenBased"
     public static useFaceBookAuth = false;
 }
