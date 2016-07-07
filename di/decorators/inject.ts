@@ -6,6 +6,7 @@ import {Container} from '../';
 import {MetaData} from '../../core/metadata/metadata';
 import {ClassType} from '../../core/utils/types';
 let Enumerable: any = require('linq');
+import {winstonLog} from '../../logging/winstonLog';
 
 export function inject(injectType?) {
 
@@ -22,9 +23,11 @@ export function inject(injectType?) {
         } else if (decoratorType === DecoratorType.PROPERTY) {
             type = Utils.getDesignType(target, propertyKey);
         } else {
+            winstonLog.logError(`Error in Injection`);
             throw 'Error';
         }
         if (!type) {
+            winstonLog.logError(`Error in Injection: inject type cannot be null ${target}`);
             console.log(target);
             throw 'inject type cannot be null';
         }
@@ -65,6 +68,7 @@ export function inject(injectType?) {
 
             // Delete property.
             if (!(delete target[propertyKey])) {
+                winstonLog.logError(`Error in Injection: Invalid property inject`);
                 throw "Invalid property inject";
             }
             // Create new property with getter and setter
@@ -111,6 +115,7 @@ export function injectbyname(injectName?) {
 
         // Delete property.
         if (!(delete target[propertyKey])) {
+            winstonLog.logError(`Error in Injection: Invalid property inject`);
             throw "Invalid property inject";
         }
         // Create new property with getter and setter

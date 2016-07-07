@@ -1,5 +1,6 @@
 ﻿import {ParamTypeCustom} from './param-type-custom';
 import {DecoratorType} from '../enums';
+import {winstonLog} from '../../logging/winstonLog';
 import {Decorators, MetadataConstants} from '../constants';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {MetaRoot} from '../metadata/interfaces/metaroot';
@@ -23,9 +24,11 @@ export function getMetaPropKey(decoratorType, propertyKey?, paramIndex?) {
     let metaPropKey = propertyKey;
 
     if (decoratorType === DecoratorType.METHOD && !propertyKey) {
+        winstonLog.logError('propertyKey should not be null for method decorator');
         throw TypeError('propertyKey should not be null for method decorator');
     }
     if (decoratorType === DecoratorType.PARAM && (paramIndex === null || paramIndex === undefined || paramIndex < 0)) {
+        winstonLog.logError('paramIndex should be greater than equal to 0 for param decorator');
         throw TypeError('paramIndex should be greater than equal to 0 for param decorator');
     }
     if (decoratorType === DecoratorType.CLASS || (decoratorType === DecoratorType.PARAM && !propertyKey)) {
@@ -65,10 +68,12 @@ class MetadataHelper {
      */
     public static addMetaData(target: Object | Function, metaOptions: IMetaOptions): boolean {
         if (!target) {
+            winstonLog.logError('target cannot be null/undefined');
             throw TypeError('target cannot be null/undefined');
         }
 
         if (!metaOptions.propertyKey && (metaOptions.decoratorType === DecoratorType.PROPERTY || metaOptions.decoratorType === DecoratorType.METHOD)) {
+            winstonLog.logError('propertyKey cannot be null or undefined for method/property decorator');
             throw TypeError('propertyKey cannot be null or undefined for method/property decorator');
         }
 
@@ -136,6 +141,7 @@ class MetadataHelper {
 
     public static getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData> {
         if (!target) {
+            winstonLog.logError('target cannot be null');
             throw TypeError('target cannot be null');
         }
 
@@ -181,6 +187,7 @@ class MetadataHelper {
 
     private static getMetaDataForTarget(target: Object): Array<MetaData> {
         if (!target) {
+            winstonLog.logError('target cannot be null or undefined');
             throw TypeError('target cannot be null or undefined');
         }
 
@@ -198,6 +205,7 @@ class MetadataHelper {
 
     private static getAllMetaDataForDecorator(target: Object, decorator: string): Array<MetaData> {
         if (!target || !decorator) {
+            winstonLog.logError('target and decorator cannot be null or undefined');
             throw TypeError('target and decorator cannot be null or undefined');
         }
 
@@ -220,6 +228,7 @@ class MetadataHelper {
         paramIndex?: number
     ): MetaData {
         if (!target || !decorator) {
+            winstonLog.logError('target and decorator cannot be null or undefined');
             throw TypeError('target and decorator cannot be null or undefined');
         }
 

@@ -2,7 +2,7 @@
 import * as decorator from "../core/decorators/repository";
 import {BlogSqlModel} from '../models/blogSqlModel';
 
-@decorator.repository({ path: 'blogs', model: BlogSqlModel })
+@decorator.repository({ path: 'story', model: BlogSqlModel })
 //@decorator.repository('blog', BlogModel)
 export default class BlogSqlRepository {
 

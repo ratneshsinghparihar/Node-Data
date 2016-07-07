@@ -31,6 +31,7 @@
     "mongoosastic": "^4.0.2",
     "mongoose": "^4.3.5",
     "morgan": "^1.6.1",
+    "noogger": "^0.1.3",
     "passport": "^0.2.2",
     "passport-facebook": "^2.1.0",
     "passport-jwt": "^2.0.0",

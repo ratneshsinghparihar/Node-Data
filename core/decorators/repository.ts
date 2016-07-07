@@ -10,7 +10,6 @@ export function repository(params: { path: string, model: any }) {
         console.log('Repository - Path : ', params.path);
         target.prototype.path = params.path;
         target.prototype.model = params.model;
-
         MetaUtils.addMetaData(((<any>target).prototype || target),
             {
                 decorator: Decorators.REPOSITORY,
