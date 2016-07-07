@@ -411,7 +411,9 @@ export class DynamicController {
                 var prom: Q.Promise<any> = <Q.Promise<any>>ret;
                 prom.then(x => {
                     this.sendresult(req, res, x);
-                });
+                }).catch(err => {
+                    this.sendError(res, err);
+                });;
             }
             else {
                 this.sendresult(req, res, ret);
