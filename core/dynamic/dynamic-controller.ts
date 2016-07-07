@@ -682,19 +682,29 @@ export class DynamicController {
 
     private getFullDataUrl(req): string {
         var fullbaseUr: string = "";
-        fullbaseUr = req.protocol + '://' + req.get('host') + "/" + configUtil.config().Config.basePath;
+        fullbaseUr = this.getProtocol(req) + '://' + req.get('host') + "/" + configUtil.config().Config.basePath;
         return fullbaseUr;
     }
 
     private getFullBaseUrl(req): string {
         var fullbaseUr: string = "";
-        fullbaseUr = req.protocol + '://' + req.get('host') + req.originalUrl;
+        fullbaseUr = this.getProtocol(req) + '://' + req.get('host') + req.originalUrl;
         return fullbaseUr;
     }
 
     private getFullBaseUrlUsingRepo(req, repoName): string {
         var fullbaseUr: string = "";
-        fullbaseUr = req.protocol + '://' + req.get('host') + '/' + configUtil.config().Config.basePath + '/' + repoName;
+        fullbaseUr = this.getProtocol(req) + '://' + req.get('host') + '/' + configUtil.config().Config.basePath + '/' + repoName;
         return fullbaseUr;
     }
+
+    private getProtocol(req) : string{
+        if(req.headers && req.headers["x-arr-ssl"]){
+            return "https";
+        }
+        else{
+            return req.protocol;
+        }
+    }
+
 }

@@ -24,7 +24,7 @@ export class Initalize {
                 var allresourcesNames: Array<string> = Utils.getAllResourceNames();
                 var allresourceJson = [];
                 var fullbaseUrl: string = "";
-                fullbaseUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                fullbaseUrl = this.getProtocol(req) + '://' + req.get('host') + req.originalUrl;
                 allresourcesNames.forEach(resource => {
                     var resoucejson = {};
                     resoucejson[resource] = fullbaseUrl + (resource[0] === '/' ? resource : '/' + resource);//+ tokenUrl;
@@ -65,4 +65,14 @@ export class Initalize {
         if ((mask & 4) == 4) aclString.push("delete");
         return aclString;
     }
+
+    private getProtocol(req) : string{
+        if(req.headers && req.headers["x-arr-ssl"]){
+            return "https";
+        }
+        else{
+            return req.protocol;
+        }
+    }
+
 }

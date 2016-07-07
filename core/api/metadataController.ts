@@ -41,7 +41,7 @@ export class MetadataController {
         Enumerable.from(names).forEach(x=> {
             var object = {};
             object['name'] = x;
-            object['metadata'] = req.protocol + '://' + req.get('host') + this.path + '/' + x;
+            object['metadata'] = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + x;
             metaData['_links'].push(object);
         });
 
@@ -69,7 +69,7 @@ export class MetadataController {
                 var info = {};
                 info['name'] = m.propertyKey;
                 if (params.rel) {
-                    var relMeta = req.protocol + '://' + req.get('host') + this.path + '/' + params.rel;
+                    var relMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + params.rel;
                     info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
                 }
                 else {
@@ -84,4 +84,14 @@ export class MetadataController {
         this.metaData[req.params.type] = metaData;
         return this.metaData[req.params.type];
     }
+
+    private getProtocol(req) : string{
+        if(req.headers && req.headers["x-arr-ssl"]){
+            return "https";
+        }
+        else{
+            return req.protocol;
+        }
+    }
+
 }
