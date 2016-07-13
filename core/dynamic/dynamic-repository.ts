@@ -21,14 +21,26 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 export interface IDynamicRepository {
     getEntity();
     getModel();
-    addRel();
     modelName();
-    put(id: any, obj: any): Q.Promise<any>;
-    post(obj: any): Q.Promise<any>;
+    getEntityType(): any;
+
+    bulkPost(objArr: Array<any>);
+    bulkPut(objArr: Array<any>)
+    bulkDel(objArr: Array<any>);
+
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>): Q.Promise<any>;
-    getEntityType() : any;
+    findAll(): Q.Promise<any>;
+    findWhere(query): Q.Promise<any>;
+    findByField(fieldName, value): Q.Promise<any>;
+    findChild(id, prop): Q.Promise<any>;
+
+    put(id: any, obj: any): Q.Promise<any>;
+    post(obj: any): Q.Promise<any>;
+    delete(id: any);
+    patch(id: any, obj);
 }
+
 export class DynamicRepository implements IDynamicRepository {
     private path: string;
     private model: any;
@@ -37,23 +49,11 @@ export class DynamicRepository implements IDynamicRepository {
     private entityService: IEntityService;
     //private modelRepo: any;
 
-    constructor(repositoryPath: string, target: Function | Object, model?: any) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any) {
         //console.log(schema);
         this.path = repositoryPath;
-       // this.schemaName = this.path;
         this.entity = target;
-        //this.metaModel=new this.entityType();
-        //this.model = model;
-        //console.log(this.fn.schema);
         modelNameRepoModelMap[this.path] = this;
-        //var metaForEntityModel = [];
-        //try {
-        //    metaForEntityModel = MetaUtils.getMetaData(model, Decorators.ENTITY);
-        //} catch (exception) { }
-        //if (metaForEntityModel && metaForEntityModel != null && metaForEntityModel.length>0)
-        //    this.entityService = Utils.sqlEntityService();
-        //else
-        //    this.entityService = Utils.entityService();
     }
 
     public getEntity() {
@@ -65,15 +65,27 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public bulkPost(objArr: Array<any>) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objArr);
+        var objs = [];
+        objArr.forEach(x => {
+            objs.push(InstanceLoader.getInstance(this.path, null, x));
+        });
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs);
     }
 
     public bulkPut(objArr: Array<any>) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objArr);
+        var objs = [];
+        objArr.forEach(x => {
+            objs.push(InstanceLoader.getInstance(this.path, null, x));
+        });
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs);
     }
 
     public bulkDel(objArr: Array<any>) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkDel(this.path, objArr);
+        var objs = [];
+        objArr.forEach(x => {
+            objs.push(InstanceLoader.getInstance(this.path, null, x));
+        });
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkDel(this.path, objs);
     }
 
     public modelName() {
@@ -148,9 +160,6 @@ export class DynamicRepository implements IDynamicRepository {
     public patch(id: any, obj) {
         obj = InstanceLoader.getInstance(this.path, id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
-    }
-
-    public addRel() {
     }
 
 }

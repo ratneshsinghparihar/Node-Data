@@ -11,7 +11,7 @@ export class InitializeControllers {
     private initializeController() {
        
         for (var path in repositoryMap()) {
-            var controller = new DynamicController((<any>repositoryMap()[path].fn).path, <any>repositoryMap()[path].repo);
+            var controller = new DynamicController(<any>repositoryMap()[path].fn, <any>repositoryMap()[path].repo);
         }
         var authController = new AuthController("/");
         var metadataController = new MetadataController();

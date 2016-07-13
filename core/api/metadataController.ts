@@ -1,6 +1,7 @@
 ﻿/// <reference path="../../security/auth/security-utils.ts" />
 import {router} from '../exports';
 import {MetaUtils} from "../metadata/utils";
+import {DecoratorType} from '../enums';
 import * as Utils from "../utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
@@ -57,23 +58,23 @@ export class MetadataController {
         if (!repo)
             return null;
 
-        var metas = MetaUtils.getMetaData(repo.getEntityType());
+        var metas = MetaUtils.getMetaData(repo.getEntity());
         //var props: { [key: string]: MetaData } = <any>{};
         var props = [];
         var metaData = {};
         var properties = [];
         Enumerable.from(metas).forEach(x=> {
             var m = x as MetaData;
-            var params = <IAssociationParams>m.params;
-            if ((!props[m.propertyKey] || !params.rel) && m.propertyType.itemType) {
+            if (m.decoratorType == DecoratorType.PROPERTY) {
+                var params: IAssociationParams = <IAssociationParams>m.params;
                 var info = {};
                 info['name'] = m.propertyKey;
-                if (params.rel) {
+                if (params && params.rel) {
                     var relMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + params.rel;
                     info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
                 }
                 else {
-                    info['type'] = m.propertyType.isArray ? [m.propertyType.itemType.name] : m.propertyType.itemType.name;
+                    info['type'] =  m.propertyType.isArray ? [m.getType().name] : m.getType().name;
                 }
                 properties.push(info);
                 props.push(m.propertyKey);

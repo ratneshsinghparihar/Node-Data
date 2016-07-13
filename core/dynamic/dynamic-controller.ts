@@ -1,6 +1,6 @@
 ﻿import * as configUtil from '../utils';
 import {winstonLog} from '../../logging/winstonLog';
-import {DynamicRepository, GetRepositoryForName} from './dynamic-repository';
+import {IDynamicRepository, GetRepositoryForName} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 import {router} from '../exports';
 var jwt = require('jsonwebtoken');
@@ -17,14 +17,15 @@ import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 import {JsonIgnore} from '../enums/jsonignore-enum';
+import {InstanceLoader} from './instance-loader';
 
 export class DynamicController {
-    private repository: DynamicRepository;
+    private repository: IDynamicRepository;
     private path: string;
 
-    constructor(path: string, repository: DynamicRepository) {
+    constructor(entity: any, repository: IDynamicRepository) {
         this.repository = repository;
-        this.path = "/" + Utils.config().Config.basePath + "/" + path;
+        this.path = "/" + Utils.config().Config.basePath + "/" + entity.path;
         this.addSearchPaths();
         this.addActionPaths();
         this.addRoutes();

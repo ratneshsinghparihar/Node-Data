@@ -12,4 +12,10 @@ export class InstanceLoader {
 
         return newInstance;
     }
+
+    static getInstanceFromType(type: any) {
+        var t: () => void = type.constructor;
+        var newInstance = new t();
+        return newInstance;
+    }
 }

@@ -2,7 +2,8 @@
 import * as Utils from "../utils";
 import {MetaData} from '../metadata/metadata';
 
-import {IDynamicRepository,DynamicRepository} from '../dynamic/dynamic-repository';
+import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
+import {InstanceLoader} from '../dynamic/instance-loader';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
 var Config = Utils.config();
@@ -49,8 +50,15 @@ export class InitializeRepositories {
                 let path = (<any>x.target).path;
                 let repoParams = <IRepositoryParams>x.metadata[0].params;
                 let model = repoParams.model;
-                let newRepo = new DynamicRepository(repoParams.path, x.target,model);
-                
+                var newRepo;
+                if (x.target instanceof DynamicRepository) {
+                    newRepo = <DynamicRepository>InstanceLoader.getInstanceFromType(x.target);
+                }
+                else {
+                    newRepo = new DynamicRepository();
+                }
+                newRepo.initialize(repoParams.path, x.target, model);
+
                 repoMap[path] = {
                     fn: x.target,
                     repo: newRepo

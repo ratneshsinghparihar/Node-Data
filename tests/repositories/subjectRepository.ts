@@ -4,4 +4,7 @@ import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 
 @repository({ path: 'subject', model: subject })
 export default class CourseRepository extends DynamicRepository {
+    findAll(): Q.Promise<any> {
+        return super.findAll();
+    }
 }
