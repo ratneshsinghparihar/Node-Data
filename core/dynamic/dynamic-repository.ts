@@ -8,6 +8,7 @@ import {IEntityService} from "../interfaces/entity-service";
 import {Container} from '../../di';
 import * as Utils from '../utils';
 import {pathRepoMap, getEntity, getModel} from './model-entity';
+import {InstanceLoader} from './instance-loader';
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 
@@ -131,18 +132,21 @@ export class DynamicRepository implements IDynamicRepository {
      * @param obj
      */
     public post(obj: any): Q.Promise<any> {
+        obj = InstanceLoader.getInstance(this.path, null, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
     }
 
     public put(id: any, obj: any) {
+        obj = InstanceLoader.getInstance(this.path, id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj);
     }
-
+        
     public delete(id: any) {
         return Utils.entityService(pathRepoMap[this.path].modelType).del(this.path, id);
     }
 
     public patch(id: any, obj) {
+        obj = InstanceLoader.getInstance(this.path, id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
     }
 

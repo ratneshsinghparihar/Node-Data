@@ -6,7 +6,27 @@ import {baseModel} from './baseModel';
 
 @document({ name: 'subject', strict: Strict.throw })
 export class subject extends baseModel {
-    
+    constructor(object?: any) {
+        super(object);
+
+        if (!object || !object._id) {
+            this.createdDate = Date.now().toString();
+        }
+
+        // set default properties
+        this.updatedDate = Date.now().toString();
+        if (object) {
+            for (var prop in object) {
+                this[prop] = object[prop];
+            }
+        }
+    }
+
+    @field()
+    createdDate: string;
+
+    @field()
+    updatedDate: string;
 }
 
 export default subject;
