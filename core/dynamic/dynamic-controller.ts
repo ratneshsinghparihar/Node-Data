@@ -12,6 +12,7 @@ import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
 import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces';
 import {PreAuthService} from '../services/pre-auth-service';
+import {RepoActions} from '../enums/repo-actions-enum';
 
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
@@ -35,12 +36,12 @@ export class DynamicController {
         router.get(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'findAll')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findAll)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, 'findAll', this.path).then(allowed => {
+                return this.isPreAuthenticated(req, res, RepoActions.findAll, this.path).then(allowed => {
                     if (allowed) {
                         var promise = this.repository.findAll();
                         return promise
@@ -61,74 +62,85 @@ export class DynamicController {
         router.get(this.path + '/:id',
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'findOne')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findOne)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                return this.repository.findOne(req.params.id)
-                    .then((result) => {
-                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        this.getHalModel1(result, resourceName, req, this.repository);
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, RepoActions.findOne, this.path).then(allowed => {
+                    if (allowed) {
+                        return this.repository.findOne(req.params.id)
+                            .then((result) => {
+                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                                this.getHalModel1(result, resourceName, req, this.repository);
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         router.get(this.path + '/:id/:prop',
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'findChild')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findChild)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                return this.repository.findChild(req.params.id, req.params.prop)
-                    .then((result) => {
-                        var parentObj = {};
-                        parentObj[req.params.prop] = result;
-                        var resourceName = this.getFullBaseUrl(req);
-                        this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
-                        this.sendresult(req, res, parentObj[req.params.prop]);
-                    }).catch(error => {
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, RepoActions.findChild, this.path).then(allowed => {
+                    if (allowed) {
+                        return this.repository.findChild(req.params.id, req.params.prop)
+                            .then((result) => {
+                                var parentObj = {};
+                                parentObj[req.params.prop] = result;
+                                var resourceName = this.getFullBaseUrl(req);
+                                this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
+                                this.sendresult(req, res, parentObj[req.params.prop]);
+                            }).catch(error => {
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         router.post(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'post')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.post)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                if (!Array.isArray(req.body)) {
-                    this.getModelFromHalModel(req.body, req, res);
-                    return this.repository.post(req.body)
-                        .then((result) => {
-                            var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-                            this.getHalModel1(result, resourceName + '/' + result['_id'], req, this.repository);
-                            this.sendresult(req, res, result);
-                        }).catch(error => {
-                            this.sendError(res, error);
-                        });
-                }
-                else {
-                    Enumerable.from(req.body).forEach(x => {
-                        this.getModelFromHalModel(x, req, res);
-                    });
-                    return this.repository.bulkPost(req.body as Array<any>)
-                        .then((result) => {
-                            Enumerable.from(result).forEach(x => {
-                                var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-                                this.getHalModel1(x, resourceName + '/' + x['_id'], req, this.repository);
+
+                return this.isPreAuthenticated(req, res, RepoActions.post, this.path).then(allowed => {
+                    if (allowed) {
+                        if (!Array.isArray(req.body)) {
+                            this.getModelFromHalModel(req.body, req, res);
+                            return this.repository.post(req.body)
+                                .then((result) => {
+                                    var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                                    this.getHalModel1(result, resourceName + '/' + result['_id'], req, this.repository);
+                                    this.sendresult(req, res, result);
+                                }).catch(error => {
+                                    this.sendError(res, error);
+                                });
+                        }
+                        else {
+                            Enumerable.from(req.body).forEach(x => {
+                                this.getModelFromHalModel(x, req, res);
                             });
-                            this.sendresult(req, res, result);
-                        }).catch(error => {
-                            this.sendError(res, error);
-                        });
-                }
+                            return this.repository.bulkPost(req.body as Array<any>)
+                                .then((result) => {
+                                    Enumerable.from(result).forEach(x => {
+                                        var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                                        this.getHalModel1(x, resourceName + '/' + x['_id'], req, this.repository);
+                                    });
+                                    this.sendresult(req, res, result);
+                                }).catch(error => {
+                                    this.sendError(res, error);
+                                });
+                        }
+                    }
+                });
             });
 
 
@@ -141,126 +153,150 @@ export class DynamicController {
         router.delete(this.path + "/:id/:prop",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'delete')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                return this.repository.delete(req.params.id)
-                    .then(result => {
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, RepoActions.delete, this.path).then(allowed => {
+                    if (allowed) {
+                        return this.repository.delete(req.params.id)
+                            .then(result => {
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                console.log(error);
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         // add or update any property value
         router.put(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.getModelFromHalModel(req.body, req, res);
-                return this.repository.put(req.params.id, req.body)
-                    .then((result) => {
-                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        this.getHalModel1(result, resourceName, req, this.repository);
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
+                    if (allowed) {
+                        this.getModelFromHalModel(req.body, req, res);
+                        return this.repository.put(req.params.id, req.body)
+                            .then((result) => {
+                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                                this.getHalModel1(result, resourceName, req, this.repository);
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                console.log(error);
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         // add or update any property value
         router.put(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                if (!Array.isArray(req.body)) {
-                    this.sendError(res, 'Invalid data.');
-                    return;
-                }
+                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
+                    if (allowed) {
+                        if (!Array.isArray(req.body)) {
+                            this.sendError(res, 'Invalid data.');
+                            return;
+                        }
 
-                Enumerable.from(req.body).forEach(x => {
-                    this.getModelFromHalModel(x, req, res);
+                        Enumerable.from(req.body).forEach(x => {
+                            this.getModelFromHalModel(x, req, res);
+                        });
+                        return this.repository.bulkPut(req.body as Array<any>)
+                            .then((result) => {
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                console.log(error);
+                                this.sendError(res, error);
+                            });
+                    }
                 });
-                return this.repository.bulkPut(req.body as Array<any>)
-                    .then((result) => {
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
             });
 
         router.delete(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'delete')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                return this.repository.delete(req.params.id)
-                    .then((result) => {
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, RepoActions.delete, this.path).then(allowed => {
+                    if (allowed) {
+                        return this.repository.delete(req.params.id)
+                            .then((result) => {
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                console.log(error);
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         // bulk delete
         router.delete(this.path,
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'put')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                if (!Array.isArray(req.body)) {
-                    this.sendError(res, 'Invalid data.');
-                    return;
-                }
+                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
+                    if (allowed) {
+                        if (!Array.isArray(req.body)) {
+                            this.sendError(res, 'Invalid data.');
+                            return;
+                        }
 
-                Enumerable.from(req.body).forEach(x => {
-                    this.getModelFromHalModel(x, req, res);
+                        Enumerable.from(req.body).forEach(x => {
+                            this.getModelFromHalModel(x, req, res);
+                        });
+                        return this.repository.bulkDel(req.body as Array<any>)
+                            .then((result) => {
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                console.log(error);
+                                this.sendError(res, error);
+                            });
+                    }
                 });
-                return this.repository.bulkDel(req.body as Array<any>)
-                    .then((result) => {
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        console.log(error);
-                        this.sendError(res, error);
-                    });
             });
 
         router.patch(this.path + "/:id",
             securityImpl.ensureLoggedIn(),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, 'patch')) {
+                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.patch)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                this.getModelFromHalModel(req.body, req, res);
-                return this.repository.patch(req.params.id, req.body)
-                    .then((result) => {
-                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        this.getHalModel1(result, resourceName, req, this.repository);
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        this.sendError(res, error);
-                    });
+
+                return this.isPreAuthenticated(req, res, RepoActions.patch, this.path).then(allowed => {
+                    if (allowed) {
+                        this.getModelFromHalModel(req.body, req, res);
+                        return this.repository.patch(req.params.id, req.body)
+                            .then((result) => {
+                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                                this.getHalModel1(result, resourceName, req, this.repository);
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
     }
