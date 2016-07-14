@@ -3,7 +3,7 @@ import * as Utils from "../utils";
 import {MetaData} from '../metadata/metadata';
 
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
-import {InstanceLoader} from '../dynamic/instance-loader';
+import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
 var Config = Utils.config();
@@ -52,7 +52,7 @@ export class InitializeRepositories {
                 let model = repoParams.model;
                 var newRepo;
                 if (x.target instanceof DynamicRepository) {
-                    newRepo = <DynamicRepository>InstanceLoader.getInstanceFromType(x.target);
+                    newRepo = <DynamicRepository>InstanceService.getInstanceFromType(x.target);
                 }
                 else {
                     newRepo = new DynamicRepository();

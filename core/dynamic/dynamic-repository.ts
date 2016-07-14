@@ -8,7 +8,7 @@ import {IEntityService} from "../interfaces/entity-service";
 import {Container} from '../../di';
 import * as Utils from '../utils';
 import {pathRepoMap, getEntity, getModel} from './model-entity';
-import {InstanceLoader} from './instance-loader';
+import {InstanceService} from '../services/instance-service';
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 
@@ -67,7 +67,7 @@ export class DynamicRepository implements IDynamicRepository {
     public bulkPost(objArr: Array<any>) {
         var objs = [];
         objArr.forEach(x => {
-            objs.push(InstanceLoader.getInstance(this.path, null, x));
+            objs.push(InstanceService.getInstance(this.path, null, x));
         });
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs);
     }
@@ -75,7 +75,7 @@ export class DynamicRepository implements IDynamicRepository {
     public bulkPut(objArr: Array<any>) {
         var objs = [];
         objArr.forEach(x => {
-            objs.push(InstanceLoader.getInstance(this.path, null, x));
+            objs.push(InstanceService.getInstance(this.path, null, x));
         });
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs);
     }
@@ -83,7 +83,7 @@ export class DynamicRepository implements IDynamicRepository {
     public bulkDel(objArr: Array<any>) {
         var objs = [];
         objArr.forEach(x => {
-            objs.push(InstanceLoader.getInstance(this.path, null, x));
+            objs.push(InstanceService.getInstance(this.path, null, x));
         });
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkDel(this.path, objs);
     }
@@ -144,12 +144,12 @@ export class DynamicRepository implements IDynamicRepository {
      * @param obj
      */
     public post(obj: any): Q.Promise<any> {
-        obj = InstanceLoader.getInstance(this.path, null, obj);
+        obj = InstanceService.getInstance(this.path, null, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
     }
 
     public put(id: any, obj: any) {
-        obj = InstanceLoader.getInstance(this.path, id, obj);
+        obj = InstanceService.getInstance(this.path, id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj);
     }
         
@@ -158,7 +158,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public patch(id: any, obj) {
-        obj = InstanceLoader.getInstance(this.path, id, obj);
+        obj = InstanceService.getInstance(this.path, id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
     }
 

@@ -11,13 +11,13 @@ import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
 import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces';
+import {PreAuthService} from '../services/pre-auth-service';
 
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 import {JsonIgnore} from '../enums/jsonignore-enum';
-import {InstanceLoader} from './instance-loader';
 
 export class DynamicController {
     private repository: IDynamicRepository;
@@ -40,18 +40,22 @@ export class DynamicController {
                     return;
                 }
 
-                var promise = this.repository.findAll();
-                return promise
-                    .then((result) => {
-                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        Enumerable.from(result).forEach(x => {
-                            x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
-                        });
-                        //result = this.getHalModels(result,resourceName);
-                        this.sendresult(req, res, result);
-                    }).catch(error => {
-                        this.sendError(res, error);
-                    });
+                return this.isPreAuthenticated(req, res, 'findAll', this.path).then(allowed => {
+                    if (allowed) {
+                        var promise = this.repository.findAll();
+                        return promise
+                            .then((result) => {
+                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                                Enumerable.from(result).forEach(x => {
+                                    x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
+                                });
+                                //result = this.getHalModels(result,resourceName);
+                                this.sendresult(req, res, result);
+                            }).catch(error => {
+                                this.sendError(res, error);
+                            });
+                    }
+                });
             });
 
         router.get(this.path + '/:id',
@@ -341,7 +345,6 @@ export class DynamicController {
 
     }
 
-
     private mergeEntity(req): Q.Promise<any> {
         return this.repository.findOne(req.body.id).then(result => {
             return Object.keys(result).forEach(attribute => {
@@ -354,45 +357,22 @@ export class DynamicController {
         });
     }
 
-    private preAuthFunc(req, res, map, actions) {
-        var preAuth = MetaUtils.getMetaData(this.repository.getEntityType(), Decorators.PREAUTHORIZE, map.key);
-        if (preAuth) {
-            var preAuthParam = <IPreauthorizeParams>preAuth.params;
-            var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
-            var service = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == preAuthParam.serviceName).select(x => x.metadata[0]).firstOrDefault();
-
-            if (service) {
-                var param = [];
-                if (preAuthParam.params.id == '#id') {
-                    param.push(req.user._id.toString());
-                }
-                if (preAuthParam.params.entity == '#entity') {
-                    param.push(req.body);
-                }
-                if (preAuthParam.params.other) {
-                    for (var i in preAuthParam.params.other) {
-                        param.push(preAuthParam.params.other[i]);
-                    }
-                }
-
-                service.target[preAuthParam.methodName].apply(service.target, param)
-                    .then((isAllowed) => {
-                        if (!isAllowed) {
-                            this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
-                            return;
-                        }
-                        this.invokeModelFunction(map, req, res, actions);
-                    })
-                    .catch((err) => {
-                        winstonLog.logError('[DynamicController: preAuthFunc]: error ' + err);
-                        throw err;
-                    })
+    private isPreAuthenticated(req, res, key, path): Q.Promise<any> {
+        return PreAuthService.isPreAuthenticated(req, this.repository.getEntityType(), key).then(isAllowed => {
+            if (!isAllowed) {
+                this.sendUnauthorizeError(res, 'unauthorize access for resource ' + path);
             }
-        } else {
-            this.invokeModelFunction(map, req, res, actions);
-        }
+            return isAllowed;
+        });
     }
 
+    private preAuthFunc(req, res, map, actions) {
+        this.isPreAuthenticated(req, res, map.key, this.path + "/action/" + map.key).then(isAllowed => {
+            if (isAllowed) {
+                this.invokeModelFunction(map, req, res, actions);
+            }
+        });
+    }
 
     private invokeModelFunction(map: ISearchPropertyMap, req: any, res: any, actions) {
         try {

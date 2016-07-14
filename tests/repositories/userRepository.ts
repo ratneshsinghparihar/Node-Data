@@ -8,6 +8,12 @@ var Q = require('q');
 @repository({ path: 'users', model: UserModel })
 export default class UserRepository extends DynamicRepository {
 
+    //@authorize({ roles: ['ROLE_A'] })
+    //@preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity' } })
+    //findAll(): Q.Promise<any> {
+    //    return super.findAll();
+    //}
+
     doFindByName() {
     }
 
@@ -34,11 +40,6 @@ export default class UserRepository extends DynamicRepository {
     @authorize({roles: ['ROLE_A']})
     public findByField(fieldName, value): Q.Promise<any> {
         return super.findByField(fieldName, value);
-    }
-
-    //@authorize({ roles: ['ROLE_s'] })
-    public findAll(): Q.Promise<any> {
-        return super.findAll();
     }
 
 }

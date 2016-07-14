@@ -1,7 +1,8 @@
-﻿import {getEntity} from './model-entity';
+﻿import {getEntity} from '../dynamic/model-entity';
 import * as utils from "../utils";
 
-export class InstanceLoader {
+export class InstanceService {
+
     static getInstance(path: string, id: any, param: any) {
         var t = getEntity(path);
         var meta = utils.getPrimaryKeyMetadata(t);
