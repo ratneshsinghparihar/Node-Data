@@ -101,4 +101,8 @@ export class CurrentUserDetailService implements UserDetailService {
             return userDetail;
         });
     }
+
+    getCurrentUser(sessionsId): Q.Promise<any> {
+        return 
+    }
 }

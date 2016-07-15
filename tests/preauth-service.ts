@@ -3,14 +3,14 @@
 @service({ singleton: false, serviceName:'preauthservice'})
 export class PreauthService {
 
-    CanEdit(id: any, entity: any) {
+    CanEdit(entity: any) {
         console.log('CanEdit is called');
-        return true;
+        return entity.allow;
     }
 
-    CanEditWithParams(id: any, entity: any, val: boolean) {
-        console.log('CanEdit is called');
-        return val;
+    CanEditWithParams(entity: any) {
+        console.log('CanEditWithParams is called');
+        return entity.allow;
     }
 }
 

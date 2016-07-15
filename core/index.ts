@@ -6,6 +6,7 @@ import Q = require("q");
 import * as Utils from './utils';
 import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
+var domain = require('../security/auth/domain');
 
 //import linq = require('../typings/linq/linq');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -95,4 +96,8 @@ export function initialize(config: any, securityConfig: any, appRoot?: string,
     components.forEach(x => {
         x.default();
     });
+}
+
+module.exports.register = function (app) {
+    app.use(domain.middleware('context'));
 }

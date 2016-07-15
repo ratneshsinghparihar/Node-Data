@@ -14,7 +14,9 @@ import {Container} from './di';
 import * as data from './mongoose';
 //---------sequelize setting-----------------------------
 import * as seqData  from "./sequelizeimp";
-var Main = require('./core')(config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService);
+var Main = require('./core');
+Main(config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService);
+//var Main = require('./core')(config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService);
 data.connect();
 data.generateSchema();
 seqData.sequelizeService.connect();
@@ -23,6 +25,7 @@ seqData.generateSchema();
 
 
 var app = express();
+Main.register(app);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(require('morgan')('combined'));

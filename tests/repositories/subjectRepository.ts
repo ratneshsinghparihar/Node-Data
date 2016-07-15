@@ -7,8 +7,8 @@ import {preauthorize} from '../../core/decorators/preauthorize';
 @repository({ path: 'subject', model: subject })
 export default class CourseRepository extends DynamicRepository {
 
-    @authorize({ roles: ['ROLE_A'] })
-    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity', other: [false] } })
+    //@authorize({ roles: ['ROLE_A'] })
+    //@preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity', other: [false] } })
     findAll(): Q.Promise<any> {
         return super.findAll();
     }

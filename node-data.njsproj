@@ -130,6 +130,8 @@
     <TypeScriptCompile Include="di\decorators\service.ts" />
     <TypeScriptCompile Include="di\di.ts" />
     <TypeScriptCompile Include="di\index.ts" />
+    <TypeScriptCompile Include="security\auth\domain.ts" />
+    <TypeScriptCompile Include="security\auth\principalContext.ts" />
     <TypeScriptCompile Include="security\auth\user.ts" />
     <TypeScriptCompile Include="security\auth\user-details.ts" />
     <TypeScriptCompile Include="security\auth\user-detail-service.ts" />

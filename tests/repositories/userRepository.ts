@@ -9,10 +9,10 @@ var Q = require('q');
 export default class UserRepository extends DynamicRepository {
 
     //@authorize({ roles: ['ROLE_A'] })
-    //@preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity' } })
-    //findAll(): Q.Promise<any> {
-    //    return super.findAll();
-    //}
+    //@preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams", params: { id: '#id', entity: '#entity' } })
+    findAll(): Q.Promise<any> {
+        return super.findAll();
+    }
 
     doFindByName() {
     }
@@ -27,13 +27,13 @@ export default class UserRepository extends DynamicRepository {
     }
 
     @authorize({ roles: ['ROLE_A'] })
-    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit", params: { id: '#id', entity: '#entity'} })
-    doProcess(name: string) {
-        return name;
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit" })// params: { id: '#id', entity: '#entity' } })
+    doProcess(name: string, nam: string, type: any) {
+        return type;
     }
 
-    @preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams", params: { id: '#id', entity: '#entity', other: [false] } })
-    doProcess1(name: string) {
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEditWithParams" })// params: { id: '#id', entity: '#entity', other: [false] } })
+    doProcess1(name: boolean) {
         return name;
     }
 

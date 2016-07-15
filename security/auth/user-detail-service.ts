@@ -7,4 +7,5 @@ export interface UserDetailService {
     createNewUser(userObject): Q.Promise<any>;
     updateExistingUser(id, userObject): Q.Promise<any>;
     getNewUser(req, res);
+    getCurrentUser(sessionId): Q.Promise<any>;
 }

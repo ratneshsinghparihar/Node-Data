@@ -13,12 +13,14 @@ import {Decorators} from '../constants/decorators';
 import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces';
 import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
+var domain = require('../../security/auth/domain');
 
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 import {JsonIgnore} from '../enums/jsonignore-enum';
+var first = true;
 
 export class DynamicController {
     private repository: IDynamicRepository;
@@ -41,22 +43,18 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.findAll, this.path).then(allowed => {
-                    if (allowed) {
-                        var promise = this.repository.findAll();
-                        return promise
-                            .then((result) => {
-                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                                Enumerable.from(result).forEach(x => {
-                                    x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
-                                });
-                                //result = this.getHalModels(result,resourceName);
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+                this.setcontext(req);
+                return this.repository.findAll()
+                    .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        Enumerable.from(result).forEach(x => {
+                            x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
+                        });
+                        //result = this.getHalModels(result,resourceName);
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        this.sendError(res, error);
+                    });
             });
 
         router.get(this.path + '/:id',
@@ -66,18 +64,16 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                return this.isPreAuthenticated(req, res, RepoActions.findOne, this.path).then(allowed => {
-                    if (allowed) {
-                        return this.repository.findOne(req.params.id)
-                            .then((result) => {
-                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                                this.getHalModel1(result, resourceName, req, this.repository);
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+
+                this.setcontext(req);
+                return this.repository.findOne(req.params.id)
+                    .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, req, this.repository);
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        this.sendError(res, error);
+                    });
             });
 
         router.get(this.path + '/:id/:prop',
@@ -87,20 +83,18 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                return this.isPreAuthenticated(req, res, RepoActions.findChild, this.path).then(allowed => {
-                    if (allowed) {
-                        return this.repository.findChild(req.params.id, req.params.prop)
-                            .then((result) => {
-                                var parentObj = {};
-                                parentObj[req.params.prop] = result;
-                                var resourceName = this.getFullBaseUrl(req);
-                                this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
-                                this.sendresult(req, res, parentObj[req.params.prop]);
-                            }).catch(error => {
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+
+                this.setcontext(req);
+                return this.repository.findChild(req.params.id, req.params.prop)
+                    .then((result) => {
+                        var parentObj = {};
+                        parentObj[req.params.prop] = result;
+                        var resourceName = this.getFullBaseUrl(req);
+                        this.getHalModel1(parentObj, resourceName + '/' + req.params.id, req, this.repository);
+                        this.sendresult(req, res, parentObj[req.params.prop]);
+                    }).catch(error => {
+                        this.sendError(res, error);
+                    });
             });
 
         router.post(this.path,
@@ -111,36 +105,33 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.post, this.path).then(allowed => {
-                    if (allowed) {
-                        if (!Array.isArray(req.body)) {
-                            this.getModelFromHalModel(req.body, req, res);
-                            return this.repository.post(req.body)
-                                .then((result) => {
-                                    var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-                                    this.getHalModel1(result, resourceName + '/' + result['_id'], req, this.repository);
-                                    this.sendresult(req, res, result);
-                                }).catch(error => {
-                                    this.sendError(res, error);
-                                });
-                        }
-                        else {
-                            Enumerable.from(req.body).forEach(x => {
-                                this.getModelFromHalModel(x, req, res);
+                this.setcontext(req);
+                if (!Array.isArray(req.body)) {
+                    this.getModelFromHalModel(req.body, req, res);
+                    return this.repository.post(req.body)
+                        .then((result) => {
+                            var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                            this.getHalModel1(result, resourceName + '/' + result['_id'], req, this.repository);
+                            this.sendresult(req, res, result);
+                        }).catch(error => {
+                            this.sendError(res, error);
+                        });
+                }
+                else {
+                    Enumerable.from(req.body).forEach(x => {
+                        this.getModelFromHalModel(x, req, res);
+                    });
+                    return this.repository.bulkPost(req.body as Array<any>)
+                        .then((result) => {
+                            Enumerable.from(result).forEach(x => {
+                                var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+                                this.getHalModel1(x, resourceName + '/' + x['_id'], req, this.repository);
                             });
-                            return this.repository.bulkPost(req.body as Array<any>)
-                                .then((result) => {
-                                    Enumerable.from(result).forEach(x => {
-                                        var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-                                        this.getHalModel1(x, resourceName + '/' + x['_id'], req, this.repository);
-                                    });
-                                    this.sendresult(req, res, result);
-                                }).catch(error => {
-                                    this.sendError(res, error);
-                                });
-                        }
-                    }
-                });
+                            this.sendresult(req, res, result);
+                        }).catch(error => {
+                            this.sendError(res, error);
+                        });
+                }
             });
 
 
@@ -158,17 +149,14 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.delete, this.path).then(allowed => {
-                    if (allowed) {
-                        return this.repository.delete(req.params.id)
-                            .then(result => {
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                console.log(error);
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+                this.setcontext(req);
+                return this.repository.delete(req.params.id)
+                    .then(result => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         // add or update any property value
@@ -180,20 +168,17 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
-                    if (allowed) {
-                        this.getModelFromHalModel(req.body, req, res);
-                        return this.repository.put(req.params.id, req.body)
-                            .then((result) => {
-                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                                this.getHalModel1(result, resourceName, req, this.repository);
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                console.log(error);
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+                this.setcontext(req);
+                this.getModelFromHalModel(req.body, req, res);
+                return this.repository.put(req.params.id, req.body)
+                    .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, req, this.repository);
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         // add or update any property value
@@ -205,25 +190,22 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
-                    if (allowed) {
-                        if (!Array.isArray(req.body)) {
-                            this.sendError(res, 'Invalid data.');
-                            return;
-                        }
+                this.setcontext(req);
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
 
-                        Enumerable.from(req.body).forEach(x => {
-                            this.getModelFromHalModel(x, req, res);
-                        });
-                        return this.repository.bulkPut(req.body as Array<any>)
-                            .then((result) => {
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                console.log(error);
-                                this.sendError(res, error);
-                            });
-                    }
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x, req, res);
                 });
+                return this.repository.bulkPut(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         router.delete(this.path + "/:id",
@@ -233,17 +215,15 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                return this.isPreAuthenticated(req, res, RepoActions.delete, this.path).then(allowed => {
-                    if (allowed) {
-                        return this.repository.delete(req.params.id)
-                            .then((result) => {
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                console.log(error);
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+
+                this.setcontext(req);
+                return this.repository.delete(req.params.id)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         // bulk delete
@@ -255,25 +235,22 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.put, this.path).then(allowed => {
-                    if (allowed) {
-                        if (!Array.isArray(req.body)) {
-                            this.sendError(res, 'Invalid data.');
-                            return;
-                        }
+                this.setcontext(req);
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
 
-                        Enumerable.from(req.body).forEach(x => {
-                            this.getModelFromHalModel(x, req, res);
-                        });
-                        return this.repository.bulkDel(req.body as Array<any>)
-                            .then((result) => {
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                console.log(error);
-                                this.sendError(res, error);
-                            });
-                    }
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x, req, res);
                 });
+                return this.repository.bulkDel(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
             });
 
         router.patch(this.path + "/:id",
@@ -284,21 +261,22 @@ export class DynamicController {
                     return;
                 }
 
-                return this.isPreAuthenticated(req, res, RepoActions.patch, this.path).then(allowed => {
-                    if (allowed) {
-                        this.getModelFromHalModel(req.body, req, res);
-                        return this.repository.patch(req.params.id, req.body)
-                            .then((result) => {
-                                var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                                this.getHalModel1(result, resourceName, req, this.repository);
-                                this.sendresult(req, res, result);
-                            }).catch(error => {
-                                this.sendError(res, error);
-                            });
-                    }
-                });
+                this.setcontext(req);
+                this.getModelFromHalModel(req.body, req, res);
+                return this.repository.patch(req.params.id, req.body)
+                    .then((result) => {
+                        var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
+                        this.getHalModel1(result, resourceName, req, this.repository);
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        this.sendError(res, error);
+                    });
             });
 
+    }
+
+    setcontext(req) {
+        domain.set('context:req', req);
     }
 
     addSearchPaths() {
@@ -366,19 +344,12 @@ export class DynamicController {
             return;
         }
 
-        if (req.method == "POST") {
-            this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
-        }
+        this.setcontext(req);
+        //if (req.method == "POST") {
+        //    this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
+        //}
         this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
-
-        if (req.method == "PUT" || req.method == "PATCH") {
-            this.mergeEntity(req).then(result => {
-                this.preAuthFunc(req, res, map, actions);
-            });
-        } else {
-            this.preAuthFunc(req, res, map, actions);
-        }
-
+        this.invokeModelFunction(map, req, res, actions);
     }
 
     private mergeEntity(req): Q.Promise<any> {
@@ -390,23 +361,6 @@ export class DynamicController {
             });
         }).catch(error => {
             winstonLog.logError('[DynamicController: mergeEntity]: mergeEntity error ' + error);
-        });
-    }
-
-    private isPreAuthenticated(req, res, key, path): Q.Promise<any> {
-        return PreAuthService.isPreAuthenticated(req, this.repository.getEntityType(), key).then(isAllowed => {
-            if (!isAllowed) {
-                this.sendUnauthorizeError(res, 'unauthorize access for resource ' + path);
-            }
-            return isAllowed;
-        });
-    }
-
-    private preAuthFunc(req, res, map, actions) {
-        this.isPreAuthenticated(req, res, map.key, this.path + "/action/" + map.key).then(isAllowed => {
-            if (isAllowed) {
-                this.invokeModelFunction(map, req, res, actions);
-            }
         });
     }
 
