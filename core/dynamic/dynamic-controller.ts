@@ -15,7 +15,6 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
@@ -25,25 +24,48 @@ var first = true;
 export class DynamicController {
     private repository: IDynamicRepository;
     private path: string;
+    private entity: any;
 
     constructor(entity: any, repository: IDynamicRepository) {
         this.repository = repository;
+        this.entity = entity;
         this.path = "/" + Utils.config().Config.basePath + "/" + entity.path;
         this.addSearchPaths();
         this.addActionPaths();
         this.addRoutes();
     }
 
+    ensureLoggedIn(entity: any, action: any) {
+        return function (req, res, next) {
+            var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
+            if (meta) {
+                next();
+            }
+            else {
+                securityImpl.ensureLoggedIn()
+            }
+        }
+    }
+
+    isAuthorize(req, action: any) {
+        var meta = MetaUtils.getMetaData(this.entity, Decorators.ALLOWANONYMOUS, action);
+        if (meta) return true;
+        if (securityImpl.isAuthorize(req, this.repository, action)) {
+            this.setcontext(req);
+            return true;
+        }
+        return false;
+    }
+
     addRoutes() {
         router.get(this.path,
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.findAll),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findAll)) {
+                if (!this.isAuthorize(req, RepoActions.findAll)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 return this.repository.findAll()
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
@@ -58,14 +80,13 @@ export class DynamicController {
             });
 
         router.get(this.path + '/:id',
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.findOne),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findOne)) {
+                if (!this.isAuthorize(req, RepoActions.findOne)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
@@ -77,14 +98,13 @@ export class DynamicController {
             });
 
         router.get(this.path + '/:id/:prop',
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.findChild),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.findChild)) {
+                if (!this.isAuthorize(req, RepoActions.findChild)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 return this.repository.findChild(req.params.id, req.params.prop)
                     .then((result) => {
                         var parentObj = {};
@@ -98,14 +118,13 @@ export class DynamicController {
             });
 
         router.post(this.path,
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.post),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.post)) {
+                if (!this.isAuthorize(req, RepoActions.post)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 if (!Array.isArray(req.body)) {
                     this.getModelFromHalModel(req.body, req, res);
                     return this.repository.post(req.body)
@@ -142,14 +161,13 @@ export class DynamicController {
 
         // delete any property value
         router.delete(this.path + "/:id/:prop",
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.delete)) {
+                if (!this.isAuthorize(req, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 return this.repository.delete(req.params.id)
                     .then(result => {
                         this.sendresult(req, res, result);
@@ -161,14 +179,13 @@ export class DynamicController {
 
         // add or update any property value
         router.put(this.path + "/:id",
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.put),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
+                if (!this.isAuthorize(req, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 this.getModelFromHalModel(req.body, req, res);
                 return this.repository.put(req.params.id, req.body)
                     .then((result) => {
@@ -183,14 +200,13 @@ export class DynamicController {
 
         // add or update any property value
         router.put(this.path,
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.put),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
+                if (!this.isAuthorize(req, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 if (!Array.isArray(req.body)) {
                     this.sendError(res, 'Invalid data.');
                     return;
@@ -209,14 +225,13 @@ export class DynamicController {
             });
 
         router.delete(this.path + "/:id",
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.delete)) {
+                if (!this.isAuthorize(req, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 return this.repository.delete(req.params.id)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -228,14 +243,13 @@ export class DynamicController {
 
         // bulk delete
         router.delete(this.path,
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.put)) {
+                if (!this.isAuthorize(req, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 if (!Array.isArray(req.body)) {
                     this.sendError(res, 'Invalid data.');
                     return;
@@ -254,14 +268,13 @@ export class DynamicController {
             });
 
         router.patch(this.path + "/:id",
-            securityImpl.ensureLoggedIn(),
+            this.ensureLoggedIn(this.entity, RepoActions.patch),
             (req, res) => {
-                if (!securityImpl.isAuthorize(req, this.repository, RepoActions.patch)) {
+                if (!this.isAuthorize(req, RepoActions.patch)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
 
-                this.setcontext(req);
                 this.getModelFromHalModel(req.body, req, res);
                 return this.repository.patch(req.params.id, req.body)
                     .then((result) => {
@@ -299,7 +312,7 @@ export class DynamicController {
             this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
             search[map.key] = { "href": map.key, "params": map.args };
         });
-        router.get(this.path + "/search", securityImpl.ensureLoggedIn(), (req, res) => {
+        router.get(this.path + "/search", this.ensureLoggedIn(this.entity, 'search'), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search" } };
             for (var prop in search) {
                 var lnk = {};
@@ -317,16 +330,16 @@ export class DynamicController {
 
         var actions = {};
         searchPropMap.forEach(map => {
-            router.post(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
+            router.post(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
                 this.actionPathRender(req, res, map, modelRepo, actions);
             });
-            router.put(this.path + "/action/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
+            router.put(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
                 this.actionPathRender(req, res, map, modelRepo, actions);
             });
             actions[map.key] = { "href": map.key, "params": map.args };
         });
 
-        router.get(this.path + "/action", securityImpl.ensureLoggedIn(), (req, res) => {
+        router.get(this.path + "/action", this.ensureLoggedIn(this.entity, 'action'), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/action" } };
             for (var prop in actions) {
                 var lnk = {};
@@ -339,15 +352,14 @@ export class DynamicController {
     }
 
     private actionPathRender(req, res, map, modelRepo, actions) {
-        if (!securityImpl.isAuthorize(req, this.repository, map.key)) {
+        if (!this.isAuthorize(req, map.key)) {
             this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
             return;
         }
 
-        this.setcontext(req);
-        //if (req.method == "POST") {
-        //    this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
-        //}
+        if (req.method == "POST") {
+            this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
+        }
         this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
         this.invokeModelFunction(map, req, res, actions);
     }
@@ -400,13 +412,13 @@ export class DynamicController {
         // If all the search fields are not indexed in the elasticsearch, return data from the database
         // Keeping different router.get to avoid unncessary closure at runtime
         if (searchFromDb) {
-            router.get(this.path + "/search/" + map.key, securityImpl.ensureLoggedIn(), (req, res) => {
+            router.get(this.path + "/search/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
                 var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
                 var queryObj = req.query;
                 console.log("Querying Database");
                 return this.repository
                     .findWhere(queryObj)
-                    .then((result : Array<any>) => {
+                    .then((result: Array<any>) => {
                         result.forEach(obj => {
                             this.getHalModel1(obj, resourceName + "/" + obj["_id"], req, this.repository);
                         });
@@ -504,7 +516,7 @@ export class DynamicController {
         });
     }
 
-    private trimUrl(element,param) {
+    private trimUrl(element, param) {
         if (element.value instanceof Object) {
             this.changeUrlToId(element.value, param.itemType);
         } else {
@@ -671,11 +683,11 @@ export class DynamicController {
         return fullbaseUr;
     }
 
-    private getProtocol(req) : string{
-        if(req.headers && req.headers["x-arr-ssl"]){
+    private getProtocol(req): string {
+        if (req.headers && req.headers["x-arr-ssl"]) {
             return "https";
         }
-        else{
+        else {
             return req.protocol;
         }
     }

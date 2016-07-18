@@ -40,6 +40,7 @@
     <Content Include="views\login.ejs" />
     <TypeScriptCompile Include="core\decorators\interfaces\decorator-params.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\postfilter-params.ts" />
+    <TypeScriptCompile Include="core\decorators\allowanonymous.ts" />
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
     <TypeScriptCompile Include="core\decorators\postfilter.ts" />

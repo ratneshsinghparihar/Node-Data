@@ -18,6 +18,7 @@ export class Decorators {
     public static JSONIGNORE = 'jsonignore';
     public static REQUIRED = 'required';
     public static TRANSIENT = 'transient';
+    public static ALLOWANONYMOUS = 'allowanonymous';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];
