@@ -22,7 +22,8 @@ export function preauthorize(params: IPreauthorizeParams): any {
         descriptor.value = function () {
             var meta = MetaUtils.getMetaData(target, Decorators.PREAUTHORIZE, propertyKey);
             var req = PrincipalContext.get('req');
-            return PreAuthService.isPreAuthenticated(req.body, meta, propertyKey).then(isAllowed => {
+            var entity = req ? req.body : null;
+            return PreAuthService.isPreAuthenticated(entity, meta, propertyKey).then(isAllowed => {
                 if (isAllowed) {
                     return originalMethod.apply(this, arguments);
                 }
