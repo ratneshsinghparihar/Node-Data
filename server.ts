@@ -22,8 +22,6 @@ data.generateSchema();
 seqData.sequelizeService.connect();
 seqData.generateSchema();
 
-
-
 var app = express();
 Main.register(app);
 app.set('views', __dirname + '/views');

@@ -14,6 +14,7 @@ export class Decorators {
     public static SERVICE = 'service';
     public static AUTHORIZE = 'authorize';
     public static PREAUTHORIZE = 'preauthorize';
+    public static POSTFILTER = 'postfilter';
     public static JSONIGNORE = 'jsonignore';
     public static REQUIRED = 'required';
     public static TRANSIENT = 'transient';

@@ -52,7 +52,7 @@ exports = module.exports = {
 	 * @returns {undefined|*} The context for the given specifier or null if no such name could be found
 	 */
 
-    get: getContext
+    get: getContext,
 };
 
 /**

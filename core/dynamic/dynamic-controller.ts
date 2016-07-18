@@ -13,7 +13,7 @@ import {Decorators} from '../constants/decorators';
 import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces';
 import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
-var domain = require('../../security/auth/domain');
+import {PrincipalContext} from '../../security/auth/principalContext';
 
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 import * as securityImpl from './security-impl';
@@ -276,7 +276,7 @@ export class DynamicController {
     }
 
     setcontext(req) {
-        domain.set('context:req', req);
+        PrincipalContext.save('req', req);
     }
 
     addSearchPaths() {
@@ -373,7 +373,7 @@ export class DynamicController {
             }
             param.push(req);
             var ret = modelRepo[map.key].apply(modelRepo, param);
-            if (ret['then'] instanceof Function) { // is thenable
+            if (Utils.isPromise(ret)) { // is thenable
                 var prom: Q.Promise<any> = <Q.Promise<any>>ret;
                 prom.then(x => {
                     this.sendresult(req, res, x);

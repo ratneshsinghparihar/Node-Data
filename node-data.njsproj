@@ -39,13 +39,16 @@
     <Content Include="views\authlogin.ejs" />
     <Content Include="views\login.ejs" />
     <TypeScriptCompile Include="core\decorators\interfaces\decorator-params.ts" />
+    <TypeScriptCompile Include="core\decorators\interfaces\postfilter-params.ts" />
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
+    <TypeScriptCompile Include="core\decorators\postfilter.ts" />
     <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
     <TypeScriptCompile Include="core\decorators\required.ts" />
     <TypeScriptCompile Include="core\enums\repo-actions-enum.ts" />
     <TypeScriptCompile Include="core\services\instance-service.ts" />
     <TypeScriptCompile Include="core\enums\jsonignore-enum.ts" />
+    <TypeScriptCompile Include="core\services\post-filter-service.ts" />
     <TypeScriptCompile Include="core\services\pre-auth-service.ts" />
     <TypeScriptCompile Include="current-user-detail-service.ts" />
     <TypeScriptCompile Include="config.ts" />
