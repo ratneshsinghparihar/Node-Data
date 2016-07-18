@@ -19,7 +19,6 @@ import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 import {JsonIgnore} from '../enums/jsonignore-enum';
-var first = true;
 
 export class DynamicController {
     private repository: IDynamicRepository;
@@ -42,7 +41,7 @@ export class DynamicController {
                 next();
             }
             else {
-                securityImpl.ensureLoggedIn()
+                securityImpl.ensureLoggedIn()(req, res, next);
             }
         }
     }
