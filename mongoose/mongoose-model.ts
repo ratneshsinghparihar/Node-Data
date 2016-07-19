@@ -77,15 +77,36 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
         });
 }
 
-export function findWhere(model: Mongoose.Model<any>, query): Q.Promise<any> {
+export function findWhere(model: Mongoose.Model<any>, query : any, sort? : any, skip? : number, limit? : number, select? : number): Q.Promise<any> {
+    let queryObj = model.find(query);
+    if(sort){
+        queryObj = queryObj.sort(sort);
+    }
+    if(skip){
+        queryObj = queryObj.skip(skip);
+    }
+    if(limit){
+        queryObj = queryObj.limit(limit);
+    }
+    if(select){
+        queryObj = queryObj.select(select);;
+    }
     winstonLog.logInfo(`findWhere query is ${query}`);
-    return Q.nbind(model.find, model)(query)
+    return Q.nbind(queryObj.exec, queryObj)()
         .then(result => {
             return toObject(result);
         }).catch(error => {
             winstonLog.logError(`Error in findWhere ${error}`);
             return error;
         });
+    // winstonLog.logInfo(`findWhere query is ${query}`);
+    // return Q.nbind(model.find, model)(query)
+    //     .then(result => {
+    //         return toObject(result);
+    //     }).catch(error => {
+    //         winstonLog.logError(`Error in findWhere ${error}`);
+    //         return error;
+    //     });
 }
 
 export function findOne(model: Mongoose.Model<any>, id) {
