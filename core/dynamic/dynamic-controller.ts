@@ -14,6 +14,7 @@ import {IAssociationParams, IPreauthorizeParams} from '../decorators/interfaces'
 import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
+import {PostFilterService} from '../services/post-filter-service';
 
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -409,55 +410,98 @@ export class DynamicController {
         // Keeping different router.get to avoid unncessary closure at runtime
         if (searchFromDb) {
             router.get(this.path + "/search/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
-                var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-                var queryObj = req.query;
-                console.log("Querying Database");
-                return this.repository
-                    .findWhere(queryObj)
-                    .then((result: Array<any>) => {
-                        result.forEach(obj => {
-                            this.getHalModel1(obj, resourceName + "/" + obj["_id"], req, this.repository);
-                        });
-                        this.sendresult(req, res, result);
-                    });
-
+                return this.isPreAuthenticated(req, res, map.key).then(isAllowed => {
+                    if (isAllowed) {
+                        return this.searchFromDb(req, res, map.key);
+                    }
+                });
             });
         }
         else { // Search from elasticsearch
             let model: any = this.repository.getModel();
             router.get(this.path + "/search/" + map.key, (req, res) => {
-                let queryObj = req.query;
-                let musts = map.args.map(function (arg) {
-                    let s = '{"' + arg + '":' + "0" + "}";
-                    let obj = JSON.parse(s);
-                    obj[arg] = queryObj[arg];
-                    return { "match": obj };
-                });
-                let query = {
-                    "query": {
-                        "bool": {
-                            "must":
-                            musts
-                        }
+                return this.isPreAuthenticated(req, res, map.key).then(isAllowed => {
+                    if (isAllowed) {
+                        return this.searchUsingElastic(req, res, model, map);
                     }
-                };
-                winstonLog.logInfo('[DynamicController: addRoutesForAllSearch]: query ' + JSON.stringify(query));
-                console.log("Querying Elastic search with %s", JSON.stringify(query));
-                return model
-                    .search(query, (err, rr) => {
-                        if (err) {
-                            console.error(err);
-                            this.sendresult(req, res, err);
-                        }
-                        else {
-                            console.log(rr);
-                            this.sendresult(req, res, rr);
-                        }
-                    });
+                });
             });
         }
     }
 
+    private isPreAuthenticated(req, res, propertyKey): Q.Promise<any> {
+        var meta = MetaUtils.getMetaData(this.entity, Decorators.ALLOWANONYMOUS, propertyKey);
+        if (meta) return Q.when(true);
+
+        meta = MetaUtils.getMetaData(this.entity, Decorators.PREAUTHORIZE, propertyKey);
+        if (meta) {
+            return PreAuthService.isPreAuthenticated([req.body], meta, propertyKey).then(isAllowed => {
+                if (!isAllowed) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                }
+                return isAllowed;
+            });
+        }
+        return Q.when(true);
+    }
+
+    private postFilter(result: any, propertyKey: any): Q.Promise<any> {
+        var meta = MetaUtils.getMetaData(this.entity, Decorators.POSTFILTER, propertyKey);
+        if (meta) {
+            return PostFilterService.postFilter(result, meta);
+        }
+        return Q.when(result);
+    }
+
+    private searchFromDb(req, res, propertyKey) {
+        var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+        var queryObj = req.query;
+        console.log("Querying Database");
+        return this.repository
+            .findWhere(queryObj)
+            .then(result => {
+                return this.postFilter(result, propertyKey);
+            })
+            .then((result: Array<any>) => {
+                result.forEach(obj => {
+                    this.getHalModel1(obj, resourceName + "/" + obj["_id"], req, this.repository);
+                });
+                this.sendresult(req, res, result);
+            });
+    }
+
+    private searchUsingElastic(req, res, model, map) {
+        let queryObj = req.query;
+        let musts = map.args.map(function (arg) {
+            let s = '{"' + arg + '":' + "0" + "}";
+            let obj = JSON.parse(s);
+            obj[arg] = queryObj[arg];
+            return { "match": obj };
+        });
+        let query = {
+            "query": {
+                "bool": {
+                    "must":
+                    musts
+                }
+            }
+        };
+        winstonLog.logInfo('[DynamicController: addRoutesForAllSearch]: query ' + JSON.stringify(query));
+        console.log("Querying Elastic search with %s", JSON.stringify(query));
+        return model
+            .search(query, (err, rr) => {
+                if (err) {
+                    console.error(err);
+                    this.sendresult(req, res, err);
+                }
+                else {
+                    console.log(rr);
+                    this.postFilter(rr, map.key).then(result => {
+                        this.sendresult(req, res, result);
+                    });
+                }
+            });
+    }
 
     private getHalModel(model: any, resourceName: string): any {
         var selfUrl = {};

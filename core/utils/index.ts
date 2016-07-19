@@ -189,6 +189,12 @@ export function isPromise(object: any) {
     return false;
 }
 
+export function isJSON(val: any) {
+    if (val && val.toString() == "[object Object]")
+        return true;
+    return false;
+}
+
 //export function getAllRelationalMetaDataForField(target: Object, propertyKey?: string): Array<MetaData> {
 //    if (!target) {
 //        throw TypeError;

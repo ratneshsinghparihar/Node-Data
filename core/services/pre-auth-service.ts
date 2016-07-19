@@ -8,13 +8,13 @@ var Q = require('q');
 
 export class PreAuthService {
 
-    static isPreAuthenticated(content, preAuth, key): Q.Promise<any> {
+    static isPreAuthenticated(params, preAuth, key): Q.Promise<any> {
         var preAuthParam = <IPreauthorizeParams>preAuth.params;
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
         var service = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == preAuthParam.serviceName).select(x => x.metadata[0]).firstOrDefault();
         if (service) {
-            var param = [];
-            param.push(content);
+            //var param = [];
+            //param.push(content);
             //if (preAuthParam.params.entity == '#entity') {
             //    param.push(content);
             //}
@@ -23,7 +23,7 @@ export class PreAuthService {
             //        param.push(preAuthParam.params.other[i]);
             //    }
             //}
-            var ret = service.target[preAuthParam.methodName].apply(service.target, param);
+            var ret = service.target[preAuthParam.methodName].apply(service.target, params);
             if (Utils.isPromise(ret)) {
                 return ret.then(isAllowed => {
                     return isAllowed;

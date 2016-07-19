@@ -25,11 +25,11 @@ export function postfilter(params: IPostfilterParams): any {
             var result = originalMethod.apply(this, arguments);
             if (Utils.isPromise(result)){
                 return result.then(ret => {
-                    return PostFilterService.postFilter(ret, meta, propertyKey);
+                    return PostFilterService.postFilter(ret, meta);
                 });
             }
             else {
-                return PostFilterService.postFilter(result, meta, propertyKey);
+                return PostFilterService.postFilter(result, meta);
             }
         }
         return descriptor;

@@ -15,4 +15,15 @@ export default class CourseRepository extends DynamicRepository {
     findAll(): Q.Promise<any> {
         return super.findAll();
     }
+
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit1" })
+    doProcess(id: any, val: any) {
+        return 'success';
+    }
+
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit1" })
+    @postfilter({ serviceName: "preauthservice", methodName: "PostFilter" })
+    public findByField(fieldName, value): Q.Promise<any> {
+        return super.findByField(fieldName, value);
+    }
 }

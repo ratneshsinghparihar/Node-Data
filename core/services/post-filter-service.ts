@@ -8,7 +8,7 @@ var Q = require('q');
 
 export class PostFilterService {
 
-    static postFilter(result, postFilter, key): Q.Promise<any> {
+    static postFilter(result, postFilter): Q.Promise<any> {
         var preAuthParam = <IPostfilterParams>postFilter.params;
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
         var service = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == preAuthParam.serviceName).select(x => x.metadata[0]).firstOrDefault();

@@ -739,7 +739,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         newVal = [];
         var objs = [];
         for (var i in val) {
-            if (val[i].toString() == "[object Object]") {
+            if (CoreUtils.isJSON(val[i])) {
                 if (val[i]['_id']) {
                     newVal.push(val[i]['_id']);
                 }
@@ -758,7 +758,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         }
     }
     else {
-        if (val.toString() == "[object Object]") {
+        if (CoreUtils.isJSON(val)) {
             if (val['_id']) {
                 obj[prop] = val['_id'];
             }
