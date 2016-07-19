@@ -46,11 +46,12 @@ export class DynamicController {
         }
     }
 
-    isAuthorize(req, action: any) {
+    isAuthorize(req, res, action: any) {
         var meta = MetaUtils.getMetaData(this.entity, Decorators.ALLOWANONYMOUS, action);
         if (meta) return true;
         if (securityImpl.isAuthorize(req, this.repository, action)) {
-            this.setcontext(req);
+            PrincipalContext.save('req', req);
+            PrincipalContext.save('res', res);
             return true;
         }
         return false;
@@ -60,7 +61,7 @@ export class DynamicController {
         router.get(this.path,
             this.ensureLoggedIn(this.entity, RepoActions.findAll),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.findAll)) {
+                if (!this.isAuthorize(req, res, RepoActions.findAll)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -81,7 +82,7 @@ export class DynamicController {
         router.get(this.path + '/:id',
             this.ensureLoggedIn(this.entity, RepoActions.findOne),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.findOne)) {
+                if (!this.isAuthorize(req, res, RepoActions.findOne)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -99,7 +100,7 @@ export class DynamicController {
         router.get(this.path + '/:id/:prop',
             this.ensureLoggedIn(this.entity, RepoActions.findChild),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.findChild)) {
+                if (!this.isAuthorize(req, res, RepoActions.findChild)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -119,7 +120,7 @@ export class DynamicController {
         router.post(this.path,
             this.ensureLoggedIn(this.entity, RepoActions.post),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.post)) {
+                if (!this.isAuthorize(req, res, RepoActions.post)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -162,7 +163,7 @@ export class DynamicController {
         router.delete(this.path + "/:id/:prop",
             this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.delete)) {
+                if (!this.isAuthorize(req, res, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -180,7 +181,7 @@ export class DynamicController {
         router.put(this.path + "/:id",
             this.ensureLoggedIn(this.entity, RepoActions.put),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.put)) {
+                if (!this.isAuthorize(req, res, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -201,7 +202,7 @@ export class DynamicController {
         router.put(this.path,
             this.ensureLoggedIn(this.entity, RepoActions.put),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.put)) {
+                if (!this.isAuthorize(req, res, RepoActions.put)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -226,7 +227,7 @@ export class DynamicController {
         router.delete(this.path + "/:id",
             this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.delete)) {
+                if (!this.isAuthorize(req, res, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -244,7 +245,7 @@ export class DynamicController {
         router.delete(this.path,
             this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.delete)) {
+                if (!this.isAuthorize(req, res, RepoActions.delete)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -269,7 +270,7 @@ export class DynamicController {
         router.patch(this.path + "/:id",
             this.ensureLoggedIn(this.entity, RepoActions.patch),
             (req, res) => {
-                if (!this.isAuthorize(req, RepoActions.patch)) {
+                if (!this.isAuthorize(req, res, RepoActions.patch)) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
@@ -285,10 +286,6 @@ export class DynamicController {
                     });
             });
 
-    }
-
-    setcontext(req) {
-        PrincipalContext.save('req', req);
     }
 
     addSearchPaths() {
@@ -351,7 +348,7 @@ export class DynamicController {
     }
 
     private actionPathRender(req, res, map, modelRepo, actions) {
-        if (!this.isAuthorize(req, map.key)) {
+        if (!this.isAuthorize(req, res, map.key)) {
             this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
             return;
         }
@@ -644,7 +641,7 @@ export class DynamicController {
     private sendUnauthorizeError(res, error) {
         winstonLog.logError('[DynamicController: sendUnauthorizeError]: authorization error ' + error);
         res.set("Content-Type", "application/json");
-        res.send(401, JSON.stringify(error, null, 4));
+        res.send(403, JSON.stringify(error, null, 4));
     }
 
     private sendError(res, error) {

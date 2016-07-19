@@ -7,7 +7,7 @@ export class PreauthService {
     CanEdit(entity: any) {
         var user = PrincipalContext.User;
         console.log('CanEdit is called');
-        return true;
+        return false;
     }
 
     CanEditWithParams(entity: any) {

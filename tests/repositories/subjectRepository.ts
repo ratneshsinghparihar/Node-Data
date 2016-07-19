@@ -10,7 +10,7 @@ export default class CourseRepository extends DynamicRepository {
 
     //@authorize({ roles: ['ROLE_A'] })
     //@postfilter({ serviceName: "preauthservice", methodName: "PostFilter" })
-    //@preauthorize({ serviceName: "preauthservice", methodName: "CanEdit" })//, params: { id: '#id', entity: '#entity', other: [false] } })
+    @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit" })//, params: { id: '#id', entity: '#entity', other: [false] } })
     @allowanonymous()
     findAll(): Q.Promise<any> {
         return super.findAll();

@@ -20,7 +20,10 @@ export function preauthorize(params: IPreauthorizeParams): any {
         var originalMethod = descriptor.value;
 
         descriptor.value = function () {
-            var meta = MetaUtils.getMetaData(target, Decorators.PREAUTHORIZE, propertyKey);
+            var meta = MetaUtils.getMetaData(target, Decorators.ALLOWANONYMOUS, propertyKey);
+            if (meta) return originalMethod.apply(this, arguments);
+
+            meta = MetaUtils.getMetaData(target, Decorators.PREAUTHORIZE, propertyKey);
             var req = PrincipalContext.get('req');
             var entity = req ? req.body : null;
             return PreAuthService.isPreAuthenticated(entity, meta, propertyKey).then(isAllowed => {
@@ -28,7 +31,13 @@ export function preauthorize(params: IPreauthorizeParams): any {
                     return originalMethod.apply(this, arguments);
                 }
                 else {
-                    throw 'unauthorize access for resource';
+                    var error = 'unauthorize access for resource';
+                    var res = PrincipalContext.get('res');
+                    if (res) {
+                        res.set("Content-Type", "application/json");
+                        res.send(403, JSON.stringify(error, null, 4));
+                    }
+                    throw null;
                 }
             });
         }
