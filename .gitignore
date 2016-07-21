@@ -11,4 +11,3 @@ obj/**/*.*
 out/**
 coverage/**
 npm-debug.log
-nodedataLog.log
