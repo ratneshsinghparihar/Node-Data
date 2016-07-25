@@ -3,8 +3,8 @@
 function getLogger(): winston.LoggerInstance {
     return new (winston.Logger)({
         transports: [
-            new (winston.transports.Console)(),
-            new (winston.transports.File)({ filename: 'nodedataLog.log', json: true})
+            new (winston.transports.Console)()
+			//,new (winston.transports.File)({ filename: 'nodedataLog.log', json: true})
         ]
     });
 }
