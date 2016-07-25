@@ -6,16 +6,15 @@ var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export class InstanceService {
 
-    static getInstance(path: string, id: any, param: any) {
-        var t = getEntity(path);
+    static getInstance(entity: any, id: any, param: any) {
         if (id) {
-            var meta = utils.getPrimaryKeyMetadata(t);
+            var meta = utils.getPrimaryKeyMetadata(entity);
             if (meta) {
                 param[meta.propertyKey] = id;
             }
         }
-        InstanceService.initProperties(t, param);
-        return InstanceService.getInstanceFromType(t, param);
+        InstanceService.initProperties(entity, param);
+        return InstanceService.getInstanceFromType(entity, param);
     }
 
     static getInstanceFromType(type: any, param?: any) {
