@@ -4,5 +4,6 @@ export interface IAssociationParams {
     embedded: boolean,
     persist: boolean,
     eagerLoading: boolean,
-    deleteCascade?: boolean
+    deleteCascade?: boolean,
+    properties?: [string]
 }

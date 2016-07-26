@@ -202,12 +202,12 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
     return Q.nbind(model.findOneAndRemove, model)({ '_id': id })
         .then((response: any) => {
-            return updateEmbeddedOnEntityChange(model, EntityChange.delete, response)
-                .then(res => {
-                    return deleteCascade(model, toObject(response)).then(x => {
+            return deleteCascade(model, toObject(response)).then(x => {
+                return updateEmbeddedOnEntityChange(model, EntityChange.delete, response, null)
+                    .then(res => {
                         return ({ delete: 'success' });
                     });
-                });
+            });
         })
         .catch(err => {
             winstonLog.logError(`delete failed ${err}`);
@@ -238,7 +238,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
         var updatedProps = getUpdatedProps(clonedObj, 'put');
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { upsert: true, new: true })
             .then(result => {
-                return updateEmbeddedOnEntityChange(model, EntityChange.put, result)
+                return updateEmbeddedOnEntityChange(model, EntityChange.put, result, getChangedProperties(clonedObj))
                     .then(res => {
                         let resObj = toObject(result);
                         Object.assign(obj, resObj);
@@ -258,7 +258,7 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
         var updatedProps = getUpdatedProps(clonedObj, 'patch');
         return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
             .then(result => {
-                return updateEmbeddedOnEntityChange(model, EntityChange.patch, result)
+                return updateEmbeddedOnEntityChange(model, EntityChange.patch, result, getChangedProperties(clonedObj))
                     .then(res => {
                         let resObj = toObject(result);
                         Object.assign(obj, resObj);
@@ -345,7 +345,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
                 .then(result => {
-                    return updateEmbeddedParent(model, queryCond, result);
+                    return updateEmbeddedParent(model, queryCond, result, prop);
                 }).catch(error => {
                     winstonLog.logError(`Error in patchAllEmbedded ${error}`);
                     return Q.reject(error);
@@ -359,7 +359,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
 
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
-                    return updateEmbeddedParent(model, queryCond, result);
+                    return updateEmbeddedParent(model, queryCond, result, prop);
                 }).catch(error => {
                     winstonLog.logError(`Error in patchAllEmbedded ${error}`);
                     return Q.reject(error);
@@ -384,7 +384,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 pullObj[prop] = updateObj['_id'];
                 return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                     .then(result => {
-                        return updateEmbeddedParent(model, queryCond, result);
+                        return updateEmbeddedParent(model, queryCond, result, prop);
                     }).catch(error => {
                         winstonLog.logError(`Error in patchAllEmbedded ${error}`);
                         return Q.reject(error);
@@ -398,7 +398,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
                 return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
                     .then(result => {
                         //console.log(result);
-                        return updateEmbeddedParent(model, queryCond, result);
+                        return updateEmbeddedParent(model, queryCond, result, prop);
                     }).catch(error => {
                         winstonLog.logError(`Error in patchAllEmbedded ${error}`);
                         return Q.reject(error);
@@ -408,7 +408,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
     }
 }
 
-function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
+function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result, property: string) {
     if (result['nModified'] == 0)
         return;
 
@@ -422,8 +422,14 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result) {
     // find the objects and then update these objects
     return Q.nbind(model.find, model)(queryCond)
         .then(updated => {
-            var ids = Enumerable.from(updated).select(x => x['_id']).toArray();
-            return findAndUpdateEmbeddedData(model, ids);
+
+            // Now update affected documents in embedded records
+            var asyncCalls = [];
+            Enumerable.from(updated).forEach(x => {
+                asyncCalls.push(updateEmbeddedOnEntityChange(model, EntityChange.patch, x, [property]));
+            });
+            return Q.all(asyncCalls);
+
         }).catch(error => {
             winstonLog.logError(`Error in updateEmbeddedParent ${error}`);
             return Q.reject(error);
@@ -640,21 +646,6 @@ function getQueryCondition(id: any, cond: any): any {
     }
 }
 
-function findAndUpdateEmbeddedData(model: Mongoose.Model<any>, ids: any[]): Q.Promise<any> {
-    return Q.nbind(model.find, model)({
-        '_id': {
-            $in: ids
-        }
-    }).then(result => {
-        // Now update affected documents in embedded records
-        var asyncCalls = [];
-        Enumerable.from(result).forEach(x => {
-            asyncCalls.push(updateEmbeddedOnEntityChange(model, EntityChange.patch, x));
-        });
-        return Q.all(asyncCalls);
-    });
-}
-
 /**
  * Autogenerate mongodb guid (ObjectId) for the autogenerated fields in the object
  * @param obj
@@ -681,12 +672,16 @@ function autogenerateIdsForAutoFields(model: Mongoose.Model<any>, obj: any): voi
         });
 }
 
-function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any) {
+function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any, changedProps: [string]) {
     var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
     var asyncCalls = [];
     Enumerable.from(allReferencingEntities)
         .forEach((x: MetaData) => {
-            asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, (<IAssociationParams>x.params).embedded, entityChange));
+            var param = <IAssociationParams>x.params;
+            if (entityChange == EntityChange.delete || isPropertyUpdateRequired(changedProps, param.properties)) {
+                var newObj = getFilteredValue(obj, param.properties);
+                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, newObj, param.embedded, entityChange));
+            }
         });
     return Q.allSettled(asyncCalls);
 }
@@ -805,7 +800,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             .then(result => {
                 if (result && result.length > 0) {
                     if (params.embedded) {
-                        obj[prop] = obj[prop] instanceof Array ? result : result[0];
+                        obj[prop] = obj[prop] instanceof Array ? getFilteredValues(result, params.properties) : getFilteredValue(result[0], params.properties);
                     }
                     else {
                         // Verified that foriegn keys are correct and now update the Id
@@ -817,6 +812,57 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                 return Q.reject(error);
             });
     });
+}
+
+function getChangedProperties(changedObj: any) {
+    return Enumerable.from(changedObj).select(x => x.key).toArray();
+}
+
+function isPropertyUpdateRequired(changedProps: [string], properties: [string]) {
+    if (properties && properties.length > 0) {
+        if (Enumerable.from(properties).any(x => changedProps.indexOf(x) > -1))
+            return true;
+    }
+
+    if (!changedProps || changedProps.length == 0)
+        return false;
+    else if (!properties || properties.length == 0)
+        return true;
+    else {
+        if (Enumerable.from(properties).any(x => changedProps.indexOf(x) > -1))
+            return true;
+        else
+            return false;
+    }
+}
+
+function getFilteredValues(values: [any], properties: [string]) {
+    var result = [];
+    values.forEach(x => {
+        result.push(getFilteredValue(x, properties));
+    });
+    return result;
+}
+
+function getFilteredValue(value, properties: [string]) {
+    if (properties && properties.length > 0) {
+        var json = {};
+        properties.forEach(x => {
+            if (value[x])
+                json[x] = value[x];
+        });
+
+        if (JSON.stringify(json) == '{}') {
+            return null;
+        }
+        else if (value['_id']) {
+            json['_id'] = value['_id'];
+        }
+        return json;
+    }
+    else {
+        return value;
+    }
 }
 
 function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
