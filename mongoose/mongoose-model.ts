@@ -672,7 +672,7 @@ function autogenerateIdsForAutoFields(model: Mongoose.Model<any>, obj: any): voi
         });
 }
 
-function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any, changedProps: [string]) {
+function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any, changedProps: Array<string>) {
     var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
     var asyncCalls = [];
     Enumerable.from(allReferencingEntities)
@@ -814,11 +814,11 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     });
 }
 
-function getChangedProperties(changedObj: any) {
+function getChangedProperties(changedObj: any): Array<string> {
     return Enumerable.from(changedObj).select(x => x.key).toArray();
 }
 
-function isPropertyUpdateRequired(changedProps: [string], properties: [string]) {
+function isPropertyUpdateRequired(changedProps: Array<string>, properties: [string]) {
     if (properties && properties.length > 0) {
         if (Enumerable.from(properties).any(x => changedProps.indexOf(x) > -1))
             return true;

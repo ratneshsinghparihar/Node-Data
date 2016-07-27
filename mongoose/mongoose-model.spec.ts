@@ -190,7 +190,7 @@ describe('testing relation', () => {
             });
         });
 
-        describe(': findWhere', () => {
+        xdescribe(': findWhere', () => {
             var objs = [];
             objs.push({ 'name': 'student1' });
             objs.push({ 'name': 'student2' });
