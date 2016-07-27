@@ -710,21 +710,12 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
  */
 function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
     var asyncCalls = [];
-    for (var prop in obj) {
-        var metaArr = MetaUtils.getMetaDataForPropKey(getEntity(model.modelName), prop);
-        var relationDecoratorMeta: [MetaData] = <any>Enumerable.from(metaArr)
-            .where((x: MetaData) => CoreUtils.isRelationDecorator(x.decorator))
-            .toArray();
-
-        if (!relationDecoratorMeta || relationDecoratorMeta.length == 0) {
-            continue;
+    var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+    for (var m in metaArr) {
+        var meta: MetaData = <any>m;
+        if (obj[meta.propertyKey]) {
+            asyncCalls.push(embedChild(obj, meta.propertyKey, meta));
         }
-        if (relationDecoratorMeta.length > 1) {
-            winstonLog.logError('too many relations in single model');
-            throw 'too many relations in single model';
-        }
-
-        asyncCalls.push(embedChild(obj, prop, relationDecoratorMeta[0]));
     }
     return Q.all(asyncCalls).then(x => {
         return isDataValid(model, obj, id);
