@@ -712,14 +712,19 @@ function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
     var asyncCalls = [];
     var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     for (var m in metaArr) {
-        var meta: MetaData = <any>m;
+        var meta: MetaData = <any>metaArr[m];
         if (obj[meta.propertyKey]) {
             asyncCalls.push(embedChild(obj, meta.propertyKey, meta));
         }
     }
-    return Q.all(asyncCalls).then(x => {
+    if (asyncCalls.length == 0) {
         return isDataValid(model, obj, id);
-    });
+    }
+    else {
+        return Q.all(asyncCalls).then(x => {
+            return isDataValid(model, obj, id);
+        });
+    }
 }
 
 function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
@@ -740,7 +745,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     var relModel = getModel(params.rel);
     var val = obj[prop];
     var newVal = val;
-    var prom: Q.Promise<any> = Q.when();
+    var prom: Q.Promise<any> = null;
 
     if (relMetadata.propertyType.isArray) {
         newVal = [];
@@ -774,35 +779,46 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             }
         }
     }
-    return prom.then(x => {
-        if (x) {
-            if (x instanceof Array) {
-                x.forEach(v => {
-                    newVal.push(v['_id']);
-                });
-            }
-            else {
-                newVal = x['_id'];
-            }
-            obj[prop] = newVal;
-        }
 
-        return findMany(relModel, castAndGetPrimaryKeys(obj, prop, relMetadata))
-            .then(result => {
-                if (result && result.length > 0) {
-                    if (params.embedded) {
-                        obj[prop] = obj[prop] instanceof Array ? getFilteredValues(result, params.properties) : getFilteredValue(result[0], params.properties);
-                    }
-                    else {
-                        // Verified that foriegn keys are correct and now update the Id
-                        obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x => x['_id']).toArray() : result[0]['_id'];
-                    }
+    if (prom) {
+        return prom.then(x => {
+            if (x) {
+                if (x instanceof Array) {
+                    x.forEach(v => {
+                        newVal.push(v['_id']);
+                    });
                 }
-            }).catch(error => {
-                winstonLog.logError(`Error: ${error}`);
-                return Q.reject(error);
-            });
-    });
+                else {
+                    newVal = x['_id'];
+                }
+                obj[prop] = newVal;
+            }
+            return fetchAndUpdateChildren(relModel, relMetadata, obj, prop);
+
+        });
+    }
+    else {
+        return fetchAndUpdateChildren(relModel, relMetadata, obj, prop);
+    }
+}
+
+function fetchAndUpdateChildren(relModel, relMetadata, obj, prop) {
+    var params: IAssociationParams = <any>relMetadata.params;
+    return findMany(relModel, castAndGetPrimaryKeys(obj, prop, relMetadata))
+        .then(result => {
+            if (result && result.length > 0) {
+                if (params.embedded) {
+                    obj[prop] = obj[prop] instanceof Array ? getFilteredValues(result, params.properties) : getFilteredValue(result[0], params.properties);
+                }
+                else {
+                    // Verified that foriegn keys are correct and now update the Id
+                    obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x => x['_id']).toArray() : result[0]['_id'];
+                }
+            }
+        }).catch(error => {
+            winstonLog.logError(`Error: ${error}`);
+            return Q.reject(error);
+        });
 }
 
 function getChangedProperties(changedObj: any): Array<string> {
