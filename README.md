@@ -743,6 +743,9 @@ class UserModel {
 
 The user will have freedom to choose the entity attribute to be validated before save or update.
 
+##Diffrence between waterline and Node-Data
+The waterline is a greate opensource porject and has been an inspiration for us but there is a big difference between Node-data and waterline . The Node-Data is not an another ORM , its a wrapper over famous ORMs like(mongoose , seqlize , neo4j) . Node-Data provides an abstraction over these famous ORMs so that Developer don't have to deal with them individually and they can write models and transaction over these ORMs with same codebase. 
+
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200">
