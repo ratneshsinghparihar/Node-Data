@@ -1,4 +1,4 @@
-﻿/// <reference path="../config.ts" />
+/// <reference path="../config.ts" />
 import {config} from '../core/utils';
 import * as Sequelize from "sequelize";
 import Q = require('q');
@@ -37,6 +37,17 @@ class SequelizeService implements IEntityService {
         return this.sequelize;
     }
 
+
+    getCustomResult(databaseName: string, query): Q.Promise<any> {
+        if (config().SqlConfig.isSqlEnabled == false)
+            return;
+        var dynamicSequelize = new Sequelize(databaseName,
+            config().SqlConfig.username,
+            config().SqlConfig.password,
+            config().SqlConfig.sequlizeSetting);
+        return dynamicSequelize.query(query);   
+    }
+
     addScheam(name: string, schema: any, detail: any) {
         var newSchema = this.sequelize.define(name, schema, detail);
         this._schemaCollection[name] = newSchema;
@@ -73,6 +84,10 @@ class SequelizeService implements IEntityService {
         return this.getSequelizeModel(repoPath).bulkCreate(objArr);
     }
 
+    bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
+        return null;
+    }
+
     bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
         return this.getSequelizeModel(repoPath).destroy({ where: { id: objArr } });
     }
@@ -83,7 +98,9 @@ class SequelizeService implements IEntityService {
 
     findAll(repoPath: string): Q.Promise<any> {
         return this.getSequelizeModel(repoPath).findAll().then(result => {
-            return result.dataValues;
+            if (!result) return null;
+            var finalOutput = Enumerable.from(result).select(x => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
+            return finalOutput;
         });
     }
 
@@ -97,8 +114,10 @@ class SequelizeService implements IEntityService {
 
         let schemaModel = this.getSequelizeModel(repoPath);
         let primaryKey = schemaModel.primaryKeyAttribute;
+        var cond = {};
+        cond[primaryKey] = id;
         var self = this;
-        return schemaModel.find({ include: [{ all: true }], where: { id: id } }).then(result => {
+        return schemaModel.find({ include: [{ all: true }], where: cond }).then(result => {
             let model = result.dataValues;
             self.getAssociationForSchema(result, schemaModel);
             return result.dataValues;
