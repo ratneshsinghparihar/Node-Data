@@ -1,4 +1,4 @@
-/// <reference path="../config.ts" />
+﻿/// <reference path="../config.ts" />
 import {config} from '../core/utils';
 import * as Sequelize from "sequelize";
 import Q = require('q');
@@ -38,7 +38,7 @@ class SequelizeService implements IEntityService {
     }
 
 
-    getCustomResult(databaseName: string, query): Q.Promise<any> {
+    getCustomResult(databaseName: string, query) {
         if (config().SqlConfig.isSqlEnabled == false)
             return;
         var dynamicSequelize = new Sequelize(databaseName,
