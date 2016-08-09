@@ -67,6 +67,79 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
         });
 }
 
+export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj: any): Q.Promise<any> {
+    let clonedObj = removeTransientProperties(model, obj);
+    // First update the any embedded property and then update the model
+    var cond = {};
+    cond['_id'] = {
+        $in: objIds
+    };
+    var updatedProps = getUpdatedProps(clonedObj, 'put');
+    return Q.nbind(model.update, model)(cond, updatedProps, { multi: true })
+        .then(result => {
+            return findMany(model, objIds).then(objects => {
+                return updateParent(model, objects).then(res => {
+                    return result;
+                });
+            });
+        }).catch(error => {
+            winstonLog.logError(`Error in put ${error}`);
+            return Q.reject(error);
+        });
+}
+
+function updateParent(model: Mongoose.Model<any>, objs: Array<any>) {
+    var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+    var asyncCalls = [];
+    Enumerable.from(allReferencingEntities)
+        .forEach((x: MetaData) => {
+            var param = <IAssociationParams>x.params;
+            if (param.embedded) {
+                var meta = MetaUtils.getMetaData(x.target, Decorators.DOCUMENT);
+                var targetModelMeta = meta[0];
+                var repoName = (<IDocumentParams>targetModelMeta.params).name;
+                var model = getModel(repoName);
+                asyncCalls.push(updateParentDocument(model, x, objs));
+            }
+        });
+    return Q.allSettled(asyncCalls);
+}
+
+function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
+    var queryCond = {};
+    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+    queryCond[meta.propertyKey + '._id'] = { $in: ids };
+    return Q.nbind(model.find, model)(queryCond)
+        .then(result => {
+            {
+                var asyncCall = [];
+                Enumerable.from(result).forEach(doc => {
+                    var newUpdate = {};
+                    var values = doc[meta.propertyKey];
+                    if (meta.propertyType.isArray) {
+                        var res = [];
+                        values.forEach(x => {
+                            var index = ids.indexOf(x['_id']);
+                            if (index >= 0) {
+                                res.push(objs[index]);
+                            }
+                            else {
+                                res.push(x);
+                            }
+                        });
+                        newUpdate[meta.propertyKey] = res;
+                    }
+                    else {
+                        var index = ids.indexOf(values['_id']);
+                        newUpdate[meta.propertyKey] = objs[index];
+                    }
+                    asyncCall.push(put(model, doc['_id'], newUpdate));
+                });
+                return Q.allSettled(asyncCall);
+            }
+        });
+}
+
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
     return Q.nbind(model.find, model)({})
         .then(result => {
