@@ -22,7 +22,7 @@ export function generateSchema() {
         let schema = new DynamicSchema(documentMeta.target, schemaName);
         let mongooseSchema = schema.getSchema();
         let model = Mongoose.model(schemaName, <any>mongooseSchema);
-        updateModelEntity(schemaName, documentMeta.target, model);
+        updateModelEntity(schemaName, documentMeta.target, model, schema);
     });
 
     var repositoryMetadata = MetaUtils.getMetaDataForDecorators([CoreDecorators.REPOSITORY]);
