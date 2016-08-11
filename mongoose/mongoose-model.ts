@@ -919,7 +919,10 @@ function isPropertyUpdateRequired(changedProps: Array<string>, properties: [stri
 function getFilteredValues(values: [any], properties: [string]) {
     var result = [];
     values.forEach(x => {
-        result.push(getFilteredValue(x, properties));
+        var val = getFilteredValue(x, properties);
+        if (val) {
+            result.push(val);
+        }
     });
     return result;
 }
