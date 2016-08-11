@@ -435,7 +435,7 @@ export class DynamicController {
 
         meta = MetaUtils.getMetaData(this.entity, Decorators.PREAUTHORIZE, propertyKey);
         if (meta) {
-            return PreAuthService.isPreAuthenticated([req.body], meta, propertyKey).then(isAllowed => {
+            return PreAuthService.isPreAuthenticated([req.body], meta.params, propertyKey).then(isAllowed => {
                 if (!isAllowed) {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                 }
@@ -448,7 +448,7 @@ export class DynamicController {
     private postFilter(result: any, propertyKey: any): Q.Promise<any> {
         var meta = MetaUtils.getMetaData(this.entity, Decorators.POSTFILTER, propertyKey);
         if (meta) {
-            return PostFilterService.postFilter(result, meta);
+            return PostFilterService.postFilter(result, meta.params);
         }
         return Q.when(result);
     }

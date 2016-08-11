@@ -21,15 +21,14 @@ export function postfilter(params: IPostfilterParams): any {
         var originalMethod = descriptor.value;
 
         descriptor.value = function () {
-            var meta = MetaUtils.getMetaData(target, Decorators.POSTFILTER, propertyKey);
             var result = originalMethod.apply(this, arguments);
             if (Utils.isPromise(result)){
                 return result.then(ret => {
-                    return PostFilterService.postFilter(ret, meta);
+                    return PostFilterService.postFilter(ret, params);
                 });
             }
             else {
-                return PostFilterService.postFilter(result, meta);
+                return PostFilterService.postFilter(result, params);
             }
         }
         return descriptor;
