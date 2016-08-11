@@ -8,13 +8,17 @@ export class User implements UserDetails {
     private credentialsNonExpired: boolean;
     private enabled: boolean;
     private userObject: any;
+    private dbName: string;
 
-    public constructor(username: string, password: string, user: any, authorities?: Array<any>) {
+    public constructor(username: string, password: string, user: any, authorities?: Array<any>, dbName?: string) {
         this.setUser(username, password, true, true, true, true, authorities);
         this.userObject = user;
     }
 
-    public setUser(username: string, password: string, enabled: boolean, accountNonExpired: boolean, credentialsNonExpired: boolean, accountNonLocked: boolean, authorities: Array<any>) {
+    public setUser(username: string, password: string,
+        enabled: boolean, accountNonExpired: boolean,
+        credentialsNonExpired: boolean, accountNonLocked: boolean,
+        authorities: Array<any>,dbName?: string) {
         if (username != null && username != "" && password != null) {
             this.username = username;
             this.password = password;
@@ -23,6 +27,7 @@ export class User implements UserDetails {
             this.credentialsNonExpired = credentialsNonExpired;
             this.accountNonLocked = accountNonLocked;
             this.authorities = authorities;
+            this.dbName = dbName;
         } else {
             throw "Cannot pass null or empty values to constructor";
         }
@@ -34,6 +39,10 @@ export class User implements UserDetails {
 
     getPassword(): string {
         return this.password;
+    };
+
+    getDbName(): string {
+        return this.dbName;
     };
 
     getUsername(): string {
