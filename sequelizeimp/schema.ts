@@ -11,11 +11,11 @@ import {pathRepoMap, updateModelEntity, getModel} from '../core/dynamic/model-en
 import Mongoose = require('mongoose');
 var Enumerable: linqjs.EnumerableStatic = require('linq');
 import {sequelizeService} from './sequelizeService';
-import * as config from '../config';
+import * as configUtil from '../core/utils';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 
 export function generateSchema() {
-    if (config.SqlConfig.isSqlEnabled == false)
+    if (configUtil.config().SqlConfig.isSqlEnabled == false)
         return;
 
     // register entity service
@@ -30,7 +30,7 @@ export function generateSchema() {
         allDynamicSchemas.push(schema);
         let entitySchema = schema.getSchema();
         //let model = Mongoose.model(schemaName, <any>mongooseSchema);
-        updateModelEntity(schemaName, entityMeta.target, entitySchema);
+        updateModelEntity(schemaName, entityMeta.target, entitySchema, schema);
     });
 
     allDynamicSchemas.forEach(schema => {
