@@ -150,19 +150,16 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
         });
 }
 
-export function findWhere(model: Mongoose.Model<any>, query : any, sort? : any, skip? : number, limit? : number, select? : number): Q.Promise<any> {
-    let queryObj = model.find(query);
-    if(sort){
+export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string>, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
+    let queryObj = model.find(query, select);
+    if (sort) {
         queryObj = queryObj.sort(sort);
     }
-    if(skip){
+    if (skip) {
         queryObj = queryObj.skip(skip);
     }
-    if(limit){
+    if (limit) {
         queryObj = queryObj.limit(limit);
-    }
-    if(select){
-        queryObj = queryObj.select(select);;
     }
     winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()

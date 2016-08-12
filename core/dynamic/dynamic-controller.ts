@@ -458,7 +458,7 @@ export class DynamicController {
         var queryObj = req.query;
         console.log("Querying Database");
         return this.repository
-            .findWhere(queryObj)
+            .findWhere(queryObj, null)
             .then(result => {
                 return this.postFilter(result, propertyKey);
             })
