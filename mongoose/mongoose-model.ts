@@ -151,7 +151,13 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
 }
 
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string>, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
-    let queryObj = model.find(query, select);
+    var sel = {};
+    if (select) {
+        select.forEach(x => {
+            sel[x] = 1;
+        });
+    }
+    let queryObj = model.find(query, sel);
     if (sort) {
         queryObj = queryObj.sort(sort);
     }
