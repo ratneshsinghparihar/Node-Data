@@ -94,6 +94,7 @@
     <TypeScriptCompile Include="mongoose\decorators\interfaces\index.ts" />
     <TypeScriptCompile Include="mongoose\enums\index.ts" />
     <TypeScriptCompile Include="mongoose\index.ts" />
+    <TypeScriptCompile Include="mongoose\mongoose-model-helper.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-model.ts" />
     <TypeScriptCompile Include="mongoose\mongoose-model.spec.ts" />
     <TypeScriptCompile Include="mongoose\schema.ts" />
