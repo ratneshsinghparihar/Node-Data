@@ -1,4 +1,6 @@
 ﻿import Mongoose = require('mongoose');
+import {EntityChange} from '../../core/enums/entity-change';
+var Enumerable: linqjs.EnumerableStatic = require('linq');
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -30,4 +32,83 @@ export function castToMongooseType(value, schemaType) {
         default: newVal = value; break;
     }
     return newVal;
+}
+
+export function getPropertiesFromObject(changedObj: any): Array<string> {
+    return Enumerable.from(changedObj).select(x => x.key).toArray();
+}
+
+/**
+ * return json from mongoose object
+ * @param result
+ */
+export function toObject(result): any {
+    if (result instanceof Array) {
+        return Enumerable.from(result).select(x => x.toObject()).toArray();
+    }
+    return result ? result.toObject() : null;
+}
+
+/**
+ * It creates list of properties to set/unset/push.
+ * If array is passed, then for put whole array is replaced but for patch array is updated. For e.g.
+ * Case 'put': Suppose there is an object {'ids':['1']}. On put {'ids':['2']}, it will result {'ids':['2']}.
+ * Case 'patch': Suppose there is an object {'ids':['1']}. On patch {'ids':['2']}, it will result {'ids':['1', '2']}.
+ * @param obj
+ * @param type
+ */
+export function getUpdatedProps(obj: any, type: EntityChange) {
+    var push = {};
+    var set = {};
+    var unset = {};
+    var s = false, u = false, p = false;
+    for (var i in obj) {
+        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || (obj[i] instanceof Array && obj[i] == []) || obj[i] == {}) {
+            unset[i] = obj[i];
+            u = true;
+        }
+        else {
+            if (type == EntityChange.patch && obj[i] instanceof Array) {
+                push[i] = {
+                    $each: obj[i]
+                }
+                p = true;
+            }
+            else {
+                set[i] = obj[i];
+                s = true;
+            }
+        }
+    }
+
+    var json = {};
+    if (s) {
+        json['$set'] = set;
+    }
+    if (u) {
+        json['$unset'] = unset;
+    }
+    if (p) {
+        json['$push'] = push;
+    }
+
+    return json;
+}
+
+export function isPropertyUpdateRequired(changedProps: Array<string>, properties: [string]) {
+    if (properties && properties.length > 0) {
+        if (Enumerable.from(properties).any(x => changedProps.indexOf(x) > -1))
+            return true;
+    }
+
+    if (!changedProps || changedProps.length == 0)
+        return false;
+    else if (!properties || properties.length == 0)
+        return true;
+    else {
+        if (Enumerable.from(properties).any(x => changedProps.indexOf(x) > -1))
+            return true;
+        else
+            return false;
+    }
 }

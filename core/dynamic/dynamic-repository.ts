@@ -32,7 +32,7 @@ export interface IDynamicRepository {
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>): Q.Promise<any>;
     findAll(): Q.Promise<any>;
-    findWhere(query): Q.Promise<any>;
+    findWhere(query, selectedFields: Array<any>): Q.Promise<any>;
     findByField(fieldName, value): Q.Promise<any>;
     findChild(id, prop): Q.Promise<any>;
 
@@ -109,8 +109,8 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).findAll(this.path);
     }
 
-    public findWhere(query): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query);
+    public findWhere(query, selectedFields: Array<any>): Q.Promise<any> {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields);
     }
 
     public findOne(id) {
