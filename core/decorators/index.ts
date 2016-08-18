@@ -3,3 +3,5 @@ export {jsonignore} from './jsonignore';
 export {repository} from './repository';
 export {required} from './required';
 export {allowanonymous} from './allowanonymous';
+export {transient} from './transient';
+

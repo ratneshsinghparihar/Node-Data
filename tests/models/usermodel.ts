@@ -1,5 +1,5 @@
 import * as RM from './rolemodel';
-import {onetomany, manytoone, manytomany, jsonignore, required} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, jsonignore, required, transient} from '../../core/decorators';
 import {field, document} from '../../mongoose/decorators'; import {IUser} from './user';
 import {Types} from 'mongoose';
 import {Strict} from '../../mongoose/enums/';
@@ -29,6 +29,10 @@ export class UserModel {
 
     @field()
     password: String;
+
+    @field()
+    @transient()
+    transs: any;
 
     @field()
     @jsonignore()
