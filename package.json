@@ -1,7 +1,7 @@
 {
   "name": "nodedata",
   "version": "1.0.0-dev.160818090430",
-  "description": "This is a work in progress. DO NOT USE IT.",
+  "description": "Node Data",
   "main": "server.js",
   "scripts": {
     "cover": "node_modules/.bin/istanbul cover node_modules/jasmine/bin/jasmine.js -x *.spec.js",
