@@ -1,6 +1,6 @@
 {
   "name": "nodedata",
-  "version": "1.0.0-dev.160818141539",
+  "version": "1.0.0-dev.160819064940",
   "description": "Node Data",
   "main": "server.js",
   "scripts": {

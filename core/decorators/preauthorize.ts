@@ -120,15 +120,6 @@ function mergeTask(entity: any, req: any, id: any): Q.Promise<any> {
         default:
             return this.findOne(id).then(dbEntity => {
                 let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
-                let decFields = MetaUtils.getMetaData(this.getEntity(), Decorators.JSONIGNORE);
-
-                //// remove all jsonIgnore field from res.body object
-                if (decFields) {
-                    decFields.forEach(field => {
-                        delete entity[field.propertyKey];
-                    });
-                }
-
                 // merge res body entity with db entity
                 if (entity) {
                     for (var prop in entity) {
