@@ -48,6 +48,7 @@ export function preauthorize(params: IPreauthorizeParams): any {
                 }
 
                 return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
+                    req.body = fullyQualifiedEntities;
                     if (isAllowed) {
                         // for delete, post action no need to save merged entity else save merged entity to db
                         if (req.method.toUpperCase() != RepoActions.delete.toUpperCase() && req.method.toUpperCase() != RepoActions.patch.toUpperCase()) {
