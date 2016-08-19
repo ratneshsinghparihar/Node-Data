@@ -27,17 +27,14 @@ export function preauthorize(params: IPreauthorizeParams): any {
         descriptor.value = function () {
             var anonymous = MetaUtils.getMetaData(target, Decorators.ALLOWANONYMOUS, propertyKey);
             if (anonymous) return originalMethod.apply(this, arguments);
-
-            var req = PrincipalContext.get('req');
-            var entity = req ? req.body : null;
             let args = [];
             args = Array.apply(null, arguments);
 
             // merge logic
-            return mergeEntity.apply(this, [entity, req]).then(mergedEntities => {
+            return mergeEntity.apply(this, [args, originalMethod]).then(mergedEntities => {
                 let fullyQualifiedEntities = []; // hetrogenious obj
                 // for bulk action case
-                if (entity instanceof Array) {
+                if (args[0] instanceof Array) {
                     mergedEntities.forEach(e => {
                         fullyQualifiedEntities.push(e.value);
                     });
@@ -48,10 +45,10 @@ export function preauthorize(params: IPreauthorizeParams): any {
                 }
 
                 return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
-                    req.body = fullyQualifiedEntities;
+                    //req.body = fullyQualifiedEntities;
                     if (isAllowed) {
                         // for delete, post action no need to save merged entity else save merged entity to db
-                        if (req.method.toUpperCase() != RepoActions.delete.toUpperCase() && req.method.toUpperCase() != RepoActions.patch.toUpperCase()) {
+                        if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase() && originalMethod.name.toUpperCase() != RepoActions.patch.toUpperCase()) {
                             args[args.length - 1] = fullyQualifiedEntities;
                         }
                         return originalMethod.apply(this, args);
@@ -73,20 +70,17 @@ export function preauthorize(params: IPreauthorizeParams): any {
     }
 }
 
-function mergeEntity(entity: any, req: any): Q.Promise<any> {
+function mergeEntity(args: any, method: any): Q.Promise<any> {
+    var entity = args[0];
     var asyncCalls = [];
-    // check if entity is array or object that means it is the bulk action case
+    // check if entity is array that means it is the bulk action case
     if (entity instanceof Array) {
         entity.forEach(e => {
-            asyncCalls.push(mergeTask.apply(this, [e, req, e._id]));
+            asyncCalls.push(mergeTask.apply(this, [e, method]));
         });
     }
     else {
-        // for delete and patch action case find id from req.params.id
-        if (req.method.toUpperCase() == RepoActions.delete.toUpperCase() || req.method.toUpperCase() == RepoActions.patch.toUpperCase())
-            asyncCalls.push(mergeTask.apply(this, [entity, req, req.params.id]));
-        else
-            asyncCalls.push(mergeTask.apply(this, [entity, req, entity._id]));
+        asyncCalls.push(mergeTask.apply(this, [args, method])); // args[0] is "id" and args[1] is "entity"
     }
 
     return Q.allSettled(asyncCalls).then(success => {
@@ -96,28 +90,40 @@ function mergeEntity(entity: any, req: any): Q.Promise<any> {
     });
 }
 
-function mergeTask(entity: any, req: any, id: any): Q.Promise<any> {
+function mergeTask(args: any, method: any): Q.Promise<any> {
 
-    switch (req.method.toUpperCase()) {
+    switch (method.name.toUpperCase()) {
         // for post action
         case RepoActions.post.toUpperCase():
-            let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, entity);
+            let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, args[0]);
             return Q.when(newDbEntityObj);
 
         // for delete action find id from req.params and return db object directly, no need to merge
         case RepoActions.delete.toUpperCase():
-            return this.findOne(id).then(dbEntity => {
-                return Q.when(dbEntity);
+            return this.findOne(args[0]).then(dbEntity => {
+                let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
+                return Q.when(newDbEntityObj);
             });
 
         // for patch action find id from req.params and return db object directly, no need to merge
         case RepoActions.patch.toUpperCase():
-            return this.findOne(id).then(dbEntity => {
-                return Q.when(dbEntity);
+            return this.findOne(args[0]).then(dbEntity => {
+                let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
+                return Q.when(newDbEntityObj);
             });
 
         // for other actions find corresponding entity from db and merge it
         default:
+            let id;
+            let entity;
+            if (args instanceof Array) {
+                id = args[0];
+                entity = args[1];
+            }
+            else {
+                entity = args;
+                id = entity._id;
+            }
             return this.findOne(id).then(dbEntity => {
                 let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
                 // merge res body entity with db entity
