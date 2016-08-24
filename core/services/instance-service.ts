@@ -13,16 +13,31 @@ export class InstanceService {
                 param[meta.propertyKey] = id;
             }
         }
-        InstanceService.initProperties(entity, param);
-        return InstanceService.getInstanceFromType(entity, param);
+        InstanceService.initProperties(entity, param, true);
+        return InstanceService.getInstanceFromType(entity, true, param);
     }
 
-    static getInstanceFromType(type: any, param?: any) {
+    static getObjectFromJson(entity: any, param?: any) {
+        InstanceService.initProperties(entity, param, false);
+        return InstanceService.getInstanceFromType(entity, false, param);
+    }
+
+    private static getInstanceFromType(type: any, isNew: boolean, param?: any) {
         var t: (param) => void = type.constructor;
-        return InstanceService.getNewInstance(t, param);
+        return InstanceService.createObjectInstance(t, isNew, param);
+    }
+
+    private static createObjectInstance(t: any, isNew: boolean, param?: any) {
+        if (isNew) {
+            return InstanceService.getNewInstance(t, param);
+        }
+        else {
+            return InstanceService.getExistingInstance(t, param);
+        }
     }
 
     private static getNewInstance(t: any, param?: any) {
+        // This invokes constructor of the object
         var newInstance = new t(param);
         if (param) {
             for (var prop in param) {
@@ -32,7 +47,18 @@ export class InstanceService {
         return newInstance;
     }
 
-    private static initProperties(type: any, param: any) {
+    private static getExistingInstance(t: any, param?: any) {
+        // No constructir is invoked
+        var existingInstance = Object.create(t);
+        if (param) {
+            for (var prop in param) {
+                existingInstance[prop] = param[prop];
+            }
+        }
+        return existingInstance;
+    }
+
+    private static initProperties(type: any, param: any, isNew: boolean) {
         var metas = utils.getAllRelationsForTargetInternal(type);
         if (metas) {
             metas.forEach(x => {
@@ -44,14 +70,14 @@ export class InstanceService {
                         if (value.length > 0 && utils.isJSON(value[0])) {
                             var res = [];
                             Enumerable.from(value).forEach(x => {
-                                res.push(InstanceService.getNewInstance(p.itemType, x));
+                                res.push(InstanceService.createObjectInstance(p.itemType, isNew, x));
                             });
                             param[meta.propertyKey] = res;
                         }
                     }
                     else {
                         if (utils.isJSON(value)) {
-                            param[meta.propertyKey] = InstanceService.getNewInstance(p.itemType, value)
+                            param[meta.propertyKey] = InstanceService.createObjectInstance(p.itemType, isNew, value);
                         }
                     }
                 }

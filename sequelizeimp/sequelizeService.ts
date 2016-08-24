@@ -104,7 +104,7 @@ class SequelizeService implements IEntityService {
         });
     }
 
-    findWhere(repoPath: string, query, selectedFields: Array<string>): Q.Promise<any> {
+    findWhere(repoPath: string, query, selectedFields?: Array<string>): Q.Promise<any> {
         return this.getSequelizeModel(repoPath).findAll(query).then(result => {
             return result.dataValues;
         });

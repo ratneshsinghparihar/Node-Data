@@ -52,7 +52,7 @@ export class InitializeRepositories {
                 let model = repoParams.model;
                 var newRepo;
                 if (x.target instanceof DynamicRepository) {
-                    newRepo = <DynamicRepository>InstanceService.getInstanceFromType(x.target);
+                    newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }
                 else {
                     newRepo = new DynamicRepository();

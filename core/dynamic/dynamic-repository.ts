@@ -32,7 +32,7 @@ export interface IDynamicRepository {
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>): Q.Promise<any>;
     findAll(): Q.Promise<any>;
-    findWhere(query, selectedFields: Array<any>): Q.Promise<any>;
+    findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
     findByField(fieldName, value): Q.Promise<any>;
     findChild(id, prop): Q.Promise<any>;
 
@@ -106,15 +106,35 @@ export class DynamicRepository implements IDynamicRepository {
      * Returns all the items in a collection
      */
     public findAll(): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findAll(this.path);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findAll(this.path).then(result => {
+            if (result && result.length > 0) {
+                var res = [];
+                result.forEach(x => {
+                    res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+                });
+                return res;
+            }
+            return result;
+        });
     }
 
-    public findWhere(query, selectedFields: Array<any>): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields);
+    public findWhere(query, selectedFields?: Array<any>): Q.Promise<any> {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields).then(result => {
+            if (result && result.length > 0) {
+                var res = [];
+                result.forEach(x => {
+                    res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+                });
+                return res;
+            }
+            return result;
+        });
     }
 
     public findOne(id) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id).then(result => {
+            return InstanceService.getObjectFromJson(this.getEntity(), result);
+        });
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
