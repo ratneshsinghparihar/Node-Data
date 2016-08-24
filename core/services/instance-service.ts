@@ -13,12 +13,12 @@ export class InstanceService {
                 param[meta.propertyKey] = id;
             }
         }
-        InstanceService.initProperties(entity, param, true);
+        InstanceService.initProperties(entity, true, param);
         return InstanceService.getInstanceFromType(entity, true, param);
     }
 
     static getObjectFromJson(entity: any, param?: any) {
-        InstanceService.initProperties(entity, param, false);
+        InstanceService.initProperties(entity, false, param);
         return InstanceService.getInstanceFromType(entity, false, param);
     }
 
@@ -49,7 +49,7 @@ export class InstanceService {
 
     private static getExistingInstance(t: any, param?: any) {
         // No constructir is invoked
-        var existingInstance = Object.create(t);
+        var existingInstance = Object.create(t.prototype);
         if (param) {
             for (var prop in param) {
                 existingInstance[prop] = param[prop];
@@ -58,7 +58,7 @@ export class InstanceService {
         return existingInstance;
     }
 
-    private static initProperties(type: any, param: any, isNew: boolean) {
+    private static initProperties(type: any, isNew: boolean, param: any) {
         var metas = utils.getAllRelationsForTargetInternal(type);
         if (metas) {
             metas.forEach(x => {
@@ -66,18 +66,22 @@ export class InstanceService {
                 let p = <IAssociationParams>meta.params;
                 if (param[meta.propertyKey]) {
                     var value = param[meta.propertyKey];
-                    if (meta.propertyType.isArray) {
-                        if (value.length > 0 && utils.isJSON(value[0])) {
-                            var res = [];
-                            Enumerable.from(value).forEach(x => {
-                                res.push(InstanceService.createObjectInstance(p.itemType, isNew, x));
-                            });
-                            param[meta.propertyKey] = res;
+                    if (value) {
+                        if (meta.propertyType.isArray) {
+                            if (value.length > 0 && utils.isJSON(value[0])) {
+                                var res = [];
+                                Enumerable.from(value).forEach(x => {
+                                    InstanceService.initProperties(p.itemType, isNew, x);
+                                    res.push(InstanceService.createObjectInstance(p.itemType, isNew, x));
+                                });
+                                param[meta.propertyKey] = res;
+                            }
                         }
-                    }
-                    else {
-                        if (utils.isJSON(value)) {
-                            param[meta.propertyKey] = InstanceService.createObjectInstance(p.itemType, isNew, value);
+                        else {
+                            if (utils.isJSON(value)) {
+                                InstanceService.initProperties(p.itemType, isNew, value);
+                                param[meta.propertyKey] = InstanceService.createObjectInstance(p.itemType, isNew, value);
+                            }
                         }
                     }
                 }
