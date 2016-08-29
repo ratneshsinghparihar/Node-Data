@@ -149,7 +149,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             // update embedded property, if any
             var asyncCalls = [];
             Enumerable.from(result).forEach(x => {
-                asyncCalls.push(mongooseHelper.embeddedChildren(model, result, false));
+                asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));
             });
             return Q.allSettled(asyncCalls).then(r => {
                 return Enumerable.from(r).select(x => x.value).toArray();
