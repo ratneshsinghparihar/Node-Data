@@ -101,15 +101,13 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         // for delete action find id from req.params and return db object directly, no need to merge
         case RepoActions.delete.toUpperCase():
             return this.findOne(args[0]).then(dbEntity => {
-                let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
-                return Q.when(newDbEntityObj);
+                return Q.when(dbEntity);
             });
 
         // for patch action find id from req.params and return db object directly, no need to merge
         case RepoActions.patch.toUpperCase():
             return this.findOne(args[0]).then(dbEntity => {
-                let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
-                return Q.when(newDbEntityObj);
+                return Q.when(dbEntity);
             });
 
         // for other actions find corresponding entity from db and merge it
@@ -125,14 +123,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 id = entity._id;
             }
             return this.findOne(id).then(dbEntity => {
-                let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, dbEntity);
                 // merge res body entity with db entity
                 if (entity) {
-                    for (var prop in entity) {
-                        newDbEntityObj[prop] = entity[prop];
+                    for (var prop in entity){
+                        dbEntity[prop] = entity[prop];
                     }
+                    dbEntity = InstanceService.getInstance(this.getEntity(), null, dbEntity);
                 }
-                return Q.when(newDbEntityObj);
+                return Q.when(dbEntity);
             });
     }
 }
