@@ -152,7 +152,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
                 asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));
             });
             return Q.allSettled(asyncCalls).then(r => {
-                return Enumerable.from(r).select(x => x.value).toArray();
+                return Enumerable.from(r).select(x => Utils.toObject(x.value)).toArray();
             });
         }).catch(error => {
             winstonLog.logError(`Error in findWhere ${error}`);
