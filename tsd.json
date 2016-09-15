@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "5217b3c97257eecc724aac5872ecd76e9ad68252"
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
     },
     "serve-static/serve-static.d.ts": {
       "commit": "627b6c158b73494c803f36fc2fe00ad75faa8fde"
@@ -33,19 +33,19 @@
       "commit": "9f0f926a12026287b5a4a229e5672c01e7549313"
     },
     "winston/winston.d.ts": {
-      "commit": "5217b3c97257eecc724aac5872ecd76e9ad68252"
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
     },
     "lodash/lodash.d.ts": {
-      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
-    },
-    "bluebird/bluebird.d.ts": {
-      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
     },
     "sequelize/sequelize.d.ts": {
-      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
     },
     "validator/validator.d.ts": {
-      "commit": "e0abafb1a6ff652f7ff967120e312d5c1916eaef"
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
+    },
+    "bluebird/bluebird-2.0.d.ts": {
+      "commit": "d51cb64351dad6f50a890d8cd2ddb2c2a90e3104"
     }
   }
 }
