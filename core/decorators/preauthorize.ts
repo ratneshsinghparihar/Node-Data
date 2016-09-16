@@ -1,4 +1,4 @@
-﻿import {MetaUtils} from "../metadata/utils";
+﻿aimport {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 import {IPreauthorizeParams} from './interfaces/preauthorize-params';
@@ -98,6 +98,11 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             let newDbEntityObj = InstanceService.getInstance(this.getEntity(), null, args[0]);
             return Q.when(newDbEntityObj);
 
+        // for bulkpost action
+        case RepoActions.bulkPost.toUpperCase():
+            let newDbEntityObjBulk = InstanceService.getInstance(this.getEntity(), null, args);
+            return Q.when(newDbEntityObjBulk);
+
         // for delete action find id from req.params and return db object directly, no need to merge
         case RepoActions.delete.toUpperCase():
             return this.findOne(args[0]).then(dbEntity => {
@@ -125,12 +130,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             return this.findOne(id).then(dbEntity => {
                 // merge res body entity with db entity
                 if (entity) {
-                    for (var prop in entity){
+                    for (var prop in entity) {
                         dbEntity[prop] = entity[prop];
                     }
                     dbEntity = InstanceService.getInstance(this.getEntity(), null, dbEntity);
                 }
                 return Q.when(dbEntity);
-            });
+            }).catch(error => {
+                throw error;
+            })
     }
 }
