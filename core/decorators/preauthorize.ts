@@ -1,4 +1,4 @@
-﻿aimport {MetaUtils} from "../metadata/utils";
+﻿import {MetaUtils } from "../metadata/utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 import {IPreauthorizeParams} from './interfaces/preauthorize-params';
@@ -138,6 +138,6 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 return Q.when(dbEntity);
             }).catch(error => {
                 throw error;
-            })
+            });
     }
 }
