@@ -6,10 +6,10 @@ export var mainConnection:any = {};
 export function connect() {
     let dbLoc = CoreUtils.config().Config.DbConnection;
     let connectionOptions = CoreUtils.config().Config.DbConnectionOptions || {};
-    Mongoose.connect(dbLoc, function (error) {
+    Mongoose.connect(dbLoc, connectionOptions, function (error) {
         error ? winstonLog.logError(`Failed to connect db at ${dbLoc} ${error}`) : winstonLog.logInfo('db connection success');
     });
-    mainConnection = Mongoose.createConnection(dbLoc,connectionOptions);
+    mainConnection = Mongoose.createConnection(dbLoc);
 
 }
 
