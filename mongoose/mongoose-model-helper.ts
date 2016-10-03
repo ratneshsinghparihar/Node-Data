@@ -135,6 +135,8 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
     relationToDelete.forEach(res => {
         var x = <IAssociationParams>res.params;
         var prop = updateObj[res.propertyKey];
+        if(!prop)
+            return;
         ids[x.rel] = ids[x.rel] || [];
         if (x.embedded) {
             if (res.propertyType.isArray) {
