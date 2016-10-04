@@ -27,6 +27,10 @@ class WinstonLog {
     logError(message: any) {
         this.winstonLogger.log('error', message);
     }
+
+    configure(options:any){
+        this.winstonLogger.configure(options);
+    }
 }
 
 var winstonLog = new WinstonLog();
