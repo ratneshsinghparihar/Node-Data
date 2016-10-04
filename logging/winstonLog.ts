@@ -12,8 +12,15 @@ function getLogger(): winston.LoggerInstance {
 
 class WinstonLog {
     winstonLogger = null;
+    logStream = null;
     constructor() {
         this.winstonLogger = getLogger();
+        var _logger = this.winstonLogger;
+        this.logStream = {
+            write : function(message, encoding){
+                _logger.info("message");
+            }
+        }
     }
 
     logInfo(message: any) {
@@ -30,6 +37,10 @@ class WinstonLog {
 
     configure(options:any){
         this.winstonLogger.configure(options);
+    }
+
+    getStream(){
+        return this.logStream;
     }
 }
 
