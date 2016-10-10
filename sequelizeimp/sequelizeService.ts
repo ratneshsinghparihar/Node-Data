@@ -1,5 +1,4 @@
-﻿/// <reference path="../config.ts" />
-import {config} from '../core/utils';
+﻿import {config} from '../core/utils';
 import * as Sequelize from "sequelize";
 import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';

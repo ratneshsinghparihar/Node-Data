@@ -1,7 +1,4 @@
-﻿/// <reference path="../../security/auth/user.ts" />
-/// <reference path="../../mongoose/db.ts" />
-/// <reference path="../../security/auth/principalContext.ts" />
-import {PrincipalContext} from '../../security/auth/principalContext';
+﻿import {PrincipalContext} from '../../security/auth/principalContext';
 import {User} from '../../security/auth/user';
 import {getDbSpecifcModel} from '../../mongoose/db';
 var schemaNameModel: { [key: string]: any } = {};
