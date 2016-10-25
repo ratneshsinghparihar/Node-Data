@@ -44,7 +44,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
             })
                 .catch(error => {
                     winstonLog.logError(`Error in bulkPost ${error}`);
-                    console.log(error);
+                    return Q.reject(error);
                 })
         });
 }
@@ -70,7 +70,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
         })
         .catch(error => {
             winstonLog.logError(`Error in bulkPut ${error}`);
-            return error;
+            return Q.reject(error);
         });
 }
 
@@ -112,7 +112,7 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
             return Utils.toObject(result);
         }).catch(error => {
             winstonLog.logError(`Error in findAll ${error}`);
-            return error;
+            return Q.reject(error);
         });
 }
 
@@ -156,7 +156,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             });
         }).catch(error => {
             winstonLog.logError(`Error in findWhere ${error}`);
-            return error;
+            return Q.reject(error);
         });
     // winstonLog.logInfo(`findWhere query is ${query}`);
     // return Q.nbind(model.find, model)(query)
@@ -182,7 +182,7 @@ export function findOne(model: Mongoose.Model<any>, id) {
                 });
         }).catch(error => {
             winstonLog.logError(`Error in findOne ${error}`);
-            return error;
+            return Q.reject(error);
         });
 }
 
@@ -252,7 +252,7 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
             return res;
         }).catch(error => {
             winstonLog.logError(`Error in findChild ${error}`);
-            return error;
+            return Q.reject(error);
         });
 }
 
