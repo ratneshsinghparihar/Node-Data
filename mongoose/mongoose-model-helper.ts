@@ -634,8 +634,8 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                 newVal = val;
             }
             else {
-                asyncTask.push(mongooseModel.findMany(relModel, val).then(res => {
-                    newVal = val;
+                asyncTask.push(mongooseModel.findMany(relModel, [val]).then(res => {
+                    newVal = res[0];
                 }));
             }
         }
