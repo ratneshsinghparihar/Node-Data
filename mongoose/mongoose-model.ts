@@ -344,9 +344,11 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
             .then(result => {
                 return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.put, result, Utils.getPropertiesFromObject(clonedObj))
                     .then(res => {
-                        let resObj = Utils.toObject(result);
-                        Object.assign(obj, resObj);
-                        return obj;
+                        var resObj = Utils.toObject(result);
+                        return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
+                            Object.assign(obj, r);
+                            return obj;
+                        });
                     });
             });
     }).catch(error => {
@@ -372,9 +374,11 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
             .then(result => {
                 return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.patch, result, Utils.getPropertiesFromObject(clonedObj))
                     .then(res => {
-                        let resObj = Utils.toObject(result);
-                        Object.assign(obj, resObj);
-                        return obj;
+                        var resObj = Utils.toObject(result);
+                        return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
+                            Object.assign(obj, r);
+                            return obj;
+                        });
                     });
             });
     }).catch(error => {

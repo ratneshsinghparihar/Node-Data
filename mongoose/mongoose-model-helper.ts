@@ -518,10 +518,38 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
     return patchAllEmbedded(model, propKey, updatedObject, entityChange, embedded, targetPropArray);
 }
 
+export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any): Q.Promise<any> {
+    var asyncCalls = [];
+    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+
+    Enumerable.from(metas).forEach(x => {
+        var m: MetaData = x;
+        var param: IAssociationParams = <IAssociationParams>m.params;
+        if (param && !param.embedded && param.eagerLoading && val[m.propertyKey]) {
+            var relModel = getModel(param.rel);
+            if (m.propertyType.isArray) {
+                if (val[m.propertyKey].length > 0) {
+                    asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey]).then(res => {
+                        val[m.propertyKey] = res;
+                    }));
+                }
+            }
+            else {
+                asyncCalls.push(mongooseModel.findMany(relModel, [val[m.propertyKey]]).then(res => {
+                    val[m.propertyKey] = res[0];
+                }));
+            }
+        }
+    });
+
+    return Q.allSettled(asyncCalls).then(result => {
+        return val;
+    });
+}
+
 function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     if (!obj[prop])
         return;
-
     if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
         winstonLog.logError('Expected array, found non-array');
         throw 'Expected array, found non-array';
@@ -530,86 +558,92 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         winstonLog.logError('Expected single item, found array');
         throw 'Expected single item, found array';
     }
-
     var createNewObj = [];
     var params: IAssociationParams = <any>relMetadata.params;
     var relModel = getModel(params.rel);
     var val = obj[prop];
     var newVal = val;
-    var prom: Q.Promise<any> = null;
-
+    var asyncTask = [];
     if (relMetadata.propertyType.isArray) {
         newVal = [];
         var objs = [];
+        var searchObj = [];
         for (var i in val) {
             if (CoreUtils.isJSON(val[i])) {
                 if (val[i]['_id']) {
-                    newVal.push(val[i]['_id']);
+                    if (params.embedded) {
+                        newVal.push(val[i]);
+                    }
+                    else {
+                        newVal.push(val[i]['_id']);
+                    }
                 }
                 else {
                     objs.push(val[i]);
                 }
             }
             else {
-                newVal.push(val[i]);
+                if (!params.embedded) {
+                    newVal.push(val[i]);
+                }
+                else {
+                    searchObj.push(val[i]);
+                }
             }
         }
         if (objs.length > 0) {
-            prom = mongooseModel.bulkPost(relModel, objs);
-        } else {
-            obj[prop] = newVal;
+            asyncTask.push(mongooseModel.bulkPost(relModel, objs).then(result => {
+                if (params.embedded) {
+                    newVal = newVal.concat(result);
+                }
+                else {
+                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id']).toArray());
+                }
+            }));
+        }
+
+        if (searchObj.length > 0) {
+            asyncTask.push(mongooseModel.findMany(relModel, searchObj).then(res => {
+                newVal = newVal.concat(res);
+            }));
         }
     }
     else {
         if (CoreUtils.isJSON(val)) {
             if (val['_id']) {
-                obj[prop] = val['_id'];
+                if (params.embedded) {
+                    newVal = val;
+                }
+                else {
+                    newVal = val['_id'];
+                }
             }
             else {
-                prom = mongooseModel.post(relModel, val);
+                asyncTask.push(mongooseModel.post(relModel, val).then(res => {
+                    if (params.embedded) {
+                        newVal = res;
+                    }
+                    else {
+                        newVal = res['_id'];
+                    }
+                }));
+            }
+        }
+        else {
+            if (!params.embedded) {
+                newVal = val;
+            }
+            else {
+                asyncTask.push(mongooseModel.findMany(relModel, val).then(res => {
+                    newVal = val;
+                }));
             }
         }
     }
 
-    if (prom) {
-        return prom.then(x => {
-            if (x) {
-                if (x instanceof Array) {
-                    x.forEach(v => {
-                        newVal.push(v['_id']);
-                    });
-                }
-                else {
-                    newVal = x['_id'];
-                }
-                obj[prop] = newVal;
-            }
-            return fetchAndUpdateChildren(relModel, relMetadata, obj, prop);
-
-        });
-    }
-    else {
-        return fetchAndUpdateChildren(relModel, relMetadata, obj, prop);
-    }
-}
-
-function fetchAndUpdateChildren(relModel, relMetadata, obj, prop) {
-    var params: IAssociationParams = <any>relMetadata.params;
-    return mongooseModel.findMany(relModel, castAndGetPrimaryKeys(obj, prop, relMetadata))
-        .then(result => {
-            if (result && result.length > 0) {
-                if (params.embedded) {
-                    obj[prop] = obj[prop] instanceof Array ? getFilteredValues(result, params.properties) : getFilteredValue(result[0], params.properties);
-                }
-                else {
-                    // Verified that foriegn keys are correct and now update the Id
-                    obj[prop] = obj[prop] instanceof Array ? Enumerable.from(result).select(x => x['_id']).toArray() : result[0]['_id'];
-                }
-            }
-        }).catch(error => {
-            winstonLog.logError(`Error: ${error}`);
-            return Q.reject(error);
-        });
+    return Q.allSettled(asyncTask).then(res => {
+        obj[prop] = newVal;
+    });
 }
 
 function getFilteredValues(values: [any], properties: [string]) {
