@@ -585,16 +585,16 @@ export class DynamicController {
             var repo = GetRepositoryForName(relation.params.rel);
             if (repo) {
                 var param = relation.params;
-                if (!param.embedded && !param.eagerLoading) { return model };
+                if (!param.embedded && !param.eagerLoading) { return model;}
                 if (model[relation.propertyKey] instanceof Array) {
-                    if (model[relation.propertyKey] && model[relation.propertyKey].length) {
+                    if (model[relation.propertyKey] && model[relation.propertyKey].length && Utils.isJSON(model[relation.propertyKey][0])) {
                         model[relation.propertyKey].forEach(key => {
                             var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
                             this.getHalModel1(key, url + '/' + key['_id'], req, repo);
                         });
                     }
                 } else {
-                    if (model[relation.propertyKey]) {
+                    if (model[relation.propertyKey] && Utils.isJSON(model[relation.propertyKey])) {
                         var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
                         this.getHalModel1(model[relation.propertyKey], url + '/' + model[relation.propertyKey]['_id'], req, repo);
                     }
