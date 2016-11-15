@@ -338,6 +338,9 @@ export class DynamicController {
                         }
                     })
                 }).any(), (req, res) => {
+                    Enumerable.from(req.query).forEach(x => {
+                        req.body[x.key] = x.value;
+                    });
                     this.actionPathRender(req, res, map, modelRepo, actions, true);
                 });
             }
