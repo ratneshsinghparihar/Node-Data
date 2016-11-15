@@ -15,6 +15,7 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
+var multer = require('multer');
 
 import * as securityImpl from './security-impl';
 var Enumerable: linqjs.EnumerableStatic = require('linq');
@@ -327,12 +328,27 @@ export class DynamicController {
 
         var actions = {};
         searchPropMap.forEach(map => {
-            router.post(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
-                this.actionPathRender(req, res, map, modelRepo, actions);
-            });
-            router.put(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
-                this.actionPathRender(req, res, map, modelRepo, actions);
-            });
+            var meta = MetaUtils.getMetaData(this.entity, Decorators.UPLOAD, map.key);
+            if (meta) {
+                meta.params.destination
+                router.post(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), multer({
+                    storage: multer.diskStorage({
+                        destination: function (req, file, callback) {
+                            callback(null, meta.params.destination);
+                        }
+                    })
+                }).any(), (req, res) => {
+                    this.actionPathRender(req, res, map, modelRepo, actions, true);
+                });
+            }
+            else {
+                router.post(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
+                    this.actionPathRender(req, res, map, modelRepo, actions, false);
+                });
+                router.put(this.path + "/action/" + map.key, this.ensureLoggedIn(this.entity, map.key), (req, res) => {
+                    this.actionPathRender(req, res, map, modelRepo, actions, false);
+                });
+            }
             actions[map.key] = { "href": map.key, "params": map.args };
         });
 
@@ -348,7 +364,7 @@ export class DynamicController {
         });
     }
 
-    private actionPathRender(req, res, map, modelRepo, actions) {
+    private actionPathRender(req, res, map, modelRepo, actions, hasFiles) {
         if (!this.isAuthorize(req, res, map.key)) {
             this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path + "/action/" + map.key);
             return;
@@ -358,7 +374,7 @@ export class DynamicController {
             this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
         }
         this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
-        this.invokeModelFunction(map, req, res, actions);
+        this.invokeModelFunction(map, req, res, actions, hasFiles);
     }
 
     private mergeEntity(req): Q.Promise<any> {
@@ -373,10 +389,13 @@ export class DynamicController {
         });
     }
 
-    private invokeModelFunction(map: ISearchPropertyMap, req: any, res: any, actions) {
+    private invokeModelFunction(map: ISearchPropertyMap, req: any, res: any, actions, hasFiles: boolean) {
         try {
             let modelRepo = this.repository.getEntityType();
             var param = [];
+            if (hasFiles) {
+                param.push(req.files);
+            }
             for (var prop in req.body) {
                 param.push(req.body[prop]);
             }
