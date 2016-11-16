@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "express": "registry:npm/express#4.14.0+20160925001530",
-    "linq": "registry:npm/linq#3.0.5+20160322032703"
+    "linq": "registry:npm/linq#3.0.5+20160322032703",
+    "sequelize": "registry:npm/sequelize#3.0.0+20161101121248"
   }
 }

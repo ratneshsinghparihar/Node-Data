@@ -1,6 +1,4 @@
-﻿/// <reference path="../../typings/jasmine/jasmine.d.ts" />
-/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
-/// <reference path="../../typings/linq/linq.3.0.3-Beta4.d.ts" />
+﻿
 
 require('reflect-metadata/reflect');
 import * as Enumerable from 'linq';
