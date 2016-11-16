@@ -44,7 +44,7 @@ export function getPropertiesFromObject(changedObj: any): Array<string> {
  */
 export function toObject(result): any {
     if (result instanceof Array) {
-        return Enumerable.from(result).select(x => x.toObject()).toArray();
+        return Enumerable.from(result).select((x:any) => x.toObject()).toArray();
     }
     return result ? result.toObject() : null;
 }
