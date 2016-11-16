@@ -8,7 +8,7 @@ import {Strict} from '../mongoose/enums/';
 import Mongoose = require("mongoose");
 import {course} from './models/course';
 import {student} from './models/student';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 var Q = require('q');
 
 var database: { [key: string]: Array<any> } = <any>{};

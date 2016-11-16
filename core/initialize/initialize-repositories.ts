@@ -14,7 +14,7 @@ import {repositoryMap} from '../exports/repositories';
 
 import {ISchemaGenerator} from '../interfaces/schema-generator';
 
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
 

@@ -11,7 +11,7 @@ import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 import {getEntity, getModel} from '../core/dynamic/model-entity';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
 

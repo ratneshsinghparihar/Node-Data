@@ -1,4 +1,4 @@
-﻿var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿import * as Enumerable from 'linq';
 var loggedIn = require('connect-ensure-login').ensureLoggedIn;
 var expressJwt = require('express-jwt');
 import * as configUtils from '../../core/utils';
@@ -8,8 +8,8 @@ import {Decorators} from '../../core/constants/decorators';
 
 import * as securityImplCore from '../../core/dynamic/security-impl';
 
-securityImplCore.ensureLoggedIn = ensureLoggedIn;
-securityImplCore.isAuthorize = isAuthorize;
+(<any>securityImplCore).ensureLoggedIn = ensureLoggedIn;
+(<any>securityImplCore).isAuthorize = isAuthorize;
 
 export function expressJwtFunc() {
     return expressJwt({
@@ -62,7 +62,7 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
             var isRolePresent = Enumerable.from(param.roles)
                 .select(role => {
                     var isAvailable = Enumerable.from(currentUser.roles)
-                        .where(roleUser => roleUser.name == role)
+                        .where((roleUser: any) => roleUser.name == role)
                         .firstOrDefault(null);
                     if (isAvailable) {
                         return true;
@@ -83,7 +83,7 @@ export function isAuthorize(req: any, repository: any, invokedFunction?: string)
     //1. get resource name         
     var resourceName = Utils.getResourceNameFromModel(repository.getEntityType())
     //2. get auth config from security config
-    var authCofig = Enumerable.from(configUtils.securityConfig().SecurityConfig.ResourceAccess)
+    var authCofig:any = Enumerable.from(configUtils.securityConfig().SecurityConfig.ResourceAccess)
         .where((resourceAccess: any) => { return resourceAccess.name == resourceName; })
         .firstOrDefault();
     //if none found then carry on                                     

@@ -9,7 +9,7 @@ import {IEntityParams} from './decorators/interfaces/entity-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
 import {pathRepoMap, updateModelEntity, getModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import {sequelizeService} from './sequelizeService';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 

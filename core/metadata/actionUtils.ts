@@ -1,4 +1,4 @@
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 export interface IActionPropertyMap {
     key: string;

@@ -10,7 +10,7 @@ import * as global from './GlobalObject';
 import {A} from './SampleClassA';
 import {B} from './SampleClassB';
 import {router} from "../../core/exports/router";
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 xdescribe('sample', function () {
     
