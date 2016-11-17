@@ -3,7 +3,7 @@ import * as Utils from "../utils";
 import {IPreauthorizeParams} from '../decorators/interfaces';
 import {Decorators} from '../constants/decorators';
 import {winstonLog} from '../../logging/winstonLog';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 var Q = require('q');
 
 export class PreAuthService {

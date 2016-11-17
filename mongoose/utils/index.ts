@@ -1,6 +1,6 @@
 ﻿import Mongoose = require('mongoose');
 import {EntityChange} from '../../core/enums/entity-change';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -35,7 +35,7 @@ export function castToMongooseType(value, schemaType) {
 }
 
 export function getPropertiesFromObject(changedObj: any): Array<string> {
-    return Enumerable.from(changedObj).select(x => x.key).toArray();
+    return Enumerable.from(changedObj).select((x: any) => x.key).toArray();
 }
 
 /**
@@ -44,7 +44,7 @@ export function getPropertiesFromObject(changedObj: any): Array<string> {
  */
 export function toObject(result): any {
     if (result instanceof Array) {
-        return Enumerable.from(result).select(x => x.toObject()).toArray();
+        return Enumerable.from(result).select((x:any) => x.toObject()).toArray();
     }
     return result ? result.toObject() : null;
 }

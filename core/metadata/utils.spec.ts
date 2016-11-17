@@ -1,9 +1,7 @@
-﻿/// <reference path="../../typings/jasmine/jasmine.d.ts" />
-/// <reference path="../../node_modules/reflect-metadata/reflect-metadata.d.ts" />
-/// <reference path="../../typings/linq/linq.3.0.3-Beta4.d.ts" />
+﻿
 
 require('reflect-metadata/reflect');
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import * as MetadataUtils from './utils';
 import {MetaData} from './metadata';
 import * as models from '../../unit-test/models/testModels';

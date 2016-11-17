@@ -2,7 +2,7 @@
 import {DecoratorType} from '../enums';
 import {winstonLog} from '../../logging/winstonLog';
 import {Decorators, MetadataConstants} from '../constants';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import {MetaRoot} from '../metadata/interfaces/metaroot';
 import {MetaData, IMetaOptions} from './metadata';
 import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';
@@ -167,7 +167,7 @@ class MetadataHelper {
             console.log(tar);
             while (pro != null) {
                 var met = MetadataHelper.getMetaData(pro);
-                Enumerable.from(met).forEach(prop => {
+                Enumerable.from(met).forEach((prop: any) => {
                     MetadataHelper.addMetaData(tar,
                         {
                             propertyKey: prop.propertyKey,

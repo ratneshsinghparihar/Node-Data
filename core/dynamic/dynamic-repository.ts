@@ -1,4 +1,4 @@
-﻿var Enumerable: linqjs.EnumerableStatic = require('linq');
+﻿import * as Enumerable from 'linq';
 import express = require("express");
 var router = express.Router();
 

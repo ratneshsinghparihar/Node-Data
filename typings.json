@@ -1,0 +1,15 @@
+{
+  "globalDependencies": {
+    "jasmine": "registry:dt/jasmine#2.5.0+20161025102649",
+    "mongodb": "registry:dt/mongodb#2.1.0+20161110150902",
+    "mongoose": "registry:dt/mongoose#4.5.9+20161010180758",
+    "node": "registry:dt/node#6.0.0+20161110151007",
+    "q": "registry:dt/q#0.0.0+20161004185634",
+    "winston": "registry:dt/winston#0.0.0+20161108133445"
+  },
+  "dependencies": {
+    "express": "registry:npm/express#4.14.0+20160925001530",
+    "linq": "registry:npm/linq#3.0.5+20160322032703",
+    "sequelize": "registry:npm/sequelize#3.0.0+20161101121248"
+  }
+}

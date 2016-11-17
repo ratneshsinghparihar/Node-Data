@@ -1,7 +1,7 @@
 ﻿import Mongoose = require('mongoose');
 
 //import aa = require('mongoose');
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import * as Types from './datatype';
 import {Strict} from './enums/document-strict';
 import {Decorators} from '../core/constants/decorators';
@@ -63,7 +63,7 @@ export class DynamicSchema {
         return schema;
     }
 
-    private getSearchSchemaTypeForParam(fieldMetadata: MetaData) {
+    private getSearchSchemaTypeForParam(fieldMetadata: MetaData):any {
         var schemaType = this.getSchemaTypeForType(fieldMetadata.getType());
         if (fieldMetadata.params && fieldMetadata.params.rel) {
             return fieldMetadata.propertyType.isArray ? [schemaType] : schemaType;
@@ -108,7 +108,7 @@ export class DynamicSchema {
         //return paramType.isArray ? [schemaType] : schemaType;
     }
 
-    private getSchemaTypeForType(type?) {
+    private getSchemaTypeForType(type?):any {
         switch (type) {
             case Mongoose.Types.ObjectId: return Mongoose.Schema.Types.ObjectId;
             case String: return String;

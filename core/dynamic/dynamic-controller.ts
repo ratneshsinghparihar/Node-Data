@@ -18,7 +18,7 @@ import {PostFilterService} from '../services/post-filter-service';
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 var Q = require('q');
 import {JsonIgnore} from '../enums/jsonignore-enum';
 
@@ -71,7 +71,7 @@ export class DynamicController {
                 return this.repository.findAll()
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        Enumerable.from(result).forEach(x => {
+                        Enumerable.from(result).forEach((x:any) => {
                             x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
                         });
                         //result = this.getHalModels(result,resourceName);
@@ -338,7 +338,7 @@ export class DynamicController {
                         }
                     })
                 }).any(), (req, res) => {
-                    Enumerable.from(req.query).forEach(x => {
+                    Enumerable.from(req.query).forEach((x: any) => {
                         req.body[x.key] = x.value;
                     });
                     this.actionPathRender(req, res, map, modelRepo, actions, true);

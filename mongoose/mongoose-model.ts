@@ -2,7 +2,7 @@
 import Q = require('q');
 import {EntityChange} from '../core/enums/entity-change';
 import {getEntity} from '../core/dynamic/model-entity';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";

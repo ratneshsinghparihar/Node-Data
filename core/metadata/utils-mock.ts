@@ -1,6 +1,6 @@
 ﻿import {DecoratorType} from '../enums';
 import {Decorators, MetadataConstants} from '../constants';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import {MetaRoot} from '../metadata/interfaces/metaroot';
 import {MetaData} from '../metadata/metadata';
 import {DecoratorMetaData} from '../metadata/interfaces/decorator-metadata';

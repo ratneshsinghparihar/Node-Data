@@ -2,7 +2,7 @@
 import * as utils from "../utils";
 import {MetaData} from '../metadata/metadata';
 import {IAssociationParams} from '../decorators/interfaces';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 export class InstanceService {
 

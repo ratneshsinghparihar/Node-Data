@@ -9,7 +9,7 @@ import {IEntityService} from './interfaces/entity-service';
 var domain = require('../security/auth/domain');
 
 //import linq = require('../typings/linq/linq');
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 // Ignore .d.ts and all other non .ts files
 function ignoreFile(file: string) {

@@ -8,7 +8,7 @@ import {pathRepoMap} from '../core/dynamic/model-entity';
 import {Decorators as CoreDecorators} from '../core/constants';
 //import {pathRepoMap} from './schema';
 import * as schema  from "./schema";
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 class SequelizeService implements IEntityService {
     private sequelize: any;
@@ -98,7 +98,7 @@ class SequelizeService implements IEntityService {
     findAll(repoPath: string): Q.Promise<any> {
         return this.getSequelizeModel(repoPath).findAll().then(result => {
             if (!result) return null;
-            var finalOutput = Enumerable.from(result).select(x => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
+            var finalOutput = Enumerable.from(result).select((x:any) => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
             return finalOutput;
         });
     }

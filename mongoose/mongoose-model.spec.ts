@@ -7,7 +7,7 @@ import {course} from '../unit-test/models/course';
 import {student} from '../unit-test/models/student';
 
 import Mongoose = require("mongoose");
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 var Q = require('q');
 
 describe('testing relation', () => {

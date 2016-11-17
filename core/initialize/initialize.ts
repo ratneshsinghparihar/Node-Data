@@ -3,7 +3,7 @@ import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {router} from '../exports';
 import path = require('path');
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";

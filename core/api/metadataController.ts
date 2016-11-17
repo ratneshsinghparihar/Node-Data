@@ -6,7 +6,7 @@ import * as Utils from "../utils";
 import {GetRepositoryForName} from '../dynamic/dynamic-repository';
 import {MetaData} from '../metadata/metadata';
 import {IAssociationParams} from '../decorators/interfaces';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 import * as securityUtils from '../../security/auth/security-utils';
 
 export class MetadataController {
