@@ -597,7 +597,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                     newVal = newVal.concat(result);
                 }
                 else {
-                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id']).toArray());
+                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id'].toString()).toArray());
                 }
             }));
         }
@@ -624,7 +624,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                         newVal = res;
                     }
                     else {
-                        newVal = res['_id'];
+                        newVal = res['_id'].toString();
                     }
                 }));
             }
