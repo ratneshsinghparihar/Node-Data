@@ -571,11 +571,12 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         for (var i in val) {
             if (CoreUtils.isJSON(val[i])) {
                 if (val[i]['_id']) {
+                    val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'], Mongoose.Types.ObjectId);
                     if (params.embedded) {
                         newVal.push(val[i]);
                     }
                     else {
-                        newVal.push(val[i]['_id'].toString());
+                        newVal.push(val[i]['_id']);
                     }
                 }
                 else {
@@ -584,7 +585,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             }
             else {
                 if (!params.embedded) {
-                    newVal.push(val[i]);
+                    newVal.push(Utils.castToMongooseType(val[i], Mongoose.Types.ObjectId));
                 }
                 else {
                     searchObj.push(val[i]);
@@ -597,7 +598,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                     newVal = newVal.concat(result);
                 }
                 else {
-                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id'].toString()).toArray());
+                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id']).toArray());
                 }
             }));
         }
@@ -612,10 +613,11 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         if (CoreUtils.isJSON(val)) {
             if (val['_id']) {
                 if (params.embedded) {
+                    val['_id'] = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
                     newVal = val;
                 }
                 else {
-                    newVal = val['_id'].toString();
+                    newVal = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
                 }
             }
             else {
@@ -624,7 +626,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                         newVal = res;
                     }
                     else {
-                        newVal = res['_id'].toString();
+                        newVal = res['_id'];
                     }
                 }));
             }
