@@ -633,7 +633,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
         }
         else {
             if (!params.embedded) {
-                newVal = val;
+                newVal = Utils.castToMongooseType(val, Mongoose.Types.ObjectId);
             }
             else {
                 asyncTask.push(mongooseModel.findMany(relModel, [val]).then(res => {
