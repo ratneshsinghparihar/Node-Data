@@ -575,7 +575,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                         newVal.push(val[i]);
                     }
                     else {
-                        newVal.push(val[i]['_id']);
+                        newVal.push(val[i]['_id'].toString());
                     }
                 }
                 else {
@@ -615,7 +615,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                     newVal = val;
                 }
                 else {
-                    newVal = val['_id'];
+                    newVal = val['_id'].toString();
                 }
             }
             else {
