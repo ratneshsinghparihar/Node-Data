@@ -8,6 +8,7 @@ import {pathRepoMap, getEntity, getModel} from '../dynamic/model-entity';
 import {InstanceService} from '../services/instance-service';
 import * as Utils from '../utils';
 import {RepoActions} from '../enums/repo-actions-enum';
+var Enumerable: linqjs.EnumerableStatic = require('linq');
 var Q = require('q');
 
 export function preauthorize(params: IPreauthorizeParams): any {
@@ -31,19 +32,7 @@ export function preauthorize(params: IPreauthorizeParams): any {
             args = Array.apply(null, arguments);
 
             // merge logic
-            return mergeEntity.apply(this, [args, originalMethod]).then(mergedEntities => {
-                let fullyQualifiedEntities = []; // hetrogenious obj
-                // for bulk action case
-                if (args[0] instanceof Array) {
-                    mergedEntities.forEach(e => {
-                        fullyQualifiedEntities.push(e.value);
-                    });
-                }
-                else {
-                    // for single action
-                    fullyQualifiedEntities = mergedEntities[0].value;
-                }
-
+            return mergeEntity.apply(this, [args, originalMethod]).then(fullyQualifiedEntities => {
                 return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
                     //req.body = fullyQualifiedEntities;
                     if (isAllowed) {
@@ -75,16 +64,30 @@ function mergeEntity(args: any, method: any): Q.Promise<any> {
     var asyncCalls = [];
     // check if entity is array that means it is the bulk action case
     if (entity instanceof Array) {
-        entity.forEach(e => {
-            asyncCalls.push(mergeTask.apply(this, [e, method]));
-        });
+        if (method.name.toUpperCase() == RepoActions.bulkPut.toUpperCase()) {
+            asyncCalls.push(mergeTask.apply(this, [entity, method]));
+        }
+        else {
+            entity.forEach(e => {
+                asyncCalls.push(mergeTask.apply(this, [e, method]));
+            });
+        }
     }
     else {
         asyncCalls.push(mergeTask.apply(this, [args, method])); // args[0] is "id" and args[1] is "entity"
     }
 
     return Q.allSettled(asyncCalls).then(success => {
-        return success;
+        if (asyncCalls.length == 1) {
+            return success[0].value;
+        }
+        else {
+            var res = [];
+            success.forEach(x => {
+                res.push(x.value);
+            });
+            return res;
+        }
     }).catch(error => {
         throw error;
     });
@@ -115,6 +118,22 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 return Q.when(dbEntity);
             });
 
+        case RepoActions.bulkPut.toUpperCase():
+            if (args instanceof Array) {
+                var ids = Enumerable.from(args).select(x => x._id).toArray();
+                return this.findMany(ids).then(res => {
+                    args.forEach((item, index) => {
+                        for (var prop in item) {
+                            res[index][prop] = item[prop];
+                        }
+                        res[index] = InstanceService.getInstance(this.getEntity(), null, res[index]);
+                    });
+                    return Q.when(res);
+                }).catch(exc => {
+                    return Q.when(args);
+                });
+            }
+        
         // for other actions find corresponding entity from db and merge it
         default:
             let id;
