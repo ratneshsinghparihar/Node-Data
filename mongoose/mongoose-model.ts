@@ -302,7 +302,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
         })
         .catch(err => {
             winstonLog.logError(`delete failed ${err}`);
-            return Q.reject('delete failed');
+            return Q.reject({ delete: 'failed', error: err });
         });
 }
 
@@ -319,7 +319,12 @@ export function bulkDel(model: Mongoose.Model<any>, ids: Array<any>): Q.Promise<
 
     return Q.allSettled(asyncCalls)
         .then(result => {
-            return Enumerable.from(result).select(x => x.value).toArray();
+            var ret = [];
+            Enumerable.from(result).forEach(x => {
+                if (x.value) ret.push(x.value);
+                if (x.reason) ret.push(x.reason);
+            });
+            return ret;
         })
         .catch(err => {
             winstonLog.logError(`bulkDel failed ${err}`);

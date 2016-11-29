@@ -48,6 +48,7 @@
     <TypeScriptCompile Include="core\decorators\postfilter.ts" />
     <TypeScriptCompile Include="core\decorators\preauthorize.ts" />
     <TypeScriptCompile Include="core\decorators\required.ts" />
+    <TypeScriptCompile Include="core\decorators\upload.ts" />
     <TypeScriptCompile Include="core\enums\repo-actions-enum.ts" />
     <TypeScriptCompile Include="core\services\instance-service.ts" />
     <TypeScriptCompile Include="core\enums\jsonignore-enum.ts" />

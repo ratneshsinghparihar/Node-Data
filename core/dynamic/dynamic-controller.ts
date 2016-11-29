@@ -257,10 +257,13 @@ export class DynamicController {
                     return;
                 }
 
-                Enumerable.from(req.body).forEach(x => {
-                    this.getModelFromHalModel(x, req, res);
-                });
-                return this.repository.bulkDel(req.body as Array<any>)
+                var ids = req.body;
+                if (ids.length == 0) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
+
+                return this.repository.bulkDel(ids)
                     .then((result) => {
                         this.sendresult(req, res, result);
                     }).catch(error => {

@@ -8,7 +8,7 @@ import {pathRepoMap, getEntity, getModel} from '../dynamic/model-entity';
 import {InstanceService} from '../services/instance-service';
 import * as Utils from '../utils';
 import {RepoActions} from '../enums/repo-actions-enum';
-var Enumerable: linqjs.EnumerableStatic = require('linq');
+import * as Enumerable from 'linq';
 var Q = require('q');
 
 export function preauthorize(params: IPreauthorizeParams): any {
@@ -120,7 +120,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
         case RepoActions.bulkPut.toUpperCase():
             if (args instanceof Array) {
-                var ids = Enumerable.from(args).select(x => x._id).toArray();
+                var ids = Enumerable.from(args).select(x => x['_id'].toString()).toArray();
                 return this.findMany(ids).then(res => {
                     args.forEach((item, index) => {
                         for (var prop in item) {

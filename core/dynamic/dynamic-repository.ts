@@ -87,11 +87,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public bulkDel(objArr: Array<any>) {
-        var objs = [];
-        objArr.forEach(x => {
-            objs.push(InstanceService.getInstance(this.getEntity(), null, x));
-        });
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkDel(this.path, objs);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkDel(this.path, objArr);
     }
 
     public modelName() {
