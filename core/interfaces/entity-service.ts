@@ -5,7 +5,7 @@ export interface IEntityService {
     findWhere(model: any, query, selectedFields?: Array<string>): Q.Promise<any>;
     findOne(model: any, id);
     findByField(model: any, fieldName, value): Q.Promise<any>;
-    findMany(model: any, ids: Array<any>);
+    findMany(model: any, ids: Array<any>,toLoadEmbeddedChilds?:boolean);
     findChild(model: any, id, prop);
     bulkPost(model: any, objArr: Array<any>): Q.Promise<any>;
     bulkPut(model: any, objArr: Array<any>): Q.Promise<any>;

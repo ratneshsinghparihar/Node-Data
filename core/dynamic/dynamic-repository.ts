@@ -141,8 +141,8 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).findByField(this.path, fieldName, value);
     }
 
-    public findMany(ids: Array<any>) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids);
+      public findMany(ids: Array<any>,toLoadEmbeddedChilds?:boolean) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids,toLoadEmbeddedChilds);
     }
 
     public findChild(id, prop): Q.Promise<any> {

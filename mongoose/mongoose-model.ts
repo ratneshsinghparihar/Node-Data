@@ -213,7 +213,10 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
  * @param model
  * @param ids
  */
-export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
+export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbeddedChilds?: boolean) {
+    if (toLoadEmbeddedChilds == undefined) {
+        toLoadEmbeddedChilds = false;
+    }
     return Q.nbind(model.find, model)({
         '_id': {
             $in: ids
@@ -224,7 +227,19 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>) {
             winstonLog.logError(`Error in findMany ${error}`);
             return Q.reject(error);
         }
-        return Utils.toObject(result);
+
+        var asyncCalls = [];
+        if (toLoadEmbeddedChilds) {
+            Enumerable.from(result).forEach(x => {
+                asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));
+            });
+            return Q.allSettled(asyncCalls).then(r => {
+                return Enumerable.from(r).select(x => Utils.toObject(x.value)).toArray();
+            });
+        } else {
+            return Utils.toObject(result);
+        }
+
     });
 }
 
