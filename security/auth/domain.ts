@@ -105,11 +105,11 @@ function contextMiddleware(namespace) {
         // context object rather than creating a bunch of nested domains.
         // Their namespaces should be sufficient to keep each consumer's
         // data separate from the others.
-        if (domain.active && domain.active.__$cntxt__) {
-            setContext(namespace, Object.create(null), domain.active);
-            next();
-            return;
-        }
+        //if (domain.active && domain.active.__$cntxt__) {
+        //    setContext(namespace, Object.create(null), domain.active);
+        //    next();
+        //    return;
+        //}
 
         var d = domain.create();
         d.add(req);
