@@ -43,8 +43,8 @@ export class MongooseService implements IEntityService {
         return MongooseModel.findByField(this.getMongooseModel(repoPath), fieldName, value);
     }
 
-    findMany(repoPath: string, ids: Array<any>) {
-        return MongooseModel.findMany(this.getMongooseModel(repoPath), ids);
+    findMany(repoPath: string, ids: Array<any>,toLoadEmbeddedChilds?: boolean) {
+        return MongooseModel.findMany(this.getMongooseModel(repoPath), ids,toLoadEmbeddedChilds);
     }
 
     findChild(repoPath: string, id, prop): Q.Promise<any> {
