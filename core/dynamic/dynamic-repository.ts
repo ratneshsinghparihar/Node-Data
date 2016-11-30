@@ -30,7 +30,7 @@ export interface IDynamicRepository {
     bulkDel(objArr: Array<any>);
 
     findOne(id: any): Q.Promise<any>;
-    findMany(ids: Array<any>): Q.Promise<any>;
+    findMany(ids: Array<any>, toLoadEmbeddedChilds?: boolean): Q.Promise<any>;
     findAll(): Q.Promise<any>;
     findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
     findByField(fieldName, value): Q.Promise<any>;
