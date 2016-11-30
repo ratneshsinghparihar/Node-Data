@@ -64,14 +64,7 @@ function mergeEntity(args: any, method: any): Q.Promise<any> {
     var asyncCalls = [];
     // check if entity is array that means it is the bulk action case
     if (entity instanceof Array) {
-        if (method.name.toUpperCase() == RepoActions.bulkPut.toUpperCase()) {
             asyncCalls.push(mergeTask.apply(this, [entity, method]));
-        }
-        else {
-            entity.forEach(e => {
-                asyncCalls.push(mergeTask.apply(this, [e, method]));
-            });
-        }
     }
     else {
         asyncCalls.push(mergeTask.apply(this, [args, method])); // args[0] is "id" and args[1] is "entity"
@@ -103,8 +96,24 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
         // for bulkpost action
         case RepoActions.bulkPost.toUpperCase():
-            let newDbEntityObjBulk = InstanceService.getInstance(this.getEntity(), null, args);
-            return Q.when(newDbEntityObjBulk);
+            if (args instanceof Array) {
+                var response = [];
+                args.forEach(x => {
+                    response.push(InstanceService.getInstance(this.getEntity(), null, x));
+                });
+                return Q.when(response);
+            }
+
+        // for bulkdelete action
+        case RepoActions.bulkDel.toUpperCase():
+            if (args instanceof Array) {
+                var ids = Enumerable.from(args).select(x => x['_id'].toString()).toArray();
+                return this.findMany(ids).then(res => {
+                    return Q.when(res);
+                }).catch(exc => {
+                    return Q.reject(exc);
+                });
+            }
 
         // for delete action find id from req.params and return db object directly, no need to merge
         case RepoActions.delete.toUpperCase():
@@ -130,7 +139,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                     });
                     return Q.when(res);
                 }).catch(exc => {
-                    return Q.when(args);
+                    return Q.reject(exc);
                 });
             }
         
