@@ -59,58 +59,32 @@ export function preauthorize(params: IPreauthorizeParams): any {
     }
 }
 
-function mergeEntity(args: any, method: any): Q.Promise<any> {
-    var entity = args[0];
-    var asyncCalls = [];
-    // check if entity is array that means it is the bulk action case
-    if (entity instanceof Array) {
-            asyncCalls.push(mergeTask.apply(this, [entity, method]));
-    }
-    else {
-        asyncCalls.push(mergeTask.apply(this, [args, method])); // args[0] is "id" and args[1] is "entity"
-    }
-
-    return Q.allSettled(asyncCalls).then(success => {
-        if (asyncCalls.length == 1) {
-            return success[0].value;
-        }
-        else {
-            var res = [];
-            success.forEach(x => {
-                res.push(x.value);
-            });
-            return res;
-        }
-    }).catch(error => {
-        throw error;
-    });
-}
-
 function mergeTask(args: any, method: any): Q.Promise<any> {
     let prom: Q.Promise<any>;
     var response = [];
     switch (method.name.toUpperCase()) {
         case RepoActions.post.toUpperCase():
             // do nothing
-            prom = Q.nbind(() => {
-                return InstanceService.getInstance(this.getEntity(), null, args[0]);
-            }, null)();
+            prom = Q.when(InstanceService.getInstance(this.getEntity(), null, args[0]));
             break;
         case RepoActions.put.toUpperCase():
         case RepoActions.patch.toUpperCase():
+            // fetch single object
+            prom = this.findMany([args[0]]).then(res => {
+                return mergeProperties(res[0], args[1]);
+            });
+            break;
         case RepoActions.delete.toUpperCase():
             // fetch single object
             prom = this.findMany([args[0]]).then(res => {
-                return mergeEntities(res[0], args[0]);
+                return res[0];
             });
             break;
         case RepoActions.bulkPost.toUpperCase():
-            prom = Q.nbind(() => {
-                args.forEach(x => {
-                    response.push(InstanceService.getInstance(this.getEntity(), null, x));
-                });
-                return response;
-            }, null)();
+            args.forEach(x => {
+                response.push(InstanceService.getInstance(this.getEntity(), null, x));
+            });
+            prom = Q.when(response);
             break;
         case RepoActions.bulkPut.toUpperCase():
             var ids = Enumerable.from(args[0]).select(x => x['_id'].toString()).toArray();
@@ -118,20 +92,32 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 return mergeEntities(dbEntities, args[0]);
             });
             break;
-        //case RepoActions.bulkDel.toUpperCase():
-        //    var ids = Enumerable.from(args[0]).select(x => x['_id'].toString()).toArray();
-        //    prom = this.findMany(ids).then(dbEntities => {
-        //        return mergeEntities(dbEntities, args[0]);
-        //    });
-        //    break;
-        // for post action
+        case RepoActions.bulkDel.toUpperCase():
+            if (args[0].length > 0) {
+                var ids = [];
+                Enumerable.from(args[0]).forEach(x => {
+                    if (Utils.isJSON(x)) {
+                        ids.push(x['_id']);
+                    }
+                    else {
+                        ids.push(x);
+                    }
+                });
+                prom = this.findMany(ids).then(dbEntities => {
+                    return dbEntities;
+                });
+            }
+            else {
+                prom = Q.when(args[0]);
+            }
+            break;
         default:
-            prom = Q.nbind(() => {
-                return args[0];
-            }, null)();
+            prom = Q.when(args[0]);
             break;
     }
-    return prom.catch(exc => {
+    return prom.then(res => {
+        return res;
+    }).catch(exc => {
         console.log(exc);
         throw exc;
     });
@@ -150,7 +136,7 @@ function mergeEntities(dbEntities, entities) {
     });
     return res;
 }
-    
+
 function mergeProperties(dbEntity, entity) {
     for (var prop in entity) {
         dbEntity[prop] = entity[prop];

@@ -326,8 +326,17 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
  * @param modelte
  * @param ids
  */
-export function bulkDel(model: Mongoose.Model<any>, ids: Array<any>): Q.Promise<any> {
+export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise<any> {
     var asyncCalls = [];
+    var ids = [];
+    Enumerable.from(objs).forEach(x => {
+        if (CoreUtils.isJSON(x)) {
+            ids.push(x._id);
+        }
+        else {
+            ids.push(x);
+        }
+    });
     ids.forEach(x => {
         asyncCalls.push(del(model, x));
     });
