@@ -36,13 +36,15 @@ class Dynamic {
         Utils.securityConfig(securityConfig);
         config = config;
         securityConfig = securityConfig;
-        var files = this.scanDirectories();
+        let ignorePaths = config.Config && config.Config.ignorePaths || [];
+        var files = this.scanDirectories(ignorePaths);
         this.loadComponents(files);
         this.initialize(files);
     }
 
-    scanDirectories(): Array<string> {
-        return recursiveReadDir(_appRoot, [readIgnore]);
+    scanDirectories(ignorePaths: Array<string|Function>): Array<string> {
+        ignorePaths.push(readIgnore);
+        return recursiveReadDir(_appRoot, ignorePaths);
         //return Q.nfapply(recursiveReadDir, [_appRoot, [readIgnore]]);
     }
 
