@@ -9,6 +9,27 @@ import {IAssociationParams} from '../decorators/interfaces';
 import * as Enumerable from 'linq';
 import * as securityUtils from '../../security/auth/security-utils';
 
+export interface metaDataObject {
+    id?: string;
+    properties?: Array<metaDataInnerObject>
+}
+
+export interface metaDataInnerObject {
+    name?: string;
+    type?: string; //"string","number","date","Object","Array"
+    subtype?: string;
+    metadata?: metaDataObject
+    pathFromRoot?: Array<any>
+}
+
+
+export interface metaDataMapping {
+    from: metaDataObject;
+    to: metaDataObject;
+    type?: string; // "data" default , "name"
+    innerMapping?: Array<metaDataMapping>
+}
+
 export class MetadataController {
     private path: string;
     private metaData: { [key: string]: any } = <any>{};
