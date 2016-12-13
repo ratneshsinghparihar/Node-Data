@@ -1,4 +1,4 @@
-﻿/// <reference path="../../security/auth/security-utils.ts" />
+/// <reference path="../../security/auth/security-utils.ts" />
 import {router} from '../exports';
 import {MetaUtils} from "../metadata/utils";
 import {DecoratorType} from '../enums';
@@ -49,19 +49,32 @@ export class MetadataController {
         return metaData;
     }
 
-    private getMetadata(req, type): any {
+    private getMetadata(req, type,recursionLevel?:number): any {
         
-        if (this.metaData[req.params.type])
-            return this.metaData[req.params.type];
+        if (this.metaData[type] && !recursionLevel)
+            return this.metaData[type];
 
-        var repo = GetRepositoryForName(type);
-        if (!repo)
-            return null;
+        var metas;
 
-        var metas = MetaUtils.getMetaData(repo.getEntity());
+        metas = MetaUtils.getMetaDataFromType(type);
+
+        if (!metas) {
+
+            var repo = GetRepositoryForName(type);
+            if (!repo)
+                return undefined;
+
+
+            if (repo) {
+                metas = MetaUtils.getMetaData(repo.getEntity());
+            }
+        }
+        
+
         //var props: { [key: string]: MetaData } = <any>{};
-        var props = [];
+        
         var metaData = {};
+       
         var properties = [];
         Enumerable.from(metas).forEach(x=> {
             var m = x as MetaData;
@@ -70,20 +83,51 @@ export class MetadataController {
                 var info = {};
                 info['name'] = m.propertyKey;
                 if (params && params.rel) {
-                    var relMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + params.rel;
-                    info['type'] = m.propertyType.isArray ? [relMeta] : relMeta;
+                    var relMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + m.getType().name;
+                    info['subtype'] = m.getType().name;
+                    info['type'] = m.propertyType.isArray ? "Array" : "Object";
+
+                    info['href'] = relMeta;
+                    if (!recursionLevel) {
+                        info['metadata'] = this.getMetadata(req, (<any>params.itemType).name, 1);
+                        recursionLevel = undefined;
+                    }
+                    if (recursionLevel && recursionLevel <= 4) {
+                        recursionLevel += 1;
+                        info['metadata'] = this.getMetadata(req, (<any>params.itemType).name, recursionLevel);
+                        recursionLevel = undefined;
+                    }
                 }
                 else {
-                    info['type'] =  m.propertyType.isArray ? [m.getType().name] : m.getType().name;
+
+
+                    info['type'] = m.propertyType.isArray ? "Array" : m.getType().name;
+                    if (info['type'] != "String" && info['type'] != "Boolean" &&
+                        info['type'] != "Number" && info['type'] != "Date" &&
+                        info['type'] != "Object" && info['type'] != "Array") {
+                        info['type'] = m.propertyType.isArray ? "Array" : "Object";
+                        info['subtype'] = m.getType().name;
+                        if (!recursionLevel) {
+                            info['metadata'] = this.getMetadata(req, m.getType().name, 1);
+                            recursionLevel = undefined;
+                        }
+                       
+                    }
+                   
+                    
+                    //info['rstype'] = m.getType().name;
+                    //info['type'] =  m.propertyType.isArray ? [m.getType().name] : m.getType().name;
                 }
                 properties.push(info);
-                props.push(m.propertyKey);
+                
             }
         });
         metaData['id'] = type;
         metaData['properties'] = properties;
-        this.metaData[req.params.type] = metaData;
-        return this.metaData[req.params.type];
+        if (!recursionLevel) {
+            this.metaData[type] = metaData;
+        }
+        return metaData;
     }
 
     private getProtocol(req) : string{
