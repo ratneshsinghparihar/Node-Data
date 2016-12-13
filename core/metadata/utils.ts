@@ -12,6 +12,7 @@ import {IAssociationParams} from '../decorators/interfaces/association-params';
 import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 
 let _metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
+let _nameAndTargetMapping:any = {};
 
 export function metadataRoot(metadataRoot?): MetaRoot {
     if (metadataRoot !== undefined) {
@@ -45,6 +46,7 @@ interface IMetadataHelper {
     addMetaData(target: Object | Function, metaOptions: IMetaOptions): boolean;
 
     getMetaData(target: Object): Array<MetaData>;
+    getMetaDataFromType(modelType: string): Array<MetaData>;
     getMetaData(target: Object, decorator: string): Array<MetaData>;
     getMetaData(target: Object, decorator: string, propertyKey: string): MetaData;
     getMetaData(target: Object, decorator: string, propertyKey: string, paramIndex: number): MetaData;
@@ -76,7 +78,13 @@ class MetadataHelper {
             winstonLog.logError('propertyKey cannot be null or undefined for method/property decorator');
             throw TypeError('propertyKey cannot be null or undefined for method/property decorator');
         }
-
+        
+        if ((<any>target).name) {
+            _nameAndTargetMapping[(<any>target).name] = target;
+        } else if (target.constructor.name) {
+            _nameAndTargetMapping[(<any>target).constructor.name] = target;
+        }
+        
         let metaPropKey = getMetaPropKey(metaOptions.decoratorType, metaOptions.propertyKey, metaOptions.paramIndex);
 
         let metaKey = MetadataHelper.getMetaKey(target);
@@ -113,6 +121,11 @@ class MetadataHelper {
             case 3: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.METHOD, target, decorator, propertyKey, paramIndex);
             case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.PARAM, target, decorator, propertyKey, paramIndex);
         }
+    }
+    
+    public static getMetaDataFromType(modelType: string): Array<MetaData> {
+        if (_nameAndTargetMapping[modelType])
+            return MetadataHelper.getMetaDataForTarget(_nameAndTargetMapping[modelType]);
     }
 
     /**
