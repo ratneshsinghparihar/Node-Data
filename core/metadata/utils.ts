@@ -1,4 +1,4 @@
-﻿import {ParamTypeCustom} from './param-type-custom';
+import {ParamTypeCustom} from './param-type-custom';
 import {DecoratorType} from '../enums';
 import {winstonLog} from '../../logging/winstonLog';
 import {Decorators, MetadataConstants} from '../constants';
@@ -54,6 +54,7 @@ interface IMetadataHelper {
     getMetaDataForPropKey(target: Object, propertyKey?: string): Array<MetaData>;
     getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData>;
     refreshDerivedObjectsMetadata();
+    getDescriptiveMetadata(type, baseRelMeta, recursionLevel?: number): any;
 }
 
 class MetadataHelper {
@@ -78,13 +79,12 @@ class MetadataHelper {
             winstonLog.logError('propertyKey cannot be null or undefined for method/property decorator');
             throw TypeError('propertyKey cannot be null or undefined for method/property decorator');
         }
-        
         if ((<any>target).name) {
             _nameAndTargetMapping[(<any>target).name] = target;
         } else if (target.constructor.name) {
             _nameAndTargetMapping[(<any>target).constructor.name] = target;
         }
-        
+
         let metaPropKey = getMetaPropKey(metaOptions.decoratorType, metaOptions.propertyKey, metaOptions.paramIndex);
 
         let metaKey = MetadataHelper.getMetaKey(target);
@@ -122,7 +122,7 @@ class MetadataHelper {
             case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.PARAM, target, decorator, propertyKey, paramIndex);
         }
     }
-    
+
     public static getMetaDataFromType(modelType: string): Array<MetaData> {
         if (_nameAndTargetMapping[modelType])
             return MetadataHelper.getMetaDataForTarget(_nameAndTargetMapping[modelType]);
@@ -267,6 +267,72 @@ class MetadataHelper {
         }
         return false;
     }
+
+
+    public static getDescriptiveMetadata(type, baseRelMeta, recursionLevel?: number): any {
+        var metas;
+
+        metas = MetaUtils.getMetaDataFromType(type);
+        //var props: { [key: string]: MetaData } = <any>{};
+
+        var metaData = {};
+
+        var properties = [];
+        Enumerable.from(metas).forEach(x => {
+            var m = x as MetaData;
+            if (m.decoratorType == DecoratorType.PROPERTY) {
+                var params: IAssociationParams = <IAssociationParams>m.params;
+                var info = {};
+                info['name'] = m.propertyKey;
+                if (params && params.rel) {
+
+                    if (baseRelMeta) {
+                        var relMeta = baseRelMeta + m.getType().name;
+                        info['href'] = relMeta;
+                    }
+
+                    info['subtype'] = m.getType().name;
+                    info['type'] = m.propertyType.isArray ? "Array" : "Object";
+                    if (!recursionLevel) {
+                        info['metadata'] = this.getDescriptiveMetadata((<any>params.itemType).name, baseRelMeta, 1);
+                        recursionLevel = undefined;
+                    }
+                    if (recursionLevel && recursionLevel <= 4) {
+                        recursionLevel += 1;
+                        info['metadata'] = this.getDescriptiveMetadata((<any>params.itemType).name, baseRelMeta, recursionLevel);
+                        recursionLevel = undefined;
+                    }
+                }
+                else {
+
+
+                    info['type'] = m.propertyType.isArray ? "Array" : m.getType().name;
+                    if (info['type'] != "String" && info['type'] != "Boolean" &&
+                        info['type'] != "Number" && info['type'] != "Date" &&
+                        info['type'] != "Object" && info['type'] != "Array") {
+                        info['type'] = m.propertyType.isArray ? "Array" : "Object";
+                        info['subtype'] = m.getType().name;
+                        if (!recursionLevel) {
+                            info['metadata'] = this.getDescriptiveMetadata(m.getType().name, baseRelMeta, 1);
+                            recursionLevel = undefined;
+                        }
+
+                    }
+
+
+                    //info['rstype'] = m.getType().name;
+                    //info['type'] =  m.propertyType.isArray ? [m.getType().name] : m.getType().name;
+                }
+                properties.push(info);
+
+            }
+        });
+        metaData['id'] = type;
+        metaData['properties'] = properties;
+       
+        return metaData;
+    }
+
 }
 
 export var MetaUtils: IMetadataHelper = MetadataHelper;
