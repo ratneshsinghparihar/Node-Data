@@ -11,6 +11,7 @@ import * as securityUtils from '../../security/auth/security-utils';
 
 export interface metaDataObject {
     id?: string;
+    type?: string;
     properties?: Array<metaDataInnerObject>
 }
 
@@ -70,85 +71,14 @@ export class MetadataController {
         return metaData;
     }
 
-    private getMetadata(req, type,recursionLevel?:number): any {
+    public getMetadata(req, type): any {
         
-        if (this.metaData[type] && !recursionLevel)
+        if (this.metaData[type])
             return this.metaData[type];
-
-        var metas;
-
-        metas = MetaUtils.getMetaDataFromType(type);
-
-        if (!metas) {
-
-            var repo = GetRepositoryForName(type);
-            if (!repo)
-                return undefined;
-
-
-            if (repo) {
-                metas = MetaUtils.getMetaData(repo.getEntity());
-            }
-        }
-        
-
-        //var props: { [key: string]: MetaData } = <any>{};
-        
-        var metaData = {};
-       
-        var properties = [];
-        Enumerable.from(metas).forEach(x=> {
-            var m = x as MetaData;
-            if (m.decoratorType == DecoratorType.PROPERTY) {
-                var params: IAssociationParams = <IAssociationParams>m.params;
-                var info = {};
-                info['name'] = m.propertyKey;
-                if (params && params.rel) {
-                    var relMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/' + m.getType().name;
-                    info['subtype'] = m.getType().name;
-                    info['type'] = m.propertyType.isArray ? "Array" : "Object";
-
-                    info['href'] = relMeta;
-                    if (!recursionLevel) {
-                        info['metadata'] = this.getMetadata(req, (<any>params.itemType).name, 1);
-                        recursionLevel = undefined;
-                    }
-                    if (recursionLevel && recursionLevel <= 4) {
-                        recursionLevel += 1;
-                        info['metadata'] = this.getMetadata(req, (<any>params.itemType).name, recursionLevel);
-                        recursionLevel = undefined;
-                    }
-                }
-                else {
-
-
-                    info['type'] = m.propertyType.isArray ? "Array" : m.getType().name;
-                    if (info['type'] != "String" && info['type'] != "Boolean" &&
-                        info['type'] != "Number" && info['type'] != "Date" &&
-                        info['type'] != "Object" && info['type'] != "Array") {
-                        info['type'] = m.propertyType.isArray ? "Array" : "Object";
-                        info['subtype'] = m.getType().name;
-                        if (!recursionLevel) {
-                            info['metadata'] = this.getMetadata(req, m.getType().name, 1);
-                            recursionLevel = undefined;
-                        }
-                       
-                    }
-                   
-                    
-                    //info['rstype'] = m.getType().name;
-                    //info['type'] =  m.propertyType.isArray ? [m.getType().name] : m.getType().name;
-                }
-                properties.push(info);
-                
-            }
-        });
-        metaData['id'] = type;
-        metaData['properties'] = properties;
-        if (!recursionLevel) {
-            this.metaData[type] = metaData;
-        }
-        return metaData;
+        var baseRelMeta = this.getProtocol(req) + '://' + req.get('host') + this.path + '/'
+        var metadata:any = MetaUtils.getDescriptiveMetadata(type, baseRelMeta);
+        this.metaData[type] = metadata;
+        return metadata;
     }
 
     private getProtocol(req) : string{
@@ -161,3 +91,5 @@ export class MetadataController {
     }
 
 }
+
+export default MetadataController;
