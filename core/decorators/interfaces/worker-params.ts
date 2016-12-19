@@ -1,5 +1,6 @@
 export interface WorkerParams {
-    actionName: string,
-    actionmethodName : string,
-    arguments?: [string]
+    workerName: string,
+    serviceName: string,
+    servicemethodName: string,
+    arguments?: [any] 
 }

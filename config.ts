@@ -4,7 +4,8 @@ export class Config {
     public static apiversion: string = "v1";
 
     public static ElasticSearchConnection : string  = "http://localhost:9200";
-    public static ApplyElasticSearch : boolean = false;
+    public static ApplyElasticSearch : boolean = false; 
+    public static ignorePaths =  [];
 }
 
 export class SqlConfig {
