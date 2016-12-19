@@ -1,9 +1,9 @@
 ﻿import Mongoose = require("mongoose");
 import Q = require('q');
-import {EntityChange} from '../core/enums/entity-change';
-import {getEntity} from '../core/dynamic/model-entity';
+import { EntityChange } from '../core/enums/entity-change';
+import { getEntity } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
-import {winstonLog} from '../logging/winstonLog';
+import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";
 import * as Utils from './utils';
@@ -121,17 +121,20 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  * Usage - Search object with given condition
  * @param model
  * @param query
- * @param select
+ * @param select {Array<string> | any} In case it is an array of string, it selects the specified keys mentioned in the array. In case  it is an Object, it sets the JS object as the projection key
  * @param sort
  * @param skip
  * @param limit
  */
-export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string>, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
+export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     var sel = {};
-    if (select) {
+    if (select instanceof Array) {
         select.forEach(x => {
             sel[x] = 1;
         });
+    }
+    else if(select){
+        sel = select;
     }
     let queryObj = model.find(query, sel);
     if (sort) {
