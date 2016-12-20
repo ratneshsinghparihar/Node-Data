@@ -1,4 +1,3 @@
-
 require("reflect-metadata/Reflect");
 import * as express from "express";
 import * as Config from "./config";
@@ -26,11 +25,6 @@ var serverUp= function(){
     data.generateSchema();
     app.use("/", router);
     Main.register(app);
-
-// if (debug) {
-//     process.argv.push('--debug=' + (40894));
-// }
-
 }
 
 process.on('message', function (m) {
@@ -39,7 +33,6 @@ process.on('message', function (m) {
     winstonLog.logInfo("Message from parent: " + m.message + " and worker_params: "+ worker_params);
      if( worker_params != null) {
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
-        //winstonLog.logDebug("services length : "+ services.length+ " service names: "+ JSON.stringify(services));
         var service_name=m.worker_params.serviceName;
         var service=Enumerable.from(services).where(x => x.metadata[0].params.serviceName == service_name).select(x => x.metadata[0]).firstOrDefault();
         winstonLog.logInfo("Service: "+ service + " with input content : "+ JSON.stringify(service));
