@@ -20,6 +20,7 @@ export class Decorators {
     public static REQUIRED = 'required';
     public static TRANSIENT = 'transient';
     public static ALLOWANONYMOUS = 'allowanonymous';
+    public static WORKER = 'worker';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];
