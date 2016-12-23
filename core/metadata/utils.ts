@@ -14,6 +14,8 @@ import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 let _metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
 let _nameAndTargetMapping:any = {};
 
+let childProcessId:any;
+
 export function metadataRoot(metadataRoot?): MetaRoot {
     if (metadataRoot !== undefined) {
         _metadataRoot = metadataRoot;
@@ -43,6 +45,7 @@ export function getMetaPropKey(decoratorType, propertyKey?, paramIndex?) {
 }
 
 interface IMetadataHelper {
+    childProcessId:any;
     addMetaData(target: Object | Function, metaOptions: IMetaOptions): boolean;
 
     getMetaData(target: Object): Array<MetaData>;
@@ -58,6 +61,7 @@ interface IMetadataHelper {
 }
 
 class MetadataHelper {
+    public static childProcessId:any;
     /**
      * Add any encountered metadata to the metadata root for later usage.
      * @param {(Object|Function)} target The function or function prototype where decorator is defined.
@@ -332,6 +336,7 @@ class MetadataHelper {
        
         return metaData;
     }
+
 
 }
 
