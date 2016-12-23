@@ -75,7 +75,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             });
             break;
         case RepoActions.delete.toUpperCase():
-            // fetch single object
+            // fetch single object 
             prom = this.findMany([args[0]]).then(res => {
                 return res[0];
             });
