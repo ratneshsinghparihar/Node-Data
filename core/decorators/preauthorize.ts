@@ -81,7 +81,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             });
             break;
         case RepoActions.bulkPost.toUpperCase():
-            args.forEach(x => {
+            args[0].forEach(x => {
                 response.push(InstanceService.getInstance(this.getEntity(), null, x));
             });
             prom = Q.when(response);
