@@ -52,12 +52,12 @@ process.on('message', function (m) {
                  console.log('executing promise...');
                  ret.then(res=>{
                     process.send("Target Method executed and result is " + JSON.stringify(res));
-                    process.exit();
+                    //process.exit();
                  });
                 }else {
                 //return Q.when(true);
                 process.send("Method could not be executed and error is " + JSON.stringify(ret));
-                process.exit();
+                //process.exit();
             }
         }
         else{
