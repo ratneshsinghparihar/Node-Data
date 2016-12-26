@@ -102,10 +102,10 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     console.log("forking a new child_process: "+ workerParams.workerName);
                     var worker_process = child_process.fork(workerParams.workerName);
                     if(worker_process.error==null){
-                    
+                     winstonLog.logInfo('child process created with id: '+ worker_process.pid);
+                     
                      worker_process.on('message', function (message) {
-                     winstonLog.logDebug('child process id:'+ worker_process.pid + "name: "+ worker_process.name);
-                     winstonLog.logInfo('message from Child: ' + message);	
+                     winstonLog.logInfo('message from Child Process : ' + message);	
                     });
                     
                      worker_process.on('error', function (err) {
@@ -113,12 +113,9 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     });
 
                      worker_process.on('close', function (code,signal) {
-                     winstonLog.logStream('child process exited with code: ',code + ' signal: ' +signal);	
+                     winstonLog.logStream('Child process exited with code: ',code + ' signal: ' +signal);	
                   });
-                    //workerParams.arguments = Array.prototype.slice.call(arguments).toString();
-                    //workerParams.arguments=Object.values(arguments);
-                    
-                    winstonLog.logInfo('Arguments array: ' +workerParams.arguments);
+                 
                     worker_process.send({ worker_params: workerParams, message: "new child process created with id: " + worker_process.pid
                      }); 
                 }else{
