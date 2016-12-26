@@ -50,7 +50,7 @@ describe("Worker Tests", function() {
                 done();
           }
        });
-      }, 3000);
+      }, 5000);
     });
 
     it(" Blog Content should match with the sent content.", function(done) { 

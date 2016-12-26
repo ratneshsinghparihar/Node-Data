@@ -25,8 +25,10 @@ export class blogServiceImpl implements BlogService{
     };
 
 
-    //@Worker({name: 'workerThread'})
-    @Worker()
+    // @Worker({name: 'workerThread'})
+       @Worker()
+    // @Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'',
+    // arguments:["/Users/asishs/Projects/Node-Data/Enhancement_On_Node_Data/Node-Data/spec/OutputFiles/file.txt","Hello"]}})
     writeBlog(fileName: any, data: any): Q.Promise<any> {
         var blog: blog;
         console.log("file name:" + fileName + " and data: "+ data);

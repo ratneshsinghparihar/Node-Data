@@ -96,11 +96,8 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
             }
                 var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
                 var service=Enumerable.from(services).where(x => x.metadata[0].target.constructor.name == workerParams.serviceName).select(x => x.metadata[0]).firstOrDefault();
-                workerParams.arguments = Array.prototype.slice.call(arguments);
+                workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
                 winstonLog.logInfo("Worker Params Details: "+ JSON.stringify(workerParams)); 
-                // winstonLog.logInfo("ServiceName: "+ workerParams.serviceName + " servicemethodName: " + workerParams.servicemethodName
-                // + " paramsArguments: "+ workerParams.arguments);
-            
                 if(workerParams.serviceName != null){
                     console.log("forking a new child_process: "+ workerParams.workerName);
                     var worker_process = child_process.fork(workerParams.workerName);
