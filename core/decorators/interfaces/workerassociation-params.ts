@@ -1,6 +1,6 @@
 import {WorkerParams} from './worker-params';
 
 export interface WorkerAssociation {
-    name: string,
+    name?: string,
     workerParams?: WorkerParams
 }
