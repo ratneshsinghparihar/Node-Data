@@ -9,7 +9,7 @@ import {WorkerParams} from './interfaces/worker-params';
 import {workerParamsDto} from "./interfaces/workerParamsDto";
 import * as configUtil from '../utils';
 var fs = require('fs');
-var defaultWorkerName="worker.js";
+var defaultWorkerName="core/decorators/worker.js";
 
 export function Worker(params?: WorkerAssociation): any {
 params = params || <any>{};
@@ -63,7 +63,6 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                 workerParams.arguments = paramsArguments;
             }
             else {
-                console.log("Worker Params: "+ JSON.stringify(params));
                 if(params.workerParams.workerName==null || params.workerParams.workerName == ''){
                     workerParams.workerName = defaultWorkerName;
                     winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
@@ -94,15 +93,13 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     workerParams.arguments = paramsArguments;
                 }
             }
-                var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
-                var service=Enumerable.from(services).where(x => x.metadata[0].target.constructor.name == workerParams.serviceName).select(x => x.metadata[0]).firstOrDefault();
                 workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
                 winstonLog.logInfo("Worker Params Details: "+ JSON.stringify(workerParams)); 
                 if(workerParams.serviceName != null){
                     console.log("forking a new child_process: "+ workerParams.workerName);
                     var worker_process = child_process.fork(workerParams.workerName);
                     if(worker_process.error==null){
-                     winstonLog.logInfo('child process created with id: '+ worker_process.pid);
+                     winstonLog.logInfo('Child process created with id: '+ worker_process.pid);
                      
                      worker_process.on('message', function (message) {
                      winstonLog.logInfo('message from Child Process : ' + message);	
@@ -113,7 +110,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     });
 
                      worker_process.on('close', function (code,signal) {
-                     winstonLog.logStream('Child process exited with code: ',code + ' signal: ' +signal);	
+                     winstonLog.logInfo('Child process exited with code: '+code + ' signal: ' +signal);	
                   });
                  
                     worker_process.send({ worker_params: workerParams, message: "new child process created with id: " + worker_process.pid
