@@ -15,12 +15,6 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
-
-
-import {Worker} from '../decorators/workerAssociation';
-import {WorkerAssociation} from '../decorators/interfaces/workerassociation-params';
-import {WorkerParams} from '../decorators/interfaces/worker-params';
-
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -94,8 +88,6 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                this.createworkedThread();
 
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
@@ -763,12 +755,6 @@ export class DynamicController {
         else {
             return req.protocol;
         }
-    }
-
-    @Worker({name: 'workerThread', workerParams:{actionName: 'support.js', actionmethodName:'execute()',arguments:['']}})
-    private createworkedThread(): any{
-        console.log("Calling worker thread..");
-        return; 
     }
 
 }
