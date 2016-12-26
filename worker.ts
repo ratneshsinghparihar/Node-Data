@@ -27,17 +27,15 @@ var serverUp= function(){
     app.use("/", router);
     Main.register(app);
 }
-//console.log("Executing Worker.Js with "+  process.pid);
 process.on('message', function (m) {
     serverUp(); // Prepares the server.
     MetaUtils.childProcessId = process.pid;
-    winstonLog.logInfo(" Input message details: "+JSON.stringify(m));
+    winstonLog.logInfo("Input from Parent Process : "+JSON.stringify(m));
     var worker_params= JSON.stringify(m.worker_params);
     if( m.worker_params != null) {
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
         var service_name=m.worker_params.serviceName;
-        winstonLog.logDebug("Available Services with input content : "+ JSON.stringify(services) + " service: "+ service_name);
-        //var service=Enumerable.from(services).where(x => x.metadata[0].params.serviceName == service_name).select(x => x.metadata[0]).firstOrDefault();
+        winstonLog.logDebug(" All Available Services : "+ JSON.stringify(services) + " service: "+ service_name);
         var service=Enumerable.from(services).where(x => x.metadata[0].target.constructor.name == service_name).select(x => x.metadata[0]).firstOrDefault();
         winstonLog.logInfo("Required Service: "+ service + " with input content : "+ JSON.stringify(service));
         if(service){
