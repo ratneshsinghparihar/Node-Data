@@ -2,7 +2,7 @@ import {BlogRepository} from '../repository/blogRepository';
 import {blog} from '../models/blog';
 import Q = require('q');
 import {Worker} from '../../core/decorators/workerAssociation';
-import {BlogService} from './blogService'
+import {BlogService} from './interface/blogService'
 import {service} from '../../di/decorators/service';
 import fs = require('fs');
 
@@ -26,9 +26,9 @@ export class blogServiceImpl implements BlogService{
 
 
     // @Worker({name: 'workerThread'})
-       @Worker()
-    // @Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'',
-    // arguments:["/Users/asishs/Projects/Node-Data/Enhancement_On_Node_Data/Node-Data/spec/OutputFiles/file.txt","Hello"]}})
+    // @Worker()
+     @Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'',
+     arguments:["unit-test/OutputFiles/file.txt","Hello"]}})
     writeBlog(fileName: any, data: any): Q.Promise<any> {
         var blog: blog;
         console.log("file name:" + fileName + " and data: "+ data);

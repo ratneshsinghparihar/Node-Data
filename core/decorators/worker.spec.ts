@@ -2,16 +2,18 @@
 //var base_url = "http://localhost:23548/data/users";
 //import {UserDetailService} from '../security/auth/user-detail-service';
 require('reflect-metadata/reflect');
-import {blogServiceImpl}  from './service/blogServiceImpl';
+import {blogServiceImpl}  from '../../unit-test/services/blogServiceImpl';
 import fs = require('fs');
-import * as Config from "../config";
-import * as configUtil from '../core/utils';
+import * as Config from "../../config";
+import * as configUtil from '../utils';
 
 describe("Worker Tests", function() {
   var blogContent: string;
   var fileContent: string = "Hello";
-  var filePath="/Users/asishs/Projects/Node-Data/Enhancement_On_Node_Data/Node-Data/spec/OutputFiles/file.txt";
+  var filePath="unit-test/OutputFiles/file.txt";
   beforeEach(function() { 
+        console.log("*****************************************")
+        console.log("*****************************************")
       configUtil.config(Config);        
      jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
      fs.exists(filePath,function(exists) {

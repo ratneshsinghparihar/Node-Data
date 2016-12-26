@@ -2,7 +2,7 @@ import Q = require('q');
 import {repository} from "../../core/decorators/repository";
 import {inject} from "../../di/decorators/inject";
 import {blog} from "../models/blog";
-import {blogServiceImpl} from "../service/blogServiceImpl";
+import {blogServiceImpl} from "../services/blogServiceImpl";
 
 @repository({path:"blogRepo",model:blog}) 
 export class BlogRepository {
