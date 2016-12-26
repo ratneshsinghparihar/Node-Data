@@ -7,10 +7,10 @@ import * as Enumerable from 'linq';
 import {winstonLog} from '../../logging/winstonLog';
 import {WorkerParams} from './interfaces/worker-params';
 import {workerParamsDto} from "./interfaces/workerParamsDto";
+import * as configUtil from '../utils';
 var fs = require('fs');
+var defaultWorkerName="worker.js";
 
-
-//console.log("worker association called " + process.pid)
 export function Worker(params?: WorkerAssociation): any {
 params = params || <any>{};
 
@@ -30,10 +30,9 @@ params = params || <any>{};
             Decorators.WORKER);
     }
 
-
 function preProcessHandler(params, target, propertyKey, descriptor, originalMethod, type: string) {
      return function () {
-         if(MetaUtils.childProcessId){
+         if(MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded){
             winstonLog.logInfo("Executing method from child Process with id: "+process.pid);
             return originalMethod.apply(this, arguments);
          }
@@ -51,7 +50,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
             
             if (params.workerParams == null) {
                 winstonLog.logInfo("Worker Params found empty.");
-                workerParams.workerName = "worker.js"; //default service to be executed.
+                workerParams.workerName = defaultWorkerName; //default service to be executed.
                 winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
 
                 serviceName = this.__proto__.constructor.name;
@@ -66,7 +65,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
             else {
                 console.log("Worker Params: "+ JSON.stringify(params));
                 if(params.workerParams.workerName==null || params.workerParams.workerName == ''){
-                    workerParams.workerName = "worker.js";
+                    workerParams.workerName = defaultWorkerName;
                     winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
                 }
 
@@ -97,9 +96,10 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
             }
                 var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
                 var service=Enumerable.from(services).where(x => x.metadata[0].target.constructor.name == workerParams.serviceName).select(x => x.metadata[0]).firstOrDefault();
-       
-                winstonLog.logInfo("ServiceName: "+ workerParams.serviceName + " servicemethodName: " + workerParams.servicemethodName
-                + " paramsArguments: "+ workerParams.arguments);
+                workerParams.arguments = Array.prototype.slice.call(arguments);
+                winstonLog.logInfo("Worker Params Details: "+ JSON.stringify(workerParams)); 
+                // winstonLog.logInfo("ServiceName: "+ workerParams.serviceName + " servicemethodName: " + workerParams.servicemethodName
+                // + " paramsArguments: "+ workerParams.arguments);
             
                 if(workerParams.serviceName != null){
                     console.log("forking a new child_process: "+ workerParams.workerName);
@@ -120,7 +120,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                   });
                     //workerParams.arguments = Array.prototype.slice.call(arguments).toString();
                     //workerParams.arguments=Object.values(arguments);
-                    workerParams.arguments = Array.prototype.slice.call(arguments);
+                    
                     winstonLog.logInfo('Arguments array: ' +workerParams.arguments);
                     worker_process.send({ worker_params: workerParams, message: "new child process created with id: " + worker_process.pid
                      }); 

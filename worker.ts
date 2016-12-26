@@ -42,14 +42,13 @@ process.on('message', function (m) {
         winstonLog.logInfo("Required Service: "+ service + " with input content : "+ JSON.stringify(service));
         if(service){
             var injectedProp = Container.resolve(service.params.target);
-            winstonLog.logInfo('Service instance: '+injectedProp);
+            winstonLog.logDebug('Service instance: '+injectedProp);
             var methodName=m.worker_params.servicemethodName;
-            winstonLog.logInfo("Method Names: "+ JSON.stringify(methodName));
+            winstonLog.logDebug("Method Names: "+ JSON.stringify(methodName));
             var methodArguments=m.worker_params.arguments;
-            winstonLog.logInfo("arugment Names: "+ methodArguments);
+            winstonLog.logDebug("arugment Names: "+ methodArguments);
             var ret = injectedProp[methodName].apply(injectedProp,methodArguments);
             if (Utils.isPromise(ret)) {
-                 console.log('executing promise...');
                  ret.then(res=>{
                     process.send("Target Method executed and result is " + JSON.stringify(res));
                     //process.exit();

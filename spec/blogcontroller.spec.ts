@@ -4,12 +4,15 @@
 require('reflect-metadata/reflect');
 import {blogServiceImpl}  from './service/blogServiceImpl';
 import fs = require('fs');
+import * as Config from "../config";
+import * as configUtil from '../core/utils';
 
 describe("Worker Tests", function() {
   var blogContent: string;
-  var timerCallback;
+  var fileContent: string = "Hello";
   var filePath="/Users/asishs/Projects/Node-Data/Enhancement_On_Node_Data/Node-Data/spec/OutputFiles/file.txt";
   beforeEach(function() { 
+      configUtil.config(Config);        
      jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
      fs.exists(filePath,function(exists) {
      console.log("Before Each fs.exists(filePath): "+ exists);
@@ -22,36 +25,37 @@ describe("Worker Tests", function() {
        });
      });
    
-  describe("when written by worker thread", function() { 
-    beforeEach(function() {
-      //timerCallback = jasmine.createSpy("timerCallback");
-      console.log("Executing test case :2 ")
+  describe(" Running for blogContent verification: ", function() { 
+    beforeEach(function(done) {
       var blogService= new blogServiceImpl();
-      blogService.writeBlog(filePath,"Hello");
-    });
-
-    it("should have a blog content", function(done) { 
-      setTimeout(function(){
-      //timerCallback();
-      console.log("Executing test case :2: set timeout ")
+      blogService.writeBlog(filePath,fileContent);
+      setTimeout(function() {
       fs.exists(filePath,function(exists) {
-      console.log("Before Each fs.exists(filePath): "+ exists);
+      //console.log("Before Each fs.exists(filePath): "+ exists);
           if (exists) {
-                console.log("Executing test case :2: If Clause ")
-                blogContent="Hello";
-                done();
+                console.log("FIle Found. ")
+                        fs.readFile(filePath, 'utf8', function ( err,data) {
+                        if (err) {
+                              console.log("Error while reading file: "+err);
+                              blogContent=null;;
+                              done();
+                        }else{
+                        blogContent=data;
+                        console.log("Blog Content: "+blogContent);
+                        done();
+                        }
+                  });
           } else {
-                blogContent="";
-                console.log("Executing test case :2, FIle doesn't exist. ")
+                console.log("FIle doesn't exist. ")
                 done();
           }
        });
+      }, 3000);
+    });
 
-      console.log('executing tests for blogContent '+ blogContent);
-      expect(blogContent).toBe("Hello");
+    it(" Blog Content should match with the sent content.", function(done) { 
+      expect(blogContent==fileContent).toBeTruthy();
       done();
-
-      },4000);
      });
     });
   });

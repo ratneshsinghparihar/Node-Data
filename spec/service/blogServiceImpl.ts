@@ -25,7 +25,8 @@ export class blogServiceImpl implements BlogService{
     };
 
 
-    @Worker({name: 'workerThread'})
+    //@Worker({name: 'workerThread'})
+    @Worker()
     writeBlog(fileName: any, data: any): Q.Promise<any> {
         var blog: blog;
         console.log("file name:" + fileName + " and data: "+ data);
