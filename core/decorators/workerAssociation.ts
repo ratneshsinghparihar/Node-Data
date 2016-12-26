@@ -102,8 +102,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     console.log("forking a new child_process: "+ workerParams.workerName);
                     var worker_process = child_process.fork(workerParams.workerName);
                     if(worker_process.error==null){
-                     winstonLog.logInfo('child process created with id: '+ worker_process.pid +
-                      " and name: "+ worker_process.name);
+                     winstonLog.logInfo('child process created with id: '+ worker_process.pid);
                      
                      worker_process.on('message', function (message) {
                      winstonLog.logInfo('message from Child Process : ' + message);	
