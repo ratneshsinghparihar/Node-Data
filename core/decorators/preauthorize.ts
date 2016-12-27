@@ -4,7 +4,7 @@ import {DecoratorType} from '../enums/decorator-type';
 import {IPreauthorizeParams} from './interfaces/preauthorize-params';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PreAuthService} from '../services/pre-auth-service';
-import {pathRepoMap, getEntity, getModel} from '../dynamic/model-entity';
+import {pathRepoMap, getEntity} from '../dynamic/model-entity';
 import {InstanceService} from '../services/instance-service';
 import * as Utils from '../utils';
 import {RepoActions} from '../enums/repo-actions-enum';

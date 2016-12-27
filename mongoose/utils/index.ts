@@ -123,6 +123,6 @@ export function getCurrentDBModel(schemaName) {
             return getDbSpecifcModel(schemaName, (<DynamicSchema>getSchema(schemaName)).parsedSchema, db);
         }
     }
-    // If null is returned, default database will be used to get model
-    return null;
+
+    return getModel(schemaName);
 }

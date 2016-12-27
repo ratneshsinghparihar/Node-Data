@@ -75,13 +75,7 @@ export class MongooseService implements IEntityService {
 
     getModel(repoPath: string) {
         try {
-            var currentDBModel = Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
-            if (currentDBModel) {
-                return currentDBModel;
-            }
-            else {
-                return getModel(pathRepoMap[repoPath].schemaName);
-            }
+            return Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
         } catch (e) {
             winstonLog.logError(`Error in getMongooseModel ${e}`);
             throw e;
