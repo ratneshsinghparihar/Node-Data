@@ -62,7 +62,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getModel() {
-        return getModel(pathRepoMap[this.path].schemaName);
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(pathRepoMap[this.path].schemaName);
     }
 
     public bulkPost(objArr: Array<any>) {

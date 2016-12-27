@@ -1,6 +1,5 @@
 ﻿import {PrincipalContext} from '../../security/auth/principalContext';
 import {User} from '../../security/auth/user';
-import {getDbSpecifcModel} from '../../mongoose/db';
 var schemaNameModel: { [key: string]: any } = {};
 export var pathRepoMap: { [key: string]: { schemaName: string, modelType: string } } = <any>{};
 
@@ -20,9 +19,16 @@ export function getEntity(schemaName: string): any {
 export function getModel(schemaName: string): any {
     if (!schemaNameModel[schemaName])
         return null;
+
     //let currentUser: User = PrincipalContext.User;
     //if (currentUser && currentUser.getDbName()) {
     //    return getDbSpecifcModel(schemaName, schemaNameModel[schemaName]['schema'], currentUser.getDbName());
     //}
     return schemaNameModel[schemaName]['model'];
+}
+
+export function getSchema(schemaName: string) {
+    if (!schemaNameModel[schemaName])
+        return null;
+    return schemaNameModel[schemaName]['schema'];
 }
