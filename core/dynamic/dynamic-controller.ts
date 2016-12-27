@@ -94,9 +94,6 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                this.createworkedThread();
-
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
@@ -764,11 +761,4 @@ export class DynamicController {
             return req.protocol;
         }
     }
-
-    @Worker({name: 'workerThread', workerParams:{actionName: 'support.js', actionmethodName:'execute()',arguments:['']}})
-    private createworkedThread(): any{
-        console.log("Calling worker thread..");
-        return; 
-    }
-
 }
