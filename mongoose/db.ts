@@ -24,9 +24,19 @@ export function getDbSpecifcModel(schemaName: any, schema: any, database: any): 
     }
 }
 
-export function updateConnection(connectionString, connectionOption): Q.IPromise<any> {
+export function updateConnection(connectionString, connectionOption, create: boolean): Q.IPromise<any> {
     PrincipalContext.save(CoreUtils.resources.userDatabase, connectionString);
-    return getConnection(connectionString, connectionOption);
+    if (create) {
+        if (!allConnections[connectionString]) {
+            allConnections[connectionString] = mainConnection.useDb(connectionString, connectionOptions);
+        }
+        else {
+            return Q.when(true);
+        }
+    }
+    else {
+        return getConnection(connectionString, connectionOption);
+    }
 }
 
 function getConnection(connectionString, connectionOption): Q.IPromise<any> {
@@ -40,8 +50,8 @@ function getConnection(connectionString, connectionOption): Q.IPromise<any> {
         }).catch(exc => {
             winstonLog.logError(`Failed to connect db at ${connectionString} ${exc}`);
             return false;
-        });
-        allConnections[connectionString] = Mongoose.createConnection(connectionString);
+            });
+        allConnections[connectionString] = Mongoose.createConnection(connectionString, connectionOptions);
         return prom;
     }
     else {
