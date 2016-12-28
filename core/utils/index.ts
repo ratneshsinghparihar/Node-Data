@@ -14,6 +14,10 @@ let _config: any = {};
 let _securityConfig: any = {};
 let _entityService: Map<String, IEntityService> = new Map<String, IEntityService>();
 
+export class resources {
+    static userDatabase: string = '_database';
+}
+
 export function config(config?: any) {
     if (!(config === undefined)) {
         _config = config;

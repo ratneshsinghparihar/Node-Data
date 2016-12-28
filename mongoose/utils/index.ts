@@ -1,9 +1,10 @@
 ﻿import Mongoose = require('mongoose');
 import {EntityChange} from '../../core/enums/entity-change';
+import * as CoreUtils from '../../core/utils';
+import {PrincipalContext} from '../../security/auth/principalContext';
 import * as Enumerable from 'linq';
-import {getDbSpecifcModel, userConnection} from '../db';
+import {getDbSpecifcModel} from '../db';
 import {pathRepoMap, getModel, getSchema} from '../../core/dynamic/model-entity';
-import {DynamicSchema} from '../dynamic-schema';
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -117,12 +118,10 @@ export function isPropertyUpdateRequired(changedProps: Array<string>, properties
 }
 
 export function getCurrentDBModel(schemaName) {
-    if (userConnection) {
-        var db = userConnection();
-        if (db) {
-            return getDbSpecifcModel(schemaName, (<DynamicSchema>getSchema(schemaName)).parsedSchema, db);
-        }
+    var model = getModel(schemaName);
+    var database = PrincipalContext.get(CoreUtils.resources.userDatabase);
+    if (database) {
+        return getDbSpecifcModel(schemaName, model.schema, database);
     }
-
-    return getModel(schemaName);
+    return model;
 }
