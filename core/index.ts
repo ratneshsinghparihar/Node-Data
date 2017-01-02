@@ -6,9 +6,9 @@ import Q = require("q");
 import * as Utils from './utils';
 import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
-//var cls = require('continuation-local-storage');
-//var ns = cls.createNamespace('session');
-var domain = require('../security/auth/domain');
+var cls = require('continuation-local-storage');
+var ns = cls.createNamespace('session');
+//var domain = require('../security/auth/domain');
 
 //import linq = require('../typings/linq/linq');
 import * as Enumerable from 'linq';
@@ -103,12 +103,12 @@ export function initialize(config: any, securityConfig: any, appRoot?: string,
 }
 
 module.exports.register = function (app) {
-    app.use(domain.middleware('context'));
-    //app.use(function (req, res, next) {
-    //    ns.bindEmitter(req);
-    //    ns.bindEmitter(res);
-    //    ns.run(function () {
-    //        next();
-    //    });
-    //});
+    //app.use(domain.middleware('context'));
+     app.use(function (req, res, next) {
+         ns.bindEmitter(req);
+         ns.bindEmitter(res);
+          ns.run(function () {
+            next();
+          });
+     });
 }

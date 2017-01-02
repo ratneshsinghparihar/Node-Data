@@ -3,7 +3,7 @@ import * as Utils from "../utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 import {IPostfilterParams} from './interfaces/postfilter-params';
-var domain = require('../../security/auth/domain');
+//var domain = require('../../security/auth/domain');
 import {PostFilterService} from '../services/post-filter-service';
 
 export function postfilter(params: IPostfilterParams): any {

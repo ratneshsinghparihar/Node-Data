@@ -6,18 +6,30 @@ import {blogServiceImpl}  from '../../unit-test/services/blogServiceImpl';
 import fs = require('fs');
 import * as Config from "../../config";
 import * as configUtil from '../utils';
+import {PrincipalContext} from '../../security/auth/principalContext';
+
 
 describe("Worker Tests", function() {
   var blogContent: string;
+  var principalContent: string;
   var fileContent: string = "Hello";
   var filePath="unit-test/OutputFiles/file.txt";
-  beforeEach(function() { 
-        console.log("*****************************************")
-        console.log("*****************************************")
+  var filePath1="unit-test/OutputFiles/file1.txt";
+
+beforeEach(function() { 
+PrincipalContext.getSession().run(function(){
+      console.log("*****************************************")
       configUtil.config(Config);        
-     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
-     fs.exists(filePath,function(exists) {
-     console.log("Before Each fs.exists(filePath): "+ exists);
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+   });
+});
+   
+describe(" Running for blogContent verification: ", function() { 
+beforeEach(function(done) {
+PrincipalContext.getSession().run(function(){
+
+      fs.exists(filePath,function(exists) {
+      console.log("Before Each fs.exists(filePath): "+ exists);
           if (exists) {
                 console.log("removing existing files:");
                 fs.unlink(filePath);
@@ -25,17 +37,14 @@ describe("Worker Tests", function() {
                 console.log("File doesn't exist");
           }
        });
-     });
-   
-  describe(" Running for blogContent verification: ", function() { 
-    beforeEach(function(done) {
+
+
       var blogService= new blogServiceImpl();
       blogService.writeBlog(filePath,fileContent);
       setTimeout(function() {
       fs.exists(filePath,function(exists) {
-      //console.log("Before Each fs.exists(filePath): "+ exists);
           if (exists) {
-                console.log("FIle Found. ")
+                console.log("File Found. ")
                         fs.readFile(filePath, 'utf8', function ( err,data) {
                         if (err) {
                               console.log("Error while reading file: "+err);
@@ -53,190 +62,69 @@ describe("Worker Tests", function() {
           }
        });
       }, 5000);
-    });
+});
+});
 
-    it(" Blog Content should match with the sent content.", function(done) { 
+it(" Blog Content should match with the sent content.", function(done) {
+PrincipalContext.getSession().run(function(){
       expect(blogContent==fileContent).toBeTruthy();
       done();
-     });
-    });
+});
   });
 
+});
 
 
+describe(" Running for application context verification: ", function() { 
+beforeEach(function(done) {
+PrincipalContext.getSession().run(function(){
 
-      //   if(!fs.exists(filePath)){
-        
-      //   // fs.readFile(filePath, 'utf8', function ( err,data) {
-      //   //       if (err) {
-      //   //           console.log("Error while reading file: "+err);
-      //   //           blogContent=null;;
-      //   //           done();
-      //   //       }else{
-      //   //         blogContent=data;
-      //   //         console.log("Blog Content: "+blogContent);
-      //   //         done();
-      //   //       }
-      //   // });
-      //   blogContent="Hello";
-      // }else{
-      //   blogContent="";
-      //   console.log("Executing test case :2, FIle doesn't exist. ")
-      //   done();
-      // }
+       fs.exists(filePath1,function(exists) {
+      console.log("Before Each fs.exists(filePath): "+ exists);
+          if (exists) {
+                console.log("removing existing files:");
+                fs.unlink(filePath1);
+          } else {
+                console.log("File doesn't exist");
+          }
+       });
 
-      
+      var blogService= new blogServiceImpl();
+      blogService.checkApplicationContext(filePath1);
+      setTimeout(function() {
+      fs.exists(filePath1,function(exists) {
+          if (exists) {
+                console.log("File Found. ")
+                        fs.readFile(filePath1, 'utf8', function ( err,data) {
+                        if (err) {
+                              console.log("Error while reading file: "+err);
+                              principalContent=null;;
+                              done();
+                        }else{
+                        principalContent=data;
+                        console.log("Value in Principal Context: "+principalContent);
+                        done();
+                        }
+                  });
+          } else {
+                console.log("FIle doesn't exist. ")
+                done();
+          }
+       });
+      }, 5000);
+});
+});
 
+it(" Application Context should have information.", function(done) {
+      var fileContent="unit-test/OutputFiles/file1.txt";
+PrincipalContext.getSession().run(function(){
+      console.log("Application Context Session: "+ JSON.stringify(PrincipalContext.getSession()));
+      expect(principalContent==fileContent).toBeTruthy();
+      done();
+      });
+  });
 
-
-//var async = new AsyncSpec(this);
-
-
-// describe("Worker Test:::: ", function(){
-//   // beforeEach(()=>{
-//   //   jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
-//   // });
-//   jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
-//   describe("blog details: ", function() {
-//     var filePath="/Users/asishs/Projects/Node-Data/Enhancement_On_Node_Data/Node-Data/spec/OutputFiles/file.txt";
-//     console.log("Running Test Cases:::::");
-//      var blogContent: string;
-//         // beforeEach((done)=>{
-//         //    if(!fs.exists(filePath)){
-//         //      console.log("removing existing files:");
-//         //      //fs.unlink(filePath);
-//         //      //fs.writeFile(filePath,"Hello");
-//         //      //console.log("now removing file");
-//         //     fs.unlink(filePath);
-//         //    }
-//         //       var blogService= new blogServiceImpl();
-//         //       blogService.writeBlog(filePath,"Hello");
-//         //      setTimeout(function(){
-//         //        console.log('executing test');
-//         //          if(fs.exists(filePath)){
-//         //            console.log('file exists');
-//         //            blogContent = "Hello";
-//         //           // fs.readFile(filePath, 'utf8', function ( err,data) {
-//         //           //       if (err) {
-//         //           //         return console.log(" Error: "+err);
-//         //           //       }else{
-//         //           //       blogContent=data;
-//         //           //       console.log("Blog Content: "+blogContent);
-//         //           //    }
-//         //           //    done();
-//         //           // });
-//         //          }
-//         //          done();
-//         //     },5000);
-//         //    });
-
-//         //  it("read file content", (done)=> {
-//         //    console.log('executing tests for blogContent '+ blogContent);
-//         //     expect(blogContent).toBe("Hello1");
-//         //     done();
-//         //  });
-
-//          it("new it",()=>{
-//            runs(()=>{
-//              if(!fs.exists(filePath)){
-//              console.log("removing existing files:");
-//              //fs.unlink(filePath);
-//              //fs.writeFile(filePath,"Hello");
-//              //console.log("now removing file");
-//             fs.unlink(filePath);
-//            }
-//           //    var blogService= new blogServiceImpl();
-//           //    blogService.writeBlog(filePath,"Hello");
-//            })
-
-//            waitsFor(function(){
-//              console.log('wait for is called');
-//              if(fs.exists(filePath)){
-//                    console.log('file exists');
-//                    blogContent = "Hello";
-//                    return true;
-//              }
-//               return false;
-//            },"name",3000);
-
-//            runs(function(){
-//              console.log('executing tests for blogContent '+ blogContent);
-//             expect(blogContent).toBe("Hello1");
-//            });
-//          });
-         
-      
-//             // if (blog != null || blog != undefined) {
-//             //      console.log("blog found with name: "+ JSON.stringify(blog));
-//             //      expect(blog).toBe("john");
-//             //      done();
-//             // }
-//             // else{
-//             //      console.log("failure: blog not found ");
-//             //      done();
-//             // }
-       
-            
-//          });
-//     });
-
-// describe("Worker Test:::: ", function(){
-//   describe("blog details: ", function() {
-//          it("returns user name", function(done) {
-//             console.log("Running Test Cases:::::");    
-//             var currentUserDetailService = new CurrentUserDetailService();
-//             var foundUser=currentUserDetailService.getTestUser("john");
-//             if (foundUser != null || foundUser != undefined) {
-//                  console.log("user found with name: "+ JSON.stringify(foundUser));
-//                  expect(foundUser).toBe("john");
-//                  done();
-//             }
-//             else{
-//                  console.log("failure: User not found ");
-//                  done();
-//             }
-//          });
-//     });
-// });
+ });
 
 
-// describe("Get User Details", function(){
-//   describe("User Details`", function() {
-//          it("returns user name", function(done) {
-//             console.log("Running Test Cases:::::");    
-//             var currentUserDetailService = new CurrentUserDetailService();
-//             currentUserDetailService.loadUserByUsername("john").then((foundUser)=>{
-//             if (foundUser != null || foundUser != undefined) {
-//                  expect(foundUser.name).toBe("john");
-//             }
-//              else {
-//                     console.log("failure: User not found ");
-//                     done();
-//                 }
-//             },(error) => {
-//                      console.log("failure: ", error);
-//                      done();
-//                 });
-//         });
-//     });
-// });
-
-
-
-
-// describe("GET Server", function(){
-//   describe("GET /users", function() {
-//          it("returns status code 200", function(done) {
-//              request.get(base_url, function(error, response, body) {
-//                  console.log("error "+error + "response: "+response + "body: "+body);
-//                  if(!error){
-//                  console.log("No error found");
-//                  expect(response.status.code).toBe(200);
-//                 }else{
-//                  console.log("failure ",error,response);
-//                  done();
-//                  }
-//              });
-//         });
-//     });
-// });
+});

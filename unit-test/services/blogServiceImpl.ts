@@ -5,6 +5,7 @@ import {Worker} from '../../core/decorators/workerAssociation';
 import {BlogService} from './interface/blogService'
 import {service} from '../../di/decorators/service';
 import fs = require('fs');
+import {PrincipalContext} from '../../security/auth/principalContext';
 
 @service({ 'singleton': true, 'serviceName': 'blogService' })
 export class blogServiceImpl implements BlogService{
@@ -13,10 +14,14 @@ export class blogServiceImpl implements BlogService{
 
     //@Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'', arguments:["john"]}})
     @Worker({name: 'workerThread'})
-    loadBlogByField(field: any, value: any): Q.Promise<any> {
+    checkApplicationContext(fileName: any): Q.Promise<any> {
         var blog: blog;
         console.log("Value returned...... ******** .......");
-        return Q.nbind(fs.writeFile,fs)(field,value).then(ret=>{
+        console.log("Appliation Context Value...... ******** ......." + 
+        JSON.stringify(PrincipalContext.getSession()));
+        var argument=PrincipalContext.getSession().get('workerParams').arguments;
+        console.log("Value in principal context: "+ argument);
+        return Q.nbind(fs.writeFile,fs)(fileName,argument).then(ret=>{
             return ret;
         });
         // return this.blogRepo.findByField("name", value).then((blog) => {
@@ -26,9 +31,9 @@ export class blogServiceImpl implements BlogService{
 
 
     // @Worker({name: 'workerThread'})
-    // @Worker()
-     @Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'',
-     arguments:["unit-test/OutputFiles/file.txt","Hello"]}})
+    //  @Worker({name: 'workerThread', workerParams:{workerName:'', serviceName:'' ,servicemethodName:'',
+    //  arguments:["unit-test/OutputFiles/file.txt","Hello"]}})
+    @Worker()
     writeBlog(fileName: any, data: any): Q.Promise<any> {
         var blog: blog;
         console.log("file name:" + fileName + " and data: "+ data);
