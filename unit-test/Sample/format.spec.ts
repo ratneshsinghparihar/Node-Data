@@ -41,7 +41,7 @@ xdescribe('sample', function () {
 
     xit('check GetCounterValue() of global is called', function () {
         // restoring the original definition so that we can again spyon the function with different behavior
-        global.GetCounterValue = getCounterValue; 
+       // global.GetCounterValue = getCounterValue; 
         spyOn(global, "GetCounterValue").and.returnValue(10);
 
         a_obj = new A(b_obj);
@@ -149,23 +149,23 @@ function RegisterRoutesForObject1(object: Object) {
         // do nothing
     };
 
-    object['get'] = object['get'] ? object['get'] : function (data) {
-        //console.log(this);
-        var fn = Enumerable.from(this['routes']).where(x => x.key == ('get_' + data)).select(x => x.value).firstOrDefault();
-        //console.log(fn);
-    };
-    object['post'] = object['post'] ? object['post'] : function (data) {
-        Enumerable.from(this['routes']).where(x => x.key === ('post_' + data)).select(x => x.value).firstOrDefault();
-    };
-    object['put'] = object['put'] ? object['put'] : function (data) {
-        Enumerable.from(this['routes']).where(x => x.key == ('put_' + data)).select(x => x.value).firstOrDefault();
-    };
-    object['patch'] = object['patch'] ? object['patch'] : function (data) {
-        Enumerable.from(this['routes']).where(x => x.key == ('patch_' + data)).select(x => x.value).firstOrDefault();
-    };
-    object['delete'] = object['delete'] ? object['delete'] : function (data) {
-        Enumerable.from(this['routes']).where(x => x.key == ('delete_' + data)).select(x => x.value).firstOrDefault();
-    };
+    // object['get'] = object['get'] ? object['get'] : function (data) {
+    //     //console.log(this);
+    //     var fn = Enumerable.from(this['routes']).where(x => x.key == ('get_' + data)).select(x => x.value).firstOrDefault();
+    //     //console.log(fn);
+    // };
+    // object['post'] = object['post'] ? object['post'] : function (data) {
+    //     Enumerable.from(this['routes']).where(x => x.key === ('post_' + data)).select(x => x.value).firstOrDefault();
+    // };
+    // object['put'] = object['put'] ? object['put'] : function (data) {
+    //     Enumerable.from(this['routes']).where(x => x.key == ('put_' + data)).select(x => x.value).firstOrDefault();
+    // };
+    // object['patch'] = object['patch'] ? object['patch'] : function (data) {
+    //     Enumerable.from(this['routes']).where(x => x.key == ('patch_' + data)).select(x => x.value).firstOrDefault();
+    // };
+    // object['delete'] = object['delete'] ? object['delete'] : function (data) {
+    //     Enumerable.from(this['routes']).where(x => x.key == ('delete_' + data)).select(x => x.value).firstOrDefault();
+    // };
 
     spyOn(router, 'get').and.callFake(function (name, param, fn) {
         this['routes'] = this['routes'] ? this['routes'] : new Array<{ key: string, value: any }>();
