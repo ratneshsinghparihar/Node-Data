@@ -15,4 +15,5 @@ export interface IEntityService {
     put(model: any, id: any, obj: any): Q.Promise<any>;
     del(model: any, id: any): Q.Promise<any>;
     patch(model: any, id: any, obj): Q.Promise<any>;
+    getModel(repoPath: string);
 }

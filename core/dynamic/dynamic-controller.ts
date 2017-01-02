@@ -15,12 +15,6 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
-
-
-import {Worker} from '../decorators/workerAssociation';
-import {WorkerAssociation} from '../decorators/interfaces/workerassociation-params';
-import {WorkerParams} from '../decorators/interfaces/worker-params';
-
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';

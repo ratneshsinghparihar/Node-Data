@@ -4,7 +4,7 @@ import {DecoratorType} from '../enums/decorator-type';
 import {IPreauthorizeParams} from './interfaces/preauthorize-params';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PreAuthService} from '../services/pre-auth-service';
-import {pathRepoMap, getEntity, getModel} from '../dynamic/model-entity';
+import {pathRepoMap, getEntity} from '../dynamic/model-entity';
 import {InstanceService} from '../services/instance-service';
 import * as Utils from '../utils';
 import {RepoActions} from '../enums/repo-actions-enum';
@@ -75,13 +75,13 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             });
             break;
         case RepoActions.delete.toUpperCase():
-            // fetch single object
+            // fetch single object 
             prom = this.findMany([args[0]]).then(res => {
                 return res[0];
             });
             break;
         case RepoActions.bulkPost.toUpperCase():
-            args.forEach(x => {
+            args[0].forEach(x => {
                 response.push(InstanceService.getInstance(this.getEntity(), null, x));
             });
             prom = Q.when(response);

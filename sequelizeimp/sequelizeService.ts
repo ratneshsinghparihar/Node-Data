@@ -70,7 +70,7 @@ class SequelizeService implements IEntityService {
         this._relationCollection.push(relationToDictionary);
     }
 
-    private getSequelizeModel(repoPath: string) {
+    getModel(repoPath: string) {
         try {
             var schemaNamefromPathRepomap = pathRepoMap[repoPath].schemaName;
             return this._schemaCollection[schemaNamefromPathRepomap];
@@ -80,7 +80,7 @@ class SequelizeService implements IEntityService {
     }
 
     bulkPost(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).bulkCreate(objArr);
+        return this.getModel(repoPath).bulkCreate(objArr);
     }
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
@@ -88,15 +88,15 @@ class SequelizeService implements IEntityService {
     }
 
     bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).destroy({ where: { id: objArr } });
+        return this.getModel(repoPath).destroy({ where: { id: objArr } });
     }
 
     bulkPut(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).bulkUpdate(objArr);
+        return this.getModel(repoPath).bulkUpdate(objArr);
     }
 
     findAll(repoPath: string): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).findAll().then(result => {
+        return this.getModel(repoPath).findAll().then(result => {
             if (!result) return null;
             var finalOutput = Enumerable.from(result).select((x:any) => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
             return finalOutput;
@@ -104,14 +104,14 @@ class SequelizeService implements IEntityService {
     }
 
     findWhere(repoPath: string, query, selectedFields?: Array<string>): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).findAll(query).then(result => {
+        return this.getModel(repoPath).findAll(query).then(result => {
             return result.dataValues;
         });
     }
 
     findOne(repoPath: string, id): Q.Promise<any> {
 
-        let schemaModel = this.getSequelizeModel(repoPath);
+        let schemaModel = this.getModel(repoPath);
         let primaryKey = schemaModel.primaryKeyAttribute;
         var cond = {};
         cond[primaryKey] = id;
@@ -125,18 +125,18 @@ class SequelizeService implements IEntityService {
     }
 
     findByField(repoPath: string, fieldName, value): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).find({ where: { fieldName: value } });
+        return this.getModel(repoPath).find({ where: { fieldName: value } });
     }
 
     findMany(repoPath: string, ids: Array<any>) {
-        return this.getSequelizeModel(repoPath).findAll({ where: { id: ids } });
+        return this.getModel(repoPath).findAll({ where: { id: ids } });
     }
 
     findChild(repoPath: string, id, prop): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).find({
+        return this.getModel(repoPath).find({
             where: { id: id },
             include: [
-                { model: this.getSequelizeModel(prop), as: prop }
+                { model: this.getModel(prop), as: prop }
             ]
         }).then(
             function (entity) {
@@ -150,19 +150,19 @@ class SequelizeService implements IEntityService {
      * @param obj
      */
     post(repoPath: string, obj: any): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).create(obj);
+        return this.getModel(repoPath).create(obj);
     }
 
     put(repoPath: string, id: any, obj: any): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).update(obj, { where: { id: id } });
+        return this.getModel(repoPath).update(obj, { where: { id: id } });
     }
 
     del(repoPath: string, id: any): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).destroy({ where: { id: id } });
+        return this.getModel(repoPath).destroy({ where: { id: id } });
     }
 
     patch(repoPath: string, id: any, obj): Q.Promise<any> {
-        return this.getSequelizeModel(repoPath).update(obj, { where: { id: id } });
+        return this.getModel(repoPath).update(obj, { where: { id: id } });
     }
 
     private getAssociationForSchema(model: any, schema: any) {
