@@ -43,7 +43,8 @@ export class DynamicController {
     }
 
     ensureLoggedIn(entity: any, action: any) {
-        return function (req, res, next) {
+       PrincipalContext.getSession().run(function(){
+            return function (req, res, next) {
             var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
             if (meta) {
                 next();
@@ -52,6 +53,7 @@ export class DynamicController {
                 securityImpl.ensureLoggedIn()(req, res, next);
             }
         }
+       }) ;
     }
 
     isAuthorize(req, res, action: any) {
@@ -94,8 +96,6 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
-                this.createworkedThread();
 
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
@@ -763,12 +763,6 @@ export class DynamicController {
         else {
             return req.protocol;
         }
-    }
-
-    @Worker({name: 'workerThread', workerParams:{actionName: 'support.js', actionmethodName:'execute()',arguments:['']}})
-    private createworkedThread(): any{
-        console.log("Calling worker thread..");
-        return; 
     }
 
 }

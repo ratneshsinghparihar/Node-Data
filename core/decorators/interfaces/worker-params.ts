@@ -2,5 +2,6 @@ export interface WorkerParams {
     workerName: string,
     serviceName: string,
     servicemethodName: string,
-    arguments?: [any] 
+    arguments?: [any],
+    principalContext?: any
 }

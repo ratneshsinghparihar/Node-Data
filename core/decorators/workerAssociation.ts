@@ -8,11 +8,14 @@ import {winstonLog} from '../../logging/winstonLog';
 import {WorkerParams} from './interfaces/worker-params';
 import {workerParamsDto} from "./interfaces/workerParamsDto";
 import * as configUtil from '../utils';
+import {PrincipalContext} from '../../security/auth/principalContext';
 var fs = require('fs');
 var defaultWorkerName="core/decorators/worker.js";
+var cls = require('continuation-local-storage');
 
 export function Worker(params?: WorkerAssociation): any {
 params = params || <any>{};
+var session = PrincipalContext.getSession();
 
  return function (target: any, propertyKey: string, descriptor: any) {
         winstonLog.logDebug("target is: " + JSON.stringify(target) + " propertyKey " + JSON.stringify(propertyKey) + " descriptor is:  " + JSON.stringify(descriptor));
@@ -36,6 +39,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
             winstonLog.logInfo("Executing method from child Process with id: "+process.pid);
             return originalMethod.apply(this, arguments);
          }
+
         var meta = MetaUtils.getMetaData(target, type, propertyKey);
         var targetObjectId: any;
         if (params.indexofArgumentForTargetObjectId)
@@ -49,7 +53,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                 var workerParams = new workerParamsDto();
             
             if (params.workerParams == null) {
-                winstonLog.logInfo("Worker Params found empty.");
+                winstonLog.logInfo("No Params sent with Worker()");
                 workerParams.workerName = defaultWorkerName; //default service to be executed.
                 winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
 
@@ -92,34 +96,54 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     paramsArguments = arguments;
                     workerParams.arguments = paramsArguments;
                 }
+                
             }
+
                 workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
-                winstonLog.logInfo("Worker Params Details: "+ JSON.stringify(workerParams)); 
+                winstonLog.logInfo("Worker Params: "+ JSON.stringify(workerParams)); 
+            
                 if(workerParams.serviceName != null){
-                    console.log("forking a new child_process: "+ workerParams.workerName);
-                    var worker_process = child_process.fork(workerParams.workerName);
-                    if(worker_process.error==null){
-                     winstonLog.logInfo('Child process created with id: '+ worker_process.pid);
+                    console.log("Forking a new child_process: "+ workerParams.workerName);
+                    var workerProcess = child_process.fork(workerParams.workerName);
+                
+           if(session!=null){   // Setting principalContext on the worker params;
+
+                     PrincipalContext.save('workerParams',JSON.stringify(workerParams));
+                     workerParams.principalContext=PrincipalContext.getAllKeyValues();
+                     if(workerParams.principalContext['req']){
+                            delete workerParams.principalContext['req'];
+                     }
+                     if(workerParams.principalContext['res']){
+                            delete workerParams.principalContext['res'];
+                     }
+                     winstonLog.logDebug("Context at Worker: "+ JSON.stringify(workerParams.principalContext));
+                     winstonLog.logInfo("PrincipalConext at Parent: "+ JSON.stringify(PrincipalContext.getSession()));
+                   }
+                    
+                if(workerProcess.error==null){
+                     winstonLog.logInfo('Child process created with id: '+ workerProcess.pid);
                      
-                     worker_process.on('message', function (message) {
-                     winstonLog.logInfo('message from Child Process : ' + message);	
+                     workerProcess.on('message', function (message) {
+                     winstonLog.logInfo('message from Child Process : ' + JSON.stringify(message));	
                     });
                     
-                     worker_process.on('error', function (err) {
+                     workerProcess.on('error', function (err) {
                      winstonLog.logError('Error : ' + err);
                     });
 
-                     worker_process.on('close', function (code,signal) {
+                     workerProcess.on('close', function (code,signal) {
                      winstonLog.logInfo('Child process exited with code: '+code + ' signal: ' +signal);	
-                  });
-                 
-                    worker_process.send({ worker_params: workerParams, message: "new child process created with id: " + worker_process.pid
-                     }); 
+                     });
+                    
+                    workerProcess.send({ workerParams: workerParams, message: "new child process created with id: " + workerProcess.pid
+                    });
+
                 }else{
-                    winstonLog.logError("Error during creating child Process: "+worker_process.error);
+                    winstonLog.logError("Error during creating child Process: "+workerProcess.error);
                 }
               }
         return descriptor;
           };
     }       
+
 }
