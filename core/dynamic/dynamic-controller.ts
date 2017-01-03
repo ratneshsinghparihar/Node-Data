@@ -37,17 +37,18 @@ export class DynamicController {
     }
 
     ensureLoggedIn(entity: any, action: any) {
-       PrincipalContext.getSession().run(function(){
             return function (req, res, next) {
-            var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
+       PrincipalContext.getSession().run(function(){
+              var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
             if (meta) {
                 next();
             }
             else {
                 securityImpl.ensureLoggedIn()(req, res, next);
             }
-        }
        }) ;
+       }
+
     }
 
     isAuthorize(req, res, action: any) {
