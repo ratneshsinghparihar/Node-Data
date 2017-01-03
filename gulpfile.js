@@ -71,4 +71,4 @@ gulp.task("ci-dev", function () {
 // Task
 gulp.task('default', ["nodemon", "watch"]);
 
-gulp.task('ts', ["compile-ts"]);
+gulp.task('ts', ["compile-ts","unit-test"]);
