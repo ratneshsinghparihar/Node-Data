@@ -6,8 +6,8 @@ import Q = require("q");
 import * as Utils from './utils';
 import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
-var cls = require('continuation-local-storage');
-var ns = cls.createNamespace('session');
+import {PrincipalContext} from '../security/auth/principalContext';
+var ns = PrincipalContext.getSession();
 //var domain = require('../security/auth/domain');
 
 //import linq = require('../typings/linq/linq');
