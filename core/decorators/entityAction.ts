@@ -111,9 +111,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.bulkDel.toUpperCase():
             if (args[0].length > 0) {
                 var ids = [];
-                let mergeEntities1 = [];
                 Enumerable.from(args[0]).forEach(x => {
-                    mergeEntities1.push(InstanceService.getInstance(this.getEntity(), null, x));
                     if (Utils.isJSON(x)) {
                         ids.push(x['_id']);
                     }
@@ -122,7 +120,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                     }
                 });
                 prom = this.findMany(ids).then(dbEntities => {
-                    return mergeEntities(undefined, dbEntities, mergeEntities1);
+                    return mergeEntities(undefined, dbEntities, dbEntities);
                 });
             }
             else {
