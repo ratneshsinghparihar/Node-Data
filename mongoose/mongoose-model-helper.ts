@@ -408,16 +408,17 @@ function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
         if (val[m.propertyKey]) {
             asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
                 if (res != undefined && !res) {
-                    ret = false;
+                    let error:any = new Error();
+                    error.propertyKey = m.propertyKey;
+                    throw error;
                 }
             }));
         }
     });
-    return Q.all(asyncCalls).then(f => {
-        if (!ret) {
-            winstonLog.logError('Invalid value. Adding these properties will break the relation.');
-            throw 'Invalid value. Adding these properties will break the relation.'
-        }
+    return Q.all(asyncCalls).catch(f => {
+        let errorMessage='Invalid value. Adding to property '+ "'"+ f.propertyKey+ "'"+ ' will break the relation in model: '+ model.modelName;
+            winstonLog.logError(errorMessage);
+            throw errorMessage;
     });
 }
 
