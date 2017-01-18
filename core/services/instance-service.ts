@@ -1,4 +1,4 @@
-﻿import {getEntity} from '../dynamic/model-entity';
+import {getEntity} from '../dynamic/model-entity';
 import * as utils from "../utils";
 import {MetaData} from '../metadata/metadata';
 import {IAssociationParams} from '../decorators/interfaces';
@@ -18,8 +18,8 @@ export class InstanceService {
     }
 
     static getObjectFromJson(entity: any, param?: any) {
-        InstanceService.initProperties(entity, false, param);
-        return InstanceService.getInstanceFromType(entity, false, param);
+        InstanceService.initProperties(entity, true, param);
+        return InstanceService.getInstanceFromType(entity, true, param);
     }
 
     private static getInstanceFromType(type: any, isNew: boolean, param?: any) {
