@@ -15,12 +15,6 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
-
-
-import {Worker} from '../decorators/workerAssociation';
-import {WorkerAssociation} from '../decorators/interfaces/workerassociation-params';
-import {WorkerParams} from '../decorators/interfaces/worker-params';
-
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -43,17 +37,17 @@ export class DynamicController {
     }
 
     ensureLoggedIn(entity: any, action: any) {
-       PrincipalContext.getSession().run(function(){
-            return function (req, res, next) {
-            var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
-            if (meta) {
-                next();
-            }
-            else {
-                securityImpl.ensureLoggedIn()(req, res, next);
-            }
+        return function (req, res, next) {
+            PrincipalContext.getSession().run(function () {
+                var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
+                if (meta) {
+                    next();
+                }
+                else {
+                    securityImpl.ensureLoggedIn()(req, res, next);
+                }
+            });
         }
-       }) ;
     }
 
     isAuthorize(req, res, action: any) {

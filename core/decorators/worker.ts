@@ -57,7 +57,7 @@ PrincipalContext.getSession().run(function(){
             var val= principalContext[i];
             PrincipalContext.save(key,val);
         }
-        winstonLog.logInfo("PrincipalContext at worker : "+ JSON.stringify(PrincipalContext.getSession()));  
+        //winstonLog.logInfo("PrincipalContext at worker : "+ JSON.stringify(PrincipalContext.getSession()));  
         
         //winstonLog.logDebug(" All Available Services : "+ JSON.stringify(services) + " service: "+ service_name);
         var service=Enumerable.from(services).where(x => x.metadata[0].target.constructor.name == serviceName).select(x => x.metadata[0]).firstOrDefault();

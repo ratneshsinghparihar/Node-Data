@@ -106,7 +106,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                     console.log("Forking a new child_process: "+ workerParams.workerName);
                     var workerProcess = child_process.fork(workerParams.workerName);
                 
-           if(session!=null){   // Setting principalContext on the worker params;
+           //if(session!=null){   // Setting principalContext on the worker params;
 
                      PrincipalContext.save('workerParams',JSON.stringify(workerParams));
                      workerParams.principalContext=PrincipalContext.getAllKeyValues();
@@ -118,7 +118,7 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                      }
                      winstonLog.logDebug("Context at Worker: "+ JSON.stringify(workerParams.principalContext));
                      winstonLog.logInfo("PrincipalConext at Parent: "+ JSON.stringify(PrincipalContext.getSession()));
-                   }
+                   //}
                     
                 if(workerProcess.error==null){
                      winstonLog.logInfo('Child process created with id: '+ workerProcess.pid);

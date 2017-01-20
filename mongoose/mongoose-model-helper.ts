@@ -30,7 +30,7 @@ export function updateParent(model: Mongoose.Model<any>, objs: Array<any>) {
                 var meta = MetaUtils.getMetaData(x.target, Decorators.DOCUMENT);
                 var targetModelMeta = meta[0];
                 var repoName = (<IDocumentParams>targetModelMeta.params).name;
-                var model = getModel(repoName);
+                var model = Utils.getCurrentDBModel(repoName);
                 asyncCalls.push(updateParentDocument(model, x, objs));
             }
         });
@@ -77,7 +77,7 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
             return;
 
         if (force || param.eagerLoading) {
-            var relModel = getModel(param.rel);
+            var relModel = Utils.getCurrentDBModel(param.rel);
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
                     asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey])
@@ -156,7 +156,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
     var asyncCalls = [];
     for (var i in ids) {
         if (ids[i].length > 0) {
-            models[i] = getModel(i);
+            models[i] = Utils.getCurrentDBModel(i);
             asyncCalls.push(bulkDelete(models[i], ids[i]));
         }
     }
@@ -408,16 +408,17 @@ function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
         if (val[m.propertyKey]) {
             asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
                 if (res != undefined && !res) {
-                    ret = false;
+                    let error:any = new Error();
+                    error.propertyKey = m.propertyKey;
+                    throw error;
                 }
             }));
         }
     });
-    return Q.all(asyncCalls).then(f => {
-        if (!ret) {
-            winstonLog.logError('Invalid value. Adding these properties will break the relation.');
-            throw 'Invalid value. Adding these properties will break the relation.'
-        }
+    return Q.all(asyncCalls).catch(f => {
+        let errorMessage='Invalid value. Adding to property '+ "'"+ f.propertyKey+ "'"+ ' will break the relation in model: '+ model.modelName;
+            winstonLog.logError(errorMessage);
+            throw errorMessage;
     });
 }
 
@@ -510,7 +511,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
 
     var targetModelMeta = meta[0];
     var repoName = (<IDocumentParams>targetModelMeta.params).name;
-    var model = getModel(repoName);
+    var model = Utils.getCurrentDBModel(repoName);
     if (!model) {
         winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
@@ -526,7 +527,7 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
         var m: MetaData = x;
         var param: IAssociationParams = <IAssociationParams>m.params;
         if (param && !param.embedded && param.eagerLoading && val[m.propertyKey]) {
-            var relModel = getModel(param.rel);
+            var relModel = Utils.getCurrentDBModel(param.rel);
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey].length > 0) {
                     asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey]).then(res => {
@@ -560,7 +561,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     }
     var createNewObj = [];
     var params: IAssociationParams = <any>relMetadata.params;
-    var relModel = getModel(params.rel);
+    var relModel = Utils.getCurrentDBModel(params.rel);
     var val = obj[prop];
     var newVal = val;
     var asyncTask = [];

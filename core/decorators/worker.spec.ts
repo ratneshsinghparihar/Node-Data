@@ -9,7 +9,7 @@ import * as configUtil from '../utils';
 import {PrincipalContext} from '../../security/auth/principalContext';
 
 
-describe("Worker Tests", function() {
+xdescribe("Worker Tests", function() {
   var blogContent: string;
   var principalContent: string;
   var fileContent: string = "Hello";
@@ -24,7 +24,7 @@ PrincipalContext.getSession().run(function(){
    });
 });
    
-describe(" Running for blogContent verification: ", function() { 
+xdescribe(" Running for blogContent verification: ", function() { 
 beforeEach(function(done) {
 PrincipalContext.getSession().run(function(){
 
@@ -75,7 +75,7 @@ PrincipalContext.getSession().run(function(){
 });
 
 
-describe(" Running for application context verification: ", function() { 
+xdescribe(" Running for application context verification: ", function() { 
 beforeEach(function(done) {
 PrincipalContext.getSession().run(function(){
 

@@ -12,7 +12,8 @@ import {IAssociationParams} from '../decorators/interfaces/association-params';
 import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 
 let _metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
-let _nameAndTargetMapping:any = {};
+let _nameAndTargetMapping: any = {};
+let _documnetNameAndTargetMapping: any = {};
 
 let childProcessId:any;
 
@@ -88,6 +89,9 @@ class MetadataHelper {
         } else if (target.constructor.name) {
             _nameAndTargetMapping[(<any>target).constructor.name] = target;
         }
+        if (metaOptions.decorator == "document" && metaOptions.params && metaOptions.params.name ) {
+            _documnetNameAndTargetMapping[metaOptions.params.name] = target;
+        }
 
         let metaPropKey = getMetaPropKey(metaOptions.decoratorType, metaOptions.propertyKey, metaOptions.paramIndex);
 
@@ -128,6 +132,9 @@ class MetadataHelper {
     }
 
     public static getMetaDataFromType(modelType: string): Array<MetaData> {
+        if (_documnetNameAndTargetMapping[modelType])
+            return MetadataHelper.getMetaDataForTarget(_documnetNameAndTargetMapping[modelType]);
+
         if (_nameAndTargetMapping[modelType])
             return MetadataHelper.getMetaDataForTarget(_nameAndTargetMapping[modelType]);
     }
