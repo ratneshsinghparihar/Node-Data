@@ -11,6 +11,8 @@ import {pathRepoMap, getEntity, getModel} from './model-entity';
 import {InstanceService} from '../services/instance-service';
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
+import {QueryOptions} from '../interfaces/queryOptions';
+
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
  
@@ -32,7 +34,8 @@ export interface IDynamicRepository {
     findOne(id: any): Q.Promise<any>;
     findMany(ids: Array<any>, toLoadEmbeddedChilds?: boolean): Q.Promise<any>;
     findAll(): Q.Promise<any>;
-    findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
+    //findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
+    findWhere(query, selectedFields?: Array<any>, queryOptions?: QueryOptions): Q.Promise<any>;
     findByField(fieldName, value): Q.Promise<any>;
     findChild(id, prop): Q.Promise<any>;
 
@@ -114,8 +117,21 @@ export class DynamicRepository implements IDynamicRepository {
         });
     }
 
-    public findWhere(query, selectedFields?: Array<any>): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields).then(result => {
+    // public findWhere(query, selectedFields?: Array<any>): Q.Promise<any> {
+    //     return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields).then(result => {
+    //         if (result && result.length > 0) {
+    //             var res = [];
+    //             result.forEach(x => {
+    //                 res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+    //             });
+    //             return res;
+    //         }
+    //         return result;
+    //     });
+    // }
+
+    public findWhere(query, selectedFields?: Array<any>,queryOptions?: QueryOptions): Q.Promise<any> {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields,queryOptions).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
@@ -126,6 +142,8 @@ export class DynamicRepository implements IDynamicRepository {
             return result;
         });
     }
+
+
 
     public findOne(id) {
         return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id).then(result => {

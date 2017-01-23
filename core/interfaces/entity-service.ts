@@ -1,8 +1,9 @@
 ﻿import Q = require('q');
+import {QueryOptions} from '../interfaces/queryOptions';
 
 export interface IEntityService {
     findAll(model: any): Q.Promise<any>;
-    findWhere(model: any, query, selectedFields?: Array<string>): Q.Promise<any>;
+    findWhere(model: any, query, selectedFields?: Array<string>,queryOptions?: QueryOptions): Q.Promise<any>;
     findOne(model: any, id);
     findByField(model: any, fieldName, value): Q.Promise<any>;
     findMany(model: any, ids: Array<any>,toLoadEmbeddedChilds?:boolean);
