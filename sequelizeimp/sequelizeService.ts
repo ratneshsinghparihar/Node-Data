@@ -4,6 +4,8 @@ import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 import {pathRepoMap} from '../core/dynamic/model-entity';
+import {QueryOptions} from '../core/interfaces/queryOptions';
+
 
 import {Decorators as CoreDecorators} from '../core/constants';
 //import {pathRepoMap} from './schema';
@@ -103,7 +105,7 @@ class SequelizeService implements IEntityService {
         });
     }
 
-    findWhere(repoPath: string, query, selectedFields?: Array<string>): Q.Promise<any> {
+    findWhere(repoPath: string, query, selectedFields?: Array<string>, queryOptions?: QueryOptions): Q.Promise<any> {
         return this.getModel(repoPath).findAll(query).then(result => {
             return result.dataValues;
         });
