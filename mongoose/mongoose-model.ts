@@ -7,6 +7,7 @@ import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";
 import * as Utils from './utils';
+import {QueryOptions} from '../core/interfaces/queryOptions';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -126,7 +127,7 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  * @param skip
  * @param limit
  */
-export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
+export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     var sel = {};
     if (select instanceof Array) {
         select.forEach(x => {
@@ -136,6 +137,17 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     else if(select){
         sel = select;
     }
+    if(queryOptions){
+        if(queryOptions.limit != null)
+        limit=queryOptions.limit;
+        
+        if(queryOptions.skip != null)
+        skip=queryOptions.skip;
+
+        if(queryOptions.sort != null)
+        skip=queryOptions.sort;
+    }
+
     let queryObj = model.find(query, sel);
     if (sort) {
         queryObj = queryObj.sort(sort);

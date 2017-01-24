@@ -5,6 +5,7 @@ import * as MongooseModel from './mongoose-model';
 import {pathRepoMap, getModel} from '../core/dynamic/model-entity';
 import {winstonLog} from '../logging/winstonLog';
 import * as Utils from './utils';
+import {QueryOptions} from '../core/interfaces/queryOptions';
 
 export class MongooseService implements IEntityService {
 
@@ -32,8 +33,8 @@ export class MongooseService implements IEntityService {
         return MongooseModel.findAll(this.getModel(repoPath));
     }
 
-    findWhere(repoPath: string, query, selectedFields?: Array<string> | any): Q.Promise<any> {
-        return MongooseModel.findWhere(this.getModel(repoPath), query, selectedFields);
+    findWhere(repoPath: string, query, selectedFields?: Array<string> | any,queryOptions?: QueryOptions): Q.Promise<any> {
+        return MongooseModel.findWhere(this.getModel(repoPath), query, selectedFields,queryOptions);
     }
 
     findOne(repoPath: string, id): Q.Promise<any> {
