@@ -41,7 +41,7 @@ xdescribe('sample', function () {
 
     xit('check GetCounterValue() of global is called', function () {
         // restoring the original definition so that we can again spyon the function with different behavior
-        global.GetCounterValue = getCounterValue; 
+       // global.GetCounterValue = getCounterValue; 
         spyOn(global, "GetCounterValue").and.returnValue(10);
 
         a_obj = new A(b_obj);
@@ -150,6 +150,7 @@ function RegisterRoutesForObject1(object: Object) {
     };
 
     // object['get'] = object['get'] ? object['get'] : function (data) {
+
         // //console.log(this);
         // var fn = Enumerable.from(this['routes']).where(x => x.key == ('get_' + data)).select(x => x.value).firstOrDefault();
         // //console.log(fn);

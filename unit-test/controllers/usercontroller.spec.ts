@@ -1,5 +1,3 @@
-var request = require("request");
-var base_url = "http://localhost:23548/data/users";
 
 describe("GET Server", function(){
     describe("GET /users", function() {
