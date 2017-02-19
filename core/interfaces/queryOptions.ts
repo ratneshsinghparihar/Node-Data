@@ -8,5 +8,6 @@
     skip?: number;
     limit?: number;
     sort?: any;
-    
-  }
+}
+
+export var filterProps: Array<string> = ['rows', 'start', 'from', 'until', 'order', 'fields', 'skip', 'limit', 'sort'];

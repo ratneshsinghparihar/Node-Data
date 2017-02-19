@@ -15,6 +15,7 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
+import {filterProps} from '../interfaces/queryOptions';
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -482,9 +483,16 @@ export class DynamicController {
     private searchFromDb(req, res, propertyKey) {
         var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
         var queryObj = req.query;
+        var options = {};
+        Enumerable.from(queryObj).forEach((x: any) => {
+            if (filterProps.indexOf(x.key) >= 0) {
+                options[x.key] = x.value;
+                delete queryObj[x.key];
+            }
+        });
         console.log("Querying Database");
         return this.repository
-            .findWhere(queryObj)
+            .findWhere(queryObj, null, options)
             .then(result => {
                 return this.postFilter(result, propertyKey);
             })
