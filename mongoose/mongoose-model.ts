@@ -137,15 +137,15 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     else if(select){
         sel = select;
     }
-    if(queryOptions){
-        if(queryOptions.limit != null)
-        limit=queryOptions.limit;
-        
-        if(queryOptions.skip != null)
-        skip=queryOptions.skip;
+    if (queryOptions) {
+        if (queryOptions.limit != null)
+            limit = queryOptions.limit;
 
-        if(queryOptions.sort != null)
-        skip=queryOptions.sort;
+        if (queryOptions.skip != null)
+            skip = queryOptions.skip;
+
+        if (queryOptions.sort != null)
+            sort = queryOptions.sort;
     }
 
     let queryObj = model.find(query, sel);
