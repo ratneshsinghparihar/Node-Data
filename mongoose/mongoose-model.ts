@@ -127,7 +127,7 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  * @param skip
  * @param limit
  */
-export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
+export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     var sel = {};
     if (select instanceof Array) {
         select.forEach(x => {
@@ -162,6 +162,10 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     return Q.nbind(queryObj.exec, queryObj)()
         .then(result => {
             // update embedded property, if any
+            if (toLoadChilds != undefined && toLoadChilds == false) {
+                return Utils.toObject(result);
+            }
+
             var asyncCalls = [];
             Enumerable.from(result).forEach(x => {
                 asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));

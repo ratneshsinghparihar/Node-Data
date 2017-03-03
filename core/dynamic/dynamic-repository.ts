@@ -130,8 +130,8 @@ export class DynamicRepository implements IDynamicRepository {
     //     });
     // }
 
-    public findWhere(query, selectedFields?: Array<any>,queryOptions?: QueryOptions): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields,queryOptions).then(result => {
+    public findWhere(query, selectedFields?: Array<any>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields,queryOptions, toLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
