@@ -99,12 +99,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
         case RepoActions.findOne.toUpperCase():
             prom = rootRepo.findOne(args[0]).then(res => {
-                return mergeProperties(res, undefined, res);
+                let mergedEntity = InstanceService.getInstance(this.getEntity(), null, res);
+                return mergeProperties(res, undefined, mergedEntity);
             });
             break;
         case RepoActions.findAll.toUpperCase():
             prom = rootRepo.findAll().then((dbEntities: Array<any>) => {
-                return mergeEntities(dbEntities);
+                let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
+                return mergeEntities(dbEntities, undefined, mergedEntities);
             });
             break;
 
@@ -182,7 +184,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
 function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
     var res = [];
-    if (!entities && !mergeEntities1) {
+    if (!entities) {
         dbEntities.forEach(x => {
             res.push(mergeProperties(x, undefined, x));
         });
@@ -208,13 +210,13 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
         mergedEntity = <any>{};
     }
 
-    if (dbEntity && dbEntity != mergedEntity) {
+    if (dbEntity) {
         for (var prop in dbEntity) {
             mergedEntity[prop] = dbEntity[prop];
         }
     }
 
-    if (entity && entity != mergedEntity) {
+    if (entity) {
 
         for (var prop in entity) {
             if (typeof entity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {
