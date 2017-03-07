@@ -8,13 +8,28 @@ import { pathRepoMap, getEntity, getModel } from '../dynamic/model-entity';
 import { InstanceService } from '../services/instance-service';
 import * as Utils from '../utils';
 import { RepoActions } from '../enums/repo-actions-enum';
+import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
 import * as Enumerable from 'linq';
 import Q = require('q');
 
+/**
+ * Provides you three states (new, old, merged) for an entity as parameters on which
+ * one can build logic from original data in db and from new incoming JSON data
+ */
 export interface EntityActionParam {
-    inputEntity?: any;
-    oldPersistentEntity?: any;
-    newPersistentEntity?: any
+    /**
+ * This is a readOnly data ( don not change on it), used for comapring original input data JSON from client side.
+ */
+    inputEntity?: any;  // entity comes from client side (front end incoming JSON)
+
+    /**
+ * This is a readOnly data (don not change on it), used for comparing the original stored data on DB.
+ */
+    oldPersistentEntity?: any; // original entity stored on db
+    /**
+      * Any changes or modification can be done on newPersistentEntity which is final entity going to persist on the system.
+    */
+    newPersistentEntity?: any; // merged entity of inputEntity and oldPersistentEntity
 }
 
 
@@ -40,12 +55,20 @@ export function entityAction(params: IPreauthorizeParams): any {
 
             // merge logic
             return mergeTask.apply(this, [args, originalMethod]).then(fullyQualifiedEntities => {
+                //if (originalMethod.name === RepoActions.findOne) {
+                //    var ret = service.target[preAuthParam.methodName].apply(service.target, params);
+                //}
                 return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
                     //req.body = fullyQualifiedEntities;
                     if (isAllowed) {
                         // for delete, post action no need to save merged entity else save merged entity to db
                         if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
-                            args[args.length - 1] = fullyQualifiedEntities;
+                            if (args.length) {
+                                args[args.length - 1] = fullyQualifiedEntities;
+                            }
+                            else {
+                                args[0] = fullyQualifiedEntities;
+                            }
                         }
                         return originalMethod.apply(this, args);
                         //return originalMethod.apply(this, [fullyQualifiedEntities]);
@@ -60,6 +83,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         throw null;
                     }
                 });
+
             });
         }
         return descriptor;
@@ -69,7 +93,23 @@ export function entityAction(params: IPreauthorizeParams): any {
 function mergeTask(args: any, method: any): Q.Promise<any> {
     let prom: Q.Promise<any>;
     var response = [];
+    let repo: IDynamicRepository = this;
+    let rootRepo = repo.getRootRepo();
     switch (method.name.toUpperCase()) {
+
+        case RepoActions.findOne.toUpperCase():
+            prom = rootRepo.findOne(args[0]).then(res => {
+                return mergeProperties(res, undefined, res);
+            });
+            break;
+        case RepoActions.findAll.toUpperCase():
+            prom = rootRepo.findAll().then((dbEntities: Array<any>) => {
+                return mergeEntities(dbEntities);
+            });
+            break;
+
+        // TODO: Need to write code for all remaining get entity(s) actions 
+
         case RepoActions.post.toUpperCase():
             // do nothing
             let mergedEntity1 = InstanceService.getInstance(this.getEntity(), null, args[0]);
@@ -80,14 +120,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             // fetch single object
 
             let mergedEntity = InstanceService.getInstance(this.getEntity(), null, args[1]);
-            prom = this.findOne(args[0]).then(res => {
+            prom = rootRepo.findOne(args[0]).then(res => {
                 return mergeProperties(res, args[1], mergedEntity);
             });
             break;
         case RepoActions.delete.toUpperCase():
             // fetch single object 
             let mergedEntity2 = InstanceService.getInstance(this.getEntity(), null, args[0]);
-            prom = this.findMany([args[0]], true).then(res => {
+            prom = rootRepo.findMany([args[0]], true).then(res => {
                 return mergeProperties(res[0], undefined, mergedEntity2);
             });
             break;
@@ -104,7 +144,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             args[0].forEach(x => {
                 mergeEntities1.push(InstanceService.getInstance(this.getEntity(), null, x));
             });
-            prom = this.findMany(ids, true).then(dbEntities => {
+            prom = rootRepo.findMany(ids, true).then(dbEntities => {
                 return mergeEntities(dbEntities, args[0], mergeEntities1);
             });
             break;
@@ -119,7 +159,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                         ids.push(x);
                     }
                 });
-                prom = this.findMany(ids).then(dbEntities => {
+                prom = rootRepo.findMany(ids).then(dbEntities => {
                     return mergeEntities(undefined, dbEntities, dbEntities);
                 });
             }
@@ -140,8 +180,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
     });
 }
 
-function mergeEntities(dbEntities, entities, mergeEntities1?: Array<any>) {
+function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
     var res = [];
+    if (!entities && !mergeEntities1) {
+        dbEntities.forEach(x => {
+            res.push(mergeProperties(x, undefined, x));
+        });
+        return res;
+    }
     Enumerable.from(entities).forEach(entity => {
         var dbEntity, mergeEntity;
         if (dbEntities) {
@@ -162,13 +208,13 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
         mergedEntity = <any>{};
     }
 
-    if (dbEntity) {
+    if (dbEntity && dbEntity != mergedEntity) {
         for (var prop in dbEntity) {
             mergedEntity[prop] = dbEntity[prop];
         }
     }
 
-    if (entity) {
+    if (entity && entity != mergedEntity) {
 
         for (var prop in entity) {
             if (typeof entity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {

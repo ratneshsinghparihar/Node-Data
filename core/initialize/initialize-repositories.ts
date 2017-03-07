@@ -50,14 +50,16 @@ export class InitializeRepositories {
                 let path = (<any>x.target).path;
                 let repoParams = <IRepositoryParams>x.metadata[0].params;
                 let model = repoParams.model;
-                var newRepo;
+                let newRepo: DynamicRepository;
+                let rootRepo = new DynamicRepository();
+                rootRepo.initialize(repoParams.path, x.target, model);
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }
                 else {
-                    newRepo = new DynamicRepository();
+                    newRepo = rootRepo;
                 }
-                newRepo.initialize(repoParams.path, x.target, model);
+                newRepo.initialize(repoParams.path, x.target, model, rootRepo);
 
                 repoMap[path] = {
                     fn: x.target,

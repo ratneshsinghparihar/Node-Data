@@ -25,6 +25,7 @@ export interface IDynamicRepository {
     getModel();
     modelName();
     getEntityType(): any;
+    getRootRepo(): IDynamicRepository;
 
     bulkPost(objArr: Array<any>);
     bulkPut(objArr: Array<any>);
@@ -51,12 +52,17 @@ export class DynamicRepository implements IDynamicRepository {
     private metaModel: any;
     private entity: any;
     private entityService: IEntityService;
+    private rootLevelRep: IDynamicRepository;
     //private modelRepo: any;
 
-    public initialize(repositoryPath: string, target: Function | Object, model?: any) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
         //console.log(schema);
         this.path = repositoryPath;
         this.entity = target;
+        this.rootLevelRep = rootRepo;
+        if (target instanceof DynamicRepository) {
+            target.rootLevelRep = rootRepo;
+        }
         modelNameRepoModelMap[this.path] = this;
     }
 
@@ -66,6 +72,10 @@ export class DynamicRepository implements IDynamicRepository {
 
     public getModel() {
         return Utils.entityService(pathRepoMap[this.path].modelType).getModel(pathRepoMap[this.path].schemaName);
+    }
+
+    public getRootRepo() {
+        return this.rootLevelRep;
     }
 
     public bulkPost(objArr: Array<any>) {
