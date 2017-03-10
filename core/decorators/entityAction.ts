@@ -109,7 +109,12 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 return mergeEntities(dbEntities, undefined, mergedEntities);
             });
             break;
-
+        case RepoActions.findWhere.toUpperCase():
+            prom = rootRepo.findWhere.apply(rootRepo, args).then((dbEntities: Array<any>) => {
+                let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
+                return mergeEntities(dbEntities, undefined, mergedEntities);
+            });
+            break;
         // TODO: Need to write code for all remaining get entity(s) actions 
 
         case RepoActions.post.toUpperCase():
