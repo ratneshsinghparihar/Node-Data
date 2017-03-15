@@ -83,6 +83,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
  * @param obj
  */
 export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj: any): Q.Promise<any> {
+    delete obj._id;
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     var cond = {};

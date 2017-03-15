@@ -125,7 +125,9 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.put.toUpperCase():
         case RepoActions.patch.toUpperCase():
             // fetch single object
-
+            let entityIdToUpdate = args[0];
+            let entityToUpdate = args[1];
+            entityToUpdate._id = entityIdToUpdate;
             let mergedEntity = InstanceService.getInstance(this.getEntity(), null, args[1]);
             prom = rootRepo.findOne(args[0]).then(res => {
                 return mergeProperties(res, args[1], mergedEntity);
