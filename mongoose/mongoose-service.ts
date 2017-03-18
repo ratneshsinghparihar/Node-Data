@@ -34,7 +34,7 @@ export class MongooseService implements IEntityService {
     }
 
     findWhere(repoPath: string, query, selectedFields?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        return MongooseModel.findWhere(this.getModel(repoPath), query, selectedFields,queryOptions);
+        return MongooseModel.findWhere(this.getModel(repoPath), query, selectedFields, queryOptions, toLoadChilds);
     }
 
     findOne(repoPath: string, id): Q.Promise<any> {

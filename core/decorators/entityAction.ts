@@ -4,6 +4,7 @@ import { DecoratorType } from '../enums/decorator-type';
 import { IPreauthorizeParams } from './interfaces/preauthorize-params';
 import { PrincipalContext } from '../../security/auth/principalContext';
 import { PreAuthService } from '../services/pre-auth-service';
+import {PostFilterService} from '../services/post-filter-service';
 import { pathRepoMap, getEntity, getModel } from '../dynamic/model-entity';
 import { InstanceService } from '../services/instance-service';
 import * as Utils from '../utils';
@@ -58,32 +59,55 @@ export function entityAction(params: IPreauthorizeParams): any {
                 //if (originalMethod.name === RepoActions.findOne) {
                 //    var ret = service.target[preAuthParam.methodName].apply(service.target, params);
                 //}
-                return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
-                    //req.body = fullyQualifiedEntities;
-                    if (isAllowed) {
-                        // for delete, post action no need to save merged entity else save merged entity to db
-                        if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
-                            if (args.length) {
-                                args[args.length - 1] = fullyQualifiedEntities;
-                            }
-                            else {
-                                args[0] = fullyQualifiedEntities;
-                            }
+                let findActions = [RepoActions.findAll, RepoActions.findByField, RepoActions.findChild, RepoActions.findMany,
+                    RepoActions.findOne, RepoActions.findWhere];
+                if (findActions.indexOf(originalMethod.name.toUpperCase())) {
+                    return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
+                        if (!result) {
+                            fullyQualifiedEntities = null;
+                        }
+                        if (result instanceof Array) {
+                            let ids = result.map(x => x._id.toString());
+                            // select only entities which have access
+                            fullyQualifiedEntities = Enumerable.from(fullyQualifiedEntities).where((x: EntityActionParam) => ids.indexOf(x.newPersistentEntity._id.toString()) != -1).toArray();
+                        }
+
+                        if (args.length) {
+                            args[args.length - 1] = fullyQualifiedEntities;
+                        }
+                        else {
+                            args[0] = fullyQualifiedEntities;
                         }
                         return originalMethod.apply(this, args);
-                        //return originalMethod.apply(this, [fullyQualifiedEntities]);
-                    }
-                    else {
-                        var error = 'unauthorize access for resource';
-                        var res = PrincipalContext.get('res');
-                        if (res) {
-                            res.set("Content-Type", "application/json");
-                            res.send(403, JSON.stringify(error, null, 4));
+                    });
+                }
+                else {
+                    return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
+                        //req.body = fullyQualifiedEntities;
+                        if (isAllowed) {
+                            // for delete, post action no need to save merged entity else save merged entity to db
+                            if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
+                                if (args.length) {
+                                    args[args.length - 1] = fullyQualifiedEntities;
+                                }
+                                else {
+                                    args[0] = fullyQualifiedEntities;
+                                }
+                            }
+                            return originalMethod.apply(this, args);
+                            //return originalMethod.apply(this, [fullyQualifiedEntities]);
                         }
-                        throw null;
-                    }
-                });
-
+                        else {
+                            var error = 'unauthorize access for resource';
+                            var res = PrincipalContext.get('res');
+                            if (res) {
+                                res.set("Content-Type", "application/json");
+                                res.send(403, JSON.stringify(error, null, 4));
+                            }
+                            throw null;
+                        }
+                    });
+                }
             });
         }
         return descriptor;
