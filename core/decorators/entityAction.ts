@@ -167,7 +167,8 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
         case RepoActions.bulkPost.toUpperCase():
             args[0].forEach(x => {
-                response.push(mergeProperties(undefined, InstanceService.getInstance(this.getEntity(), null, x)));
+                var mergedEntity1 = InstanceService.getInstance(this.getEntity(), null, x);
+                response.push(mergeProperties(undefined, InstanceService.getInstance(this.getEntity(), null, x), mergedEntity1));
             });
             prom = Q.when(response);
             break;
