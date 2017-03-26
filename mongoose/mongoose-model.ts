@@ -159,7 +159,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     if (limit) {
         queryObj = queryObj.limit(limit);
     }
-    winstonLog.logInfo(`findWhere query is ${query}`);
+    //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
         .then(result => {
             // update embedded property, if any

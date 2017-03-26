@@ -9,7 +9,9 @@ function getLogger(): winston.LoggerInstance {
     });
 }
 
-
+/**
+ * A wrapper around the winston logging framework.
+ */
 class WinstonLog {
     winstonLogger = null;
     logStream = null;
@@ -23,16 +25,31 @@ class WinstonLog {
         }
     }
 
-    logInfo(message: any) {
-        this.winstonLogger.log('info', message);
+    /**
+     * Logs the message as info.
+     * @param message The message to be logged.
+     * @param meta Any additional metadata.
+     */
+    logInfo(message: any, meta? : any) {
+        this.winstonLogger.log('info', message, meta);
     }
 
-    logDebug(message: any) {
-        this.winstonLogger.log('debug', message);
+    /**
+     * Logs the message as Debug
+     * @param message The message to be logged
+     * @param meta Any additional metadata
+     */
+    logDebug(message: any, meta? : any) {
+        this.winstonLogger.log('debug', message, meta);
     }
 
-    logError(message: any) {
-        this.winstonLogger.log('error', message);
+    /**
+     * Logs the message as Erro
+     * @param message The message to be logged
+     * @param meta Any additional metadata
+     */
+    logError(message: any, meta? : any) {
+        this.winstonLogger.log('error', message, meta);
     }
 
     configure(options:any){
