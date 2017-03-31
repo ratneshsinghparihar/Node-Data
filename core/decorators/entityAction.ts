@@ -159,9 +159,8 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             break;
         case RepoActions.delete.toUpperCase():
             // fetch single object 
-            let mergedEntity2 = InstanceService.getInstance(this.getEntity(), null, args[0]);
             prom = rootRepo.findMany([args[0]], true).then(res => {
-                return mergeProperties(res[0], undefined, mergedEntity2);
+                return mergeProperties(res[0], undefined, res[0]);
             });
             break;
 
