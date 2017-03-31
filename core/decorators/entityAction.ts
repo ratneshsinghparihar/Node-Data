@@ -61,7 +61,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                 //}
                 let findActions = [RepoActions.findAll, RepoActions.findByField, RepoActions.findChild, RepoActions.findMany,
                     RepoActions.findOne, RepoActions.findWhere];
-                if (findActions.indexOf(originalMethod.name.toUpperCase())) {
+                if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
                     return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
                         if (!result) {
                             fullyQualifiedEntities = null;
