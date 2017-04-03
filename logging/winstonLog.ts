@@ -20,7 +20,7 @@ class WinstonLog {
         var _logger = this.winstonLogger;
         this.logStream = {
             write : function(message, encoding){
-                _logger.info(message);
+                _logger.debug(message);
             }
         }
     }
