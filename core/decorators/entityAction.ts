@@ -61,6 +61,9 @@ export function entityAction(params: IPreauthorizeParams): any {
                 //}
                 let findActions = [RepoActions.findAll, RepoActions.findByField, RepoActions.findChild, RepoActions.findMany,
                     RepoActions.findOne, RepoActions.findWhere];
+                    // Converting Repo method names into uppercase as check with original method name is in uppercase.
+                    // This is require othewise it will go in else condition and some of the entities will visible user without access e.g. questionnaire not assigned ot user.
+                    findActions = findActions.map(methodName => methodName.toUpperCase());
                 if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
                     return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
                         if (!result) {
