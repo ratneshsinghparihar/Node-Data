@@ -33,6 +33,23 @@ var session = PrincipalContext.getSession();
             Decorators.WORKER);
     }
 
+ function getDebugOption() {
+     var execArgv = (<any>process).execArgv.slice(); //create args shallow copy
+     var debugPort = (<any>process).debugPort + 1;
+
+     for (var i = 0; i < execArgv.length; i++) {
+         var match = execArgv[i].match(/^(--debug|--debug-brk)(=\d+)?$/);
+         if (match) {
+             execArgv[i] = match[1] + '=' + debugPort;
+             break;
+         }
+     }
+
+     //var options = { env: process.env,  silent:false, execArgv: execArgv, cwd: targetProcessCwd };
+     var options = { env: process.env, silent: false, execArgv: execArgv };
+     return options;
+ }
+
 function preProcessHandler(params, target, propertyKey, descriptor, originalMethod, type: string) {
      return function () {
          if(MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded){
@@ -44,6 +61,8 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
         var targetObjectId: any;
         if (params.indexofArgumentForTargetObjectId)
             targetObjectId = arguments[params.indexofArgumentForTargetObjectId];
+
+
 
         if (params.indexofArgumentForTargetObject)
             targetObjectId = arguments[params.indexofArgumentForTargetObject]._id;
@@ -67,9 +86,13 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                 workerParams.arguments = paramsArguments;
             }
             else {
-                if(params.workerParams.workerName==null || params.workerParams.workerName == ''){
+                if (!params.workerParams.workerName) {
                     workerParams.workerName = defaultWorkerName;
                     winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
+                }
+                else {
+                    workerParams.workerName = params.workerParams.workerName;
+                    winstonLog.logInfo("Calling worker:  " + workerParams.workerName);
                 }
 
                 if(params.workerParams.serviceName != null && params.workerParams.serviceName != ''){
@@ -99,12 +122,13 @@ function preProcessHandler(params, target, propertyKey, descriptor, originalMeth
                 
             }
 
-                workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
+            workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
+            workerParams.arguments = <any>workerParams.arguments.slice(0, originalMethod.length);
                 winstonLog.logInfo("Worker Params: "+ JSON.stringify(workerParams)); 
             
                 if(workerParams.serviceName != null){
-                    console.log("Forking a new child_process: "+ workerParams.workerName);
-                    var workerProcess = child_process.fork(workerParams.workerName);
+                    console.log("Forking a new child_process: " + workerParams.workerName);
+                    var workerProcess = child_process.fork(workerParams.workerName, [], getDebugOption());
                 
            //if(session!=null){   // Setting principalContext on the worker params;
 

@@ -489,6 +489,27 @@ export class DynamicController {
                 options[x.key] = x.value;
                 delete queryObj[x.key];
             }
+            else {
+                var val = queryObj[x.key];
+                var i = val.indexOf('%LIKE%');
+                if (i == 0) {
+                    // contains
+                    val = val.replace('%LIKE%', '');
+                    queryObj[x.key] = {
+                        $regex: '.*' + val + '.*'
+                    }
+                }
+                else {
+                    i = val.indexOf('%START%');
+                    if (i == 0) {
+                        // starts with
+                        val = val.replace('%START%', '');
+                        queryObj[x.key] = {
+                            $regex: '^' + val + '.*'
+                        }
+                    }
+                }
+            }
         });
         console.log("Querying Database");
         return this.repository
