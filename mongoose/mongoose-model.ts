@@ -8,6 +8,9 @@ import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";
 import * as Utils from './utils';
 import {QueryOptions} from '../core/interfaces/queryOptions';
+import {MetaUtils} from "../core/metadata/utils";
+import {Decorators} from '../core/constants/decorators';
+import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -135,7 +138,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             sel[x] = 1;
         });
     }
-    else if(select){
+    else if (select) {
         sel = select;
     }
     if (queryOptions) {
@@ -377,6 +380,22 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
 }
 
 /**
+ * Check whether decorator is applied or not.
+ * @param path
+ * @param decorator
+ * @param propertyKey
+ */
+function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
+    var isDecoratorPresent: boolean = false;
+    let repo = GetRepositoryForName(path);
+    var repoEntity = repo && repo.getEntityType();
+    var optimisticLock = repoEntity && MetaUtils.getMetaData(repoEntity, decorator, propertyKey);
+    if (optimisticLock) {
+        isDecoratorPresent = true;
+    }
+    return isDecoratorPresent;
+}
+/**
  * Check if any child object need to be added, if yes, then add those child objects.
  * update the object with propertie. And then update the parent objects.
  * Usage - Update the object with given object id
@@ -384,13 +403,23 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
  * @param id
  * @param obj
  */
-export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string): Q.Promise<any> {
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
     return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { upsert: true, new: true })
+        let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "put");
+        let query: Object = { '_id': id };
+        if (isDecoratorPresent === true) {
+            delete updatedProps["$set"]["__v"];
+            updatedProps["$inc"] = { '__v': 1 };
+            query["__v"] = obj["__v"];
+        }
+        return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
             .then(result => {
+                if (!result && isDecoratorPresent === true) {
+                    return Q.reject("You are trying to update with stale data,please try again after some time.");
+                }
                 return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.put, result, Utils.getPropertiesFromObject(clonedObj))
                     .then(res => {
                         var resObj = Utils.toObject(result);
@@ -399,6 +428,9 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
                             return obj;
                         });
                     });
+            }).catch(error => {
+                winstonLog.logError(`Error in put ${error}`);
+                return Q.reject(error);
             });
     }).catch(error => {
         winstonLog.logError(`Error in put ${error}`);
