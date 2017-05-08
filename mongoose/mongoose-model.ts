@@ -60,22 +60,47 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
  * @param objArr
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
-    var asyncCalls = [];
 
-    Enumerable.from(objArr).forEach(x => {
-        if (x['_id']) {
-            asyncCalls.push(put(model, x['_id'], x));
-        }
+    var length = objArr.length;
+    var ids = objArr.map(x => x._id);
+    var bulk = model.collection.initializeOrderedBulkOp();
+
+    // classic for loop used gives high performanance
+    for (var i = 0; i < length; i++) {
+        var objectId = new Mongoose.Types.ObjectId(objArr[i]._id);
+        delete objArr[i]._id;
+        bulk.find({ _id: objectId }).update({ $set: objArr[i] });
+    }
+
+    return Q.nbind(bulk.execute, bulk)().then(result => {
+        // update parent
+        return findMany(model, ids).then(objects => {
+            return mongooseHelper.updateParent(model, objects).then(res => {
+                return objects;
+            });
+        });
+    }).catch(error => {
+        winstonLog.logError(`Error in bulkPut ${error}`);
+        return Q.reject(error);
     });
 
-    return Q.allSettled(asyncCalls)
-        .then(result => {
-            return Enumerable.from(result).select(x => x.value).toArray();
-        })
-        .catch(error => {
-            winstonLog.logError(`Error in bulkPut ${error}`);
-            return Q.reject(error);
-        });
+
+    //var asyncCalls = [];
+
+    //Enumerable.from(objArr).forEach(x => {
+    //    if (x['_id']) {
+    //        asyncCalls.push(put(model, x['_id'], x));
+    //    }
+    //});
+
+    //return Q.allSettled(asyncCalls)
+    //    .then(result => {
+    //        return Enumerable.from(result).select(x => x.value).toArray();
+    //    })
+    //    .catch(error => {
+    //        winstonLog.logError(`Error in bulkPut ${error}`);
+    //        return Q.reject(error);
+    //    });
 }
 
 /**

@@ -238,6 +238,7 @@ export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: 
 function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+    var strIds = ids.map(x => x.toString());
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
     return Q.nbind(model.find, model)(queryCond)
         .then(result => {
@@ -249,7 +250,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
                     if (meta.propertyType.isArray) {
                         var res = [];
                         values.forEach(x => {
-                            var index = ids.indexOf(x['_id']);
+                            var index = strIds.indexOf(x['_id'].toString());
                             if (index >= 0) {
                                 res.push(objs[index]);
                             }
@@ -260,7 +261,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
                         newUpdate[meta.propertyKey] = res;
                     }
                     else {
-                        var index = ids.indexOf(values['_id']);
+                        var index = strIds.indexOf(values['_id'].toString());
                         newUpdate[meta.propertyKey] = objs[index];
                     }
                     asyncCall.push(mongooseModel.put(model, doc['_id'], newUpdate));
