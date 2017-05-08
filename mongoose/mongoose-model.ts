@@ -60,32 +60,36 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
  * @param objArr
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
-
+    var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
-    var bulk = model.collection.initializeOrderedBulkOp();
+    var bulk = model.collection.initializeUnorderedBulkOp();
+    var asyncCalls = [];
 
     // classic for loop used gives high performanance
     for (var i = 0; i < length; i++) {
-        var objectId = new Mongoose.Types.ObjectId(objArr[i]._id);
-        delete objArr[i]._id;
-        bulk.find({ _id: objectId }).update({ $set: objArr[i] });
+        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+            var objectId = new Mongoose.Types.ObjectId(result._id);
+            delete result._id;
+            let clonedObj = mongooseHelper.removeTransientProperties(model, result);
+            var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
+            bulk.find({ _id: objectId }).update(updatedProps);
+        }));
     }
 
-    return Q.nbind(bulk.execute, bulk)().then(result => {
-        // update parent
-        return findMany(model, ids).then(objects => {
-            return mongooseHelper.updateParent(model, objects).then(res => {
-                return objects;
+    return Q.allSettled(asyncCalls).then(x => {
+        return Q.nbind(bulk.execute, bulk)().then(result => {
+            // update parent
+            return findMany(model, ids).then(objects => {
+                return mongooseHelper.updateParent(model, objects).then(res => {
+                    return objects;
+                });
             });
+        }).catch(error => {
+            winstonLog.logError(`Error in bulkPut ${error}`);
+            return Q.reject(error);
         });
-    }).catch(error => {
-        winstonLog.logError(`Error in bulkPut ${error}`);
-        return Q.reject(error);
     });
-
-
-    //var asyncCalls = [];
 
     //Enumerable.from(objArr).forEach(x => {
     //    if (x['_id']) {
@@ -101,6 +105,45 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
     //        winstonLog.logError(`Error in bulkPut ${error}`);
     //        return Q.reject(error);
     //    });
+}
+
+/**
+ * Iterate through objArr and call put for these
+ * Usage - Update multiple object sequentially
+ * @param model
+ * @param objArr
+ */
+export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
+    var asyncCalls = [];
+    var length = objArr.length;
+    var ids = objArr.map(x => x._id);
+    var bulk = model.collection.initializeUnorderedBulkOp();
+    var asyncCalls = [];
+
+    // classic for loop used gives high performanance
+    for (var i = 0; i < length; i++) {
+        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+            var objectId = new Mongoose.Types.ObjectId(result._id);
+            delete result._id;
+            let clonedObj = mongooseHelper.removeTransientProperties(model, result);
+            var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
+            bulk.find({ _id: objectId }).update(updatedProps);
+        }));
+    }
+
+    return Q.allSettled(asyncCalls).then(x => {
+        return Q.nbind(bulk.execute, bulk)().then(result => {
+            // update parent
+            return findMany(model, ids).then(objects => {
+                return mongooseHelper.updateParent(model, objects).then(res => {
+                    return objects;
+                });
+            });
+        }).catch(error => {
+            winstonLog.logError(`Error in bulkPut ${error}`);
+            return Q.reject(error);
+        });
+    });
 }
 
 /**
