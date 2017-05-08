@@ -71,7 +71,7 @@ export class MongooseService implements IEntityService {
     }
 
     patch(repoPath: string, id: any, obj): Q.Promise<any> {
-        return MongooseModel.patch(this.getModel(repoPath), id, obj);
+        return MongooseModel.patch(this.getModel(repoPath), id, obj,repoPath);
     }
 
     getModel(repoPath: string) {

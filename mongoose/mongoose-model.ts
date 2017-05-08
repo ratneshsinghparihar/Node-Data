@@ -411,7 +411,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
         let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "put");
         let query: Object = { '_id': id };
         if (isDecoratorPresent === true) {
-            delete updatedProps["$set"]["__v"];
+            updatedProps["$set"] && delete updatedProps["$set"]["__v"];
             updatedProps["$inc"] = { '__v': 1 };
             query["__v"] = obj["__v"];
         }
@@ -446,13 +446,27 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
  * @param id
  * @param obj
  */
-export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+export function patch(model: Mongoose.Model<any>, id: any, obj, path?: string): Q.Promise<any> {
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
+    
     // First update the any embedded property and then update the model
     return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
-        return Q.nbind(model.findOneAndUpdate, model)({ '_id': id }, updatedProps, { new: true })
+        let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "patch");
+        let query: Object = { '_id': id };
+        if (isDecoratorPresent === true) {
+            updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+            updatedProps["$push"] && delete updatedProps["$push"]["__v"];
+            updatedProps["$inc"] = { '__v': 1 };
+            if(obj["__v"]){
+              query["__v"] = obj["__v"];
+            }
+        }
+        return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
             .then(result => {
+                if (!result && isDecoratorPresent === true) {
+                    return Q.reject("You are trying to update with stale data,please try again after some time.");
+                }
                 return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.patch, result, Utils.getPropertiesFromObject(clonedObj))
                     .then(res => {
                         var resObj = Utils.toObject(result);
