@@ -256,7 +256,8 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
             queryFindCond['_id'] = { $in: parentIds };
             queryFindCond[meta.propertyKey + '._id'] = objectId;
-            updateSet[meta.propertyKey + '.$'] = objs[i];
+            let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
+            updateSet[meta.propertyKey + updateMongoOperator] = objs[i];
             bulk.find(queryFindCond).update({ $set: updateSet });
         }
 
@@ -270,7 +271,6 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             return Q.reject(error);
         });
 }
-
 
 function updateParentDocumentOld(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
@@ -731,3 +731,4 @@ function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
         ? Enumerable.from(obj[prop]).select(x => Utils.castToMongooseType(x, primaryType)).toArray()
         : [Utils.castToMongooseType(obj[prop], primaryType)];
 }
+
