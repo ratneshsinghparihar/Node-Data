@@ -121,11 +121,7 @@ export function isPropertyUpdateRequired(changedProps: Array<string>, properties
 
 export function getCurrentDBModel(schemaName) {
     var model = getModel(schemaName);
-    var database = PrincipalContext.get(CoreUtils.resources.userDatabase);
-    if (database) {
-        return getDbSpecifcModel(schemaName, model.schema, database);
-    }
-    return model;
+    return getDbSpecifcModel(schemaName, model.schema);
 }
 
 export function getMongoUpdatOperatorForRelation(meta: MetaData) {

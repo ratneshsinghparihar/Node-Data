@@ -3,6 +3,7 @@ import * as MongooseModel from '../mongoose/mongoose-model';
 import * as Utils from "../mongoose/utils";
 import * as modeEntity from '../core/dynamic/model-entity';
 import * as mockData from '../unit-test/MockDataForRelation';
+import * as db from './db';
 import {course} from '../unit-test/models/course';
 import {student} from '../unit-test/models/student';
 
@@ -20,6 +21,7 @@ describe('testing relation', () => {
         spyOn(Utils, 'castToMongooseType').and.callFake(mock.castToMongooseType);
         spyOn(modeEntity, 'getEntity').and.callFake(mock.getEntity);
         spyOn(modeEntity, 'getModel').and.callFake(mock.getModel);
+        spyOn(db, 'getDbSpecifcModel').and.callFake(mock.getDbSpecifcModel);
         mockData.AddAllFakeFunctions();
         spyOn(Q, 'nbind').and.callFake((func, model) => mockData.getFakeFunctionForMongoose(func, model));
 

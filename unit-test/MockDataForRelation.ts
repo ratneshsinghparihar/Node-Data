@@ -300,6 +300,10 @@ export class mockedFunctions {
         return _mongooseModel[object];
     }
 
+    getDbSpecifcModel(object: any, schema: any) {
+        return _mongooseModel[object];
+    }
+
     //getMetaData(entity: any, decprator: any) {
     //}
 
