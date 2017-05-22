@@ -10,7 +10,7 @@ import {inject, injectbyname} from '../../di/decorators/inject';
 import UserRepository from '../../tests/repositories/userRepository';
 import {UserDetailService} from './user-detail-service';
 import {router} from '../../core/exports';
-
+var bcryptNodejs = require("bcrypt-nodejs");
 
 @service()
 export class AuthService {
@@ -39,7 +39,7 @@ export class AuthService {
                         if (!user) {
                             return done(null, false, { message: 'Incorrect username.' });
                         }
-                        if (user.getPassword() != password) {
+                        if (!bcryptNodejs.compareSync(password, user.getPassword())) {
                             return done(null, false, { message: 'Incorrect password.' });
                         }
 
