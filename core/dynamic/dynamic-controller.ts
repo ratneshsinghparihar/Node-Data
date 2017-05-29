@@ -315,6 +315,24 @@ export class DynamicController {
             this.addRoutesForAllSearch(map, fieldsWithSearchIndex);
             search[map.key] = { "href": map.key, "params": map.args };
         });
+
+        router.get(this.path + "/searchAll", this.ensureLoggedIn(this.entity, RepoActions.findAll), (req, res) => {
+            if (!this.isAuthorize(req, res, RepoActions.findAll)) {
+                this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                return;
+            }
+            return this.searchFromDb(req, res, RepoActions.findAll);
+        });
+        router.get(this.path + "/count", this.ensureLoggedIn(this.entity, RepoActions.findAll), (req, res) => {
+
+            if (!this.isAuthorize(req, res, RepoActions.findAll)) {
+                this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                return;
+            }
+            return this.countFromDb(req, res);
+        });
+
+
         router.get(this.path + "/search", this.ensureLoggedIn(this.entity, 'search'), (req, res) => {
             let links = { "self": { "href": this.getFullBaseUrlUsingRepo(req, this.repository.modelName()) + "/search" } };
             for (var prop in search) {
@@ -324,6 +342,15 @@ export class DynamicController {
                 links[prop] = lnk;
             }
             this.sendresult(req, res, links);
+        });
+    }
+
+    private countFromDb(req, res) {
+        var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
+        var queryObj = req.query;
+        var options = {};
+        return this.repository.countWhere(queryObj).then((count) => {
+            this.sendresult(req, res, { result: count });
         });
     }
 

@@ -38,6 +38,8 @@ export interface IDynamicRepository {
     findAll(): Q.Promise<any>;
     //findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
     findWhere(query, selectedFields?: Array<any>, queryOptions?: QueryOptions): Q.Promise<any>;
+    countWhere(query);
+    distinctWhere(query);
     findByField(fieldName, value): Q.Promise<any>;
     findChild(id, prop): Q.Promise<any>;
 
@@ -171,6 +173,17 @@ export class DynamicRepository implements IDynamicRepository {
         });
     }
 
+    public countWhere(query) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).countWhere(this.path, query).then(result => {
+            return result;
+        });
+    }
+
+    public distinctWhere(query) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).distinctWhere(this.path, query).then(result => {
+            return result;
+        });
+    }
 
 
     public findOne(id) {

@@ -41,6 +41,14 @@ export class MongooseService implements IEntityService {
         return MongooseModel.findWhere(this.getModel(repoPath), query, selectedFields, queryOptions, toLoadChilds);
     }
 
+    countWhere(repoPath: string, query): Q.Promise<any> {
+        return MongooseModel.countWhere(this.getModel(repoPath), query);
+    }
+
+    distinctWhere(repoPath: string, query): Q.Promise<any> {
+        return MongooseModel.countWhere(this.getModel(repoPath), query);
+    }
+
     findOne(repoPath: string, id): Q.Promise<any> {
         return MongooseModel.findOne(this.getModel(repoPath), id);
     }
