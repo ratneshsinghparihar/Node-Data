@@ -115,6 +115,27 @@ class SequelizeService implements IEntityService {
         });
     }
 
+    //This is not testest yet
+    //TODO: add test case for this
+    countWhere(repoPath: string, query): Q.Promise<any> {
+        return this.getModel(repoPath).findAndCountAll(query).then(result => {
+            return result;
+        });
+    }
+    
+
+    //This is not testest yet
+    //TODO: add test case for this
+    distinctWhere(repoPath: string, query): Q.Promise<any> {
+        if (!query) {
+            query = {};
+        }
+        query.distinct = true;
+        return this.getModel(repoPath).findAndCountAll(query).then(result => {
+            return result;
+        });
+    }
+
     findOne(repoPath: string, id): Q.Promise<any> {
 
         let schemaModel = this.getModel(repoPath);

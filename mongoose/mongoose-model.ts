@@ -189,6 +189,44 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
         });
 }
 
+
+/**
+ * Query collection and then populate child objects with relationship
+ * Usage - Search object with given condition
+ * @param model
+ * @param query 
+ */
+export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
+    
+    let queryObj = model.find(query).count();    
+    //winstonLog.logInfo(`findWhere query is ${query}`);
+    return Q.nbind(queryObj.exec, queryObj)()
+        .then(result => {
+            // update embedded property, if any
+            return Q.resolve(result);
+        }).catch(error => {
+            winstonLog.logError(`Error in countWhere ${error}`);
+            return Q.reject(error);
+        });
+    
+}
+
+export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
+
+    let queryObj = model.find(query).distinct();
+    //winstonLog.logInfo(`findWhere query is ${query}`);
+    return Q.nbind(queryObj.exec, queryObj)()
+        .then(result => {
+            // update embedded property, if any
+            return Q.resolve(result);
+        }).catch(error => {
+            winstonLog.logError(`Error in distinctWhere ${error}`);
+            return Q.reject(error);
+        });
+
+}
+
+
 /**
  * Query collection and then populate child objects with relationship
  * Usage - Search object with given condition
