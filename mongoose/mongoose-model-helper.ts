@@ -245,7 +245,13 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
-    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then(result => {
+    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
+        if (!result) {
+            return Q.resolve([]);
+        }
+        if (result && !result.length) {
+            return Q.resolve(result);
+        }
         var parents: Array<any> = Utils.toObject(result);
         var parentIds = parents.map(x => x._id);
         var bulk = model.collection.initializeUnorderedBulkOp();
@@ -262,8 +268,11 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
 
         return Q.nbind(bulk.execute, bulk)().then(result => {
-            var modelName = model.modelName;
-            return result;
+           return  mongooseModel.findMany(model, parentIds).then(objects => {
+                return updateParent(model, objects).then(res => {
+                    return objects;
+                });
+            });
         })
     })
         .catch(error => {
