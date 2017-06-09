@@ -234,54 +234,7 @@ export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: 
     });
 }
 
-/**
- * current implemnetation only update embeded for one level parent-child relationship
- * e.g- only supports teacher and student relation ship not principle->teacher->student embeded object  
- * @param model
- * @param meta
- * @param objs
- */
 function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
-    var queryCond = {};
-    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
-    queryCond[meta.propertyKey + '._id'] = { $in: ids };
-    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
-        if (!result) {
-            return Q.resolve([]);
-        }
-        if (result && !result.length) {
-            return Q.resolve(result);
-        }
-        var parents: Array<any> = Utils.toObject(result);
-        var parentIds = parents.map(x => x._id);
-        var bulk = model.collection.initializeUnorderedBulkOp();
-        // classic for loop used gives high performanance
-        for (var i = 0; i < objs.length; i++) {
-            var queryFindCond = {};
-            var updateSet = {};
-            var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
-            queryFindCond['_id'] = { $in: parentIds };
-            queryFindCond[meta.propertyKey + '._id'] = objectId;
-            let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-            updateSet[meta.propertyKey + updateMongoOperator] = objs[i];
-            bulk.find(queryFindCond).update({ $set: updateSet });
-        }
-
-        return Q.nbind(bulk.execute, bulk)().then(result => {
-           return  mongooseModel.findMany(model, parentIds).then(objects => {
-                return updateParent(model, objects).then(res => {
-                    return objects;
-                });
-            });
-        })
-    })
-        .catch(error => {
-            winstonLog.logError(`Error in updateParentDocument ${error}`);
-            return Q.reject(error);
-        });
-}
-
-function updateParentDocumentOld(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
     var strIds = ids.map(x => x.toString());
