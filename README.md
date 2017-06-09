@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
 
-##What is Node-Data
+## What is Node-Data
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
 
@@ -19,7 +19,7 @@ When you write for scale you might missed important aspect which might give you 
 
 Rest level 3 is an amazing protocol allows the autodiscovery of system and application developers can write infrastructure for their code if backend api is level 3.
 
-##What backend concerns will be handled
+## What backend concerns will be handled
 
 1. Rest level 3 APIs
 
@@ -54,7 +54,7 @@ Rest level 3 is an amazing protocol allows the autodiscovery of system and appli
 16. Validation
 
 
-##Technologies used 
+## Technologies used 
 
 library |  version |  Comment/alternative
 ------------ | ------------- | -------------
@@ -71,7 +71,7 @@ Elastic search | 10.1.3 | Search and aggregation
 Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
-##How To Use without security
+## How To Use without security
 
 1. Git clone https://github.com/hariadk/demo-sample.git
 2. cd demo-sample/Demo-Sample
@@ -84,7 +84,7 @@ redis | unknown | Rest middleware
 8. Hit the api to get data(http://localhost:9999/data/users)
 9. Ensure node version is 5.7.0
 
-##How To Use with security
+## How To Use with security
 
 Follow the below steps to start using the framework.
 
@@ -92,7 +92,7 @@ Follow the below steps to start using the framework.
 
 2. cd demo-sample/Demo-Sample
 
-##Create a new user
+## Create a new user
 1. POST {
 "user":{"name":"a111","password":"a"}
 }
@@ -135,7 +135,7 @@ For using Token based auth use below steps
 4. The number indicates minutes of token expiry not hours.
 
 
-##Rest level 3 APIs
+## Rest level 3 APIs
 
 Node-data exposes the entities as level 3 REST APIs in HAL format. 
 Read more about: 
@@ -156,7 +156,7 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 ] 
 ```
  
-###Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users". 
+### Suppose we want to get all the users in the system, we go to: "http://localhost:8080/data/users". 
 ```json
 { 
   "_links": { 
@@ -203,7 +203,7 @@ When we navigate to the base-url(assuming base-url for API is "http://localhost:
 
 If we want to fetch all the roles for any user, we can simply fetch the roles url from inside the "_links" object for the given user. We just need to know what the base URL is, and after that we just follow the links to get any entity, its relations and so on. 
 
-##Model driven system  
+## Model driven system  
 
 A model driven system allow one to build a solid backend by defining model . Convention approach enables developers to define specification on models and those specifications can be execute by framework or implemented by developer it self .  
  
@@ -230,7 +230,7 @@ Here the Student Model has attribute is decorated with document with name studen
 
 @Field will provide the specification for fields in model like primarykey , string field etc. @oneToMany annotation will build a embedded relation with couseModel in the system.
 
-##Data repositories (Only interface)
+## Data repositories (Only interface)
  
 Data repository exposes the basic CRUD operations for a defined model which can be used anywhere in application whether services or controllers. It also allows rest path definition and  authorization settings using attributes. The framework will automatically create the implementation of the interface which can be overridden by developer if required.
 
@@ -243,7 +243,7 @@ export interface BlogRepository extends dataRepository {
 ```
 Here the basic CRUD operations (findone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.
  
-##Auto rest end point generations from repositories 
+## Auto rest end point generations from repositories 
  
 Once the repository interface defined the framework will automatically generates the rest point . In otherward as a developer you don't need to create the controllers. 
 
@@ -277,7 +277,7 @@ If custom logic need to be added or entire repository action (like save) need to
 <S extends T> S save(S entity); 
 ```
  
-##Relations using annotations (one to one , onetomany , manytoone , manyttomany)
+## Relations using annotations (one to one , onetomany , manytoone , manyttomany)
  
 Relations between models can be established by adding following declarations. To explain we will be using following entities. 
  
@@ -301,7 +301,7 @@ class TeacherModel {
 } 
 ```
 
-###OneToMany 
+### OneToMany 
 One-to-many refers to the relationship between two entities A and B in which an element of A may be linked to many elements of B, but a member of B is linked to only one element of A.  
   
 For instance, think of A as mentor, and B as student. A mentor can have several students, but a student can have only one mentor. Following code snippet establish this relation on Teacher entity. 
@@ -325,7 +325,7 @@ Set Entity type to which property is mapped to
 embedded 
 Set to true will embed whole document as property value otherwise only primary key will be set as property value 
  
-###ManyToOne 
+### ManyToOne 
 Many-to-one is vice-versa implementation of one-to-many relation. It’s just that entity is present on other end.  
 We will use example from OneToMany example and add that relation on Student entity. 
  ```typescript
@@ -338,7 +338,7 @@ class StudentModel {
 } 
 ```
 
-###OneToOne 
+### OneToOne 
 One-to-one refers to the relationship between two entities A and B in which one element of A may only be linked to one element of B, and vice versa.
 For instance, think of A as teacher, and B as subject. A teacher has only one subject, and a subject is taught by only one teacher. Following code snippet establish this relation on Teacher entity.
  ```typescript
@@ -351,7 +351,7 @@ class TeacherModel {
 }  
 ```
 
-###ManyToMany
+### ManyToMany
 Many-to-many refers to the relationship between two entities A and B in which A may contain a parent record for which there are many children in B and vice versa.
 For instance, think of A as Student, and B as Subject. A student can have several subjects, and a subject can be taken by several students. Following code snippet establish this relation on Student entity.
  ```typescript
@@ -364,7 +364,7 @@ class StudentModel {
 }
 ```
 
-##Embedded relations support (*replication*)
+## Embedded relations support (*replication*)
 A relation can be saved two ways: 
 1. Link to the related document 
 2. Embed the related document 
@@ -377,7 +377,7 @@ Transaction and services using annotations - (Not Yet Implemented)
 At the moment, transaction is not supported. But eventually, we will support basic transactions using @transactional annotation.  
 Refer to: [Website] (https://docs.mongodb.org/manual/tutorial/perform-two-phase-commits/) for mongodb transaction. 
   
-##DI container
+## DI container
  
 Node-data implements a light-weight annotation driven dependency-injection container. All the services(@service) and repositories(@repository) can be injected in other classes. Construction injection (only for services) and property injection are supported currently. To inject the dependency, use the annotation @inject. @inject takes optional "type" parameter. When type cannot be inferred from the usage (interface or other types), we can pass the "concrete" type as a parameter to inject. 
 Currently, we support concrete types only. If anyone wants to use interfaces, check out [Website] (http://inversify.io/) for more. 
@@ -412,7 +412,7 @@ private myAnotherService: MyAnotherService;
 }
 ```
  
-##Caching second level 
+## Caching second level 
 The proposal for caching is like below
 ```typescript
 @document({ name: 'courses', strict: Strict.throw })
@@ -436,24 +436,24 @@ In above example the courses in the system will be cached as per policy and conc
 
 The choice for Caching (Redis , memcahed ,local) and its setting can be define in config.ts file.
  
-##Search and count (inbuilt elastic search)(repository and query dsl) 
+## Search and count (inbuilt elastic search)(repository and query dsl) 
 
-###Searching 
+### Searching 
 Searching is done on MongoDB by default. 
 Provision is made to search using elasticsearch by changing the settings in the Config file. 
 Search on elasticsearch is currently done only on fields that are indexed in the elasticsearch. 
 All the search methods are needed to be exposed on the Repository. 
 Currently only the "And" search operations are supported. 
  
-###Configuring ElasticSearch: 
+### Configuring ElasticSearch: 
 
-###Installation:
+### Installation:
 Elastic search can be installed from https://www.elastic.co/
-###Config Class:  
+### Config Class:  
 Set "ApplyElasticSearch" to true to enable ElasticSearch 
 Set the path of the ElasticSearch service at "ElasticSearchConnection" 
  
-###Model Class:  
+### Model Class:  
 For all the fields where the ElasticSearch indexing is requried, set the property in "@field" as "searchIndex:true" 
 e.g. As in the "name" and "age" properties, the searchIndex is set to true. 
  ```typescript
@@ -472,7 +472,7 @@ class PersonModel {
 } 
 ```
 
-###Configuring Search:  
+### Configuring Search:  
 All the search methods are defined at the Repository classes. 
 Currently the methods are needed to be defined in a fixed format.  
 The method name should start with "findBy".  
@@ -490,7 +490,7 @@ class PersonRepository {
 } 
 ```
  
-###How the search happens: 
+### How the search happens: 
  
 The API's are defined in such a way that if ALL of the fields to be searched are indexed, then the data is fetched from ElasticSearch. 
 If any one the fields to be searched is NOT indexed in ElasticSearch, the data is fetched from MongoDB. 
@@ -499,7 +499,7 @@ The methods "findByName" and "findByNameAndAge", queries using the fields "name"
 The method "findByNameAndLastname", queries "name" and "lastname". Since "lastname" is not defined as indexed, the data will be fetched from MongoDB. 
 
 
-##Logging 
+## Logging 
 
 It will be completely on developers hand , The framework will allow the metadata of a class , method with logging attribute to be accessible to developers.
 User can also inject the logger using DI.
@@ -512,7 +512,7 @@ class Calculator{
 }
 ```
 
-##Auditing
+## Auditing
 The proposal for Auditing is @Audit attribute which can be applied over model or over repository or in both.
 ```typescript
 @Audit({auditModel: CourseAuditModel})
@@ -531,7 +531,7 @@ export interface BlogRepository extends dataRepository {
 If appllied over repository then all write opertation will be audited in a dedicated document for the model.
 
 
-##Optimistic Locking
+## Optimistic Locking
 The docuement databases are infamous for concurrent updates . in high concurrency the situation multifolds itself. we are proposing a simple mechanism of optimatic locking by decorating the suspected method on repository by
 ```typescript
 @OptimisticLocking(type = OptimisticLockType.VERSION)
@@ -546,7 +546,7 @@ version: int;
 ```
 @version attribute could be applied to int , date fields. Once this is done , for every write query the version check will be apllied hence if somone has stale data it won't be allowed to write.
 
-##Graphql support 
+## Graphql support 
 For Graphql, atrribute over the  Model will enable the graph queries to be executed.like 
 ```typescript
 @document({ name: 'users', strict: Strict.true }) 
@@ -594,7 +594,7 @@ mutation updateUser($userId: String! $name: String!) {
   }
 }
 ``` 
-##Meta-data API
+## Meta-data API
 
 Metadata gives the structure of the object. The structure consists of the properties defined in the entities. 
 
@@ -637,13 +637,13 @@ Further running ‘http://localhost/Metadata/students’ will give:
 ```
 For primitive types, name of the type is shown.  If the entity has a relationship with another entity then the link of that object's metadata is shown. 
  
-##Security (inbuilt authentication) ,role based autherization , acl 
+## Security (inbuilt authentication) ,role based autherization , acl 
  
-###System has two types of inbuilt authentication:  
+### System has two types of inbuilt authentication:  
 1. *Session based* 
 2. *Token based* 
  
-###Session based 
+### Session based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a session for it. 
 To use this a user needs to edit the config.ts file. 
 ```typescript
@@ -657,7 +657,7 @@ export class Security {
 Both isAutheticationEnabled  and isAutheticationByUserPasswd should be set to TRUE.  
 isAutheticationByUserPasswd  and  isAutheticationByToken are mutually exclusive.   
  
-###Token Based 
+### Token Based 
 It takes the username and password from a user, validates it against the user document in the mongodb. If user is found it creates a token and a refreshToken for that user, and stores in user document itself. Session is not created in this case.  
 The token expiry time can be set in security-config.ts file. 
  ```typescript
@@ -677,7 +677,7 @@ export class Security {
 ```
 Currently any user who is AUTHENTICATED, has access to the entire DB. This is because, AUTHORIZATION is not implemented. In the absence of authorization, the user has access to every document in the db. 
 
-###FaceBook Authentication(SSO) 
+### FaceBook Authentication(SSO) 
 
 Facebook authentication uses facebook to authenticate a user. If the user is present in the db, it stores the token in the user document and creates a session for the user in the application. In case its a new user, it first creates the user in the DB and then creates a session for the user in the application. 
 To enable it the only thing needs to be done is in the config.ts file. 
@@ -690,7 +690,7 @@ export class Security {
 }
 ```
 
-##Everything is promise (*no callback hell*)
+## Everything is promise (*no callback hell*)
 Callback-Hell in nodejs occurs when we have multiple levels of callbacks(as shown in the sample below). This severely affects readablitly of the code. Node-data internally uses [Q](https://github.com/kriskowal/q/wiki/API-Reference) to wrap the function calls and returns a promise. Using Promise chains flattens the pyramid and the code is cleaner.
  ```typescript
  return Q.nbind(this.find, this)(params)
@@ -710,7 +710,7 @@ this.find(params, (error, data) => {
 })
 ```
 
-##Validation
+## Validation
 Proposal is to create a validation service where annotations will be used to validate required attributes in any entity.
 
 For example check below code fragment
@@ -743,7 +743,7 @@ class UserModel {
 
 The user will have freedom to choose the entity attribute to be validated before save or update.
 
-##Diffrence between waterline and Node-Data
+## Diffrence between waterline and Node-Data
 The waterline is a greate opensource porject and has been an inspiration for us but there is a big difference between Node-data and waterline . The Node-Data is not an another ORM , its a wrapper over famous ORMs like(mongoose , seqlize , neo4j) . Node-Data provides an abstraction over these famous ORMs so that Developer don't have to deal with them individually and they can write models and transaction over these ORMs with same codebase. 
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
