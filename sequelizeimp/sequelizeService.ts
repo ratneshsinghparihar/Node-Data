@@ -97,6 +97,10 @@ class SequelizeService implements IEntityService {
         return this.getModel(repoPath).bulkUpdate(objArr);
     }
 
+    bulkPatch(repoPath: string, objArr: Array<any>): Q.Promise<any> {
+        return this.getModel(repoPath).bulkUpdate(objArr);
+    }
+
     findAll(repoPath: string): Q.Promise<any> {
         return this.getModel(repoPath).findAll().then(result => {
             if (!result) return null;
