@@ -25,10 +25,6 @@ export class MongooseService implements IEntityService {
         return MongooseModel.bulkPut(this.getModel(repoPath), objArr);
     }
 
-    bulkPatch(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return MongooseModel.bulkPatch(this.getModel(repoPath), objArr);
-    }
-
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
         return MongooseModel.bulkPutMany(this.getModel(repoPath), objIds, obj);
     }
