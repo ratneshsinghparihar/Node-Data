@@ -12,6 +12,7 @@ export interface IEntityService {
     findChild(model: any, id, prop);
     bulkPost(model: any, objArr: Array<any>): Q.Promise<any>;
     bulkPut(model: any, objArr: Array<any>): Q.Promise<any>;
+    bulkPatch(model: any, objArr: Array<any>): Q.Promise<any>;
     bulkPutMany(model: any, objIds: Array<any>, obj: any): Q.Promise<any>;
     bulkDel(model: any, objArr: Array<any>): Q.Promise<any>;
     post(model: any, obj: any): Q.Promise<any>;
