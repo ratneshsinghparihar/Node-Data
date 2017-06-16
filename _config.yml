@@ -1,0 +1,8 @@
+title: Node-data
+description: " Node-Data is a Node.js framework to expose rest data on level 3 (metadata and auto discovery).  This framework will allow declarative style (annotations) to handle most of backend concerns (data relations, transactions, rest, graphql , security) ."
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions
