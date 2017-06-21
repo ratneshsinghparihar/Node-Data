@@ -12,6 +12,7 @@ import { RepoActions } from '../enums/repo-actions-enum';
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
 import * as Enumerable from 'linq';
 import Q = require('q');
+import { Types } from "mongoose";
 
 /**
  * Provides you three states (new, old, merged) for an entity as parameters on which
@@ -89,14 +90,14 @@ export function entityAction(params: IPreauthorizeParams): any {
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
                             // for delete, post action no need to save merged entity else save merged entity to db
-                            if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
+                            //if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
                                 if (args.length) {
                                     args[args.length - 1] = fullyQualifiedEntities;
                                 }
                                 else {
                                     args[0] = fullyQualifiedEntities;
                                 }
-                            }
+                            //}
                             return originalMethod.apply(this, args);
                             //return originalMethod.apply(this, [fullyQualifiedEntities]);
                         }
@@ -163,7 +164,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.delete.toUpperCase():
             // fetch single object 
             prom = rootRepo.findMany([args[0]], true).then(res => {
-                return mergeProperties(res[0], undefined, res[0]);
+                return mergeProperties(res[0], args[0], res[0]);
             });
             break;
 
@@ -250,7 +251,7 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
         }
     }
 
-    if (entity) {
+    if (entity && (entity instanceof Object && !(entity instanceof Types.ObjectId))) {
 
         for (var prop in entity) {
             if (typeof entity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {
