@@ -22,6 +22,8 @@ export class Decorators {
     public static ALLOWANONYMOUS = 'allowanonymous';
     public static WORKER = 'worker';
     public static OPTIMISTICLOCK = 'OptimisticLocking';
+    public static PROMISABLE = 'Promisable';
+
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];
