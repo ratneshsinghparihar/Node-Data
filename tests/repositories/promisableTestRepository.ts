@@ -1,9 +1,10 @@
 ﻿import {repository} from "../../core/decorators";
+import {postfilter} from "../../core/decorators/postfilter";
 import {teacher} from '../models/teacher';
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 
-@repository({ path: 'teacher', model: teacher })
-export default class TeacherRepository extends DynamicRepository {
+@repository({ path: 'promisableTest', model: teacher })
+export default class PromisableTestRepository extends DynamicRepository {
 
     findOne(id: any): Q.Promise<any> {
 
@@ -28,4 +29,5 @@ export default class TeacherRepository extends DynamicRepository {
             return result;
         });
     }
+
 }

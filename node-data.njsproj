@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -42,6 +42,7 @@
     <TypeScriptCompile Include="core\decorators\interfaces\decorator-params.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\postfilter-params.ts" />
     <TypeScriptCompile Include="core\decorators\allowanonymous.ts" />
+    <TypeScriptCompile Include="core\decorators\promisable.ts" />
     <TypeScriptCompile Include="core\decorators\transient.ts" />
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
@@ -190,6 +191,7 @@
     <TypeScriptCompile Include="tests\models\usermodel.ts" />
     <TypeScriptCompile Include="tests\preauth-service.ts" />
     <TypeScriptCompile Include="tests\repositories\BRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\promisibleTestRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\schoolRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\cityRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
