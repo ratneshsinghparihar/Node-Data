@@ -28,7 +28,14 @@ export class teacher extends baseModel {
     physics: Array<subject>;
 
     @promisable({ targetKey: "physics" })
-    physics_LAZY: Promise<any>;
+    physics_LAZY: (isRefresh?: boolean) => Promise<any> | any;
+
+    @onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
+    physics1: Array<subject>;
+
+    @promisable({ targetKey: "physics1" })
+    physics1_LAZY: (isRefresh?: boolean) => Promise<any> | any;
+
 }
 
 export default teacher;

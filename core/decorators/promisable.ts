@@ -15,6 +15,7 @@ import Q = require('q');
 export function promisable(params: IPromisableParam): any {
     params = params || <any>{};
     return function (target: Object, propertyKey: string, parameterIndex?: number) {
+
         MetaUtils.addMetaData(target,
             {
                 decorator: Decorators.PROMISABLE,
@@ -22,46 +23,69 @@ export function promisable(params: IPromisableParam): any {
                 params: params,
                 propertyKey: propertyKey
             });
+         
+        var getter = function (refresh: boolean) {
 
-        var getter = function () {
             // find the target property from params.targetKey
             // find the relavent repository from the relationship and fetch all entity data from db
             var allReferencingEntities: Array<MetaData> = CoreUtils.getAllRelationsForTargetInternal(getEntity(this.constructor.name))
             let targetProperties = allReferencingEntities.filter((x: MetaData) => x.propertyKey === params.targetKey);
             if (!targetProperties) {
-                return Q.when(true);
+                return Q.reject(`the targer property ${params.targetKey} either does not exist or does not have any relationship asscociated with it.`);
             }
 
-            let targerProperty: MetaData = targetProperties[0];
+            let targerPropertyMeta: MetaData = targetProperties[0];
+            let ghostKey = "__ghostKey_" + params.targetKey;
+            let ghostKeyData = undefined;
 
             // if target property already have object filled then no need to fetch again
-            if (targerProperty.params.embedded || targerProperty.params.eagerLoading) {
-                return Q.when(true);
+            if (targerPropertyMeta.params.embedded || targerPropertyMeta.params.eagerLoading) {
+                return Q.when(this[params.targetKey]);
             }
 
-            let repo = GetRepositoryForName(targerProperty.params.rel);
-            return repo.getRootRepo().findMany(this[params.targetKey]).then(results => {
-                this[params.targetKey] = results;
-                return Q.when(this);
-            }).catch(exc => {
-                return Q.reject(exc);
-            });;
+            if (!refresh && this[ghostKey]) {
+                return this[ghostKey];
+            }
+
+            let repo = GetRepositoryForName(targerPropertyMeta.params.rel);
+            if (!repo) {
+                return Q.reject(`the targer property ${params.targetKey}'s model's repository does not exist.`);
+            }
+
+            if (!Object.getOwnPropertyDescriptor(this, ghostKey)) {
+
+                Object.defineProperty(this, ghostKey, {
+                    get: () => {
+                        return ghostKeyData;
+                    },
+                    set: (val) => {
+                        ghostKeyData = val;
+                    }
+                });
+            }
+
+            // case for onetomany, manytomany relationship type
+            if (targerPropertyMeta.propertyType.isArray) {
+                return repo.getRootRepo().findMany(this[params.targetKey], true).then(results => {
+                    this[ghostKey] = results;
+                    return Q.when(results);
+                }).catch(exc => {
+                    return Q.reject(exc);
+                });
+            }
+            // case for onetoone, manytoone relationship type
+            else {
+                return repo.getRootRepo().findOne(this[params.targetKey]).then(result => {
+                    this[ghostKey] = result;
+                    return Q.when(result);
+                }).catch(exc => {
+                    return Q.reject(exc);
+                });;
+            }
         };
 
-        // Create new property with getter only
-        Object.defineProperty(target, propertyKey, {
-            get: getter,
-            enumerable: true,
-            configurable: true
-        });
+        target[propertyKey] = getter;
 
-        MetaUtils.addMetaData(target,
-            {
-                decorator: Decorators.PROMISABLE,
-                decoratorType: DecoratorType.PROPERTY,
-                params: params,
-                propertyKey: propertyKey
-            });
     };
 
 
