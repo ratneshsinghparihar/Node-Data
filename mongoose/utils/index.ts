@@ -7,6 +7,7 @@ import {getDbSpecifcModel} from '../db';
 import {pathRepoMap, getModel, getSchema} from '../../core/dynamic/model-entity';
 import {MetaData} from '../../core/metadata/metadata';
 import {Decorators} from '../../core/constants/decorators';
+import {Types} from "mongoose";
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -143,4 +144,11 @@ export function getMongoUpdatOperatorForRelation(meta: MetaData) {
 
     return operator;
 
+}
+
+export function isBasonOrStringType(obj: any) {
+    if (!obj) {
+        return undefined;
+    }
+    return obj instanceof Types.ObjectId || typeof obj === "string";
 }
