@@ -38,10 +38,10 @@ export function promisable(params: IPromisableParam): any {
             let ghostKey = "__ghostKey_" + params.targetKey;
             let ghostKeyData = undefined;
 
-            // if target property already have object filled then no need to fetch again
-            if (targerPropertyMeta.params.embedded || targerPropertyMeta.params.eagerLoading) {
-                return Q.when(this[params.targetKey]);
-            }
+            //// if target property already have object filled then no need to fetch again
+            //if (targerPropertyMeta.params.embedded || targerPropertyMeta.params.eagerLoading) {
+            //    return Q.when(this[params.targetKey]);
+            //}
 
             if (!refresh && this[ghostKey]) {
                 return this[ghostKey];
@@ -66,7 +66,17 @@ export function promisable(params: IPromisableParam): any {
 
             // case for onetomany, manytomany relationship type
             if (targerPropertyMeta.propertyType.isArray) {
-                return repo.getRootRepo().findMany(this[params.targetKey], true).then(results => {
+                let ids = [];
+                if (!this[params.targetKey] || !this[params.targetKey].length) {
+                    return Q.when([]);
+                }
+                if (Utils.isBasonOrStringType(this[params.targetKey][0])) {
+                    ids = this[params.targetKey];
+                }
+                else {
+                    ids = this[params.targetKey].map(x => x._id);
+                }
+                return repo.getRootRepo().findMany(ids, true).then(results => {
                     this[ghostKey] = results;
                     return Q.when(results);
                 }).catch(exc => {
@@ -75,7 +85,17 @@ export function promisable(params: IPromisableParam): any {
             }
             // case for onetoone, manytoone relationship type
             else {
-                return repo.getRootRepo().findOne(this[params.targetKey]).then(result => {
+                let id = "";
+                if (!this[params.targetKey]) {
+                    Q.when({});
+                }
+                if (Utils.isBasonOrStringType(this[params.targetKey])) {
+                    id = this[params.targetKey];
+                }
+                else {
+                    id = this[params.targetKey]._id;
+                }
+                return repo.getRootRepo().findOne(id).then(result => {
                     this[ghostKey] = result;
                     return Q.when(result);
                 }).catch(exc => {
