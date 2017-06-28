@@ -263,7 +263,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             queryFindCond['_id'] = { $in: parentIds };
             queryFindCond[meta.propertyKey + '._id'] = objectId;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-            updateSet[meta.propertyKey + updateMongoOperator] = objs[i];
+            updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
             bulk.find(queryFindCond).update({ $set: updateSet });
         }
 
@@ -715,8 +715,10 @@ function embedSelectedPropertiesOnly(params: IAssociationParams, result: any) {
 function trimProperties(data, props: Array<string>) {
     var updated = {};
     updated['_id'] = data['_id'];
-    props.forEach(prop => {
-        updated[prop] = data[prop];
+    props.forEach(p => {
+        if (data[p]) {
+            updated[p] = data[p];
+        }
     });
     return updated;
 }
