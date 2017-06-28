@@ -692,8 +692,33 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     }
 
     return Q.allSettled(asyncTask).then(res => {
-        obj[prop] = newVal;
+        obj[prop] = embedSelectedPropertiesOnly(params, newVal);
     });
+}
+
+function embedSelectedPropertiesOnly(params: IAssociationParams, result: any) {
+    if (result && params.properties && params.properties.length > 0 && params.embedded) {
+        if (result instanceof Array) {
+            var newResult = [];
+            result.forEach(x => {
+                newResult.push(trimProperties(x, params.properties));
+            });
+            return newResult;
+        }
+        else {
+            return trimProperties(result, params.properties);
+        }
+    }
+    return result;
+}
+
+function trimProperties(data, props: Array<string>) {
+    var updated = {};
+    updated['_id'] = data['_id'];
+    props.forEach(prop => {
+        updated[prop] = data[prop];
+    });
+    return updated;
 }
 
 function getFilteredValues(values: [any], properties: [string]) {
