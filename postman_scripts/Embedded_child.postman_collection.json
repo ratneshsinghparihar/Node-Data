@@ -1,61 +1,52 @@
 {
-	"variables": [],
-	"info": {
-		"name": "Embedded_child",
-		"_postman_id": "cc0cb091-b2ec-d558-e2a9-2af2466f0c7b",
-		"description": "",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
-	},
-	"item": [
+	"id": "1f1dd3c5-9f3c-9033-f444-a3688845e76c",
+	"name": "Embedded_child",
+	"description": "",
+	"order": [
+		"4ceb5ee8-114b-3092-ef58-7af3c96ad403",
+		"0f1087b4-20ba-3c04-1f44-d4647882cead"
+	],
+	"folders": [],
+	"owner": "1223943",
+	"hasRequests": true,
+	"requests": [
 		{
-			"name": "http://localhost:23548/data/teacher",
-			"request": {
-				"url": "http://localhost:23548/data/teacher",
-				"method": "POST",
-				"header": [
-					{
-						"key": "netsessionid",
-						"value": "28ad0ac0-bf74-479e-9e13-13bab456038f",
-						"description": ""
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Teacher1\",\n\t\"physicsOne\":{\"name\":\"p1\", \"createdDate\": 2, \"updateddate\": 3},\n\t\"physicsMany\":[\n\t\t{\"name\":\"pm1\", \"createdDate\": 3, \"updateddate\": 5},\n\t\t{\"name\":\"pm2\", \"createdDate\": 1, \"updateddate\": 7}\n\t\t]\n}"
-				},
-				"description": ""
-			},
-			"response": []
+			"id": "0f1087b4-20ba-3c04-1f44-d4647882cead",
+			"headers": "netsessionid: 28ad0ac0-bf74-479e-9e13-13bab456038f\nContent-Type: application/json\n",
+			"url": "http://localhost:23548/data/teacher/{{teacherid}}",
+			"preRequestScript": null,
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1498817749964,
+			"name": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
+			"description": "",
+			"collectionId": "1f1dd3c5-9f3c-9033-f444-a3688845e76c",
+			"responses": [],
+			"rawModeData": "{\n\t\"courseOTM\":[{}],\n\t\"physics\":[{}]\n\t\n}"
 		},
 		{
-			"name": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
-			"request": {
-				"url": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
-				"method": "GET",
-				"header": [
-					{
-						"key": "netsessionid",
-						"value": "28ad0ac0-bf74-479e-9e13-13bab456038f",
-						"description": ""
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"courseOTM\":[{}],\n\t\"physics\":[{}]\n\t\n}"
-				},
-				"description": ""
-			},
-			"response": []
+			"id": "4ceb5ee8-114b-3092-ef58-7af3c96ad403",
+			"headers": "netsessionid: 28ad0ac0-bf74-479e-9e13-13bab456038f\nContent-Type: application/json\n",
+			"url": "http://localhost:23548/data/teacher",
+			"preRequestScript": null,
+			"pathVariables": {},
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"tests": "tests[\"Status code is 200\"] = responseCode.code === 200;\n\nvar jsonData = JSON.parse(responseBody);\npostman.setEnvironmentVariable(\"teacherid\", jsonData._id);\n\n",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1498817748336,
+			"name": "http://localhost:23548/data/teacher",
+			"description": "",
+			"collectionId": "1f1dd3c5-9f3c-9033-f444-a3688845e76c",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\": \"Teacher1\",\n\t\"physicsOne\":{\"name\":\"p1\", \"createdDate\": 2, \"updateddate\": 3},\n\t\"physicsMany\":[\n\t\t{\"name\":\"pm1\", \"createdDate\": 3, \"updateddate\": 5},\n\t\t{\"name\":\"pm2\", \"createdDate\": 1, \"updateddate\": 7,\"delete\":true}\n\t\t]\n}"
 		}
 	]
 }

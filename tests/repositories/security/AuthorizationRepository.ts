@@ -20,8 +20,8 @@ export class AuthorizationRepository extends DynamicRepository {
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntities" }) // ACL part
     findMany(ids: Array<any>, toLoadEmbededChilds?: boolean): Q.Promise<any> {
         let actionEntities: Array<EntityActionParam> = ids;
-        return this.preBulkRead(actionEntities).then(results => {
-            return this.postBulkRead(results).then(newResults => {
+        return this.preBulkRead(actionEntities).then((results) => {
+            return this.postBulkRead(results).then((newResults) => {
                 return Q.when(newResults.map(entity => entity.newPersistentEntity));
             }).catch(exc => {
                 return Q.reject(exc);

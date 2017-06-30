@@ -6,6 +6,7 @@ import {preauthorize} from '../../core/decorators/preauthorize';
 import {postfilter} from '../../core/decorators/postfilter';
 import {AuthorizationRepository} from './security/AuthorizationRepository';
 import {entityAction, EntityActionParam} from '../../core/decorators/entityAction';
+import Q = require('q');
 
 @repository({ path: 'subject', model: subject })
 export default class CourseRepository extends AuthorizationRepository {
@@ -34,14 +35,18 @@ export default class CourseRepository extends AuthorizationRepository {
     }
 
     postRead(params: EntityActionParam): Q.Promise<any> {
-        return Q.when(params);
-    }
-
-    preBulkRead(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
-        return Q.when(params);
+        let curEntity = params.newPersistentEntity;
+        if (curEntity.delete) {
+            return Q.when(undefined);
+        }
+      return Q.when(params);
     }
 
     postBulkRead(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
+        return Q.when(params.filter((entity) => { return !entity.newPersistentEntity.delete }));
+    }
+
+    preBulkRead(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
         return Q.when(params);
     }
 }
