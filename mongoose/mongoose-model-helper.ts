@@ -10,7 +10,7 @@ import {MetaData} from '../core/metadata/metadata';
 import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
-import {getEntity, getModel} from '../core/dynamic/model-entity';
+import {getEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
@@ -73,14 +73,16 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         var param: IAssociationParams = <IAssociationParams>m.params;
-        if (param.embedded)
-            return;
+        //if (param.embedded)
+        //    return;
 
-        if (force || param.eagerLoading) {
+        if (force || param.eagerLoading || param.embedded) {
             var relModel = Utils.getCurrentDBModel(param.rel);
+            // find model repo and findMany from repo instead of calling mongoose model directly
+            let repo = repoFromModel[relModel.modelName];
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
-                    asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey])
+                    asyncCalls.push(repo.findMany(val[m.propertyKey])
                         .then(result => {
                             var childCalls = [];
                             var updatedChild = [];
@@ -97,7 +99,7 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
             }
             else {
                 if (val[m.propertyKey]) {
-                    asyncCalls.push(mongooseModel.findOne(relModel, val[m.propertyKey])
+                    asyncCalls.push(repo.findOne(val[m.propertyKey])
                         .then(result => {
                             return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
                                 val[m.propertyKey] = r;

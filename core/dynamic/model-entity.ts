@@ -2,6 +2,7 @@
 import {User} from '../../security/auth/user';
 var schemaNameModel: { [key: string]: any } = {};
 export var pathRepoMap: { [key: string]: { schemaName: string, modelType: string } } = <any>{};
+export var repoFromModel: { [key: string]: any } = <any>{};
 
 export function updateModelEntity(schemaName: string, entity: any, model: any, schema: any) {
     if (!schemaNameModel[schemaName]) {

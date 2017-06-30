@@ -12,6 +12,7 @@ import {InstanceService} from '../services/instance-service';
 import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 import {QueryOptions} from '../interfaces/queryOptions';
+import * as utils from '../../mongoose/utils';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
@@ -187,9 +188,15 @@ export class DynamicRepository implements IDynamicRepository {
 
 
     public findOne(id) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id).then(result => {
-            return InstanceService.getObjectFromJson(this.getEntity(), result);
-        });
+        if (!utils.isBasonOrStringType(id)) {
+            let result = id;
+            return Q.when(InstanceService.getObjectFromJson(this.getEntity(), result));
+        }
+        else {
+            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id).then(result => {
+                return InstanceService.getObjectFromJson(this.getEntity(), result);
+            });
+        }
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
@@ -197,16 +204,29 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public findMany(ids: Array<any>, toLoadEmbeddedChilds?: boolean) {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids, toLoadEmbeddedChilds).then(result => {
+        if (!utils.isBasonOrStringType(ids[0])) {
+            let result = ids;
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                 });
-                return res;
+                return Q.when(res);
             }
-            return result;
-        });
+            return Q.when(result);
+        }
+        else {
+            return Utils.entityService(pathRepoMap[this.path].modelType).findMany(this.path, ids, toLoadEmbeddedChilds).then(result => {
+                if (result && result.length > 0) {
+                    var res = [];
+                    result.forEach(x => {
+                        res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+                    });
+                    return res;
+                }
+                return result;
+            });
+        }
     }
 
     public findChild(id, prop): Q.Promise<any> {

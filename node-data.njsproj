@@ -194,10 +194,12 @@
     <TypeScriptCompile Include="tests\repositories\promisibleTestRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\schoolRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\cityRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\security\AuthorizationRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\role.repository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />
+    <TypeScriptCompile Include="tests\services\authorizationService.ts" />
     <TypeScriptCompile Include="typings\express\express.d.ts" />
     <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
     <TypeScriptCompile Include="typings\jasmine\jasmine.d.ts" />
@@ -268,6 +270,8 @@
     <Folder Include="spec\support\" />
     <Folder Include="tests\" />
     <Folder Include="tests\models\" />
+    <Folder Include="tests\repositories\security\" />
+    <Folder Include="tests\services\" />
     <Folder Include="tests\repositories\" />
     <Folder Include="typings\" />
     <Folder Include="typings\express\" />

@@ -13,6 +13,7 @@ import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-reposito
 import * as Enumerable from 'linq';
 import Q = require('q');
 import { Types } from "mongoose";
+import * as utils from '../../mongoose/utils';
 
 /**
  * Provides you three states (new, old, merged) for an entity as parameters on which
@@ -143,7 +144,13 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 return mergeEntities(dbEntities, undefined, mergedEntities);
             });
             break;
-        // TODO: Need to write code for all remaining get entity(s) actions 
+        case RepoActions.findMany.toLocaleUpperCase():
+            prom = rootRepo.findMany(args[0]).then((dbEntities: Array<any>) => {
+                let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
+                return mergeEntities(dbEntities, undefined, mergedEntities);
+            });
+            break;
+        // TODO: Need to write code for all remaining get entity(s) actions
 
         case RepoActions.post.toUpperCase():
             // do nothing
