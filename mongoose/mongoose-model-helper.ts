@@ -84,16 +84,18 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
                     asyncCalls.push(repo.findMany(val[m.propertyKey])
                         .then(result => {
-                            var childCalls = [];
-                            var updatedChild = [];
-                            Enumerable.from(result).forEach(res => {
-                                childCalls.push(embeddedChildren(relModel, res, false).then(r => {
-                                    updatedChild.push(r);
-                                }));
-                            });
-                            return Q.all(childCalls).then(r => {
-                                val[m.propertyKey] = updatedChild;
-                            });
+                            //var childCalls = [];
+                            //var updatedChild = [];
+                            //Enumerable.from(result).forEach(res => {
+                            //    childCalls.push(embeddedChildren(relModel, res, false).then(r => {
+                            //        updatedChild.push(r);
+                            //    }));
+                            //});
+                            //return Q.all(childCalls).then(r => {
+                            //    val[m.propertyKey] = updatedChild;
+                            //});
+                            val[m.propertyKey] = result;
+                            return Q.when(val[m.propertyKey]);
                         }));
                 }
             }
@@ -101,9 +103,11 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
                 if (val[m.propertyKey]) {
                     asyncCalls.push(repo.findOne(val[m.propertyKey])
                         .then(result => {
-                            return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
-                                val[m.propertyKey] = r;
-                            }));
+                            //return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
+                            //    val[m.propertyKey] = r;
+                            //}));
+                            val[m.propertyKey] = result;
+                            return Q.when(val[m.propertyKey]);
                         }).catch(error => {
                             winstonLog.logError(`Error in embeddedChildren ${error}`);
                             return Q.reject(error);
