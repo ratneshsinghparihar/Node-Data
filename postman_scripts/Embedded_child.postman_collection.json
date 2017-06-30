@@ -8,6 +8,31 @@
 	},
 	"item": [
 		{
+			"name": "http://localhost:23548/data/teacher",
+			"request": {
+				"url": "http://localhost:23548/data/teacher",
+				"method": "POST",
+				"header": [
+					{
+						"key": "netsessionid",
+						"value": "28ad0ac0-bf74-479e-9e13-13bab456038f",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Teacher1\",\n\t\"physicsOne\":{\"name\":\"p1\", \"createdDate\": 2, \"updateddate\": 3},\n\t\"physicsMany\":[\n\t\t{\"name\":\"pm1\", \"createdDate\": 3, \"updateddate\": 5},\n\t\t{\"name\":\"pm2\", \"createdDate\": 1, \"updateddate\": 7}\n\t\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
 			"request": {
 				"url": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
