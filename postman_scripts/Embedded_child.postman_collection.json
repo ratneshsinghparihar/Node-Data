@@ -1,0 +1,36 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Embedded_child",
+		"_postman_id": "cc0cb091-b2ec-d558-e2a9-2af2466f0c7b",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
+			"request": {
+				"url": "http://localhost:23548/data/teacher/5956002e6ab1dc8c52cf45a0",
+				"method": "GET",
+				"header": [
+					{
+						"key": "netsessionid",
+						"value": "28ad0ac0-bf74-479e-9e13-13bab456038f",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"courseOTM\":[{}],\n\t\"physics\":[{}]\n\t\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
