@@ -8,7 +8,8 @@ export class AuthorizationRepository extends DynamicRepository {
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntity" }) // ACL part
     findOne(id: any): Q.Promise<any> {
-        let params: EntityActionParam = <EntityActionParam>id;
+        let args: Array<any> = Array.apply(null, arguments);
+        let params: EntityActionParam = <EntityActionParam>args[args.length - 1];
         return this.postRead(params).then((updatedParams: EntityActionParam) => {
             return Q.resolve(updatedParams.newPersistentEntity);
         },

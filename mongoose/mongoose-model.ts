@@ -302,10 +302,10 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
  * @param model
  * @param id
  */
-export function findOne(model: Mongoose.Model<any>, id) {
+export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolean) {
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            return mongooseHelper.embeddedChildren(model, result, false)
+            return mongooseHelper.embeddedChildren(model, result, false, donotLoadChilds)
                 .then(r => {
                     return Utils.toObject(r);
                 });

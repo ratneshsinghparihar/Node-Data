@@ -9,7 +9,7 @@ import {DecoratorType} from '../core/enums/decorator-type';
 import {MetaData} from '../core/metadata/metadata';
 import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
-import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
+import {GetRepositoryForName,DynamicRepository} from '../core/dynamic/dynamic-repository';
 import {getEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
@@ -63,9 +63,13 @@ export function removeTransientProperties(model: Mongoose.Model<any>, obj: any):
  * @param val
  * @param force
  */
-export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: boolean) {
+export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: boolean, donotLoadChilds?: boolean) {
     if (!model)
         return;
+
+    if (donotLoadChilds) {
+        return Q.when(val);
+    }
 
     var asyncCalls = [];
     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
@@ -79,7 +83,7 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
         if (force || param.eagerLoading || param.embedded) {
             var relModel = Utils.getCurrentDBModel(param.rel);
             // find model repo and findMany from repo instead of calling mongoose model directly
-            let repo = repoFromModel[relModel.modelName];
+            let repo: DynamicRepository = repoFromModel[relModel.modelName];
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
                     asyncCalls.push(repo.findMany(val[m.propertyKey])
@@ -101,7 +105,7 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
             }
             else {
                 if (val[m.propertyKey]) {
-                    asyncCalls.push(repo.findOne(val[m.propertyKey])
+                    asyncCalls.push(repo.findOne(val[m.propertyKey], true)
                         .then(result => {
                             //return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
                             //    val[m.propertyKey] = r;
