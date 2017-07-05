@@ -4,4 +4,9 @@ export class workerParamsDto{
     servicemethodName: string;
     arguments: [any];
     principalContext: any;
+    processId: number;
+    initialize: boolean;
+    status: string;
+    message: string;
+    result: any;
 }

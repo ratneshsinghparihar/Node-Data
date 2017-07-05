@@ -14,6 +14,13 @@ let _config: any = {};
 let _securityConfig: any = {};
 let _entityService: Map<String, IEntityService> = new Map<String, IEntityService>();
 
+export var workerResponse = '__worker';
+
+export class ProcessStatus {
+    static success: string = "SUCCESS";
+    static failure: string = "FAILURE";
+}
+
 export class resources {
     static userDatabase: string = '_database';
 }

@@ -13,10 +13,13 @@ var fs = require('fs');
 var defaultWorkerName = "core/decorators/worker.js";
 var cls = require('continuation-local-storage');
 
-var thread: number = 2;
 var workerProcess: Array<WorkerProcess> = new Array<WorkerProcess>();
 var tasks: Array<workerParamsDto> = new Array<workerParamsDto>();
+
+//move to configuration
 var workerName = 'worker.js';
+var thread: number = 1;
+var _appRoot = process.cwd();
 
 class WorkerProcess {
     name: string;
@@ -26,6 +29,7 @@ class WorkerProcess {
     fork: any;
 }
 
+// Add debug options
 function getDebugOption(offset: number) {
     var execArgv = (<any>process).execArgv.slice(); //create args shallow copy
     var debugPort = (<any>process).debugPort + offset + 1;
@@ -45,7 +49,7 @@ function getDebugOption(offset: number) {
 
 function sendNextMessage(process: WorkerProcess, received: workerParamsDto) {
     if (received) {
-        winstonLog.logInfo('message from Child Process: ' + JSON.stringify(received));
+        winstonLog.logInfo('success message from Child Process: ' + JSON.stringify(received));
     }
     process.initialized = true;
     process.executing = null;
@@ -58,53 +62,60 @@ function sendNextMessage(process: WorkerProcess, received: workerParamsDto) {
 }
 
 function executeNextProcess(param: workerParamsDto) {
-    var process: WorkerProcess;
-    if (thread > 0) {
+    var proc: WorkerProcess;
+    var thrd = configUtil.config().Config.process ? configUtil.config().Config.process : thread;
+    if (thrd > 0) {
         tasks.push(param);
-        if (workerProcess.length < thread) {
+        if (workerProcess.length < thrd) {
             // create new process entry and spawn it
-            process = new WorkerProcess();
-            process.name = 'worker' + workerProcess.length + 1;
-            process.fork = child_process.fork(workerName, [], getDebugOption(workerProcess.length));
-            if (process.fork.error == null) {
-                process.processId = process.fork.pid;
-                process.executing = <workerParamsDto>({ initialize: true, processId: process.processId });
-                winstonLog.logInfo('Child process created with id: ' + process.fork.pid);
+            proc = new WorkerProcess();
+            proc.name = 'worker' + workerProcess.length + 1;
+            var path = workerName;
+            if (configUtil.config().Config.worker) {
+                path = _appRoot + '/' + configUtil.config().Config.worker;
+            }
+            proc.fork = child_process.fork(path, [], getDebugOption(workerProcess.length));
+            if (proc.fork.error == null) {
+                proc.processId = proc.fork.pid;
+                proc.executing = <workerParamsDto>({ initialize: true, processId: proc.processId });
+                winstonLog.logInfo('Child process created with id: ' + proc.fork.pid);
 
-                process.fork.on('message', function (message) {
+                proc.fork.on('message', function (message: any) {
                     // notify service attached with this process
                     try {
-                        var par: workerParamsDto = <workerParamsDto>(JSON.parse(message));
+                        var par: workerParamsDto = <workerParamsDto>(message);
+                        console.log('received message parsed successful');
                         var proc = Enumerable.from(workerProcess).firstOrDefault(x => x.processId == par.processId);
                         if (proc) {
                             sendNextMessage(proc, par);
                         }
                     }
                     catch (exc) {
-                        winstonLog.logInfo('message from Child Process:' + message);
+                        winstonLog.logInfo('failed message from Child Process:' + message);
                     }
                 });
 
-                process.fork.on('error', function (err) {
+                proc.fork.on('error', function (err) {
                     winstonLog.logError('Error : ' + err);
                     // notify service attached with this process
                 });
 
-                process.fork.on('close', function (code, signal) {
+                proc.fork.on('close', function (code, signal) {
                     winstonLog.logInfo('Child process exited with code: ' + code + ' signal: ' + signal);
                     // notify service attached with this process
                 });
-                workerProcess.push(process);
-                process.fork.send(process.executing);
+                workerProcess.push(proc);
+                winstonLog.logInfo('sending worker:' + proc.executing);
+                proc.fork.send(proc.executing);
             }
             else {
-                winstonLog.logError("Error during creating child Process: " + process.fork.error);
+                winstonLog.logError("Error during creating child Process: " + proc.fork.error);
             }
         }
         else {
-            process = Enumerable.from(workerProcess).firstOrDefault(x => !x.executing);
-            if (process) {
-                sendNextMessage(process, null);
+            proc = Enumerable.from(workerProcess).firstOrDefault(x => !x.executing);
+            if (proc) {
+                sendNextMessage(proc, null);
             }
         }
     }
@@ -219,11 +230,19 @@ export function Worker(params?: WorkerAssociation): any {
 
             if (workerParams.serviceName != null) {
                 console.log("Forking a new child_process: " + workerParams.workerName);
+                if (workerParams.serviceName) {
+                    var decorators = MetaUtils.getMetaData(target);
+                    var dec = Enumerable.from(decorators).where(x => x.decorator == Decorators.SERVICE).firstOrDefault();
+                    if (dec) {
+                        workerParams.serviceName = dec.params.serviceName;
+                        workerParams.servicemethodName = propertyKey;
+                    }
+                }
                 var proc = executeNextProcess(workerParams);
                 winstonLog.logDebug("Context at Worker: " + JSON.stringify(workerParams.principalContext));
                 winstonLog.logInfo("PrincipalConext at Parent: " + JSON.stringify(PrincipalContext.getSession()));
             }
-            return null;
+            return configUtil.workerResponse;
         };
     }
 
