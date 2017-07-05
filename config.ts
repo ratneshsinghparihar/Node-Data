@@ -1,5 +1,5 @@
 export class Config {
-    public static DbConnection: string = "mongodb://localhost:27017/userDatabase";
+    public static DbConnection: string = "mongodb://localhost:27017/test_nodedata";
     public static basePath: string = "data";
     public static apiversion: string = "v1";
 

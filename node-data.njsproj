@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{009be828-1009-4422-9dca-bac09ca0289c}</ProjectGuid>
     <ProjectHome />
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <StartupFile>server.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -42,6 +42,7 @@
     <TypeScriptCompile Include="core\decorators\interfaces\decorator-params.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\postfilter-params.ts" />
     <TypeScriptCompile Include="core\decorators\allowanonymous.ts" />
+    <TypeScriptCompile Include="core\decorators\promisable.ts" />
     <TypeScriptCompile Include="core\decorators\transient.ts" />
     <TypeScriptCompile Include="core\decorators\jsonignore.ts" />
     <TypeScriptCompile Include="core\decorators\interfaces\preauthorize-params.ts" />
@@ -190,12 +191,15 @@
     <TypeScriptCompile Include="tests\models\usermodel.ts" />
     <TypeScriptCompile Include="tests\preauth-service.ts" />
     <TypeScriptCompile Include="tests\repositories\BRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\promisibleTestRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\schoolRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\cityRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\security\AuthorizationRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\role.repository.ts" />
     <TypeScriptCompile Include="tests\repositories\userRepository.ts" />
+    <TypeScriptCompile Include="tests\services\authorizationService.ts" />
     <TypeScriptCompile Include="typings\express\express.d.ts" />
     <TypeScriptCompile Include="typings\form-data\form-data.d.ts" />
     <TypeScriptCompile Include="typings\jasmine\jasmine.d.ts" />
@@ -266,6 +270,8 @@
     <Folder Include="spec\support\" />
     <Folder Include="tests\" />
     <Folder Include="tests\models\" />
+    <Folder Include="tests\repositories\security\" />
+    <Folder Include="tests\services\" />
     <Folder Include="tests\repositories\" />
     <Folder Include="typings\" />
     <Folder Include="typings\express\" />

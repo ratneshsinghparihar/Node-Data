@@ -10,7 +10,7 @@ import {MetaData} from '../core/metadata/metadata';
 import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
 import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
-import {getEntity, getModel} from '../core/dynamic/model-entity';
+import {getEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
@@ -73,35 +73,41 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         var param: IAssociationParams = <IAssociationParams>m.params;
-        if (param.embedded)
-            return;
+        //if (param.embedded)
+        //    return;
 
-        if (force || param.eagerLoading) {
+        if (force || param.eagerLoading || param.embedded) {
             var relModel = Utils.getCurrentDBModel(param.rel);
+            // find model repo and findMany from repo instead of calling mongoose model directly
+            let repo = repoFromModel[relModel.modelName];
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey] && val[m.propertyKey].length > 0) {
-                    asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey])
+                    asyncCalls.push(repo.findMany(val[m.propertyKey])
                         .then(result => {
-                            var childCalls = [];
-                            var updatedChild = [];
-                            Enumerable.from(result).forEach(res => {
-                                childCalls.push(embeddedChildren(relModel, res, false).then(r => {
-                                    updatedChild.push(r);
-                                }));
-                            });
-                            return Q.all(childCalls).then(r => {
-                                val[m.propertyKey] = updatedChild;
-                            });
+                            //var childCalls = [];
+                            //var updatedChild = [];
+                            //Enumerable.from(result).forEach(res => {
+                            //    childCalls.push(embeddedChildren(relModel, res, false).then(r => {
+                            //        updatedChild.push(r);
+                            //    }));
+                            //});
+                            //return Q.all(childCalls).then(r => {
+                            //    val[m.propertyKey] = updatedChild;
+                            //});
+                            val[m.propertyKey] = result;
+                            return Q.when(val[m.propertyKey]);
                         }));
                 }
             }
             else {
                 if (val[m.propertyKey]) {
-                    asyncCalls.push(mongooseModel.findOne(relModel, val[m.propertyKey])
+                    asyncCalls.push(repo.findOne(val[m.propertyKey])
                         .then(result => {
-                            return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
-                                val[m.propertyKey] = r;
-                            }));
+                            //return Q.resolve(embeddedChildren(relModel, result, false).then(r => {
+                            //    val[m.propertyKey] = r;
+                            //}));
+                            val[m.propertyKey] = result;
+                            return Q.when(val[m.propertyKey]);
                         }).catch(error => {
                             winstonLog.logError(`Error in embeddedChildren ${error}`);
                             return Q.reject(error);
@@ -263,7 +269,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             queryFindCond['_id'] = { $in: parentIds };
             queryFindCond[meta.propertyKey + '._id'] = objectId;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-            updateSet[meta.propertyKey + updateMongoOperator] = objs[i];
+            updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
             bulk.find(queryFindCond).update({ $set: updateSet });
         }
 
@@ -692,8 +698,35 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     }
 
     return Q.allSettled(asyncTask).then(res => {
-        obj[prop] = newVal;
+        obj[prop] = embedSelectedPropertiesOnly(params, newVal);
     });
+}
+
+function embedSelectedPropertiesOnly(params: IAssociationParams, result: any) {
+    if (result && params.properties && params.properties.length > 0 && params.embedded) {
+        if (result instanceof Array) {
+            var newResult = [];
+            result.forEach(x => {
+                newResult.push(trimProperties(x, params.properties));
+            });
+            return newResult;
+        }
+        else {
+            return trimProperties(result, params.properties);
+        }
+    }
+    return result;
+}
+
+function trimProperties(data, props: Array<string>) {
+    var updated = {};
+    updated['_id'] = data['_id'];
+    props.forEach(p => {
+        if (data[p]) {
+            updated[p] = data[p];
+        }
+    });
+    return updated;
 }
 
 function getFilteredValues(values: [any], properties: [string]) {
