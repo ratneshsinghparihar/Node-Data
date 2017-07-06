@@ -5,7 +5,7 @@ import {AuthorizationRepository} from './security/AuthorizationRepository';
 import Q = require('q');
 
 @repository({ path: 'teacher', model: teacher })
-export default class TeacherRepository extends AuthorizationRepository {
+export class TeacherRepository extends AuthorizationRepository {
 
     findOne(id: any): Q.Promise<any> {
         return super.findOne(id);
@@ -41,3 +41,4 @@ export default class TeacherRepository extends AuthorizationRepository {
     }
 
 }
+export default TeacherRepository;

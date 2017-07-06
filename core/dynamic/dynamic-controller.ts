@@ -434,7 +434,7 @@ export class DynamicController {
             for (var prop in req.body) {
                 param.push(req.body[prop]);
             }
-            param.push(req);
+            //param.push(req);
             var ret = modelRepo[map.key].apply(modelRepo, param);
             if (Utils.isPromise(ret)) { // is thenable
                 var prom: Q.Promise<any> = <Q.Promise<any>>ret;

@@ -12,14 +12,15 @@ import {PrincipalContext} from '../../security/auth/principalContext';
 var fs = require('fs');
 var defaultWorkerName = "core/decorators/worker.js";
 var cls = require('continuation-local-storage');
+var uuid = require('uuid');
 
 var workerProcess: Array<WorkerProcess> = new Array<WorkerProcess>();
 var tasks: Array<workerParamsDto> = new Array<workerParamsDto>();
 
-//move to configuration
-var workerName = 'worker.js';
-var thread: number = 1;
+//update from configuration
 var _appRoot = process.cwd();
+var workerName = configUtil.config().Config.worker ? (_appRoot + '/' + configUtil.config().Config.worker) : 'worker.js';
+var thread: number = configUtil.config().Config.process ? configUtil.config().Config.process : 1;
 
 class WorkerProcess {
     name: string;
@@ -27,6 +28,27 @@ class WorkerProcess {
     executing: workerParamsDto;
     initialized: boolean;
     fork: any;
+}
+
+export function Worker(params?: WorkerAssociation): any {
+    params = params || <any>{};
+    var session = PrincipalContext.getSession();
+
+    return function (target: any, propertyKey: string, descriptor: any) {
+        winstonLog.logDebug("target is: " + JSON.stringify(target) + " propertyKey " + JSON.stringify(propertyKey) + " descriptor is:  " + JSON.stringify(descriptor));
+        MetaUtils.addMetaData(target,
+            {
+                decorator: Decorators.WORKER,
+                decoratorType: DecoratorType.METHOD,
+                params: params,
+                propertyKey: propertyKey
+            });
+        var originalMethod = descriptor.value;
+        winstonLog.logDebug("Input params for worker:  " + JSON.stringify(params.workerParams));
+
+        descriptor.value = executeWorkerHandler(params, target, propertyKey, originalMethod,
+            Decorators.WORKER);
+    }
 }
 
 // Add debug options
@@ -63,10 +85,9 @@ function sendNextMessage(process: WorkerProcess, received: workerParamsDto) {
 
 function executeNextProcess(param: workerParamsDto) {
     var proc: WorkerProcess;
-    var thrd = configUtil.config().Config.process ? configUtil.config().Config.process : thread;
-    if (thrd > 0) {
+    if (thread > 0) {
         tasks.push(param);
-        if (workerProcess.length < thrd) {
+        if (workerProcess.length < thread) {
             // create new process entry and spawn it
             proc = new WorkerProcess();
             proc.name = 'worker' + workerProcess.length + 1;
@@ -74,6 +95,7 @@ function executeNextProcess(param: workerParamsDto) {
             if (configUtil.config().Config.worker) {
                 path = _appRoot + '/' + configUtil.config().Config.worker;
             }
+            winstonLog.logInfo("Forking a new child_process: " + path);
             proc.fork = child_process.fork(path, [], getDebugOption(workerProcess.length));
             if (proc.fork.error == null) {
                 proc.processId = proc.fork.pid;
@@ -125,125 +147,89 @@ function executeNextProcess(param: workerParamsDto) {
     return process;
 }
 
-export function Worker(params?: WorkerAssociation): any {
-    params = params || <any>{};
-    var session = PrincipalContext.getSession();
+export function executeWorkerHandler(params, target, propertyKey, originalMethod, type: string) {
+    return function () {
+        if (MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded) {
+            winstonLog.logInfo("Executing method from child Process with id: " + process.pid);
+            return originalMethod.apply(this, arguments);
+        }
 
-    return function (target: any, propertyKey: string, descriptor: any) {
-        winstonLog.logDebug("target is: " + JSON.stringify(target) + " propertyKey " + JSON.stringify(propertyKey) + " descriptor is:  " + JSON.stringify(descriptor));
-        MetaUtils.addMetaData(target,
-            {
-                decorator: Decorators.WORKER,
-                decoratorType: DecoratorType.METHOD,
-                params: params,
-                propertyKey: propertyKey
-            });
-        var originalMethod = descriptor.value;
-        winstonLog.logDebug("Input params for worker:  " + JSON.stringify(params.workerParams));
+        var targetObjectId: any;
+        if (params.indexofArgumentForTargetObjectId)
+            targetObjectId = arguments[params.indexofArgumentForTargetObjectId];
 
-        descriptor.value = preProcessHandler(params, target, propertyKey, descriptor, originalMethod,
-            Decorators.WORKER);
-    }
+        if (params.indexofArgumentForTargetObject)
+            targetObjectId = arguments[params.indexofArgumentForTargetObject]._id;
 
-    function preProcessHandler(params, target, propertyKey, descriptor, originalMethod, type: string) {
-        return function () {
-            if (MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded) {
-                winstonLog.logInfo("Executing method from child Process with id: " + process.pid);
-                return originalMethod.apply(this, arguments);
+        var serviceName, servicemethodName, paramsArguments;
+        var name = params.name;
+        var workerParams = new workerParamsDto();
+
+        if (params.workerParams == null) {
+            winstonLog.logInfo("No Params sent with Worker()");
+            var decorators = MetaUtils.getMetaData(target);
+            var dec = Enumerable.from(decorators).where(x => x.decorator == Decorators.SERVICE).firstOrDefault();
+            if (dec) {
+                workerParams.serviceName = dec.params.serviceName;
             }
 
-            var meta = MetaUtils.getMetaData(target, type, propertyKey);
-            var targetObjectId: any;
-            if (params.indexofArgumentForTargetObjectId)
-                targetObjectId = arguments[params.indexofArgumentForTargetObjectId];
+            servicemethodName = propertyKey;
+            workerParams.servicemethodName = servicemethodName;
 
-            if (params.indexofArgumentForTargetObject)
-                targetObjectId = arguments[params.indexofArgumentForTargetObject]._id;
-
-            var serviceName, servicemethodName, paramsArguments;
-            var name = params.name;
-            var workerParams = new workerParamsDto();
-
-            if (params.workerParams == null) {
-                winstonLog.logInfo("No Params sent with Worker()");
-                workerParams.workerName = defaultWorkerName; //default service to be executed.
-                winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
-
-                serviceName = this.__proto__.constructor.name;
+            paramsArguments = arguments;
+            workerParams.arguments = paramsArguments;
+        }
+        else {
+            if (params.workerParams.serviceName != null && params.workerParams.serviceName != '') {
+                serviceName = params.workerParams.serviceName;
                 workerParams.serviceName = serviceName;
+            } else {
+                var decorators = MetaUtils.getMetaData(target);
+                var dec = Enumerable.from(decorators).where(x => x.decorator == Decorators.SERVICE).firstOrDefault();
+                if (dec) {
+                    workerParams.serviceName = dec.params.serviceName;
+                }
+                workerParams.serviceName = serviceName;
+            }
 
+            if (params.workerParams.servicemethodName != null && params.workerParams.servicemethodName != '') {
+                servicemethodName = params.workerParams.servicemethodName;
+                workerParams.servicemethodName = servicemethodName;
+            }
+            else {
                 servicemethodName = propertyKey;
                 workerParams.servicemethodName = servicemethodName;
+            }
 
+            if (params.workerParams.arguments != null && params.workerParams.arguments != '') {
+                paramsArguments = params.workerParams.arguments;
+                workerParams.arguments = paramsArguments;
+            } else {
                 paramsArguments = arguments;
                 workerParams.arguments = paramsArguments;
             }
-            else {
-                if (!params.workerParams.workerName) {
-                    workerParams.workerName = defaultWorkerName;
-                    winstonLog.logInfo("Calling Default worker:  " + workerParams.workerName);
-                }
-                else {
-                    workerParams.workerName = params.workerParams.workerName;
-                    winstonLog.logInfo("Calling worker:  " + workerParams.workerName);
-                }
 
-                if (params.workerParams.serviceName != null && params.workerParams.serviceName != '') {
-                    serviceName = params.workerParams.serviceName;
-                    workerParams.serviceName = serviceName;
-                } else {
-                    serviceName = this.__proto__.constructor.name;
-                    workerParams.serviceName = serviceName;
-                }
+        }
 
-                if (params.workerParams.servicemethodName != null && params.workerParams.servicemethodName != '') {
-                    servicemethodName = params.workerParams.servicemethodName;
-                    workerParams.servicemethodName = servicemethodName;
-                }
-                else {
-                    servicemethodName = propertyKey;
-                    workerParams.servicemethodName = servicemethodName;
-                }
+        workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
+        workerParams.arguments = <any>workerParams.arguments.slice(0, originalMethod.length);
+        winstonLog.logInfo("Worker Params: " + JSON.stringify(workerParams));
 
-                if (params.workerParams.arguments != null && params.workerParams.arguments != '') {
-                    paramsArguments = params.workerParams.arguments;
-                    workerParams.arguments = paramsArguments;
-                } else {
-                    paramsArguments = arguments;
-                    workerParams.arguments = paramsArguments;
-                }
+        PrincipalContext.save('workerParams', JSON.stringify(workerParams));
+        workerParams.principalContext = PrincipalContext.getAllKeyValues();
+        if (workerParams.principalContext['req']) {
+            delete workerParams.principalContext['req'];
+        }
+        if (workerParams.principalContext['res']) {
+            delete workerParams.principalContext['res'];
+        }
 
-            }
-
-            workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
-            workerParams.arguments = <any>workerParams.arguments.slice(0, originalMethod.length);
-            winstonLog.logInfo("Worker Params: " + JSON.stringify(workerParams));
-
-            PrincipalContext.save('workerParams', JSON.stringify(workerParams));
-            workerParams.principalContext = PrincipalContext.getAllKeyValues();
-            if (workerParams.principalContext['req']) {
-                delete workerParams.principalContext['req'];
-            }
-            if (workerParams.principalContext['res']) {
-                delete workerParams.principalContext['res'];
-            }
-
-            if (workerParams.serviceName != null) {
-                console.log("Forking a new child_process: " + workerParams.workerName);
-                if (workerParams.serviceName) {
-                    var decorators = MetaUtils.getMetaData(target);
-                    var dec = Enumerable.from(decorators).where(x => x.decorator == Decorators.SERVICE).firstOrDefault();
-                    if (dec) {
-                        workerParams.serviceName = dec.params.serviceName;
-                        workerParams.servicemethodName = propertyKey;
-                    }
-                }
-                var proc = executeNextProcess(workerParams);
-                winstonLog.logDebug("Context at Worker: " + JSON.stringify(workerParams.principalContext));
-                winstonLog.logInfo("PrincipalConext at Parent: " + JSON.stringify(PrincipalContext.getSession()));
-            }
-            return configUtil.workerResponse;
-        };
-    }
-
+        if (workerParams.serviceName != null) {
+            workerParams.id = uuid.v4();
+            var proc = executeNextProcess(workerParams);
+            winstonLog.logDebug("Context at Worker: " + JSON.stringify(workerParams.principalContext));
+            winstonLog.logInfo("PrincipalConext at Parent: " + JSON.stringify(PrincipalContext.getSession()));
+        }
+        return workerParams;
+    };
 }

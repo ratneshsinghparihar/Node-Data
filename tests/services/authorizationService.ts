@@ -22,6 +22,5 @@ export class AuthorizationService {
 
         return readableEntities;
     }
-
 }
 

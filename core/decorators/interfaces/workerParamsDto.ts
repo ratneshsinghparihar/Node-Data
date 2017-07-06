@@ -1,5 +1,5 @@
-export class workerParamsDto{
-    workerName: string;
+export class workerParamsDto {
+    id: any;
     serviceName: string;
     servicemethodName: string;
     arguments: [any];

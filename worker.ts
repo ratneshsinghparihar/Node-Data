@@ -1,26 +1,24 @@
 require("reflect-metadata/Reflect");
-import * as Config from "../../config";
-import * as securityConfig from "../../security-config";
-import {router} from "../exports";
-import * as data from "../../mongoose";
-import { Decorators } from '../constants/decorators';
-import { DecoratorType } from '../enums/decorator-type';
-import { MetaUtils } from "../metadata/utils";
-import {MetaData, IMetaOptions} from "../metadata/metadata";
-import {CurrentUserDetailService} from "../../current-user-detail-service";
-import {UserDetailService} from "../../security/auth/user-detail-service";
-import {PrincipalContext} from '../../security/auth/principalContext';
-import * as Utils from "../utils";
-import {winstonLog} from '../../logging/winstonLog';
-import {Container} from '../../di';
-import {responseDetails} from './interfaces/response';
+import * as Config from "./config";
+import * as securityConfig from "./security-config";
+import {router} from "./core/exports";
+import * as data from "./mongoose";
+import { Decorators } from './core/constants/decorators';
+import { DecoratorType } from './core/enums/decorator-type';
+import { MetaUtils } from "./core/metadata/utils";
+import {MetaData, IMetaOptions} from "./core/metadata/metadata";
+import {CurrentUserDetailService} from "./current-user-detail-service";
+import {UserDetailService} from "./security/auth/user-detail-service";
+import {PrincipalContext} from './security/auth/principalContext';
+import * as Utils from "./core/utils";
+import {winstonLog} from './logging/winstonLog';
+import {Container} from './di';
+import {responseDetails} from './core/decorators/interfaces/response';
 import * as express from "express";
 import * as Enumerable from 'linq';
-import {workerParamsDto} from "./interfaces/workerParamsDto";
+import {workerParamsDto} from "./core/decorators/interfaces/workerParamsDto";
 var Main = require("../../core");
 var domain = require('domain');
-//var domain = require('../../security/auth/domain');
-//var cls = require('continuation-local-storage');
 
 function intiliaze(params: workerParamsDto) {
     try {

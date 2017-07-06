@@ -6,7 +6,9 @@ export class Config {
     public static ElasticSearchConnection : string  = "http://localhost:9200";
     public static ApplyElasticSearch : boolean = false; 
     public static ignorePaths =  [];
-    public static isMultiThreaded = true; // This param is for configuring multi process using worker attribute..
+    public static isMultiThreaded = false; // This param is for configuring multi process using worker attribute..
+    public static worker = 'worker.js';
+    public static process = 1;
 }
 
 export class SqlConfig {

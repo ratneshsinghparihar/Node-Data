@@ -206,6 +206,33 @@ export function isJSON(val: any) {
     return false;
 }
 
+export function getFunctionArgs(func) {
+    return (func + '')
+        .replace(/[/][/].*$/mg, '') // strip single-line comments
+        .replace(/\s+/g, '') // strip white space
+        .replace(/[/][*][^/*]*[*][/]/g, '') // strip multi-line comments
+        .split('){', 1)[0].replace(/^[^(]*[(]/, '') // extract the parameters
+        .replace(/=[^,]+/g, '') // strip any ES6 defaults
+        .split(',').filter(Boolean); // split & filter [""]
+}
+
+export function mapArgsWithParams(argsArray, paramsArray) {
+    let initialValue = {};
+    initialValue[argsArray[0]] = paramsArray[0];
+    let chain = argsArray.reduce((prev, value, index) => {
+        let z = {};
+        z[value] = paramsArray[index];
+        return Object.assign(prev, z)
+    }, initialValue);
+    return chain;
+}
+
+export function getMethodArgs(method, params): any {
+    let args = getFunctionArgs(method);
+    let argObject = mapArgsWithParams(args, params);
+    return argObject;
+}
+
 //export function getAllRelationalMetaDataForField(target: Object, propertyKey?: string): Array<MetaData> {
 //    if (!target) {
 //        throw TypeError;
