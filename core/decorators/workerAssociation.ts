@@ -19,8 +19,8 @@ var tasks: Array<workerParamsDto> = new Array<workerParamsDto>();
 
 //update from configuration
 var _appRoot = process.cwd();
-var workerName = configUtil.config().Config.worker ? (_appRoot + '/' + configUtil.config().Config.worker) : 'worker.js';
-var thread: number = configUtil.config().Config.process ? configUtil.config().Config.process : 1;
+var _defaultWorker = 'worker.js';
+var _defaultNumnberOfWorker = 1;
 
 class WorkerProcess {
     name: string;
@@ -85,6 +85,8 @@ function sendNextMessage(process: WorkerProcess, received: workerParamsDto) {
 
 function executeNextProcess(param: workerParamsDto) {
     var proc: WorkerProcess;
+    var workerName = configUtil.config().Config.worker ? (_appRoot + '/' + configUtil.config().Config.worker) : (_appRoot + '/' + _defaultWorker);
+    var thread: number = configUtil.config().Config.process ? configUtil.config().Config.process : _defaultNumnberOfWorker;
     if (thread > 0) {
         tasks.push(param);
         if (workerProcess.length < thread) {

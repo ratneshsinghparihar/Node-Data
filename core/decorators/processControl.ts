@@ -37,8 +37,8 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
             if (type == Decorators.PROCESS_START || type == Decorators.PROCESS_START_AND_END) {
                 //preprocess
                 let argsObj = Utils.getMethodArgs(originalMethod, arguments);
-                
-                if (params.executeInWorker && !MetaUtils.childProcessId) {
+
+                if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
                     // Parent - processcontrol management executing with worker 
                     var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
                     console.log('process initialized started');

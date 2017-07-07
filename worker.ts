@@ -1,14 +1,10 @@
 require("reflect-metadata/Reflect");
 import * as Config from "./config";
 import * as securityConfig from "./security-config";
-import {router} from "./core/exports";
 import * as data from "./mongoose";
 import { Decorators } from './core/constants/decorators';
-import { DecoratorType } from './core/enums/decorator-type';
 import { MetaUtils } from "./core/metadata/utils";
 import {MetaData, IMetaOptions} from "./core/metadata/metadata";
-import {CurrentUserDetailService} from "./current-user-detail-service";
-import {UserDetailService} from "./security/auth/user-detail-service";
 import {PrincipalContext} from './security/auth/principalContext';
 import * as Utils from "./core/utils";
 import {winstonLog} from './logging/winstonLog';
@@ -17,8 +13,9 @@ import {responseDetails} from './core/decorators/interfaces/response';
 import * as express from "express";
 import * as Enumerable from 'linq';
 import {workerParamsDto} from "./core/decorators/interfaces/workerParamsDto";
-var Main = require("../../core");
+var Main = require("./core");
 var domain = require('domain');
+const test = require('./unit-test/services/blogServiceImpl'); // Test Service i.e. BlogService required for testing in Jasmine.
 
 function intiliaze(params: workerParamsDto) {
     try {
@@ -26,7 +23,6 @@ function intiliaze(params: workerParamsDto) {
         const app = express();
         Config.Config.ignorePaths = Config.Config.ignorePaths || [];
         Config.Config.ignorePaths.push('**/server.js', '**/worker.js')
-        const test = require('../../unit-test/services/blogServiceImpl'); // Test Service i.e. BlogService required for testing in Jasmine.
         Main(Config, securityConfig, __dirname, data.entityServiceInst);
         data.connect();
         data.generateSchema();
@@ -47,22 +43,21 @@ function execute(params: workerParamsDto) {
         winstonLog.logInfo('executing child process');
         var d = domain.create();
         d.run(() => {
-            //PrincipalContext.getSession().run(function () {
             MetaUtils.childProcessId = process.pid;
+
             var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
             var service = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == params.serviceName).select(x => x.metadata[0]).firstOrDefault();
             var serviceName = params.serviceName;
-            var principalContext = params.principalContext;
+
             //Setting up Principal context for the new process.
+            var principalContext = params.principalContext;
             for (var i in principalContext) {
                 var key = i;
                 var val = principalContext[i];
                 PrincipalContext.save(key, val);
             }
-            console.log('set default properties of principal context');
-            //logger.logInfo("PrincipalContext at worker : "+ JSON.stringify(PrincipalContext.getSession()));
-            //logger.logInfo(" All Available Services : " + JSON.stringify(services) + " service: " + serviceName);
-            //logger.logInfo("Target Service with content : " + JSON.stringify(service));
+            PrincipalContext.save('workerParams', params);
+            winstonLog.logInfo('done default properties of principal context');
             if (service) {
                 var injectedProp = Container.resolve(service.params.target);
                 winstonLog.logInfo('Service instance: ' + injectedProp);
