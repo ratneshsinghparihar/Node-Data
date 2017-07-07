@@ -1,11 +1,15 @@
 ﻿import {repository} from "../../core/decorators";
+import {inject} from "../../di/decorators";
 import {entityAction, EntityActionParam} from '../../core/decorators/entityAction';
 import {teacher} from '../models/teacher';
 import {AuthorizationRepository} from './security/AuthorizationRepository';
+import * as TeacherService from '../services/teacherService';
 import Q = require('q');
-
 @repository({ path: 'teacher', model: teacher })
-export default class TeacherRepository extends AuthorizationRepository {
+export class TeacherRepository extends AuthorizationRepository {
+
+    @inject(TeacherService)
+    private _teacherService: TeacherService.TeacherService;
 
     findOne(id: any): Q.Promise<any> {
         return super.findOne(id);
@@ -40,4 +44,17 @@ export default class TeacherRepository extends AuthorizationRepository {
         });
     }
 
+    doAddTeacherWorker(obj: teacher) {
+        return this._teacherService.addTeacherWorker(obj);
+    }
+
+    doAddTeacherProcessControl(obj: teacher) {
+        return this._teacherService.addTeacherProcessControl(obj);
+    }
+
+    doUpdateTeacherProcessControlAndWorker(obj: teacher) {
+        return this._teacherService.addTeacherProcessControlAndWorker(obj);
+    }
+
 }
+export default TeacherRepository;

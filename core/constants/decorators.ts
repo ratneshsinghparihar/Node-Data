@@ -23,7 +23,9 @@ export class Decorators {
     public static WORKER = 'worker';
     public static OPTIMISTICLOCK = 'OptimisticLocking';
     public static PROMISABLE = 'Promisable';
-
+    public static PROCESS_START = 'processStart';
+    public static PROCESS_END = 'processEnd';
+    public static PROCESS_START_AND_END = 'processStartEnd';
 }
 
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];
