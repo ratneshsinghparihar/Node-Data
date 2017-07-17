@@ -33,6 +33,18 @@ export class ProcessControlModel {
     workerDetails: workerParamsDto;
 
     @field()
-    workerId: string;
+    processId: number;
+
+    @field()
+    serviceName: string;
+
+    @field()
+    serviceMethodName: string;
+
+    @field()
+    serviceMethodArgs: Array<string | number>;
+
+    @field()
+    responseData: any;
 }
 export default ProcessControlModel;

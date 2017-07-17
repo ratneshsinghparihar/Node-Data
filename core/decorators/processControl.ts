@@ -3,7 +3,7 @@ import * as Utils from "../utils";
 import { Decorators } from '../constants/decorators';
 import { DecoratorType } from '../enums/decorator-type';
 import { IProcessControlParams } from './interfaces/IProcessControlParams';
-import { IProcessControlService, processControlServiceName } from './interfaces/IProcessControlService';
+import { IProcessControlService, processControlServiceName, processControlContext } from './interfaces/IProcessControlService';
 import * as Enumerable from 'linq';
 import {executeWorkerHandler} from './workerAssociation';
 import {Container} from '../../di';
@@ -22,7 +22,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
         }
 
         if (params.indexofArgumentForTargetObject != undefined) {
-            targetObjectId = arguments[params.indexofArgumentForTargetObject]._id;
+            targetObjectId = arguments[params.indexofArgumentForTargetObject] && arguments[params.indexofArgumentForTargetObject]._id;
         }
 
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
@@ -40,9 +40,10 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
 
                 if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
                     // Parent - processcontrol management executing with worker 
-                    var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
                     console.log('process initialized started');
-                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params.type, params.action, argsObj, taskInfo).then((sucess) => {
+                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params.type, params.action, argsObj).then((sucess) => {
+                        
+                        var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
                         console.log('process initialized started successfully');
                         return processControlService.sendResponse(sucess, taskInfo);
                     });
@@ -59,17 +60,17 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                         initialize = processControlService.initialize(serviceName, propertyKey, targetObjectId, params.type, params.action, argsObj);
                     }
                     return initialize.then(res => {
-                        return processControlService.startProcess(serviceName, propertyKey, targetObjectId, params.type, params.action).then((sucess) => {
+                        return processControlService.startProcess().then((sucess) => {
                             console.log('process started');
                             if (sucess) {
                                 //actual method of caller
-                                var result = originalMethod.apply(this, arguments);
+                                var result = originalMethod.apply(this, arguments); 
                                 if (Utils.isPromise(result)) {
                                     console.log('process method executed');
                                     return result.then((sucess) => {
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
-                                            return processControlService.completeProcess(serviceName, propertyKey, targetObjectId, params.type, params.action).then((result) => {
+                                            return processControlService.completeProcess(result).then((result) => {
                                                 console.log('process completed');    
                                                 return sucess;
                                             });
@@ -79,7 +80,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                                     }, (error) => {
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
-                                            return processControlService.errorOutProcess(serviceName, propertyKey, targetObjectId, params.type, params.action, JSON.stringify(error)).then((result) => {
+                                            return processControlService.errorOutProcess(JSON.stringify(error)).then((result) => {
                                                 console.log('process error');
                                                 throw error;
                                             }).catch((err) => {
@@ -95,7 +96,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                                     if (type == Decorators.PROCESS_START_AND_END) {
                                         //return statement
                                         console.log('process method executed');
-                                        return processControlService.completeProcess(serviceName, propertyKey, targetObjectId, params.type, params.action).then(res => {
+                                        return processControlService.completeProcess(result).then(res => {
                                             console.log('process completed');
                                             return result;
                                         });
@@ -115,18 +116,18 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                 var result = originalMethod.apply(this, arguments);
                 if (Utils.isPromise(result)) {
                     return result.then((sucess) => {
-                        return processControlService.completeProcess(serviceName, propertyKey, targetObjectId, params.type, params.action).then((result) => {
+                        return processControlService.completeProcess(result).then((result) => {
                             return sucess;
                         });
                     }, (error) => {
-                        return processControlService.errorOutProcess(serviceName, propertyKey, targetObjectId, params.type, params.action, JSON.stringify(error)).then((result) => {
+                        return processControlService.errorOutProcess(JSON.stringify(error)).then((result) => {
                             throw error;
                         }).catch((err) => {
                             throw error;
                         });
                     });
                 } else {
-                    processControlService.completeProcess(serviceName, propertyKey, targetObjectId, params.type, params.action);
+                    processControlService.completeProcess(result);
                     return result;
                 }
             }

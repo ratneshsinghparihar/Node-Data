@@ -1,5 +1,5 @@
 ﻿import { service, inject } from '../../di/decorators';
-import {processControlServiceName, IProcessControlService} from '../../core/decorators/interfaces/IProcessControlService';
+import {processControlServiceName, IProcessControlService, processControlContext} from '../../core/decorators/interfaces/IProcessControlService';
 import {workerParamsDto} from "../../core/decorators/interfaces/workerParamsDto";
 import {ProcessControlModel} from '../models/processControlModel';
 import * as prcessControlRepo from '../repositories/processControlRepository';
@@ -21,27 +21,16 @@ export class ProcessControlService implements IProcessControlService {
     @inject(prcessControlRepo)
     private processControlRepository: prcessControlRepo.ProcessControlrepository;
 
-    public initialize(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any, taskInfo?: workerParamsDto): Q.Promise<boolean> {
-        var newProcessControlObj = new ProcessControlModel();
-        newProcessControlObj.processEntityType = type;
-        newProcessControlObj.processEntityId = targetObjectId;
-        newProcessControlObj.processEntityAction = action;
-        newProcessControlObj.status = processStatus.NOT_STARTED;
-        console.log('taskInfo:' + taskInfo + ' processId:' + process.pid);
-        if (taskInfo && taskInfo.serviceName == serviceName && taskInfo.servicemethodName == methodName) {
-            newProcessControlObj.workerDetails = taskInfo;
-            newProcessControlObj.workerId = taskInfo.id;
-        }
-        if (args) {
-            newProcessControlObj.args = args;
-        }
+    public initialize(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any): Q.Promise<boolean> {
+        let newProcessControlObj: ProcessControlModel = this.constructNewProcessControlModel(serviceName, methodName, targetObjectId, type, action, args);
+        console.log('processId:' + process.pid);
         return this.CanStartProcess(newProcessControlObj).then((sucess) => {
             if (sucess) {
                 return this.processControlRepository.post(newProcessControlObj).then(
                     (processObjCreated) => {
                         try {
-                            PrincipalContext.save("processControlContext", processObjCreated);
-                            return true;
+                            PrincipalContext.save(processControlContext, processObjCreated);
+                            return processObjCreated;
                         } catch (error) {
                             return true;
                         }
@@ -58,59 +47,68 @@ export class ProcessControlService implements IProcessControlService {
         });
     }
 
-    public startProcess(serviceName: string, methodName: string, targetObject: any, type: string, action: string): Q.Promise<boolean> {
-        return this.checkRunningAndChangeStatus(serviceName, methodName, targetObject, type, action, processStatus.RUNNING);
+    public startProcess(): Q.Promise<boolean> {
+        return this.checkRunningAndChangeStatus(processStatus.RUNNING);
     }
 
-    public completeProcess(serviceName: string, methodName: string, targetObject: any, type: string, action: string): Q.Promise<boolean> {
-        return this.checkRunningAndChangeStatus(serviceName, methodName, targetObject, type, action, processStatus.COMPLETED);
+    public completeProcess(responseData: any): Q.Promise<boolean> {
+        return this.checkRunningAndChangeStatus(processStatus.COMPLETED, responseData);
     }
 
-    public errorOutProcess(serviceName: string, methodName: string, targetObject: any, type: string, action: string, errorMessage: string): Q.Promise<boolean> {
-        return this.checkRunningAndChangeStatus(serviceName, methodName, targetObject, type, action, processStatus.ERROR, errorMessage);
+    public errorOutProcess(errorMessage: string): Q.Promise<boolean> {
+        return this.checkRunningAndChangeStatus(processStatus.ERROR, errorMessage);
     }
 
-    private checkRunningAndChangeStatus(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, newStatus: string, error?: string): Q.Promise<boolean> {
-        let query = {
-            "processEntityId": targetObjectId,
-            "processEntityAction": action,
-            "processEntityType": type
+    private checkRunningAndChangeStatus(newStatus: string, responseData?:any): Q.Promise<boolean> {
+        let processControlObj: ProcessControlModel = PrincipalContext.get(processControlContext);
+        processControlObj.status = newStatus;
+        if (responseData) {
+            processControlObj.responseData = responseData;
         }
-        var workerParams: workerParamsDto = PrincipalContext.get('workerParams');
-        if (workerParams && workerParams.serviceName == serviceName && workerParams.servicemethodName == methodName) {
-            query['workerId'] = workerParams.id;
-        }
-        return this.processControlRepository.findWhere(query).then((result: Array<ProcessControlModel>) => {
-            if (result && result.length) {
-                var currentProcessObj: ProcessControlModel = result[0];
-                console.log("Found entry for process in checkRunningAndChangeStatus  processEntityId:" + targetObjectId + " processEntityAction " + action + "  query is " + query);
-                currentProcessObj.status = newStatus;
-                if (newStatus == processStatus.ERROR) {
-                    currentProcessObj.erroMessage = error;
-                }
-                return this.processControlRepository.patch(currentProcessObj._id, currentProcessObj).then(
-                    (sucess) => {
-                        console.log("Successfully marked complete in checkRunningAndChangeStatus  processEntityId: " + targetObjectId + " processEntityAction " + action);
-                        return sucess;
-                    },
-                    (error) => {
-                        console.log("Error occured in checkRunningAndChangeStatus while patching status processEntityId: " + targetObjectId + " processEntityAction" + action);
-                        return true;
-                    });
-            }
-        }).catch(error => {
-            console.log("Error in " + newStatus + " process control Error" + error);
-            return false;
-        });
+
+        return this.processControlRepository.patch(processControlObj._id, processControlObj).then(
+            (sucess) => {
+                console.log("Successfully marked complete in checkRunningAndChangeStatus  processEntityId: " + processControlObj._id);
+                return sucess;
+            },
+            (error) => {
+                console.log("Error occured in checkRunningAndChangeStatus while patching status processEntityId: " + processControlObj._id);
+                return true;
+            });
     }
 
     private CanStartProcess(processControlModel: ProcessControlModel): Q.Promise<boolean> {
         return Q.when(true);
     }
 
-    public sendResponse(processModel: any, workerDetails: workerParamsDto): Q.IPromise<any> {
-        return Q.when('Action will be executed in worker thread');
+    private constructNewProcessControlModel(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any) {
+        var newProcessControlObj = new ProcessControlModel();
+        newProcessControlObj.processEntityType = type;
+        newProcessControlObj.processEntityId = targetObjectId;
+        newProcessControlObj.processEntityAction = action;
+        newProcessControlObj.status = processStatus.NOT_STARTED;
+        newProcessControlObj.processId = process.pid;
+        newProcessControlObj.serviceName = serviceName;
+        newProcessControlObj.serviceMethodName = methodName;
+        newProcessControlObj.serviceMethodArgs = args;
+        return newProcessControlObj;
     }
+
+    public sendResponse(processModel: ProcessControlModel, workerDetails: workerParamsDto): Q.IPromise<any> {
+        let trackObj: TrackWorkerTask = {
+            trackUrl: "processControl/" + processModel._id,
+            tractData: processModel,
+            message: "Action will be executed in worker thread, please hit the trackUrl to find the tast status"
+        };
+
+        return Q.when(trackObj);
+    }
+}
+
+export interface TrackWorkerTask {
+    trackUrl: string;
+    tractData: ProcessControlModel
+    message: string;
 }
 
 export default ProcessControlService;
