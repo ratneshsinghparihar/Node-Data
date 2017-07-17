@@ -242,6 +242,15 @@ export interface BlogRepository extends dataRepository {
 }
 ```
 Here the basic CRUD operations (findone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.
+
+## Unit of work
+Once a model and its repository is ready , following code can be written
+```typescript
+ let newCity = new city();
+ newCity.name = name;
+ newCity.post().then((sucess) => resolved(sucess));
+ newCity.put().then((sucess) => resolved(sucess));
+```
  
 ## Auto rest end point generations from repositories 
  
