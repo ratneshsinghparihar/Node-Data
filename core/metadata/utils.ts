@@ -57,6 +57,7 @@ interface IMetadataHelper {
     getMetaDataForDecorators(decorators: Array<string>): Array<{ target: Object, metadata: Array<MetaData> }>;
     getMetaDataForPropKey(target: Object, propertyKey?: string): Array<MetaData>;
     getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData>;
+    getMetaDataFromName(modelName: string): Array<any>;
     refreshDerivedObjectsMetadata();
     getDescriptiveMetadata(type, baseRelMeta, recursionLevel?: number): any;
 }
