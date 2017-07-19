@@ -6,4 +6,5 @@ export {allowanonymous} from './allowanonymous';
 export {transient} from './transient';
 export {Worker} from './workerAssociation';
 export {promisable} from './promisable';
+export {processStart, processEnd, processStartEnd} from './processControl';
 

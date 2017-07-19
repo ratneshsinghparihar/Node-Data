@@ -131,6 +131,13 @@ class MetadataHelper {
             case 4: return MetadataHelper.getMetaDataForTargetDecoratorAndPropKey(DecoratorType.PARAM, target, decorator, propertyKey, paramIndex);
         }
     }
+    
+     public static getMetaDataFromName(modelName: string): Array<any> {
+
+        return Object.keys(_documnetNameAndTargetMapping).
+            filter((key) => _documnetNameAndTargetMapping[key].constructor.name == modelName)
+        
+    }
 
     public static getMetaDataFromType(modelType: string): Array<MetaData> {
         if (_documnetNameAndTargetMapping[modelType])
