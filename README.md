@@ -242,6 +242,15 @@ export interface BlogRepository extends dataRepository {
 }
 ```
 Here the basic CRUD operations (findone , finadall , save , saveall , delete,page) will be provided by dataRepository. custom methods can be define here and will be immplemented in services.
+
+## Unit of work
+Once a model and its repository is ready , following code can be written
+```typescript
+ let newCity = new city();
+ newCity.name = name;
+ newCity.post().then((sucess) => resolved(sucess));
+ newCity.put().then((sucess) => resolved(sucess));
+```
  
 ## Auto rest end point generations from repositories 
  
@@ -743,8 +752,119 @@ class UserModel {
 
 The user will have freedom to choose the entity attribute to be validated before save or update.
 
+## statistics/count API
+Further running ‘http://localhost/statistics/students’ will give:
+```json
+{ 
+  "id": "students", 
+  "properties": [ 
+    { 
+      "name": "count", 
+      "type": "number",
+      "value":15
+    }
+  ] 
+} 
+```
+Further running ‘http://localhost/statistics/’ will give:
+```json
+[{ 
+  "id": "students", 
+  "properties": [ 
+    { 
+      "name": "count", 
+      "type": "number",
+      "value":15
+    }
+  ] 
+},
+{ 
+  "id": "teachers", 
+  "properties": [ 
+    { 
+      "name": "count", 
+      "type": "number",
+      "value":5
+    }
+  ] 
+},
+] 
+```
+where condition is supported
+
 ## Diffrence between waterline and Node-Data
 The waterline is a greate opensource porject and has been an inspiration for us but there is a big difference between Node-data and waterline . The Node-Data is not an another ORM , its a wrapper over famous ORMs like(mongoose , seqlize , neo4j) . Node-Data provides an abstraction over these famous ORMs so that Developer don't have to deal with them individually and they can write models and transaction over these ORMs with same codebase. 
+
+## pure js project supported
+Node-data now is fully supported inside a normal js project , no typescript dependency (check BMMaster branch for template)
+
+## bulk and performance improvements
+## Entity Manager
+```typescript
+preUpdate(params: EntityActionParam): Q.Promise<EntityActionParam> {
+        return Q.resolve(params);
+    }
+
+postUpdate(params: EntityActionParam): Q.Promise<EntityActionParam> {
+        return Q.when(params);
+    }
+export interface EntityActionParam {
+    inputEntity?: any;
+    oldPersistentEntity?: any;
+    newPersistentEntity?: any
+}    
+```   
+## Transaction 
+   no transaction on documents(@document) side , @transaction is supported on sql entities(@entity) repositories
+   if calling a document transaction within a method with @transaction , it will not rollback and developer need to handle this.
+## process control
+```typescript
+    @processStartEnd({ action: "importLead", type: "project", indexofArgumentForTargetObjectId: 1 })
+    public read(filePath: string, projectId, toDelete?) {
+    }
+```
+## Workers and Async Api
+```typescript
+    @worker()
+    public read(filePath: string, projectId, toDelete?) {
+    }
+```
+quick response with  
+```json
+{ 
+  "id": "3423423",
+  "processName":"",
+  "status":"inprogress"
+  "subscriptionProperties": [ 
+    { 
+      "channel_id": "3423", 
+      "type": "pushnotification",
+      "event_id":15,
+      "action_id":16
+    },
+     { 
+      "url":"http://localhost:8080/data/process/3dfgs3/",
+      "token":"324324fsdfs32rfsd",
+      "type": "rest",
+      "metadata":{}
+    }
+  ] 
+} 
+```
+
+## Messageing
+in a service class
+```typescript
+    @producer(topic,partition)
+    public read(filePath: string, projectId, toDelete?) {
+    }
+```
+```typescript
+    @consumer(topic,partition,instances)
+    public read(filePath: string, projectId, toDelete?) {
+    }
+```
+
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
@@ -752,6 +872,5 @@ The waterline is a greate opensource porject and has been an inspiration for us 
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200">
 <img src="http://pharmacom-store.com/image/GEP/GEP-Logo-PNG.png" width="200">
+<img src="http://2016.aiworld.com/wp-content/uploads/2013/12/datalogai360x280.jpg" width="200">
 <img src="http://2016.aiworld.com/wp-content/uploads/2016/09/verve-360x280e-360x280.jpg" width="200">
-
-
