@@ -14,7 +14,6 @@ import {IRepositoryParams} from '../decorators/interfaces';
 import {repositoryMap} from '../exports/repositories';
 
 import {ISchemaGenerator} from '../interfaces/schema-generator';
-import {repoFromModel} from '../dynamic/model-entity';
 import * as Enumerable from 'linq';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
@@ -66,8 +65,6 @@ export class InitializeRepositories {
                     fn: x.target,
                     repo: newRepo
                 };
-                var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
-                meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
 
