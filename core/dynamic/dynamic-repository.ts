@@ -75,7 +75,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getModel() {
-        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(pathRepoMap[this.path].schemaName);
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path);
     }
 
     public getRootRepo() {
