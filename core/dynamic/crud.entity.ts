@@ -30,7 +30,11 @@ export class CrudEntity {
         return undefined;
     }
 
-    getRepository(): DynamicRepository{
+    getRepo(): DynamicRepository {
+        return this.getRepository();
+    }
+
+    private getRepository(): DynamicRepository{
 
         let stack = require('stack-trace');
         let trace = stack.get();
@@ -55,25 +59,25 @@ export class CrudEntity {
 
 
         if (!this.getRepository()) {
-            return Q.when("repository not found")
+            return Q.reject("repository not found")
         }
         return this.getRepository().put(this._id, this);
     }
     post(): Q.Promise<any>{
         if (!this.getRepository()) {
-                return Q.when("repository not found")
+            return Q.reject("repository not found")
             }
         return this.getRepository().post(this);
     }
     delete() {
         if (!this.getRepository()) {
-            return Q.when("repository not found")
+            return Q.reject("repository not found")
         }
         return this.getRepository().delete(this._id);
     }
     patch() {
         if (!this.getRepository()) {
-            return Q.when("repository not found")
+            return Q.reject("repository not found")
         }
         return this.getRepository().patch(this._id, this);
     }
@@ -81,7 +85,7 @@ export class CrudEntity {
 
  export const put: () => Q.Promise < any > =  () => {
     if (!this.getRepository()) {
-        return Q.when("repository not found")
+        return Q.reject("repository not found")
     }
     return this.getRepository().put(this._id, this);
 };

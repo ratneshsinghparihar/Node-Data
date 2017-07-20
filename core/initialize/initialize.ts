@@ -7,6 +7,7 @@ import * as Enumerable from 'linq';
 
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
+import {CrudEntity} from "../dynamic/crud.entity";
 
 export class Initalize {
     constructor(files: Array<String>) {
@@ -14,6 +15,23 @@ export class Initalize {
         new InitializeControllers();
         //this.configureAcl();
         this.configureBase();
+        Array.prototype.bulkPost = this.getExtendedArrayMethod("bulkPost");
+        Array.prototype.bulkPut = this.getExtendedArrayMethod("bulkPut");
+        Array.prototype.bulkPatch = this.getExtendedArrayMethod("bulkPatch");
+        Array.prototype.bulkDel = this.getExtendedArrayMethod("bulkDel");
+    }
+
+    getExtendedArrayMethod(action: string): () => Q.Promise<any> {
+        return (function () {
+            let curArr = this;
+            if (curArr[0]) {
+                let repo = (<CrudEntity>(curArr[0])).getRepo();
+                if (repo) {
+                    return repo[action]([].concat(curArr));
+                }
+            }
+            return Q.reject("repository not found");
+        });
     }
 
     configureBase() {
