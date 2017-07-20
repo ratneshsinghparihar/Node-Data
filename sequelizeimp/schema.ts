@@ -7,7 +7,7 @@ import {Decorators as CoreDecorators} from '../core/constants';
 import {Decorators} from './constants';
 import {IEntityParams} from './decorators/interfaces/entity-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {pathRepoMap, updateModelEntity, getModel} from '../core/dynamic/model-entity';
+import {pathRepoMap, updateModelEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 import * as Enumerable from 'linq';
 import {sequelizeService} from './sequelizeService';
@@ -65,6 +65,7 @@ export function generateSchema() {
             if (entityMeta) {
                 let schemaName = (<IEntityParams>entityMeta.params).tableName;
                 pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.ENTITY };
+                //repoFromModel[entityMeta.params.name] = repositoryMap[repositoryParams.path];
             }
         }
     });

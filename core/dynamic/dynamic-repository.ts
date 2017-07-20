@@ -34,7 +34,7 @@ export interface IDynamicRepository {
     bulkPutMany(objIds: Array<any>, obj: any);
     bulkDel(objArr: Array<any>);
 
-    findOne(id: any): Q.Promise<any>;
+    findOne(id: any, donotLoadChilds?: boolean): Q.Promise<any>;
     findMany(ids: Array<any>, toLoadEmbeddedChilds?: boolean): Q.Promise<any>;
     findAll(): Q.Promise<any>;
     //findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
@@ -75,7 +75,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getModel() {
-        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(pathRepoMap[this.path].schemaName);
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path);
     }
 
     public getRootRepo() {
@@ -187,13 +187,13 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
 
-    public findOne(id) {
+    public findOne(id, donotLoadChilds?: boolean) {
         if (!utils.isBasonOrStringType(id)) {
             let result = id;
             return Q.when(InstanceService.getObjectFromJson(this.getEntity(), result));
         }
         else {
-            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id).then(result => {
+            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id,donotLoadChilds).then(result => {
                 return InstanceService.getObjectFromJson(this.getEntity(), result);
             });
         }

@@ -7,7 +7,7 @@ import {MongooseService} from './mongoose-service';
 import * as Utils from '../core/utils';
 import {IDocumentParams} from './decorators/interfaces/document-params';
 import {IRepositoryParams} from '../core/decorators/interfaces/repository-params';
-import {updateModelEntity, pathRepoMap, getModel} from '../core/dynamic/model-entity';
+import {updateModelEntity, pathRepoMap, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import Mongoose = require('mongoose');
 
 export function generateSchema() {
@@ -39,6 +39,7 @@ export function generateSchema() {
                 let schemaName = (<IDocumentParams>documentMeta.params).name;
                 pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.DOCUMENT};
 
+                //repoFromModel[documentMeta.params.name] = repositoryMap[repositoryParams.path];
             }
         }
     });

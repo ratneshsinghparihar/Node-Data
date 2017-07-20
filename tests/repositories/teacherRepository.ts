@@ -56,5 +56,9 @@ export class TeacherRepository extends AuthorizationRepository {
         return this._teacherService.addTeacherProcessControlAndWorker(obj);
     }
 
+    doLongTask() {
+        return this._teacherService.longTask();
+    }
+
 }
 export default TeacherRepository;

@@ -24,6 +24,23 @@ export class TeacherService {
     addTeacherProcessControlAndWorker(obj: teacher) {
         return this._teacherRepository.post(obj);
     }
+
+    @processStartEnd({ type: 'teacher', action: 'update', indexofArgumentForTargetObject: 0, executeInWorker: true })
+    longTask() {
+        let prom = new Promise(
+            (resolve, reject) => {
+                let asyncCall = setTimeout(() => {
+                    resolve("fg");
+                }, 5000)
+            }
+        );
+
+       return prom.then(s => {
+            return s;
+        });
+
+        
+    }
 }
 
 export default TeacherService;

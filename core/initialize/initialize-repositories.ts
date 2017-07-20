@@ -14,8 +14,8 @@ import {IRepositoryParams} from '../decorators/interfaces';
 import {repositoryMap} from '../exports/repositories';
 
 import {ISchemaGenerator} from '../interfaces/schema-generator';
-import {repoFromModel} from '../dynamic/model-entity';
 import * as Enumerable from 'linq';
+import {repoFromModel} from '../dynamic/model-entity';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
