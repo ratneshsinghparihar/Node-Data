@@ -631,7 +631,8 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
                 if (val[i]['_id']) {
                     val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'], Mongoose.Types.ObjectId);
                     if (params.embedded) {
-                        newVal.push(val[i]);
+                        searchObj.push(val[i]);
+                        //newVal.push(val[i]);
                     }
                     else {
                         newVal.push(val[i]['_id']);
@@ -672,7 +673,10 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             if (val['_id']) {
                 if (params.embedded) {
                     val['_id'] = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
-                    newVal = val;
+                    asyncTask.push(mongooseModel.findMany(relModel, [val['_id']]).then(res => {
+                        newVal = res[0];
+                    }));
+                    //newVal = val;
                 }
                 else {
                     newVal = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
