@@ -39,7 +39,7 @@ export function generateSchema() {
                 let schemaName = (<IDocumentParams>documentMeta.params).name;
                 pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.DOCUMENT};
 
-                repoFromModel[documentMeta.params.name] = repositoryMap[repositoryParams.path];
+                //repoFromModel[documentMeta.params.name] = repositoryMap[repositoryParams.path];
             }
         }
     });

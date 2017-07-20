@@ -65,7 +65,7 @@ export function generateSchema() {
             if (entityMeta) {
                 let schemaName = (<IEntityParams>entityMeta.params).tableName;
                 pathRepoMap[repositoryParams.path] = { schemaName: schemaName, modelType: Decorators.ENTITY };
-                repoFromModel[entityMeta.params.name] = repositoryMap[repositoryParams.path];
+                //repoFromModel[entityMeta.params.name] = repositoryMap[repositoryParams.path];
             }
         }
     });
