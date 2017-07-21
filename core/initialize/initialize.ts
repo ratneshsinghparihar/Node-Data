@@ -15,10 +15,13 @@ export class Initalize {
         new InitializeControllers();
         //this.configureAcl();
         this.configureBase();
-        Array.prototype.bulkPost = this.getExtendedArrayMethod("bulkPost");
-        Array.prototype.bulkPut = this.getExtendedArrayMethod("bulkPut");
-        Array.prototype.bulkPatch = this.getExtendedArrayMethod("bulkPatch");
-        Array.prototype.bulkDel = this.getExtendedArrayMethod("bulkDel");
+        ['bulkPost', 'bulkPut', 'bulkPatch', 'bulkDel'].forEach(x => {
+            Object.defineProperty(Array.prototype, x, {
+                enumerable: false,
+                writable: false,
+                value: this.getExtendedArrayMethod(x)
+            });
+        });
     }
 
     getExtendedArrayMethod(action: string): () => Q.Promise<any> {

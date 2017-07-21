@@ -1,10 +1,8 @@
-﻿declare namespace nodedata {
-
-interface Array<T> {
-    bulkPost(): Q.Promise<any>;
-    bulkPut():  Q.Promise<any>;
-    bulkPatch():Q.Promise<any>;
-    bulkDel():  Q.Promise<any>;
-}
-     
+﻿declare module nodedata {
+    export interface Array<T> {
+        bulkPost(): Q.Promise<any>;
+        bulkPut():  Q.Promise<any>;
+        bulkPatch():Q.Promise<any>;
+        bulkDel():  Q.Promise<any>;
+    }
  }
