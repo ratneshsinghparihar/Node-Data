@@ -78,7 +78,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         }
 
                         if (args.length) {
-                            args[args.length - 1] = fullyQualifiedEntities;
+                            args[args.length] = fullyQualifiedEntities;
                         }
                         else {
                             args[0] = fullyQualifiedEntities;
@@ -93,7 +93,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                             // for delete, post action no need to save merged entity else save merged entity to db
                             //if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
                                 if (args.length) {
-                                    args[args.length - 1] = fullyQualifiedEntities;
+                                    args[args.length] = fullyQualifiedEntities;
                                 }
                                 else {
                                     args[0] = fullyQualifiedEntities;

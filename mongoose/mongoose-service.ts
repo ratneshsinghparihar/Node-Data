@@ -12,8 +12,8 @@ export class MongooseService implements IEntityService {
     constructor() {
     }
 
-    bulkPost(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return MongooseModel.bulkPost(this.getModel(repoPath), objArr);
+    bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+        return MongooseModel.bulkPost(this.getModel(repoPath), objArr, batchSize);
     }
 
 

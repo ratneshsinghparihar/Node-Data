@@ -82,12 +82,12 @@ export class DynamicRepository implements IDynamicRepository {
         return this.rootLevelRep;
     }
 
-   public bulkPost(objArr: Array<any>) {
+    public bulkPost(objArr: Array<any>, batchSize?: number) {
         var objs = [];
         objArr.forEach(x => {
             objs.push(InstanceService.getInstance(this.getEntity(), null, x));
         });
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs).then(result => {
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {

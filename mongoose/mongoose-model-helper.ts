@@ -9,7 +9,7 @@ import {DecoratorType} from '../core/enums/decorator-type';
 import {MetaData} from '../core/metadata/metadata';
 import {IAssociationParams} from '../core/decorators/interfaces';
 import {IFieldParams, IDocumentParams} from './decorators/interfaces';
-import {GetRepositoryForName,DynamicRepository} from '../core/dynamic/dynamic-repository';
+import {GetRepositoryForName, DynamicRepository} from '../core/dynamic/dynamic-repository';
 import {getEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import {winstonLog} from '../logging/winstonLog';
@@ -145,7 +145,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
     relationToDelete.forEach(res => {
         var x = <IAssociationParams>res.params;
         var prop = updateObj[res.propertyKey];
-        if(!prop)
+        if (!prop)
             return;
         ids[x.rel] = ids[x.rel] || [];
         if (x.embedded) {
@@ -278,7 +278,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
 
         return Q.nbind(bulk.execute, bulk)().then(result => {
-           return  mongooseModel.findMany(model, parentIds).then(objects => {
+            return mongooseModel.findMany(model, parentIds).then(objects => {
                 return updateParent(model, objects).then(res => {
                     return objects;
                 });
@@ -465,7 +465,7 @@ function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
         if (val[m.propertyKey]) {
             asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
                 if (res != undefined && !res) {
-                    let error:any = new Error();
+                    let error: any = new Error();
                     error.propertyKey = m.propertyKey;
                     throw error;
                 }
@@ -473,9 +473,9 @@ function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
         }
     });
     return Q.all(asyncCalls).catch(f => {
-        let errorMessage='Invalid value. Adding to property '+ "'"+ f.propertyKey+ "'"+ ' will break the relation in model: '+ model.modelName;
-            winstonLog.logError(errorMessage);
-            throw errorMessage;
+        let errorMessage = 'Invalid value. Adding to property ' + "'" + f.propertyKey + "'" + ' will break the relation in model: ' + model.modelName;
+        winstonLog.logError(errorMessage);
+        throw errorMessage;
     });
 }
 
@@ -652,7 +652,7 @@ function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
             }
         }
         if (objs.length > 0) {
-            asyncTask.push(mongooseModel.bulkPost(relModel, objs).then(result => {
+            asyncTask.push(objs.bulkPost().then(result => {
                 if (params.embedded) {
                     newVal = newVal.concat(result);
                 }

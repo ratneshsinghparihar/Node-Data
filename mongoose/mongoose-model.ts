@@ -19,7 +19,7 @@ import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
  * @param model
  * @param objArr
  */
-export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
+export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
     var addChildModel = [];
 
     // create all cloned models
@@ -42,15 +42,47 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>): Q.Prom
                     return Q.reject(ex);
                 }
             });
-
-            return Q.nbind(model.create, model)(clonedModels).then(result => {
-                return Enumerable.from(result).select(x => Utils.toObject(x)).toArray();
-            })
-                .catch(error => {
-                    winstonLog.logError(`Error in bulkPost ${error}`);
-                    return Q.reject(error);
-                })
+            var iteration = 1;
+            var dbObjects = [];
+            var asyncCalls = [];
+            if (!batchSize) {
+                asyncCalls.push(executeBulk(model, clonedModels));
+            } else {
+                Enumerable.from(clonedModels).forEach((obj, index) => {
+                    if (index < iteration * batchSize) {
+                        dbObjects.push(obj);
+                    }
+                    else {
+                        asyncCalls.push(executeBulk(model, dbObjects));
+                        iteration++;
+                        dbObjects = [];
+                        dbObjects.push(obj);
+                        return;
+                    }
+                    if (index + 1 == clonedModels.length) {
+                        asyncCalls.push(executeBulk(model, dbObjects));
+                    }
+                });
+            }
+            return Q.allSettled(asyncCalls).then(suces => {
+                let values = [];
+                Enumerable.from(suces).forEach((x) => {
+                    values = values.concat(x.value);
+                });
+                return values;
+            }).catch(er => {
+                throw er;
+            });
         });
+}
+
+function executeBulk(model, arrayOfDbModels) {
+    return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
+        result = result && result.ops;
+        return result;
+    }).catch(err => {
+        throw err;
+    });
 }
 
 /**
