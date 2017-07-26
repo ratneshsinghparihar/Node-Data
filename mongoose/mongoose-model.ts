@@ -114,7 +114,16 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
             // update parent
             return findMany(model, ids).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
         }).catch(error => {
@@ -168,7 +177,16 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             // update parent
             return findMany(model, ids).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
         }).catch(error => {
