@@ -28,7 +28,7 @@ export function promisable(params: IPromisableParam): any {
 
             // find the target property from params.targetKey
             // find the relavent repository from the relationship and fetch all entity data from db
-            var allReferencingEntities: Array<MetaData> = CoreUtils.getAllRelationsForTargetInternal(getEntity(this.constructor.name))
+            var allReferencingEntities: Array<MetaData> = CoreUtils.getAllRelationsForTargetInternal(target);
             let targetProperties = allReferencingEntities.filter((x: MetaData) => x.propertyKey === params.targetKey);
             if (!targetProperties) {
                 return Q.reject(`the targer property ${params.targetKey} either does not exist or does not have any relationship asscociated with it.`);
