@@ -3,7 +3,7 @@ import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 import * as Utils from '../../mongoose/utils';
 import * as CoreUtils from "../utils";
-import {getEntity, getModel} from '../../core/dynamic/model-entity';
+import {getEntity, getModel, repoFromModel} from '../../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import {MetaData} from '../../core/metadata/metadata';
 import {IAssociationParams} from '../../core/decorators/interfaces';
@@ -23,8 +23,8 @@ export function promisable(params: IPromisableParam): any {
                 params: params,
                 propertyKey: propertyKey
             });
-         
-        var getter = function (refresh: boolean) {
+
+        var getter = function (param: IPromisableFetchParam) {
 
             // find the target property from params.targetKey
             // find the relavent repository from the relationship and fetch all entity data from db
@@ -43,11 +43,11 @@ export function promisable(params: IPromisableParam): any {
             //    return Q.when(this[params.targetKey]);
             //}
 
-            if (!refresh && this[ghostKey]) {
+            if (param && !param.refresh && this[ghostKey]) {
                 return this[ghostKey];
             }
 
-            let repo = GetRepositoryForName(targerPropertyMeta.params.rel);
+            let repo: IDynamicRepository = repoFromModel[targerPropertyMeta.params.rel];
             if (!repo) {
                 return Q.reject(`the targer property ${params.targetKey}'s model's repository does not exist.`);
             }
@@ -64,6 +64,19 @@ export function promisable(params: IPromisableParam): any {
                 });
             }
 
+            // generic function to fetch data by passing fn function and args
+            let fnFetchData = (fn: Function, ...args) => {
+                return fn.apply(repo.getRootRepo(), args).then(results => {
+                    this[ghostKey] = results;
+                    return Q.when(results);
+                }).catch(exc => {
+                    return Q.reject(exc);
+                });
+            };
+
+            if (param && param.query) {
+                return fnFetchData(repo.getRootRepo().findWhere, param.query);
+            }
             // case for onetomany, manytomany relationship type
             if (targerPropertyMeta.propertyType.isArray) {
                 let ids = [];
@@ -76,12 +89,7 @@ export function promisable(params: IPromisableParam): any {
                 else {
                     ids = this[params.targetKey].map(x => x._id);
                 }
-                return repo.getRootRepo().findMany(ids, true).then(results => {
-                    this[ghostKey] = results;
-                    return Q.when(results);
-                }).catch(exc => {
-                    return Q.reject(exc);
-                });
+                return fnFetchData(repo.getRootRepo().findMany, ids, true);
             }
             // case for onetoone, manytoone relationship type
             else {
@@ -95,23 +103,20 @@ export function promisable(params: IPromisableParam): any {
                 else {
                     id = this[params.targetKey]._id;
                 }
-                return repo.getRootRepo().findOne(id).then(result => {
-                    this[ghostKey] = result;
-                    return Q.when(result);
-                }).catch(exc => {
-                    return Q.reject(exc);
-                });;
+                return fnFetchData(repo.getRootRepo().findOne, id);
             }
         };
 
         target[propertyKey] = getter;
 
     };
-
-
-
 }
 
 export interface IPromisableParam {
     targetKey: string;
+}
+
+export interface IPromisableFetchParam {
+    refresh: boolean;
+    query: any
 }

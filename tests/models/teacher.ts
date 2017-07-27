@@ -3,7 +3,7 @@ import {Types} from 'mongoose';
 import {subject} from './subject';
 import {field, document, transient} from '../../mongoose/decorators';
 import {Strict} from '../../mongoose/enums/';
-import {onetomany, manytoone, manytomany, onetoone, promisable} from '../../core/decorators';
+import {onetomany, manytoone, manytomany, onetoone, promisable, IPromisableFetchParam} from '../../core/decorators';
 import {baseModel} from './baseModel';
 
 @document({ name: 'teacher', strict: Strict.false })
@@ -28,14 +28,13 @@ export class teacher extends baseModel {
     physics: Array<subject>;
 
     @promisable({ targetKey: "physics" })
-    physics_LAZY: (isRefresh?: boolean) => Promise<any> | any;
+    physics_LAZY: (param?: IPromisableFetchParam) => Promise<any> | any;
 
     @onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
     physics1: Array<subject>;
 
     @promisable({ targetKey: "physics1" })
-    physics1_LAZY: (isRefresh?: boolean) => Promise<any> | any;
-
+    physics1_LAZY: (param?: IPromisableFetchParam) => Promise<any> | any;
 
     @onetoone({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
     physicsOne: subject;
