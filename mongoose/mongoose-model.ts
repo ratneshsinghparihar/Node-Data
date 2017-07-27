@@ -7,10 +7,10 @@ import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";
 import * as Utils from './utils';
-import {QueryOptions} from '../core/interfaces/queryOptions';
-import {MetaUtils} from "../core/metadata/utils";
-import {Decorators} from '../core/constants/decorators';
-import {GetRepositoryForName} from '../core/dynamic/dynamic-repository';
+import { QueryOptions } from '../core/interfaces/queryOptions';
+import { MetaUtils } from "../core/metadata/utils";
+import { Decorators } from '../core/constants/decorators';
+import { GetRepositoryForName } from '../core/dynamic/dynamic-repository';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -42,32 +42,18 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
                     return Q.reject(ex);
                 }
             });
-            var iteration = 1;
-            var dbObjects = [];
             var asyncCalls = [];
             if (!batchSize) {
                 asyncCalls.push(executeBulk(model, clonedModels));
             } else {
-                Enumerable.from(clonedModels).forEach((obj, index) => {
-                    if (index < iteration * batchSize) {
-                        dbObjects.push(obj);
-                    }
-                    else {
-                        asyncCalls.push(executeBulk(model, dbObjects));
-                        iteration++;
-                        dbObjects = [];
-                        dbObjects.push(obj);
-                        return;
-                    }
-                    if (index + 1 == clonedModels.length) {
-                        asyncCalls.push(executeBulk(model, dbObjects));
-                    }
-                });
+                for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
+                    asyncCalls.push(executeBulk(model, clonedModels.slice(curCount, curCount + batchSize)))
+                }
             }
             return Q.allSettled(asyncCalls).then(suces => {
                 let values = [];
-                Enumerable.from(suces).forEach((x) => {
-                    values = values.concat(x.value);
+                values = suces.map(x => x.value).reduce((prev, current) => {
+                    return prev.concat(current);
                 });
                 return values;
             }).catch(er => {
@@ -91,14 +77,36 @@ function executeBulk(model, arrayOfDbModels) {
  * @param model
  * @param objArr
  */
-export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
+export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
     var bulk = model.collection.initializeUnorderedBulkOp();
     var asyncCalls = [];
+    if (!batchSize) {
+        asyncCalls.push(executeBulkPut(model, objArr));
+    } else {
+        for (let curCount = 0; curCount < objArr.length; curCount += batchSize) {
+            asyncCalls.push(executeBulkPut(model, objArr.slice(curCount, curCount + batchSize)))
+        }
+    }
 
-    // classic for loop used gives high performanance
+    return Q.allSettled(asyncCalls).then(suces => {
+        let values = [];
+        values = suces.map(x => x.value).reduce((prev, current) => {
+            return prev.concat(current);
+        });
+        return values;
+    }).catch(er => {
+        throw er;
+    });
+}
+
+function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
+    let length = objArr.length;
+    var asyncCalls = [];
+    var ids = objArr.map(x => x._id);
+    var bulk = model.collection.initializeUnorderedBulkOp();
     for (var i = 0; i < length; i++) {
         asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
@@ -114,30 +122,26 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promi
             // update parent
             return findMany(model, ids).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
-        }).catch(error => {
-            winstonLog.logError(`Error in bulkPut ${error}`);
-            return Q.reject(error);
         });
+    }).catch(error => {
+        winstonLog.logError(`Error in bulkPut ${error}`);
+        return Q.reject(error);
     });
-
-    //Enumerable.from(objArr).forEach(x => {
-    //    if (x['_id']) {
-    //        asyncCalls.push(put(model, x['_id'], x));
-    //    }
-    //});
-
-    //return Q.allSettled(asyncCalls)
-    //    .then(result => {
-    //        return Enumerable.from(result).select(x => x.value).toArray();
-    //    })
-    //    .catch(error => {
-    //        winstonLog.logError(`Error in bulkPut ${error}`);
-    //        return Q.reject(error);
-    //    });
 }
+
+
 
 /**
  * Iterate through objArr and call put for these
@@ -168,7 +172,16 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             // update parent
             return findMany(model, ids).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
         }).catch(error => {
@@ -229,8 +242,8 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  * @param query 
  */
 export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
-    
-    let queryObj = model.find(query).count();    
+
+    let queryObj = model.find(query).count();
     //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
         .then(result => {
@@ -240,7 +253,7 @@ export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<an
             winstonLog.logError(`Error in countWhere ${error}`);
             return Q.reject(error);
         });
-    
+
 }
 
 export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
@@ -586,7 +599,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
  */
 export function patch(model: Mongoose.Model<any>, id: any, obj, path?: string): Q.Promise<any> {
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    
+
     // First update the any embedded property and then update the model
     return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
         var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
@@ -596,8 +609,8 @@ export function patch(model: Mongoose.Model<any>, id: any, obj, path?: string): 
             updatedProps["$set"] && delete updatedProps["$set"]["__v"];
             updatedProps["$push"] && delete updatedProps["$push"]["__v"];
             updatedProps["$inc"] = { '__v': 1 };
-            if(obj["__v"]){
-              query["__v"] = obj["__v"];
+            if (obj["__v"]) {
+                query["__v"] = obj["__v"];
             }
         }
         return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })

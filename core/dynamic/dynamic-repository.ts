@@ -99,12 +99,12 @@ export class DynamicRepository implements IDynamicRepository {
         });
     }
 
-    public bulkPut(objArr: Array<any>) {
+    public bulkPut(objArr: Array<any>, batchSize?: number) {
         var objs = [];
         objArr.forEach(x => {
             objs.push(InstanceService.getInstance(this.getEntity(), null, x));
         });
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize);
     }
 
     public bulkPatch(objArr: Array<any>) {
