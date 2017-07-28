@@ -1,18 +1,18 @@
 ﻿import Mongoose = require("mongoose");
 import Q = require('q');
-import {EntityChange} from '../core/enums/entity-change';
-import {MetaUtils} from "../core/metadata/utils";
+import { EntityChange } from '../core/enums/entity-change';
+import { MetaUtils } from "../core/metadata/utils";
 import * as CoreUtils from "../core/utils";
 import * as Utils from "./utils";
-import {Decorators} from '../core/constants/decorators';
-import {DecoratorType} from '../core/enums/decorator-type';
-import {MetaData} from '../core/metadata/metadata';
-import {IAssociationParams} from '../core/decorators/interfaces';
-import {IFieldParams, IDocumentParams} from './decorators/interfaces';
-import {GetRepositoryForName, DynamicRepository} from '../core/dynamic/dynamic-repository';
-import {getEntity, getModel, repoFromModel} from '../core/dynamic/model-entity';
+import { Decorators } from '../core/constants/decorators';
+import { DecoratorType } from '../core/enums/decorator-type';
+import { MetaData } from '../core/metadata/metadata';
+import { IAssociationParams } from '../core/decorators/interfaces';
+import { IFieldParams, IDocumentParams } from './decorators/interfaces';
+import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
+import { getEntity, getModel, repoFromModel } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
-import {winstonLog} from '../logging/winstonLog';
+import { winstonLog } from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
 
 /**
@@ -136,7 +136,7 @@ export function embeddedChildren(model: Mongoose.Model<any>, val: any, force: bo
  * @param model
  * @param updateObj
  */
-export function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
+export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>) {
     var relations = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     var relationToDelete = Enumerable.from(relations).where(x => x.params.deleteCascade).toArray();
     var ids = {};
@@ -144,21 +144,36 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: any) {
 
     relationToDelete.forEach(res => {
         var x = <IAssociationParams>res.params;
-        var prop = updateObj[res.propertyKey];
-        if (!prop)
+        var props = [];
+        for (let i = 0; i < updateObj.length; i++) {
+            props.push(updateObj[i][res.propertyKey]);
+        }
+        if (!props || !props.length)
             return;
         ids[x.rel] = ids[x.rel] || [];
         if (x.embedded) {
             if (res.propertyType.isArray) {
-                var id = Enumerable.from(prop).select(x => x['_id']).toArray();
-                ids[x.rel] = ids[x.rel].concat(id);
+                let listOfAllSameObjects = props.reduce((prev, current) => {
+                    return prev.concat(current);
+                })  //Enumerable.from(prop).select(x => x['_id']).toArray();
+                let listOfIds = listOfAllSameObjects.map(x => x._id);
+                ids[x.rel] = ids[x.rel].concat(listOfIds);
             }
             else {
-                ids[x.rel] = ids[x.rel].concat([prop['_id']]);
+                let listOfIds = props.map(x => x._id);
+                ids[x.rel] = ids[x.rel].concat(listOfIds);
             }
         }
         else {
-            ids[x.rel] = ids[x.rel].concat(res.propertyType.isArray ? prop : [prop]);
+            if (res.propertyType.isArray) {
+                let listOfAllSameIds = props.reduce((prev, current) => {
+                    return prev.concat(current);
+                })  //Enumerable.from(prop).select(x => x['_id']).toArray();
+                ids[x.rel] = ids[x.rel].concat(listOfAllSameIds);
+            }
+            else {
+                ids[x.rel] = ids[x.rel].concat(props);
+            }
         }
         ids[x.rel] = Enumerable.from(ids[x.rel]).select(x => x.toString()).toArray();
     });
@@ -215,7 +230,7 @@ export function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityC
             var param = <IAssociationParams>x.params;
             if (entityChange == EntityChange.delete || Utils.isPropertyUpdateRequired(changedProps, param.properties)) {
                 var newObj = getFilteredValue(obj, param.properties);
-                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, newObj, param.embedded, entityChange));
+                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, newObj, param.embedded, entityChange, model));
             }
         });
     return Q.allSettled(asyncCalls);
@@ -336,18 +351,14 @@ function bulkDelete(model: Mongoose.Model<any>, ids: any) {
         }).then(x => {
             var asyncCalls = [];
             // will not call update embedded parent because these children should not exist without parent
-            Enumerable.from(data).forEach(res => {
-                asyncCalls.push(deleteCascade(model, res));
-            });
-
+            asyncCalls.push(deleteCascade(model, data));
             return Q.allSettled(asyncCalls);
         });
     });
 }
 
-function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, isArray?: boolean): Q.Promise<any> {
+function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean): Q.Promise<any> {
     if (isEmbedded) {
-
         var queryCond = {};
         queryCond[prop + '._id'] = updateObj['_id'];
 
@@ -376,7 +387,6 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: a
             var pullObj = {};
             pullObj[prop] = {};
             pullObj[prop]['_id'] = updateObj['_id'];
-
             return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
                 .then(result => {
                     return updateEmbeddedParent(model, queryCond, result, prop);
@@ -442,7 +452,6 @@ function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result, pro
     // find the objects and then update these objects
     return Q.nbind(model.find, model)(queryCond)
         .then(updated => {
-
             // Now update affected documents in embedded records
             var asyncCalls = [];
             Enumerable.from(updated).forEach(x => {
@@ -559,13 +568,12 @@ function getQueryCondition(id: any, cond: any): any {
     }
 }
 
-function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange): Q.Promise<any> {
+function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>): Q.Promise<any> {
     var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
 
     if (!meta) {
         throw 'Could not fetch metadata for target object';
     }
-
     var targetModelMeta = meta[0];
     var repoName = (<IDocumentParams>targetModelMeta.params).name;
     var model = Utils.getCurrentDBModel(repoName);
@@ -573,7 +581,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
         winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
     }
-    return patchAllEmbedded(model, propKey, updatedObject, entityChange, embedded, targetPropArray);
+    return patchAllEmbedded(model, propKey, updatedObject, entityChange, embedded, childModel, targetPropArray);
 }
 
 export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any): Q.Promise<any> {
