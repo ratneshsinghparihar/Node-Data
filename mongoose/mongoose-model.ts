@@ -483,7 +483,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
     return Q.nbind(model.findByIdAndRemove, model)({ '_id': id })
         .then((response: any) => {
             return mongooseHelper.deleteCascade(model, [Utils.toObject(response)]).then(x => {
-                return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.delete, response, null)
+                return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
                     .then(res => {
                         return ({ delete: 'success' });
                     });
