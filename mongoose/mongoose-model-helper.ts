@@ -358,16 +358,25 @@ function bulkDelete(model: Mongoose.Model<any>, ids: any) {
 }
 
 function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean): Q.Promise<any> {
-    var queryCond = {};
-    queryCond[prop] = {};
+    var searchQueryCond = {};
+    var pullQuery = {};
+    pullQuery[prop] = {};
     var changesObjIds = {
         $in: updateObjs.map(x => x._id)
     };
-    queryCond[prop] = isEmbedded ? { '_id': changesObjIds } : changesObjIds;
-    var prom = isArray ? Q.nbind(model.update, model)({}, { $pull: queryCond }, { multi: true }) : Q.nbind(model.update, model)(queryCond, { $set: { prop: null } }, { multi: true });
-    return Q.nbind(model.find, model)(queryCond, ['_id']).then(parent => {
+    isEmbedded ? searchQueryCond[prop + '._id'] = changesObjIds : searchQueryCond[prop] = changesObjIds;
+    isEmbedded ? pullQuery[prop]['_id'] = changesObjIds : pullQuery[prop] = changesObjIds;
+    return Q.nbind(model.find, model)(searchQueryCond).then((parents: any) => {
+        parents = Utils.toObject(parents);
+        if (!parents || !parents.length) return Q.when(true);
+        console.log(prop);
+        let setCondition = {};
+        setCondition['$set'] = {};
+        setCondition['$set'][prop] = null;
+        var prom = isArray ? Q.nbind(model.update, model)({}, { $pull: pullQuery }, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
-
+            console.log(model);
+            return res;
         })
     }).catch(error => {
         winstonLog.logError(`Error in patchAllEmbedded ${error}`);

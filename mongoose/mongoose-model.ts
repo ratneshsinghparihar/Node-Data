@@ -526,7 +526,7 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
             .then(result => {
                 return mongooseHelper.deleteCascade(model, parents).then(success => {
                     let asyncCalls = [];
-                    mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
+                    return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
                         return ({ delete: 'success' });
                     });
                 });
