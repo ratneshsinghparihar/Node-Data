@@ -35,11 +35,9 @@ export class TeacherRepository extends AuthorizationRepository {
         return Q.when(params);
     }
 
-
     doFindValue(id) {
         return this.findOne(id).then((result: teacher) => {
-            //var a = result.physics_LAZY();
-            //var b = result["__ghostKey_physics"];
+            var a = result.physics_LAZY();
             return result;
         });
     }

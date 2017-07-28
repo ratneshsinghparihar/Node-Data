@@ -22,5 +22,21 @@ export class AuthorizationService {
 
         return readableEntities;
     }
+
+    canDeleteEntity(entityAction: EntityActionParam) {
+        let entity = entityAction.oldPersistentEntity;
+        return Q.when(true);
+    }
+
+    canSaveEntities(entityActions: Array<EntityActionParam>) {
+        if (!entityActions || !entityActions.length) {
+            return Q.when(true);
+        }
+    }
+
+    canSaveEntity(entityAction: EntityActionParam): Q.Promise<any> {
+        let entity = entityAction.newPersistentEntity;
+        return Q.when(true);
+    }
 }
 
