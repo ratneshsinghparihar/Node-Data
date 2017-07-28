@@ -14,7 +14,7 @@ export default class PromisableTestRepository extends DynamicRepository {
                 a = result.physics_LAZY();
                 return result.physics1_LAZY().then(val => {
                     let a = result.physics1_LAZY();
-                    return result.physics1_LAZY(true).then(val => {
+                    return result.physics1_LAZY({refresh: true, query: undefined}).then(val => {
                         return result;
                     });
                 });
