@@ -480,9 +480,9 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
  * @param id
  */
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
-    return Q.nbind(model.findOneAndRemove, model)({ '_id': id })
+    return Q.nbind(model.findByIdAndRemove, model)({ '_id': id })
         .then((response: any) => {
-            return mongooseHelper.deleteCascade(model, Utils.toObject(response)).then(x => {
+            return mongooseHelper.deleteCascade(model, [Utils.toObject(response)]).then(x => {
                 return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.delete, response, null)
                     .then(res => {
                         return ({ delete: 'success' });
@@ -503,6 +503,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
 export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise<any> {
     var asyncCalls = [];
     var ids = [];
+    var bulk = model.collection.initializeUnorderedBulkOp();
     Enumerable.from(objs).forEach(x => {
         if (CoreUtils.isJSON(x)) {
             ids.push(x._id);
@@ -512,22 +513,30 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
         }
     });
     ids.forEach(x => {
-        asyncCalls.push(del(model, x));
+        bulk.find({ _id: x }).remove();
     });
 
-    return Q.allSettled(asyncCalls)
-        .then(result => {
-            var ret = [];
-            Enumerable.from(result).forEach(x => {
-                if (x.value) ret.push(x.value);
-                if (x.reason) ret.push(x.reason);
+    return Q.nbind(model.find, model)({
+        '_id': {
+            $in: ids
+        }
+    }).then((results: Array<any>) => {
+        var parents: Array<any> = Utils.toObject(results);
+        return Q.nbind(bulk.execute, bulk)()
+            .then(result => {
+                return mongooseHelper.deleteCascade(model, parents).then(success => {
+                    let asyncCalls = [];
+                    parents.forEach(x => asyncCalls.push(mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.delete, x, null)));
+                    return Q.allSettled(asyncCalls).then(allDone => {
+                        return ({ delete: 'success' });
+                    });
+                });
+            })
+            .catch(err => {
+                winstonLog.logError(`bulkDel failed ${err}`);
+                return Q.reject('bulkDel failed');
             });
-            return ret;
-        })
-        .catch(err => {
-            winstonLog.logError(`bulkDel failed ${err}`);
-            return Q.reject('bulkDel failed');
-        });
+    })
 }
 
 /**
