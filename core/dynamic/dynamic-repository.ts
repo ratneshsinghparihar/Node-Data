@@ -104,7 +104,7 @@ export class DynamicRepository implements IDynamicRepository {
         objArr.forEach(x => {
             objs.push(InstanceService.getInstance(this.getEntity(), null, x));
         });
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs).then(result => {
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
