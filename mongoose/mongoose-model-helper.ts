@@ -222,15 +222,15 @@ export function autogenerateIdsForAutoFields(model: Mongoose.Model<any>, obj: an
  * @param obj
  * @param changedProps
  */
-export function updateEmbeddedOnEntityChange(model: Mongoose.Model<any>, entityChange: EntityChange, obj: any, changedProps: Array<string>) {
+export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChange: EntityChange, obj: Array<any>) {
     var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
     var asyncCalls = [];
     Enumerable.from(allReferencingEntities)
         .forEach((x: MetaData) => {
             var param = <IAssociationParams>x.params;
-            if (entityChange == EntityChange.delete || Utils.isPropertyUpdateRequired(changedProps, param.properties)) {
-                var newObj = getFilteredValue(obj, param.properties);
-                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, newObj, param.embedded, entityChange, model));
+            if (entityChange == EntityChange.delete) {
+                //var newObj = getFilteredValue(obj, param.properties);
+                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, param.embedded, entityChange, model));
             }
         });
     return Q.allSettled(asyncCalls);
@@ -357,113 +357,50 @@ function bulkDelete(model: Mongoose.Model<any>, ids: any) {
     });
 }
 
-function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObj: any, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean): Q.Promise<any> {
-    if (isEmbedded) {
-        var queryCond = {};
-        queryCond[prop + '._id'] = updateObj['_id'];
+function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean): Q.Promise<any> {
+    var queryCond = {};
+    queryCond[prop] = {};
+    var changesObjIds = {
+        $in: updateObjs.map(x => x._id)
+    };
+    queryCond[prop] = isEmbedded ? { '_id': changesObjIds } : changesObjIds;
+    var prom = isArray ? Q.nbind(model.update, model)({}, { $pull: queryCond }, { multi: true }) : Q.nbind(model.update, model)(queryCond, { $set: { prop: null } }, { multi: true });
+    return Q.nbind(model.find, model)(queryCond, ['_id']).then(parent => {
+        return prom.then(res => {
 
-        if (entityChange === EntityChange.put
-            || entityChange === EntityChange.patch
-            || (entityChange === EntityChange.delete && !isArray)) {
-
-            var cond = {};
-            cond[prop + '._id'] = updateObj['_id'];
-
-            var newUpdateObj = {};
-            isArray
-                ? newUpdateObj[prop + '.$'] = updateObj
-                : newUpdateObj[prop] = entityChange === EntityChange.delete ? null : updateObj;
-
-            return Q.nbind(model.update, model)(cond, { $set: newUpdateObj }, { multi: true })
-                .then(result => {
-                    return updateEmbeddedParent(model, queryCond, result, prop);
-                }).catch(error => {
-                    winstonLog.logError(`Error in patchAllEmbedded ${error}`);
-                    return Q.reject(error);
-                });
-
-        }
-        else {
-            var pullObj = {};
-            pullObj[prop] = {};
-            pullObj[prop]['_id'] = updateObj['_id'];
-            return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                .then(result => {
-                    return updateEmbeddedParent(model, queryCond, result, prop);
-                }).catch(error => {
-                    winstonLog.logError(`Error in patchAllEmbedded ${error}`);
-                    return Q.reject(error);
-                });
-        }
-    }
-    else {
-        // this to handle foreign key deletion only
-        if (entityChange == EntityChange.delete) {
-            var queryCond = {};
-            if (isArray) {
-                queryCond[prop] = { $in: [updateObj['_id']] };
-            }
-            else {
-                queryCond[prop] = updateObj['_id'];
-            }
-
-            var pullObj = {};
-            pullObj[prop] = {};
-
-            if (isArray) {
-                pullObj[prop] = updateObj['_id'];
-                return Q.nbind(model.update, model)({}, { $pull: pullObj }, { multi: true })
-                    .then(result => {
-                        return updateEmbeddedParent(model, queryCond, result, prop);
-                    }).catch(error => {
-                        winstonLog.logError(`Error in patchAllEmbedded ${error}`);
-                        return Q.reject(error);
-                    });
-            }
-            else {
-                pullObj[prop] = null;
-                var cond = {};
-                cond[prop] = updateObj['_id'];
-
-                return Q.nbind(model.update, model)(cond, { $set: pullObj }, { multi: true })
-                    .then(result => {
-                        //console.log(result);
-                        return updateEmbeddedParent(model, queryCond, result, prop);
-                    }).catch(error => {
-                        winstonLog.logError(`Error in patchAllEmbedded ${error}`);
-                        return Q.reject(error);
-                    });
-            }
-        }
-    }
+        })
+    }).catch(error => {
+        winstonLog.logError(`Error in patchAllEmbedded ${error}`);
+        return Q.reject(error);
+    });
 }
 
-function updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result, property: string) {
-    if (result['nModified'] == 0)
-        return;
+// updateEmbeddedParent(model: Mongoose.Model<any>, queryCond, result, property: string) {
+//    if (result['nModified'] == 0)
+//        return;
 
-    var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+//    var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
 
-    var first = Enumerable.from(allReferencingEntities).where(x => (<IAssociationParams>x.params).embedded).firstOrDefault();
-    if (!first)
-        return;
+//    var first = Enumerable.from(allReferencingEntities).where(x => (<IAssociationParams>x.params).embedded).firstOrDefault();
+//    if (!first)
+//        return;
 
-    winstonLog.logInfo(`updateEmbeddedParent query is ${queryCond}`);
-    // find the objects and then update these objects
-    return Q.nbind(model.find, model)(queryCond)
-        .then(updated => {
-            // Now update affected documents in embedded records
-            var asyncCalls = [];
-            Enumerable.from(updated).forEach(x => {
-                asyncCalls.push(updateEmbeddedOnEntityChange(model, EntityChange.patch, x, [property]));
-            });
-            return Q.all(asyncCalls);
+//    winstonLog.logInfo(`updateEmbeddedParent query is ${queryCond}`);
+//    // find the objects and then update these objects
+//    return Q.nbind(model.find, model)(queryCond)
+//        .then(updated => {
+//            // Now update affected documents in embedded records
+//            var asyncCalls = [];
+//            Enumerable.from(updated).forEach(x => {
+//                asyncCalls.push(updateEmbeddedOnEntityChange(model, EntityChange.patch, x, [property]));
+//            });
+//            return Q.all(asyncCalls);
 
-        }).catch(error => {
-            winstonLog.logError(`Error in updateEmbeddedParent ${error}`);
-            return Q.reject(error);
-        });
-}
+//        }).catch(error => {
+//            winstonLog.logError(`Error in updateEmbeddedParent ${error}`);
+//            return Q.reject(error);
+//        });
+//}
 
 function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
     var asyncCalls = [];
@@ -568,7 +505,7 @@ function getQueryCondition(id: any, cond: any): any {
     }
 }
 
-function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObject: any, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>): Q.Promise<any> {
+function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>): Q.Promise<any> {
     var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
 
     if (!meta) {
@@ -581,7 +518,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
         winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
     }
-    return patchAllEmbedded(model, propKey, updatedObject, entityChange, embedded, childModel, targetPropArray);
+    return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray);
 }
 
 export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any): Q.Promise<any> {
