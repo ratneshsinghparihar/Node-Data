@@ -43,7 +43,7 @@ export function promisable(params: IPromisableParam): any {
             //    return Q.when(this[params.targetKey]);
             //}
 
-            if (param && !param.refresh && this[ghostKey]) {
+            if (!(param && param.refresh) && this[ghostKey]) {
                 return this[ghostKey];
             }
 
