@@ -146,7 +146,9 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
         var x = <IAssociationParams>res.params;
         var props = [];
         for (let i = 0; i < updateObj.length; i++) {
-            props.push(updateObj[i][res.propertyKey]);
+            if (updateObj[i] && updateObj[i][res.propertyKey]) {
+                props.push(updateObj[i][res.propertyKey]);
+            }
         }
         if (!props || !props.length)
             return;
