@@ -565,8 +565,11 @@ function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
 export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string): Q.Promise<any> {
     // path is not used, verify for optimistics locking
     return bulkPut(model, [obj]).then((res: Array<any>) => {
-        if (res.length)
-            return res[0];
+        if (res.length) {
+            //this merging is wrong, as we cannnot send transient props in API rsult.Inconsistency @Ratnesh sugestion
+            Object.assign(obj, res[0]);
+            return obj;
+        }
         return [];
     }).catch(error => {
         winstonLog.logError(`Error in put ${error}`);
