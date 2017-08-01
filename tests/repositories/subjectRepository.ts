@@ -1,4 +1,5 @@
-﻿import {repository, allowanonymous} from "../../core/decorators";
+﻿import {repository, allowanonymous, OptimisticLocking} from "../../core/decorators";
+import {OptimisticLockType} from "../../core/enums/optimisticlock-type";
 import {subject} from '../models/subject';
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 import {authorize} from '../../core/decorators/authorize';
@@ -17,6 +18,11 @@ export default class CourseRepository extends AuthorizationRepository {
     @allowanonymous()
     findAll(): Q.Promise<any> {
         return super.findAll();
+    }
+
+    //@OptimisticLocking({ type: OptimisticLockType.VERSION })
+    put(id: any, obj: any): Q.Promise<any> {
+        return super.put(id, obj);
     }
 
     @preauthorize({ serviceName: "preauthservice", methodName: "CanEdit1" })

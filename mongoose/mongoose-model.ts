@@ -1,7 +1,7 @@
 ﻿import Mongoose = require("mongoose");
 import Q = require('q');
 import { EntityChange } from '../core/enums/entity-change';
-import { getEntity } from '../core/dynamic/model-entity';
+import { getEntity, repoFromModel } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
@@ -113,7 +113,14 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
             var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-            bulk.find({ _id: objectId }).update(updatedProps);
+            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
+            let query: Object = { _id: objectId };
+            if (isDecoratorPresent === true) {
+                updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+                updatedProps["$inc"] = { '__v': 1 };
+                query["__v"] = result["__v"];
+            }
+            bulk.find(query).update(updatedProps);
         }));
     }
 
@@ -163,7 +170,14 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
             var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
-            bulk.find({ _id: objectId }).update(updatedProps);
+            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "patch");
+            let query: Object = { _id: objectId };
+            if (isDecoratorPresent === true) {
+                updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+                updatedProps["$inc"] = { '__v': 1 };
+                query["__v"] = result["__v"];
+            }
+            bulk.find(query).update(updatedProps);
         }));
     }
 
@@ -544,9 +558,9 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
  * @param decorator
  * @param propertyKey
  */
-function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
+function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, propertyKey: string) {
     var isDecoratorPresent: boolean = false;
-    let repo = GetRepositoryForName(path);
+    let repo = repoFromModel[model.modelName];
     var repoEntity = repo && repo.getEntityType();
     var optimisticLock = repoEntity && MetaUtils.getMetaData(repoEntity, decorator, propertyKey);
     if (optimisticLock) {
@@ -562,8 +576,8 @@ function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
  * @param id
  * @param obj
  */
-export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string): Q.Promise<any> {
-    // path is not used, verify for optimistics locking
+export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    // Mayank - Check with suresh how to reject the changes in optimistic locking
     return bulkPut(model, [obj]).then((res: Array<any>) => {
         if (res.length) {
             //this merging is wrong, as we cannnot send transient props in API rsult.Inconsistency @Ratnesh sugestion
@@ -575,6 +589,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
         winstonLog.logError(`Error in put ${error}`);
         return Q.reject(error);
     });
+
     //let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     //// First update the any embedded property and then update the model
     //return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
@@ -617,8 +632,8 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
  * @param id
  * @param obj
  */
-export function patch(model: Mongoose.Model<any>, id: any, obj, path?: string): Q.Promise<any> {
-    // path is not used, verify for optimistics locking
+export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+    // Mayank - Check with suresh how to reject the changes in optimistic locking
     return bulkPatch(model, [obj]).then((res: Array<any>) => {
         if (res.length)
             return res[0];
