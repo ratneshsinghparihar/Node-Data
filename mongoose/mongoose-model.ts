@@ -1,7 +1,7 @@
 ﻿import Mongoose = require("mongoose");
 import Q = require('q');
 import { EntityChange } from '../core/enums/entity-change';
-import { getEntity } from '../core/dynamic/model-entity';
+import { getEntity, repoFromModel } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
 import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
@@ -113,7 +113,14 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
             var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-            bulk.find({ _id: objectId }).update(updatedProps);
+            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
+            let query: Object = { _id: objectId };
+            if (isDecoratorPresent === true) {
+                updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+                updatedProps["$inc"] = { '__v': 1 };
+                query["__v"] = result["__v"];
+            }
+            bulk.find(query).update(updatedProps);
         }));
     }
 
@@ -163,7 +170,14 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
             var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
-            bulk.find({ _id: objectId }).update(updatedProps);
+            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "patch");
+            let query: Object = { _id: objectId };
+            if (isDecoratorPresent === true) {
+                updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+                updatedProps["$inc"] = { '__v': 1 };
+                query["__v"] = result["__v"];
+            }
+            bulk.find(query).update(updatedProps);
         }));
     }
 
@@ -483,7 +497,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
     return Q.nbind(model.findByIdAndRemove, model)({ '_id': id })
         .then((response: any) => {
             return mongooseHelper.deleteCascade(model, [Utils.toObject(response)]).then(x => {
-                return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.delete, response, null)
+                return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
                     .then(res => {
                         return ({ delete: 'success' });
                     });
@@ -526,8 +540,7 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
             .then(result => {
                 return mongooseHelper.deleteCascade(model, parents).then(success => {
                     let asyncCalls = [];
-                    parents.forEach(x => asyncCalls.push(mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.delete, x, null)));
-                    return Q.allSettled(asyncCalls).then(allDone => {
+                    return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
                         return ({ delete: 'success' });
                     });
                 });
@@ -545,9 +558,9 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
  * @param decorator
  * @param propertyKey
  */
-function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
+function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, propertyKey: string) {
     var isDecoratorPresent: boolean = false;
-    let repo = GetRepositoryForName(path);
+    let repo = repoFromModel[model.modelName];
     var repoEntity = repo && repo.getEntityType();
     var optimisticLock = repoEntity && MetaUtils.getMetaData(repoEntity, decorator, propertyKey);
     if (optimisticLock) {
@@ -563,39 +576,52 @@ function isDecoratorApplied(path: any, decorator: string, propertyKey: string) {
  * @param id
  * @param obj
  */
-export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string): Q.Promise<any> {
-    let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    // First update the any embedded property and then update the model
-    return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
-        var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-        let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "put");
-        let query: Object = { '_id': id };
-        if (isDecoratorPresent === true) {
-            updatedProps["$set"] && delete updatedProps["$set"]["__v"];
-            updatedProps["$inc"] = { '__v': 1 };
-            query["__v"] = obj["__v"];
+export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    // Mayank - Check with suresh how to reject the changes in optimistic locking
+    return bulkPut(model, [obj]).then((res: Array<any>) => {
+        if (res.length) {
+            //this merging is wrong, as we cannnot send transient props in API rsult.Inconsistency @Ratnesh sugestion
+            Object.assign(obj, res[0]);
+            return obj;
         }
-        return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
-            .then(result => {
-                if (!result && isDecoratorPresent === true) {
-                    return Q.reject("You are trying to update with stale data,please try again after some time.");
-                }
-                return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.put, result, Utils.getPropertiesFromObject(clonedObj))
-                    .then(res => {
-                        var resObj = Utils.toObject(result);
-                        return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
-                            Object.assign(obj, r);
-                            return obj;
-                        });
-                    });
-            }).catch(error => {
-                winstonLog.logError(`Error in put ${error}`);
-                return Q.reject(error);
-            });
+        return [];
     }).catch(error => {
         winstonLog.logError(`Error in put ${error}`);
         return Q.reject(error);
     });
+
+    //let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
+    //// First update the any embedded property and then update the model
+    //return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
+    //    var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
+    //    let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "put");
+    //    let query: Object = { '_id': id };
+    //    if (isDecoratorPresent === true) {
+    //        updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+    //        updatedProps["$inc"] = { '__v': 1 };
+    //        query["__v"] = obj["__v"];
+    //    }
+    //    return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
+    //        .then(result => {
+    //            if (!result && isDecoratorPresent === true) {
+    //                return Q.reject("You are trying to update with stale data,please try again after some time.");
+    //            }
+    //            return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.put, result, Utils.getPropertiesFromObject(clonedObj))
+    //                .then(res => {
+    //                    var resObj = Utils.toObject(result);
+    //                    return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
+    //                        Object.assign(obj, r);
+    //                        return obj;
+    //                    });
+    //                });
+    //        }).catch(error => {
+    //            winstonLog.logError(`Error in put ${error}`);
+    //            return Q.reject(error);
+    //        });
+    //}).catch(error => {
+    //    winstonLog.logError(`Error in put ${error}`);
+    //    return Q.reject(error);
+    //});
 }
 
 /**
@@ -606,38 +632,48 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any, path?: string
  * @param id
  * @param obj
  */
-export function patch(model: Mongoose.Model<any>, id: any, obj, path?: string): Q.Promise<any> {
-    let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-
-    // First update the any embedded property and then update the model
-    return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
-        var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
-        let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "patch");
-        let query: Object = { '_id': id };
-        if (isDecoratorPresent === true) {
-            updatedProps["$set"] && delete updatedProps["$set"]["__v"];
-            updatedProps["$push"] && delete updatedProps["$push"]["__v"];
-            updatedProps["$inc"] = { '__v': 1 };
-            if (obj["__v"]) {
-                query["__v"] = obj["__v"];
-            }
-        }
-        return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
-            .then(result => {
-                if (!result && isDecoratorPresent === true) {
-                    return Q.reject("You are trying to update with stale data,please try again after some time.");
-                }
-                return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.patch, result, Utils.getPropertiesFromObject(clonedObj))
-                    .then(res => {
-                        var resObj = Utils.toObject(result);
-                        return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
-                            Object.assign(obj, r);
-                            return obj;
-                        });
-                    });
-            });
+export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+    // Mayank - Check with suresh how to reject the changes in optimistic locking
+    return bulkPatch(model, [obj]).then((res: Array<any>) => {
+        if (res.length)
+            return res[0];
+        return [];
     }).catch(error => {
-        winstonLog.logError(`Error in patch ${error}`);
+        winstonLog.logError(`Error in put ${error}`);
         return Q.reject(error);
     });
+
+    //let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
+
+    //// First update the any embedded property and then update the model
+    //return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
+    //    var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
+    //    let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "patch");
+    //    let query: Object = { '_id': id };
+    //    if (isDecoratorPresent === true) {
+    //        updatedProps["$set"] && delete updatedProps["$set"]["__v"];
+    //        updatedProps["$push"] && delete updatedProps["$push"]["__v"];
+    //        updatedProps["$inc"] = { '__v': 1 };
+    //        if (obj["__v"]) {
+    //            query["__v"] = obj["__v"];
+    //        }
+    //    }
+    //    return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
+    //        .then(result => {
+    //            if (!result && isDecoratorPresent === true) {
+    //                return Q.reject("You are trying to update with stale data,please try again after some time.");
+    //            }
+    //            return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.patch, result, Utils.getPropertiesFromObject(clonedObj))
+    //                .then(res => {
+    //                    var resObj = Utils.toObject(result);
+    //                    return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
+    //                        Object.assign(obj, r);
+    //                        return obj;
+    //                    });
+    //                });
+    //        });
+    //}).catch(error => {
+    //    winstonLog.logError(`Error in patch ${error}`);
+    //    return Q.reject(error);
+    //});
 }

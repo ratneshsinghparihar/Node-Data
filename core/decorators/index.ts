@@ -7,4 +7,5 @@ export {transient} from './transient';
 export {Worker} from './workerAssociation';
 export {promisable, IPromisableFetchParam, IPromisableParam} from './promisable';
 export {processStart, processEnd, processStartEnd} from './processControl';
+export {OptimisticLocking} from './optimisticlocking';
 

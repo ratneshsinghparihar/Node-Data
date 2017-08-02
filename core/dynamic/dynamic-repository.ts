@@ -278,7 +278,9 @@ export class DynamicRepository implements IDynamicRepository {
 
     public put(id: any, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj).then(result => {
+            return InstanceService.getObjectFromJson(this.getEntity(), result)
+        });
     }
         
     public delete(id: any) {

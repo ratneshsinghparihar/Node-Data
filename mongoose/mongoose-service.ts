@@ -75,7 +75,7 @@ export class MongooseService implements IEntityService {
     }
 
     put(repoPath: string, id: any, obj: any): Q.Promise<any> {
-        return MongooseModel.put(this.getModel(repoPath), id, obj,repoPath);
+        return MongooseModel.put(this.getModel(repoPath), id, obj);
     }
 
     del(repoPath: string, id: any): Q.Promise<any> {
@@ -83,7 +83,7 @@ export class MongooseService implements IEntityService {
     }
 
     patch(repoPath: string, id: any, obj): Q.Promise<any> {
-        return MongooseModel.patch(this.getModel(repoPath), id, obj,repoPath);
+        return MongooseModel.patch(this.getModel(repoPath), id, obj);
     }
 
     getModel(repoPath: string) {
