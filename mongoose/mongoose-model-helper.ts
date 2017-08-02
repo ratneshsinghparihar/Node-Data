@@ -368,17 +368,32 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
     };
     isEmbedded ? searchQueryCond[prop + '._id'] = changesObjIds : searchQueryCond[prop] = changesObjIds;
     isEmbedded ? pullQuery[prop]['_id'] = changesObjIds : pullQuery[prop] = changesObjIds;
-    return Q.nbind(model.find, model)(searchQueryCond).then((parents: any) => {
+    return Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 }).then((parents: any) => {
         parents = Utils.toObject(parents);
         if (!parents || !parents.length) return Q.when(true);
         console.log(prop);
         let setCondition = {};
-        setCondition['$set'] = {};
-        setCondition['$set'][prop] = null;
+        setCondition['$unset'] = {};
+        setCondition['$unset'][prop] = "";
         var prom = isArray ? Q.nbind(model.update, model)({}, { $pull: pullQuery }, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
-            console.log(model);
-            return res;
+            var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+            var asyncCalls = [];
+            var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
+            if (isEmbedded) {
+                // fetch all the parent and call update parent
+                parents = parents.map(x => x._id);
+                return Q.nbind(model.find, model)({
+                    '_id': {
+                        $in: parents
+                    }
+                }).then((result: any) => {
+                    return updateParent(model, Utils.toObject(result));
+                });
+            }
+            else {
+                return res;
+            }
         })
     }).catch(error => {
         winstonLog.logError(`Error in patchAllEmbedded ${error}`);
