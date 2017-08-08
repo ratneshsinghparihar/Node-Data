@@ -295,11 +295,17 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
 
         return Q.nbind(bulk.execute, bulk)().then(result => {
-            return mongooseModel.findMany(model, parentIds).then(objects => {
-                return updateParent(model, objects).then(res => {
-                    return objects;
+            var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+            var asyncCalls = [];
+            var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
+            if (isEmbedded) {
+                return mongooseModel.findMany(model, parentIds).then(objects => {
+                    return updateParent(model, objects).then(res => {
+                        return objects;
+                    });
                 });
-            });
+            }
+            return objs;
         })
     })
         .catch(error => {
