@@ -703,7 +703,7 @@ function trimProperties(data, props: Array<string>) {
     var updated = {};
     updated['_id'] = data['_id'];
     props.forEach(p => {
-        if (data[p]) {
+        if (data[p] || data[p] === 0 || data[p] === false) {
             updated[p] = data[p];
         }
     });
