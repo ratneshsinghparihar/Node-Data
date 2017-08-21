@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
 
-## What is Node-Data <img src="node-data.png" width="200">
+## What is Node-Data <img src="node-data1.png" height="200" width="200">
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
 
