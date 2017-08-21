@@ -75,6 +75,7 @@ export class DynamicController {
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
                         Enumerable.from(result).forEach((x:any) => {
+                            this.repository.setRestResponse(x);
                             x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
                         });
                         //result = this.getHalModels(result,resourceName);
@@ -93,6 +94,7 @@ export class DynamicController {
                 }
                 return this.repository.findOne(req.params.id)
                     .then((result) => {
+                        this.repository.setRestResponse(result);
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result, resourceName, req, this.repository);
                         this.sendresult(req, res, result);
@@ -546,6 +548,7 @@ export class DynamicController {
             })
             .then((result: Array<any>) => {
                 result.forEach(obj => {
+                    this.repository.setRestResponse(obj);
                     this.getHalModel1(obj, resourceName + "/" + obj["_id"], req, this.repository);
                 });
                 this.sendresult(req, res, result);
