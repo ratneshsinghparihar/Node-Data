@@ -276,6 +276,7 @@ for Custom methods the framework will generate and handle url like
 
 ```html
 http://localhost:8080/data/blogs/search/findByName?name=testblog
+http://localhost:8080/data/blogs/searchAll?name=testblog
 http://localhost:8080/data/blogs/action/doPublish/
 ```
  
