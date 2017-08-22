@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
 
-## What is Node-Data
+## What is Node-Data <img src="node-data1.png" height="200" width="200">
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
 
@@ -868,9 +868,7 @@ in a service class
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200">
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200">
-<img src="http://pharmacom-store.com/image/GEP/GEP-Logo-PNG.png" width="200">
-<img src="http://2016.aiworld.com/wp-content/uploads/2013/12/datalogai360x280.jpg" width="200">
-<img src="http://2016.aiworld.com/wp-content/uploads/2016/09/verve-360x280e-360x280.jpg" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200"><img src="https://www.gep.com/sites/default/files/mediakit/GEP-Logo-SVG.svg" width="200">
+<img src="http://2016.aiworld.com/wp-content/uploads/2013/12/datalogai360x280.jpg" width="200"><img src="http://2016.aiworld.com/wp-content/uploads/2016/09/verve-360x280e-360x280.jpg" width="200">
+<img src="http://gyanprakash.org/Images/logo.png" width="200">

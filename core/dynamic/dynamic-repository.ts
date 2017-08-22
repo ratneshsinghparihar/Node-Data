@@ -48,6 +48,7 @@ export interface IDynamicRepository {
     post(obj: any): Q.Promise<any>;
     delete(id: any);
     patch(id: any, obj);
+    setRestResponse(obj: any);
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -290,6 +291,13 @@ export class DynamicRepository implements IDynamicRepository {
     public patch(id: any, obj) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
+    }
+    /**
+ * Below interceptor is used to add/remove some of the properties of model before sending it to client.
+ * e.g. samplDocument = {"id" : "23","name" : "test","companyName" : "com"}, here if we don't want to pass companyName to client then it can be removed in this interceptor.
+ */
+    public setRestResponse(obj: any) {
+
     }
 
 }
