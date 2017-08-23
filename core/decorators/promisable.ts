@@ -95,7 +95,7 @@ export function promisable(params: IPromisableParam): any {
             else {
                 let id = "";
                 if (!this[params.targetKey]) {
-                    Q.when({});
+                    return Q.when({});
                 }
                 if (Utils.isBasonOrStringType(this[params.targetKey])) {
                     id = this[params.targetKey];
