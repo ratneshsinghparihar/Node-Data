@@ -3,5 +3,6 @@
     type: string,
     action: string,
     indexofArgumentForTargetObject?: number,
-    executeInWorker?: boolean
+    executeInWorker?: boolean,
+    notify?: boolean
 }   
