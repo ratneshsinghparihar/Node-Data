@@ -1,8 +1,9 @@
 ﻿import {workerParamsDto} from './workerParamsDto';
 import {ProcessControlModel} from '../../../tests/models/processControlModel';
+import { IProcessControlParams } from './IProcessControlParams';
 
 export interface IProcessControlService {
-    initialize(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any, taskInfo?: workerParamsDto): Q.Promise<boolean>;
+    initialize(serviceName: string, methodName: string, targetObjectId: any, processControlParams: IProcessControlParams, taskInfo?: workerParamsDto): Q.Promise<boolean>;
     startProcess(): Q.Promise<boolean>;
     completeProcess(responseData: any): Q.Promise<boolean>;
     errorOutProcess(errorMessage: string): Q.Promise<boolean>;

@@ -41,7 +41,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                 if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
                     // Parent - processcontrol management executing with worker 
                     console.log('process initialized started');
-                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params.type, params.action, argsObj).then((sucess) => {
+                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params, argsObj).then((sucess) => {
                         
                         var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
                         console.log('process initialized started successfully');
@@ -57,7 +57,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                     }
                     else {
                         console.log('process initialized started');
-                        initialize = processControlService.initialize(serviceName, propertyKey, targetObjectId, params.type, params.action, argsObj);
+                        initialize = processControlService.initialize(serviceName, propertyKey, targetObjectId, params, argsObj);
                     }
                     return initialize.then(res => {
                         return processControlService.startProcess().then((sucess) => {

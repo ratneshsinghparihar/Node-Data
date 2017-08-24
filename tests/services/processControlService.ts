@@ -4,6 +4,8 @@ import {workerParamsDto} from "../../core/decorators/interfaces/workerParamsDto"
 import {ProcessControlModel} from '../models/processControlModel';
 import * as prcessControlRepo from '../repositories/processControlRepository';
 import { PrincipalContext } from '../../security/auth/principalContext';
+import { IProcessControlParams } from '../../core/decorators/interfaces/IProcessControlParams';
+
 import Q = require('q');
 
 console.log('initializing ProcessControlService');
@@ -21,8 +23,8 @@ export class ProcessControlService implements IProcessControlService {
     @inject(prcessControlRepo)
     private processControlRepository: prcessControlRepo.ProcessControlrepository;
 
-    public initialize(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any): Q.Promise<boolean> {
-        let newProcessControlObj: ProcessControlModel = this.constructNewProcessControlModel(serviceName, methodName, targetObjectId, type, action, args);
+    public initialize(serviceName: string, methodName: string, targetObjectId: any, processControlParams: IProcessControlParams, args?: any): Q.Promise<boolean> {
+        let newProcessControlObj: ProcessControlModel = this.constructNewProcessControlModel(serviceName, methodName, targetObjectId, processControlParams, args);
         console.log('processId:' + process.pid);
         return this.CanStartProcess(newProcessControlObj).then((sucess) => {
             if (sucess) {
@@ -81,11 +83,11 @@ export class ProcessControlService implements IProcessControlService {
         return Q.when(true);
     }
 
-    private constructNewProcessControlModel(serviceName: string, methodName: string, targetObjectId: any, type: string, action: string, args?: any) {
+    private constructNewProcessControlModel(serviceName: string, methodName: string, targetObjectId: any, processControlParams: IProcessControlParams, args?: any) {
         var newProcessControlObj = new ProcessControlModel();
-        newProcessControlObj.processEntityType = type;
+        newProcessControlObj.processEntityType = processControlParams.type;
         newProcessControlObj.processEntityId = targetObjectId;
-        newProcessControlObj.processEntityAction = action;
+        newProcessControlObj.processEntityAction = processControlParams.action;
         newProcessControlObj.status = processStatus.NOT_STARTED;
         newProcessControlObj.processId = process.pid;
         newProcessControlObj.serviceName = serviceName;
