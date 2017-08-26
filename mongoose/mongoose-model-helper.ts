@@ -271,6 +271,7 @@ export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: 
 function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+	console.log("updateParentDocument " + model.modelName + " count " + ids.length);
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
     return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
         if (!result) {

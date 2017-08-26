@@ -40,6 +40,7 @@ export class DynamicController {
     ensureLoggedIn(entity: any, action: any) {
         return function (req, res, next) {
             PrincipalContext.getSession().run(function () {
+				console.log('Request recieved: ......' + req.originalUrl);
                 var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
                 if (meta) {
                     next();

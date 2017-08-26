@@ -20,6 +20,7 @@ import { GetRepositoryForName } from '../core/dynamic/dynamic-repository';
  * @param objArr
  */
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+    console.log("bulkPost " + model.modelName);
     var addChildModel = [];
 
     // create all cloned models
@@ -63,6 +64,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels) {
+    
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
@@ -78,6 +80,7 @@ function executeBulk(model, arrayOfDbModels) {
  * @param objArr
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+    console.log("bulkPut " + model.modelName);
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
@@ -157,6 +160,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
  * @param objArr
  */
 export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
+    console.log("bulkPatch " + model.modelName);
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
@@ -213,6 +217,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
  * @param obj
  */
 export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj: any): Q.Promise<any> {
+    console.log("bulkPutMany " + model.modelName);
     delete obj._id;
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
@@ -239,6 +244,7 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
  * @param model
  */
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
+    console.log("findAll " + model.modelName);
     return Q.nbind(model.find, model)({})
         .then(result => {
             return Utils.toObject(result);
@@ -297,6 +303,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
  * @param limit
  */
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
+    console.log("findWhere " + model.modelName);
     var sel = {};
     if (select instanceof Array) {
         select.forEach(x => {
@@ -362,6 +369,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
  * @param id
  */
 export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolean) {
+    console.log("findOne " + model.modelName);
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
             return mongooseHelper.embeddedChildren(model, result, false, donotLoadChilds)
@@ -381,6 +389,7 @@ export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolea
  * @param value
  */
 export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Promise<any> {
+    console.log("findByField " + model.modelName);
     var param = {};
     param[fieldName] = value;
     return Q.nbind(model.findOne, model)(param)
@@ -402,6 +411,7 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
  * @param ids
  */
 export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbeddedChilds?: boolean) {
+    console.log("findMany " + model.modelName);
     if (toLoadEmbeddedChilds == undefined) {
         toLoadEmbeddedChilds = false;
     }
@@ -439,6 +449,7 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
  * @param prop
  */
 export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> {
+    console.log("findChild " + model.modelName);
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
             var res = Utils.toObject(result)[prop];
@@ -465,6 +476,7 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
  * @param obj
  */
 export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
+    console.log("post " + model.modelName);
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     return mongooseHelper.addChildModelToParent(model, clonedObj, null)
         .then(result => {
@@ -515,6 +527,7 @@ export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
  * @param ids
  */
 export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise<any> {
+    console.log("bulkDel " + model.modelName);
     var asyncCalls = [];
     var ids = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
@@ -577,6 +590,7 @@ function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, prope
  * @param obj
  */
 export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<any> {
+    console.log("put " + model.modelName);
     // Mayank - Check with suresh how to reject the changes in optimistic locking
     return bulkPut(model, [obj]).then((res: Array<any>) => {
         if (res.length) {
@@ -633,6 +647,7 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
  * @param obj
  */
 export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
+    console.log("patch " + model.modelName);
     // Mayank - Check with suresh how to reject the changes in optimistic locking
     return bulkPatch(model, [obj]).then((res: Array<any>) => {
         if (res.length)
