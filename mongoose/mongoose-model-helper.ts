@@ -14,6 +14,7 @@ import { getEntity, getModel, repoFromModel } from '../core/dynamic/model-entity
 import * as Enumerable from 'linq';
 import { winstonLog } from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
+import {PrincipalContext} from '../security/auth/principalContext';
 
 /**
  * finds all the parent and update them. It is called when bulk objects are updated
@@ -261,6 +262,14 @@ export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: 
     });
 }
 
+export function updateWriteCount() {
+    if (PrincipalContext) {
+        var count = PrincipalContext.get('write');
+        PrincipalContext.save('write', ++count);
+    }
+
+}
+
 /**
  * current implemnetation only update embeded for one level parent-child relationship
  * e.g- only supports teacher and student relation ship not principle->teacher->student embeded object  
@@ -271,8 +280,9 @@ export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: 
 function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
-	console.log("updateParentDocument " + model.modelName + " count " + ids.length);
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
+    console.log("updateParentDocument " + model.modelName + " count " + ids.length);
+    updateWriteCount();
     return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
         if (!result) {
             return Q.resolve([]);

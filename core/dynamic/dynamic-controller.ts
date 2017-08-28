@@ -27,6 +27,7 @@ export class DynamicController {
     private repository: IDynamicRepository;
     private path: string;
     private entity: any;
+    static callId: number = 1;
 
     constructor(entity: any, repository: IDynamicRepository) {
         this.repository = repository;
@@ -40,7 +41,8 @@ export class DynamicController {
     ensureLoggedIn(entity: any, action: any) {
         return function (req, res, next) {
             PrincipalContext.getSession().run(function () {
-				console.log('Request recieved: ......' + req.originalUrl);
+                PrincipalContext.save('write', 0);
+                console.log(++DynamicController.callId + ': Request recieved: ......' + req.originalUrl);
                 var meta = MetaUtils.getMetaData(entity, Decorators.ALLOWANONYMOUS, action);
                 if (meta) {
                     next();
@@ -75,7 +77,7 @@ export class DynamicController {
                 return this.repository.findAll()
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
-                        Enumerable.from(result).forEach((x:any) => {
+                        Enumerable.from(result).forEach((x: any) => {
                             this.repository.setRestResponse(x);
                             x = this.getHalModel1(x, resourceName + "/" + x._id, req, this.repository);
                         });
@@ -671,7 +673,7 @@ export class DynamicController {
             var repo = GetRepositoryForName(relation.params.rel);
             if (repo) {
                 var param = relation.params;
-                if (!param.embedded && !param.eagerLoading) { return model;}
+                if (!param.embedded && !param.eagerLoading) { return model; }
                 if (model[relation.propertyKey] instanceof Array) {
                     if (model[relation.propertyKey] && model[relation.propertyKey].length && Utils.isJSON(model[relation.propertyKey][0])) {
                         model[relation.propertyKey].forEach(key => {
@@ -787,6 +789,9 @@ export class DynamicController {
     }
 
     private sendresult(req, res, result) {
+        if (PrincipalContext) {
+            console.log('Total number of writes before response:' + PrincipalContext.get('write'));
+        }
         res.set("Content-Type", "application/json");
         res.send(JSON.stringify(result, null, 4));
     }

@@ -21,6 +21,7 @@ import { GetRepositoryForName } from '../core/dynamic/dynamic-repository';
  */
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
     console.log("bulkPost " + model.modelName);
+    mongooseHelper.updateWriteCount();
     var addChildModel = [];
 
     // create all cloned models
@@ -64,7 +65,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels) {
-    
+
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
@@ -81,6 +82,7 @@ function executeBulk(model, arrayOfDbModels) {
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
     console.log("bulkPut " + model.modelName);
+    mongooseHelper.updateWriteCount();
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
@@ -161,6 +163,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
  */
 export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
     console.log("bulkPatch " + model.modelName);
+    mongooseHelper.updateWriteCount();
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
@@ -218,6 +221,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
  */
 export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj: any): Q.Promise<any> {
     console.log("bulkPutMany " + model.modelName);
+    mongooseHelper.updateWriteCount();
     delete obj._id;
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     // First update the any embedded property and then update the model
@@ -477,6 +481,7 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
  */
 export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
+    mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
     return mongooseHelper.addChildModelToParent(model, clonedObj, null)
         .then(result => {
