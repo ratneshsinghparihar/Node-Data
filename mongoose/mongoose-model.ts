@@ -132,18 +132,17 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
     return Q.allSettled(asyncCalls).then(x => {
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
-            return findMany(model, ids).then(objects => {
-                return mongooseHelper.updateParent(model, objects).then(res => {
-                    asyncCalls = [];
-                    var resultObject = [];
-                    Enumerable.from(objects).forEach(x => {
-                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                            resultObject.push(r);
-                        }));
-                    });
-                    return Q.allSettled(asyncCalls).then(final => {
-                        return resultObject;
-                    });
+            let objects = objArr;
+            return mongooseHelper.updateParent(model, objects).then(res => {
+                asyncCalls = [];
+                var resultObject = [];
+                Enumerable.from(objects).forEach(x => {
+                    asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                        resultObject.push(r);
+                    }));
+                });
+                return Q.allSettled(asyncCalls).then(final => {
+                    return resultObject;
                 });
             });
         });
@@ -191,18 +190,17 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
     return Q.allSettled(asyncCalls).then(x => {
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
-            return findMany(model, ids).then(objects => {
-                return mongooseHelper.updateParent(model, objects).then(res => {
-                    asyncCalls = [];
-                    var resultObject = [];
-                    Enumerable.from(objects).forEach(x => {
-                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                            resultObject.push(r);
-                        }));
-                    });
-                    return Q.allSettled(asyncCalls).then(final => {
-                        return resultObject;
-                    });
+            let objects = objArr;
+            return mongooseHelper.updateParent(model, objects).then(res => {
+                asyncCalls = [];
+                var resultObject = [];
+                Enumerable.from(objects).forEach(x => {
+                    asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                        resultObject.push(r);
+                    }));
+                });
+                return Q.allSettled(asyncCalls).then(final => {
+                    return resultObject;
                 });
             });
         }).catch(error => {
@@ -234,7 +232,7 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
         .then(result => {
             return findMany(model, objIds).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    return result;
+                    return objects;
                 });
             });
         }).catch(error => {

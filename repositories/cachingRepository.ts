@@ -5,8 +5,6 @@ import {MetaData} from 'nodedata/core/metadata/metadata';
 import { entityAction, EntityActionParam } from "nodedata/core/decorators/entityAction";
 import {inject} from 'nodedata/di/decorators/inject';
 import Q = require('q');
-//import { logger } from "../logging";
-import * as Enumerable from 'linq';
 import { PrincipalContext } from 'nodedata/security/auth/principalContext';
 var hash = require('object-hash');
 
@@ -22,7 +20,7 @@ export class CachingRepository extends DynamicRepository {
         return this._cacheRepo;
     }
 
-    findOne(id, donotLoadChilds?: boolean): Q.Promise<any> {
+    findOne(id: any): Q.Promise<any> {
         let cacheValue = this.getEntityFromCache(CacheConstants.idCache, id);
         if (cacheValue) {
             return Q.when(cacheValue);
@@ -175,10 +173,10 @@ export class CachingRepository extends DynamicRepository {
     }
 
 }
+export default CachingRepository1;
 
-class CacheConstants {
+export class CacheConstants {
     public static idCache: string;
     public static hashCache: string;
 }
 
-export default CachingRepository;
