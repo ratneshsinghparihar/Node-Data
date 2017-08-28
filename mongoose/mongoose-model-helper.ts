@@ -244,16 +244,18 @@ export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChang
  * @param model
  * @param obj
  */
-export function addChildModelToParent(model: Mongoose.Model<any>, objects: Array<any>) {
+export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
     var asyncCalls = [];
     var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     for (var m in metaArr) {
         var meta: MetaData = <any>metaArr[m];
-        asyncCalls.push(embedChild(objects, meta.propertyKey, meta));
+        if (obj[meta.propertyKey]) {
+            asyncCalls.push(embedChild(obj, meta.propertyKey, meta));
+        }
     }
 
     return Q.allSettled(asyncCalls).then(x => {
-        return objects;
+        return obj;
         //return isDataValid(model, obj, id).then(x => {
         //    return obj;
         //});
@@ -591,106 +593,7 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
     });
 }
 
-function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise<any> {
-    var searchResult = {};
-    var newVal;
-    var objs = [];
-    var searchObj = [];
-    let params: IAssociationParams = <any>relMetadata.params;
-
-    objects.forEach(obj => {
-        if (!obj[prop])
-            return;
-        var val = obj[prop];
-
-        if (relMetadata.propertyType.isArray) {
-            newVal = [];
-            for (var i in val) {
-                if (CoreUtils.isJSON(val[i])) {
-                    if (!val[i]['_id']) {
-                        val[i]['_id'] = Mongoose.Types.ObjectId();
-                        objs.push(val[i]);
-                    }
-                    val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'], Mongoose.Types.ObjectId);
-                    if (params.embedded) {
-                        newVal.push(val[i]);
-                    }
-                    else {
-                        newVal.push(val[i]['_id']);
-                    }
-                }
-                else {
-                    if (!params.embedded) {
-                        newVal.push(Utils.castToMongooseType(val[i], Mongoose.Types.ObjectId));
-                    }
-                    else {
-                        // find object
-                        searchResult[val[i]] = obj;
-                        searchObj.push(val[i]);
-                        //newVal.push(searchResult[val[i]]);
-                    }
-                }
-            }
-        }
-        else {
-            if (CoreUtils.isJSON(val)) {
-                if (!val['_id']) {
-                    val['_id'] = Mongoose.Types.ObjectId();
-                    objs.push(val);
-                }
-                val['_id'] = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
-                if (params.embedded) {
-                    newVal = val;
-                }
-                else {
-                    newVal = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
-                }
-            }
-            else {
-                if (!params.embedded) {
-                    newVal = Utils.castToMongooseType(val, Mongoose.Types.ObjectId);
-                }
-                else {
-                    // find object
-                    searchResult[val] = obj;
-                    searchObj.push(val);
-                    //newVal = searchResult[val];
-                }
-            }
-        }
-
-        obj[prop] = newVal;
-    });
-
-    let queryCalls = [];
-    
-    let relModel = Utils.getCurrentDBModel(params.rel);
-    if (objs.length > 0) {
-        queryCalls.push(objs.bulkPost());
-    }
-    if (searchObj.length > 0) {
-        queryCalls.push(mongooseModel.findMany(relModel, searchObj).then(res => {
-            // set searched objects into actual objects
-            res.forEach(x => {
-                if (params.embedded) {
-                    searchResult[x._id][prop].push(x);
-                }
-                else {
-                    searchResult[x._id][prop] = x;
-                }
-            });
-        }));
-    }
-
-    return Q.allSettled(queryCalls).then(res => {
-        objects.forEach(obj => {
-            obj[prop] = embedSelectedPropertiesOnly(params, newVal);
-        });
-    });
-}
-
-
-function embedChild1(obj, prop, relMetadata: MetaData): Q.Promise<any> {
+function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
     if (!obj[prop])
         return;
     if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
