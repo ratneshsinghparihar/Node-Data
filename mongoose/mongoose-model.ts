@@ -29,39 +29,36 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeTransientProperties(model, obj);
         clonedModels.push(cloneObj);
-        addChildModel.push(mongooseHelper.addChildModelToParent(model, cloneObj, null));
     });
-
-    return Q.allSettled(addChildModel)
-        .then(result => {
-            // autogenerate ids of all the objects
-            Enumerable.from(clonedModels).forEach(clonedObj => {
-                try {
-                    mongooseHelper.autogenerateIdsForAutoFields(model, clonedObj);
-                    //Object.assign(obj, clonedObj);
-                } catch (ex) {
-                    winstonLog.logError(`Error in bulkPost ${ex}`);
-                    return Q.reject(ex);
-                }
-            });
-            var asyncCalls = [];
-            if (!batchSize) {
-                asyncCalls.push(executeBulk(model, clonedModels));
-            } else {
-                for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
-                    asyncCalls.push(executeBulk(model, clonedModels.slice(curCount, curCount + batchSize)))
-                }
+    return mongooseHelper.addChildModelToParent(model, clonedModels).then(result => {
+        // autogenerate ids of all the objects
+        Enumerable.from(clonedModels).forEach(clonedObj => {
+            try {
+                mongooseHelper.autogenerateIdsForAutoFields(model, clonedObj);
+                //Object.assign(obj, clonedObj);
+            } catch (ex) {
+                winstonLog.logError(`Error in bulkPost ${ex}`);
+                return Q.reject(ex);
             }
-            return Q.allSettled(asyncCalls).then(suces => {
-                let values = [];
-                values = suces.map(x => x.value).reduce((prev, current) => {
-                    return prev.concat(current);
-                });
-                return values;
-            }).catch(er => {
-                throw er;
-            });
         });
+        var asyncCalls = [];
+        if (!batchSize) {
+            asyncCalls.push(executeBulk(model, clonedModels));
+        } else {
+            for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
+                asyncCalls.push(executeBulk(model, clonedModels.slice(curCount, curCount + batchSize)))
+            }
+        }
+        return Q.allSettled(asyncCalls).then(suces => {
+            let values = [];
+            values = suces.map(x => x.value).reduce((prev, current) => {
+                return prev.concat(current);
+            });
+            return values;
+        }).catch(er => {
+            throw er;
+        });
+    });
 }
 
 function executeBulk(model, arrayOfDbModels) {
@@ -112,8 +109,8 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
     var asyncCalls = [];
     var ids = objArr.map(x => x._id);
     var bulk = model.collection.initializeUnorderedBulkOp();
-    for (var i = 0; i < length; i++) {
-        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+    return mongooseHelper.addChildModelToParent(model, objArr).then(results => {
+        results.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
@@ -126,10 +123,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
                 query["__v"] = result["__v"];
             }
             bulk.find(query).update(updatedProps);
-        }));
-    }
-
-    return Q.allSettled(asyncCalls).then(x => {
+        });
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             return findMany(model, ids).then(objects => {
@@ -171,8 +165,8 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
     var asyncCalls = [];
 
     // classic for loop used gives high performanance
-    for (var i = 0; i < length; i++) {
-        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+    return mongooseHelper.addChildModelToParent(model, objArr).then(results => {
+        results.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
@@ -185,10 +179,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
                 query["__v"] = result["__v"];
             }
             bulk.find(query).update(updatedProps);
-        }));
-    }
-
-    return Q.allSettled(asyncCalls).then(x => {
+        });
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             return findMany(model, ids).then(objects => {
@@ -483,7 +474,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    return mongooseHelper.addChildModelToParent(model, clonedObj, null)
+    return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             try {
                 mongooseHelper.autogenerateIdsForAutoFields(model, clonedObj);
