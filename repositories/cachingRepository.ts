@@ -1,23 +1,17 @@
-﻿import {repository} from "nodedata/core/decorators";
-import {DynamicRepository} from "nodedata/core/dynamic/dynamic-repository";
-import {MetaUtils} from "nodedata/core/metadata/utils";
-import {MetaData} from 'nodedata/core/metadata/metadata';
-import { entityAction, EntityActionParam } from "nodedata/core/decorators/entityAction";
-import {inject} from 'nodedata/di/decorators/inject';
+﻿import {repository} from "../core/decorators";
+import {DynamicRepository} from "../core/dynamic/dynamic-repository";
+import {MetaUtils} from "../core/metadata/utils";
+import {MetaData} from '../core/metadata/metadata';
+import { entityAction, EntityActionParam } from "../core/decorators/entityAction";
+import {inject} from '../di/decorators/inject';
 import Q = require('q');
-import { PrincipalContext } from 'nodedata/security/auth/principalContext';
+import { PrincipalContext } from '../security/auth/principalContext';
 var hash = require('object-hash');
 
 export class CachingRepository extends DynamicRepository {
 
-    private _cacheRepo: CachingRepository;
-
-    setCacheRepo() {
-        this._cacheRepo = this;
-    }
-
-    public getRootRepo() {
-        return this._cacheRepo;
+    public getCacheRepo() {
+        return super.getCacheRepo();
     }
 
     findOne(id: any): Q.Promise<any> {
@@ -173,7 +167,7 @@ export class CachingRepository extends DynamicRepository {
     }
 
 }
-export default CachingRepository1;
+export default CachingRepository;
 
 export class CacheConstants {
     public static idCache: string;

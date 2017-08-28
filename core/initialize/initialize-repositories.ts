@@ -55,7 +55,6 @@ export class InitializeRepositories {
                 let newRepo: DynamicRepository;
                 let rootRepo = new DynamicRepository();
                 let cacheRepo = new CachingRepository();
-                cacheRepo.setCacheRepo();
                 rootRepo.initialize(repoParams.path, x.target, model);
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
@@ -63,7 +62,7 @@ export class InitializeRepositories {
                 else {
                     newRepo = rootRepo;
                 }
-                newRepo.initialize(repoParams.path, x.target, model, rootRepo);
+                newRepo.initialize(repoParams.path, x.target, model, rootRepo, cacheRepo);
 
                 repoMap[path] = {
                     fn: x.target,
