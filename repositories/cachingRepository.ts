@@ -57,9 +57,8 @@ export class CachingRepository extends DynamicRepository {
         return super.findAll();
     }
 
-    //findWhere(query, selectedFields?: Array<any>): Q.Promise<any>;
     findWhere(query, selectedFields?: Array<any>, queryOptions?: any): Q.Promise<any> {
-        let hashEntity = hash(query);
+        let hashEntity = hash(JSON.stringify(query));
         let cacheValueIds: Array<any> = this.getEntityFromCache(CacheConstants.hashCache, hashEntity);
         if (cacheValueIds) {
             let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id)).filter(x => x);
@@ -133,7 +132,7 @@ export class CachingRepository extends DynamicRepository {
         //                            ->idEntity->{key: valueObj}
         let currentUser: any = PrincipalContext.User;
         if (currentUser && currentUser.entityCache && currentUser.entityCache[(<any>this).path] &&
-            currentUser.entityCache[(<any>this).path][param][id]) {
+            currentUser.entityCache[(<any>this).path][param] && currentUser.entityCache[(<any>this).path][param][id]) {
             return currentUser.entityCache[(<any>this).path][param][id];
         }
         return undefined;
@@ -143,7 +142,12 @@ export class CachingRepository extends DynamicRepository {
         // entityCache->modelName_path->hashEntity->{key: valueObj}
         //                            ->idEntity->{key: valueObj}
         let currentUser: any = PrincipalContext.User;
-        if (!currentUser && currentUser.entityCache) {
+        if (!currentUser) {
+            currentUser = {};
+            PrincipalContext.User = currentUser;
+        }
+
+        if (!currentUser.entityCache) {
             currentUser.entityCache = {};
         }
 
@@ -170,7 +174,7 @@ export class CachingRepository extends DynamicRepository {
 export default CachingRepository;
 
 export class CacheConstants {
-    public static idCache: string;
-    public static hashCache: string;
+    public static idCache: string = "idCache";
+    public static hashCache: string = "hashCache";
 }
 

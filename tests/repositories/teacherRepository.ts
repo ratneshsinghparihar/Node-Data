@@ -6,6 +6,7 @@ import {teacher} from '../models/teacher';
 import {AuthorizationRepository} from '../../repositories/authorizationRepository';
 import {CachingRepository} from '../../repositories/cachingRepository';
 import * as TeacherService from '../services/teacherService';
+import {Types} from 'mongoose';
 import Q = require('q');
 
 @repository({ path: 'teacher', model: teacher })
@@ -68,6 +69,24 @@ export class TeacherRepository extends CachingRepository {
 
     doUpdateMany(ids, obj) {
         return this.bulkPutMany(ids, obj);;
+    }
+
+    doFindWhere() {
+        return this.findWhere({
+            _id: {
+                $in: [Types.ObjectId("596a72000f404ef43c8e1a5a"), Types.ObjectId("59a3dee5c21673e8200c6d8f")]
+            }
+        }).then(rs => {
+            return this.findMany([Types.ObjectId("596a72000f404ef43c8e1a5a"), Types.ObjectId("59a3dee5c21673e8200c6d8f")]).then(r => {
+                return this.delete(Types.ObjectId("596a72000f404ef43c8e1a5a")).then(d => {
+                    return this.findMany([Types.ObjectId("596a72000f404ef43c8e1a5a"), Types.ObjectId("59a3dee5c21673e8200c6d8f")]).then(r => {
+                        let t = r;
+                        return t;
+                    });
+                });
+            });
+        });
+
     }
 
 }
