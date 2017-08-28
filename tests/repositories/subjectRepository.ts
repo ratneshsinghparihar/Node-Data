@@ -5,7 +5,7 @@ import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 import {authorize} from '../../core/decorators/authorize';
 import {preauthorize} from '../../core/decorators/preauthorize';
 import {postfilter} from '../../core/decorators/postfilter';
-import {AuthorizationRepository} from './security/AuthorizationRepository';
+import {AuthorizationRepository} from '../../repositories/authorizationRepository';
 import {entityAction, EntityActionParam} from '../../core/decorators/entityAction';
 import Q = require('q');
 

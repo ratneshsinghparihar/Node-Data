@@ -1,11 +1,11 @@
-﻿import { repository } from "../../../core/decorators";
-import { preauthorize } from "../../../core/decorators/preauthorize";
-import { entityAction, EntityActionParam } from "../../../core/decorators/entityAction";
-import { postfilter } from "../../../core/decorators/postfilter";
-import { authorize } from "../../../core/decorators/authorize";
-import { } from '../../../di/decorators/inject';
-import { DynamicRepository } from '../../../core/dynamic/dynamic-repository';
-import { inject } from '../../../di/decorators/inject';
+﻿import { repository } from "../core/decorators";
+import { preauthorize } from "../core/decorators/preauthorize";
+import { entityAction, EntityActionParam } from "../core/decorators/entityAction";
+import { postfilter } from "../core/decorators/postfilter";
+import { authorize } from "../core/decorators/authorize";
+import { } from '../di/decorators/inject';
+import { DynamicRepository } from '../core/dynamic/dynamic-repository';
+import { inject } from '../di/decorators/inject';
 import Q = require('q');
 //import { logger } from "../logging";
 

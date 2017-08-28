@@ -29,9 +29,7 @@ export class AuthorizationService {
     }
 
     canSaveEntities(entityActions: Array<EntityActionParam>) {
-        if (!entityActions || !entityActions.length) {
-            return Q.when(true);
-        }
+        return Q.when(true);
     }
 
     canSaveEntity(entityAction: EntityActionParam): Q.Promise<any> {

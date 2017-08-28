@@ -1,18 +1,25 @@
 ﻿import {repository} from "../../core/decorators";
+import {DynamicRepository} from "../../core/dynamic/dynamic-repository";
 import {inject} from "../../di/decorators";
 import {entityAction, EntityActionParam} from '../../core/decorators/entityAction';
 import {teacher} from '../models/teacher';
-import {AuthorizationRepository} from './security/AuthorizationRepository';
+import {CachingRepository} from '../../repositories/cachingRepository';
 import * as TeacherService from '../services/teacherService';
 import Q = require('q');
+
 @repository({ path: 'teacher', model: teacher })
-export class TeacherRepository extends AuthorizationRepository {
+export class TeacherRepository extends CachingRepository {
 
     @inject(TeacherService)
     private _teacherService: TeacherService.TeacherService;
 
-    findOne(id: any): Q.Promise<any> {
-        return super.findOne(id);
+    findOne(id, donotLoadChilds?: boolean): Q.Promise<any> {
+        return super.findOne(id).then(x => {
+            return super.findOne(id).then(r => {
+                let re = r;
+                return re;
+            });
+        });
     }
 
     findMany(ids: Array<any>, toLoadEmbededChilds?: boolean): Q.Promise<any> {
@@ -56,6 +63,10 @@ export class TeacherRepository extends AuthorizationRepository {
 
     doLongTask() {
         return this._teacherService.longTask();
+    }
+
+    doUpdateMany(ids, obj) {
+        return this.bulkPutMany(ids, obj);;
     }
 
 }

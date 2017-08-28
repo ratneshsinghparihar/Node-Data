@@ -4,6 +4,7 @@ import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
 
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
+import {CachingRepository} from '../../repositories/cachingRepository';
 import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
@@ -53,6 +54,8 @@ export class InitializeRepositories {
                 let model = repoParams.model;
                 let newRepo: DynamicRepository;
                 let rootRepo = new DynamicRepository();
+                let cacheRepo = new CachingRepository();
+                cacheRepo.setCacheRepo();
                 rootRepo.initialize(repoParams.path, x.target, model);
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
