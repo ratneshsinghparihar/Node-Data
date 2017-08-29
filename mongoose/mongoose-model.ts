@@ -190,17 +190,18 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
     return Q.allSettled(asyncCalls).then(x => {
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
-            let objects = objArr;
-            return mongooseHelper.updateParent(model, objects).then(res => {
-                asyncCalls = [];
-                var resultObject = [];
-                Enumerable.from(objects).forEach(x => {
-                    asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                        resultObject.push(r);
-                    }));
-                });
-                return Q.allSettled(asyncCalls).then(final => {
-                    return resultObject;
+            return findMany(model, ids).then(objects => {
+                return mongooseHelper.updateParent(model, objects).then(res => {
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
         }).catch(error => {

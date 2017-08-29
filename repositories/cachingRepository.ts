@@ -74,20 +74,25 @@ export class CachingRepository extends DynamicRepository {
         });
     }
 
-
     put(id: any, obj: any): Q.Promise<any> {
-        this.deletEntityFromCache(CacheConstants.idCache, id);
-        return super.put(id, obj);
+        return super.put(id, obj).then(result => {
+            this.setEntityIntoCache(CacheConstants.idCache, id, result);
+            return result;
+        });
     }
 
     delete(id: any) {
-        this.deletEntityFromCache(CacheConstants.idCache, id);
-        return super.delete(id);
+        return super.delete(id).then(result => {
+            this.deletEntityFromCache(CacheConstants.idCache, id);
+            return result;
+        });
     }
 
     patch(id: any, obj) {
-        this.deletEntityFromCache(CacheConstants.idCache, id);
-        return super.patch(id, obj);
+        return super.patch(id, obj).then(result => {
+            this.setEntityIntoCache(CacheConstants.idCache, id, result);
+            return result;
+        });
     }
 
     bulkPut(objArr: Array<any>) {
@@ -95,8 +100,10 @@ export class CachingRepository extends DynamicRepository {
             return undefined;
         }
 
-        objArr.forEach(x => this.deletEntityFromCache(CacheConstants.idCache, x._id));
-        return super.bulkPut(objArr);
+        return super.bulkPut(objArr).then(results => {
+            results.forEach(x => this.setEntityIntoCache(CacheConstants.idCache, x._id, x));
+            return results;
+        });
 
     }
 
@@ -105,8 +112,10 @@ export class CachingRepository extends DynamicRepository {
             return undefined;
         }
 
-        objArr.forEach(x => this.deletEntityFromCache(CacheConstants.idCache, x._id));
-        return super.bulkPatch(objArr);
+        return super.bulkPatch(objArr).then(results => {
+            results.forEach(x => this.setEntityIntoCache(CacheConstants.idCache, x._id, x));
+            return results;
+        });
     }
 
     bulkPutMany(objIds: Array<any>, obj: any) {
@@ -114,8 +123,10 @@ export class CachingRepository extends DynamicRepository {
             return undefined;
         }
 
-        objIds.forEach(id => this.deletEntityFromCache(CacheConstants.idCache, id));
-        return super.bulkPutMany(objIds, obj);
+        return super.bulkPutMany(objIds, obj).then(results => {
+            results && results.forEach(x => this.setEntityIntoCache(CacheConstants.idCache, x._id, x));
+            return results;
+        });
     }
 
     bulkDel(objArr: Array<any>) {
@@ -123,8 +134,10 @@ export class CachingRepository extends DynamicRepository {
             return undefined;
         }
 
-        objArr.forEach(x => this.deletEntityFromCache(CacheConstants.idCache, x._id));
-        return super.bulkDel(objArr);
+        return super.bulkDel(objArr).then(result => {
+            objArr.forEach(x => this.deletEntityFromCache(CacheConstants.idCache, x._id));
+            return result;
+        });
     }
 
     private getEntityFromCache(param: string, id: any) {
