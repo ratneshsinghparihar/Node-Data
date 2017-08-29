@@ -244,18 +244,16 @@ export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChang
  * @param model
  * @param obj
  */
-export function addChildModelToParent(model: Mongoose.Model<any>, obj: any, id: any) {
+export function addChildModelToParent(model: Mongoose.Model<any>, objects: Array<any>) {
     var asyncCalls = [];
     var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     for (var m in metaArr) {
         var meta: MetaData = <any>metaArr[m];
-        if (obj[meta.propertyKey]) {
-            asyncCalls.push(embedChild(obj, meta.propertyKey, meta));
-        }
+        asyncCalls.push(embedChild(objects, meta.propertyKey, meta));
     }
 
     return Q.allSettled(asyncCalls).then(x => {
-        return obj;
+        return objects;
         //return isDataValid(model, obj, id).then(x => {
         //    return obj;
         //});
@@ -388,18 +386,19 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
     return Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 }).then((parents: any) => {
         parents = Utils.toObject(parents);
         if (!parents || !parents.length) return Q.when(true);
+        parents = parents.map(x => x._id);
         console.log(prop);
         let setCondition = {};
         setCondition['$unset'] = {};
         setCondition['$unset'][prop] = "";
-        var prom = isArray ? Q.nbind(model.update, model)({}, { $pull: pullQuery }, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
+        searchQueryCond['_id'] = { $in: parents };
+        var prom = isArray ? Q.nbind(model.update, model)({ _id: { $in: parents } }, { $pull: pullQuery }, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
                 // fetch all the parent and call update parent
-                parents = parents.map(x => x._id);
                 return Q.nbind(model.find, model)({
                     '_id': {
                         $in: parents
@@ -593,104 +592,115 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
     });
 }
 
-function embedChild(obj, prop, relMetadata: MetaData): Q.Promise<any> {
-    if (!obj[prop])
-        return;
-    if (relMetadata.propertyType.isArray && !(obj[prop] instanceof Array)) {
-        winstonLog.logError('Expected array, found non-array');
-        throw 'Expected array, found non-array';
-    }
-    if (!relMetadata.propertyType.isArray && (obj[prop] instanceof Array)) {
-        winstonLog.logError('Expected single item, found array');
-        throw 'Expected single item, found array';
-    }
-    var createNewObj = [];
-    var params: IAssociationParams = <any>relMetadata.params;
-    var relModel = Utils.getCurrentDBModel(params.rel);
-    var val = obj[prop];
-    var newVal = val;
-    var asyncTask = [];
-    if (relMetadata.propertyType.isArray) {
-        newVal = [];
-        var objs = [];
-        var searchObj = [];
-        for (var i in val) {
-            if (CoreUtils.isJSON(val[i])) {
-                if (val[i]['_id']) {
-                    val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'], Mongoose.Types.ObjectId);
-                    if (params.embedded) {
-                        newVal.push(val[i]);
+function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise<any> {
+    var searchResult = {};
+    var objs = [];
+    var searchObj = [];
+    let params: IAssociationParams = <any>relMetadata.params;
+    objects.forEach((obj, index) => {
+        if (!obj[prop])
+            return;
+        var val = obj[prop];
+        var newVal;
+        if (relMetadata.propertyType.isArray) {
+            newVal = [];
+            for (var i in val) {
+                if (CoreUtils.isJSON(val[i])) {
+                    if (!val[i]['_id']) {
+                        val[i]['batch'] = index;
+                        objs.push(val[i]);
                     }
                     else {
-                        newVal.push(val[i]['_id']);
+                        val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'].toString(), Mongoose.Types.ObjectId);
+                        if (params.embedded) {
+                            newVal.push(val[i]);
+                        }
+                        else {
+                            newVal.push(val[i]['_id']);
+                        }
                     }
                 }
                 else {
-                    objs.push(val[i]);
+                    if (!params.embedded) {
+                        newVal.push(Utils.castToMongooseType(val[i].toString(), Mongoose.Types.ObjectId));
+                    }
+                    else {
+                        // find object
+                        searchResult[val[i]] = obj;
+                        searchObj.push(val[i]);
+                        //newVal.push(searchResult[val[i]]);
+                    }
+                }
+            }
+        }
+        else {
+            if (CoreUtils.isJSON(val)) {
+                if (!val['_id']) {
+                    val['batch'] = index;
+                    objs.push(val);
+                }
+                else {
+                    val['_id'] = Utils.castToMongooseType(val['_id'].toString(), Mongoose.Types.ObjectId);
+                    if (params.embedded) {
+                        newVal = val;
+                    }
+                    else {
+                        newVal = val['_id'];
+                    }
                 }
             }
             else {
                 if (!params.embedded) {
-                    newVal.push(Utils.castToMongooseType(val[i], Mongoose.Types.ObjectId));
+                    newVal = Utils.castToMongooseType(val.toString(), Mongoose.Types.ObjectId);
                 }
                 else {
-                    searchObj.push(val[i]);
+                    // find object
+                    searchResult[val] = obj;
+                    searchObj.push(val);
+                    //newVal = searchResult[val];
                 }
             }
         }
-        if (objs.length > 0) {
-            asyncTask.push(objs.bulkPost().then(result => {
-                if (params.embedded) {
-                    newVal = newVal.concat(result);
-                }
-                else {
-                    newVal = newVal.concat(Enumerable.from(result).select(x => x['_id']).toArray());
-                }
-            }));
-        }
+        obj[prop] = newVal;
+    });
 
-        if (searchObj.length > 0) {
-            asyncTask.push(mongooseModel.findMany(relModel, searchObj).then(res => {
-                newVal = newVal.concat(res);
-            }));
-        }
-    }
-    else {
-        if (CoreUtils.isJSON(val)) {
-            if (val['_id']) {
-                if (params.embedded) {
-                    val['_id'] = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
-                    newVal = val;
+    let queryCalls = [];
+
+    let relModel = Utils.getCurrentDBModel(params.rel);
+    if (objs.length > 0) {
+        queryCalls.push(objs.bulkPost().then(res => {
+            res.forEach(obj => {
+                var val = params.embedded ? obj : obj['_id'];
+                if (relMetadata.propertyType.isArray) {
+                    objects[obj['batch']][prop].push(val);
                 }
                 else {
-                    newVal = Utils.castToMongooseType(val['_id'], Mongoose.Types.ObjectId);
+                    objects[obj['batch']][prop] = val;
                 }
-            }
-            else {
-                asyncTask.push(mongooseModel.post(relModel, val).then(res => {
-                    if (params.embedded) {
-                        newVal = res;
-                    }
-                    else {
-                        newVal = res['_id'];
-                    }
-                }));
-            }
-        }
-        else {
-            if (!params.embedded) {
-                newVal = Utils.castToMongooseType(val, Mongoose.Types.ObjectId);
-            }
-            else {
-                asyncTask.push(mongooseModel.findMany(relModel, [val]).then(res => {
-                    newVal = res[0];
-                }));
-            }
-        }
+            });
+        }));
+    }
+    if (searchObj.length > 0) {
+        queryCalls.push(mongooseModel.findMany(relModel, searchObj).then(res => {
+            // set searched objects into actual objects
+            res.forEach(obj => {
+                var val = params.embedded ? obj : obj['_id'];
+                if (relMetadata.propertyType.isArray) {
+                    searchResult[obj['_id']][prop].push(val);
+                }
+                else {
+                    searchResult[obj['_id']][prop] = val;
+                }
+            });
+        }));
     }
 
-    return Q.allSettled(asyncTask).then(res => {
-        obj[prop] = embedSelectedPropertiesOnly(params, newVal);
+    return Q.allSettled(queryCalls).then(res => {
+        objects.forEach(obj => {
+            if (obj[prop]) {
+                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop]);
+            }
+        });
     });
 }
 
