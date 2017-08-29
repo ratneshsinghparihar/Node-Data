@@ -2,6 +2,7 @@
 import {DynamicRepository} from "../core/dynamic/dynamic-repository";
 import {MetaUtils} from "../core/metadata/utils";
 import {MetaData} from '../core/metadata/metadata';
+import {BaseModel} from "../models/baseModel";
 import { entityAction, EntityActionParam } from "../core/decorators/entityAction";
 import {inject} from '../di/decorators/inject';
 import Q = require('q');
@@ -15,8 +16,8 @@ export class CachingRepository extends DynamicRepository {
     }
 
     findOne(id: any): Q.Promise<any> {
-        let cacheValue = this.getEntityFromCache(CacheConstants.idCache, id);
-        if (cacheValue) {
+        let cacheValue: BaseModel = this.getEntityFromCache(CacheConstants.idCache, id);
+        if (cacheValue && !cacheValue.__partialLoaded && !cacheValue.__selectedFindWhere) {
             return Q.when(cacheValue);
         }
         return super.findOne(id).then(result => {
@@ -33,8 +34,16 @@ export class CachingRepository extends DynamicRepository {
         let chachedValues = [];
         let unChachedIds = [];
         ids.forEach(id => {
-            let cacheValue = this.getEntityFromCache(CacheConstants.idCache, id);
+            let cacheValue: BaseModel = this.getEntityFromCache(CacheConstants.idCache, id);
             if (cacheValue) {
+                if (cacheValue.__selectedFindWhere) {
+                    unChachedIds.push(id);
+                    return;
+                }
+                if (toLoadEmbeddedChilds && cacheValue.__partialLoaded) {
+                    unChachedIds.push(id);
+                    return;
+                }
                 return chachedValues.push(cacheValue);
             }
             unChachedIds.push(id);
@@ -44,28 +53,37 @@ export class CachingRepository extends DynamicRepository {
             return Q.when(chachedValues);
         }
 
-        return super.findMany(unChachedIds, toLoadEmbeddedChilds).then((results: Array<any>) => {
+        return super.findMany(unChachedIds, toLoadEmbeddedChilds).then((results: Array<BaseModel>) => {
             results.forEach(result => {
+                if (!toLoadEmbeddedChilds) {
+                    result.__partialLoaded = true;
+                }
                 this.setEntityIntoCache(CacheConstants.idCache, result._id, result);
             });
             return chachedValues.concat(results);
         });
-
     }
 
     findAll(): Q.Promise<any> {
         return super.findAll();
     }
 
-    findWhere(query, selectedFields?: Array<any>, queryOptions?: any): Q.Promise<any> {
+    findWhere(query, selectedFields?: Array<any>, queryOptions?: any, toLoadChilds?: boolean): Q.Promise<any> {
         let hashEntity = hash(JSON.stringify(query));
         let cacheValueIds: Array<any> = this.getEntityFromCache(CacheConstants.hashCache, hashEntity);
         if (cacheValueIds) {
             let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id)).filter(x => x);
             return Q.when(cachedValueResults);
         }
-        return super.findWhere(query, selectedFields, queryOptions).then((results: Array<any>) => {
+        return super.findWhere(query, selectedFields, queryOptions).then((results: Array<BaseModel>) => {
             results.forEach(result => {
+                if (selectedFields && selectedFields.length > 0) {
+                    result.__selectedFindWhere = true;
+                }
+                // if selected fields is empty or undefined and toLoadChilds is false, then set partialLoaded true
+                if ((!selectedFields || selectedFields.length === 0) && toLoadChilds === false) {
+                    result.__partialLoaded = true;
+                }
                 this.setEntityIntoCache(CacheConstants.idCache, result._id, result);
 
             });

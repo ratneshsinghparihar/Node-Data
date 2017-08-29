@@ -12,6 +12,16 @@ export class baseModel extends CrudEntity {
 
     @field()
     name: String;
+
+    /*
+        nodedata internal use for caching, use for findWhere case
+    */
+    __selectedFindWhere: string;
+
+    /*
+        nodedata internal use for caching, to marked as partial load for findMany (egar load case not load)
+    */
+    __partialLoaded: boolean;
 }
 
 export default baseModel;

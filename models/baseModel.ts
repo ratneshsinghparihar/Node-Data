@@ -8,6 +8,16 @@ export class BaseModel {
 
     @field()
     name: any;
+
+    /*
+       nodedata internal use for caching, use for findWhere case
+   */
+    __selectedFindWhere: boolean;
+
+    /*
+        nodedata internal use for caching, to marked as partial load for findMany (egar load case not load)
+    */
+    __partialLoaded: boolean;
 }
 
 export default BaseModel;

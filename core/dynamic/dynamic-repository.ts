@@ -296,7 +296,7 @@ export class DynamicRepository implements IDynamicRepository {
     public put(id: any, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj).then(result => {
-            return InstanceService.getObjectFromJson(this.getEntity(), result)
+            return InstanceService.getObjectFromJson(this.getEntity(), result);
         });
     }
         
@@ -306,7 +306,9 @@ export class DynamicRepository implements IDynamicRepository {
 
     public patch(id: any, obj) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj);;
+        return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj).then(result => {
+            return InstanceService.getObjectFromJson(this.getEntity(), result);
+        });
     }
     /**
  * Below interceptor is used to add/remove some of the properties of model before sending it to client.
