@@ -10,7 +10,7 @@ import * as Utils from './utils';
 import { QueryOptions } from '../core/interfaces/queryOptions';
 import { MetaUtils } from "../core/metadata/utils";
 import { Decorators } from '../core/constants/decorators';
-import { GetRepositoryForName } from '../core/dynamic/dynamic-repository';
+import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -132,19 +132,22 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
     return Q.allSettled(asyncCalls).then(x => {
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
-            let objects = objArr;
-            return mongooseHelper.updateParent(model, objects).then(res => {
-                asyncCalls = [];
-                var resultObject = [];
-                Enumerable.from(objects).forEach(x => {
-                    asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                        resultObject.push(r);
-                    }));
-                });
-                return Q.allSettled(asyncCalls).then(final => {
-                    return resultObject;
+            let repo: DynamicRepository = repoFromModel[model.modelName];
+            repo.getRootRepo().findMany(ids).then(objects => {
+                return mongooseHelper.updateParent(model, objects).then(res => {
+                    asyncCalls = [];
+                    var resultObject = [];
+                    Enumerable.from(objects).forEach(x => {
+                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                            resultObject.push(r);
+                        }));
+                    });
+                    return Q.allSettled(asyncCalls).then(final => {
+                        return resultObject;
+                    });
                 });
             });
+
         });
     }).catch(error => {
         winstonLog.logError(`Error in bulkPut ${error}`);

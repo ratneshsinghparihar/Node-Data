@@ -56,6 +56,7 @@ export class InitializeRepositories {
                 let rootRepo = new DynamicRepository();
                 let cacheRepo = new CachingRepository();
                 rootRepo.initialize(repoParams.path, x.target, model);
+                cacheRepo.initialize(repoParams.path, x.target, model);
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }

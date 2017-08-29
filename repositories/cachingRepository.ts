@@ -10,7 +10,7 @@ var hash = require('object-hash');
 
 export class CachingRepository extends DynamicRepository {
 
-    public getCacheRepo() {
+    public getRootRepo() {
         return super.getCacheRepo();
     }
 
