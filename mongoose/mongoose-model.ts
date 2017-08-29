@@ -128,7 +128,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
-            repo.getRootRepo().findMany(ids).then(objects => {
+            return findMany(model, ids).then(objects => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];

@@ -1,6 +1,6 @@
 ﻿import * as configUtil from '../utils';
 import {winstonLog} from '../../logging/winstonLog';
-import {IDynamicRepository, GetRepositoryForName} from './dynamic-repository';
+import {IDynamicRepository, GetRepositoryForName, DynamicRepository} from './dynamic-repository';
 var Reflect = require('reflect-metadata');
 import {router} from '../exports';
 var jwt = require('jsonwebtoken');
@@ -431,7 +431,13 @@ export class DynamicController {
 
     private invokeModelFunction(map: ISearchPropertyMap, req: any, res: any, actions, hasFiles: boolean) {
         try {
-            let modelRepo = this.repository.getEntityType();
+            let modelRepo = {};
+            if (this.repository.getEntityType() instanceof DynamicRepository) {
+                modelRepo = this.repository;
+            }
+            else {
+                modelRepo = this.repository.getEntityType();
+            }
             var param = [];
             if (hasFiles) {
                 param.push(req.files);

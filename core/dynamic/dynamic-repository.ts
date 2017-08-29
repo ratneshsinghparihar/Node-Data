@@ -87,7 +87,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getCacheRepo() {
-        return this.cacheRepo;
+        return this.cacheRepo || this.rootLevelRep;
     }
 
     public bulkPost(objArr: Array<any>, batchSize?: number) {
@@ -143,7 +143,16 @@ export class DynamicRepository implements IDynamicRepository {
 
     public bulkPutMany(objIds: Array<any>, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), null, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPutMany(this.path, objIds, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPutMany(this.path, objIds, obj).then(result => {
+            if (result && result.length > 0) {
+                var res = [];
+                result.forEach(x => {
+                    res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+                });
+                return res;
+            }
+            return result;
+        });
     }
 
     public bulkDel(objArr: Array<any>) {
