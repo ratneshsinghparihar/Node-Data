@@ -29,10 +29,8 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeTransientProperties(model, obj);
         clonedModels.push(cloneObj);
-        addChildModel.push(mongooseHelper.addChildModelToParent(model, cloneObj, null));
     });
-
-    return Q.allSettled(addChildModel)
+    return mongooseHelper.addChildModelToParent(model, clonedModels)
         .then(result => {
             // autogenerate ids of all the objects
             Enumerable.from(clonedModels).forEach(clonedObj => {
@@ -65,8 +63,8 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels) {
-
-    return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
+    var newmodels = arrayOfDbModels.map(x => new model(x)).map(x => x._doc);
+    return Q.nbind(model.collection.insertMany, model.collection)(newmodels).then((result: any) => {
         result = result && result.ops;
         return result;
     }).catch(err => {
@@ -112,8 +110,8 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
     var asyncCalls = [];
     var ids = objArr.map(x => x._id);
     var bulk = model.collection.initializeUnorderedBulkOp();
-    for (var i = 0; i < length; i++) {
-        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+    return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
+        objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
@@ -126,10 +124,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
                 query["__v"] = result["__v"];
             }
             bulk.find(query).update(updatedProps);
-        }));
-    }
-
-    return Q.allSettled(asyncCalls).then(x => {
+        });
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
@@ -172,9 +167,8 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
     var bulk = model.collection.initializeUnorderedBulkOp();
     var asyncCalls = [];
 
-    // classic for loop used gives high performanance
-    for (var i = 0; i < length; i++) {
-        asyncCalls.push(mongooseHelper.addChildModelToParent(model, objArr[i], objArr[i]._id).then(result => {
+    return mongooseHelper.addChildModelToParent(model, objArr).then(x => {
+        objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
             let clonedObj = mongooseHelper.removeTransientProperties(model, result);
@@ -187,10 +181,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
                 query["__v"] = result["__v"];
             }
             bulk.find(query).update(updatedProps);
-        }));
-    }
-
-    return Q.allSettled(asyncCalls).then(x => {
+        });
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             return findMany(model, ids).then(objects => {
@@ -485,7 +476,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    return mongooseHelper.addChildModelToParent(model, clonedObj, null)
+    return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             try {
                 mongooseHelper.autogenerateIdsForAutoFields(model, clonedObj);
