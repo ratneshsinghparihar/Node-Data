@@ -78,7 +78,9 @@ export class CachingRepository extends DynamicRepository {
         let hashEntity = hash(JSON.stringify(query));
         let cacheValueIds: Array<any> = this.getEntityFromCache(CacheConstants.hashCache, hashEntity);
         if (cacheValueIds) {
-            let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id)).filter((x: BaseModel) => x && (!selectedFields || !selectedFields.length) && !x.__selectedFindWhere);
+            let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id))
+                .filter((x: BaseModel) => x && !x.__selectedFindWhere && !x.__partialLoaded);
+
             return Q.when(cachedValueResults);
         }
         return super.findWhere(query, selectedFields, queryOptions).then((results: Array<BaseModel>) => {
