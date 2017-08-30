@@ -7,6 +7,7 @@ import { entityAction, EntityActionParam } from "../core/decorators/entityAction
 import {inject} from '../di/decorators/inject';
 import Q = require('q');
 import { PrincipalContext } from '../security/auth/principalContext';
+import * as utils from '../mongoose/utils';
 var hash = require('object-hash');
 
 export class CachingRepository extends DynamicRepository {
@@ -31,6 +32,11 @@ export class CachingRepository extends DynamicRepository {
             return Q.when(undefined);
         }
 
+        // do not cache embedded objects
+        if (!utils.isBasonOrStringType(ids[0])) {
+            return super.findMany(ids, toLoadEmbeddedChilds);
+        }
+        
         let chachedValues = [];
         let unChachedIds = [];
         ids.forEach(id => {
@@ -72,7 +78,7 @@ export class CachingRepository extends DynamicRepository {
         let hashEntity = hash(JSON.stringify(query));
         let cacheValueIds: Array<any> = this.getEntityFromCache(CacheConstants.hashCache, hashEntity);
         if (cacheValueIds) {
-            let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id)).filter(x => x);
+            let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id)).filter((x: BaseModel) => x && (!selectedFields || !selectedFields.length) && !x.__selectedFindWhere);
             return Q.when(cachedValueResults);
         }
         return super.findWhere(query, selectedFields, queryOptions).then((results: Array<BaseModel>) => {
