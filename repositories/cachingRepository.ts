@@ -16,12 +16,12 @@ export class CachingRepository extends DynamicRepository {
         return super.getCacheRepo();
     }
 
-    findOne(id: any): Q.Promise<any> {
+    findOne(id: any, donotLoadChilds?: boolean): Q.Promise<any> {
         let cacheValue: BaseModel = this.getEntityFromCache(CacheConstants.idCache, id);
         if (cacheValue && !cacheValue.__partialLoaded && !cacheValue.__selectedFindWhere) {
             return Q.when(cacheValue);
         }
-        return super.findOne(id).then(result => {
+        return super.findOne(id, donotLoadChilds).then(result => {
             this.setEntityIntoCache(CacheConstants.idCache, id, result);
             return result;
         });

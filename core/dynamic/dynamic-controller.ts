@@ -795,7 +795,7 @@ export class DynamicController {
     }
 
     private sendresult(req, res, result) {
-        if (PrincipalContext) {
+        if (PrincipalContext && PrincipalContext.get('write')) {
             console.log('Total number of writes before response:' + PrincipalContext.get('write'));
         }
         res.set("Content-Type", "application/json");
