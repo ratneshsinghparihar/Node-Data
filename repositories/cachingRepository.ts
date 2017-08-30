@@ -78,11 +78,14 @@ export class CachingRepository extends DynamicRepository {
         let hashEntity = hash(JSON.stringify(query));
         let cacheValueIds: Array<any> = this.getEntityFromCache(CacheConstants.hashCache, hashEntity);
         if (cacheValueIds) {
+            // get objects from cache only if previous findwhere does not cached with selectedFields
             let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(CacheConstants.idCache, id))
                 .filter((x: BaseModel) => x && !x.__selectedFindWhere && !x.__partialLoaded);
-
-            return Q.when(cachedValueResults);
+            if (cacheValueIds.length === cachedValueResults.length) {
+                return Q.when(cachedValueResults);
+            }
         }
+
         return super.findWhere(query, selectedFields, queryOptions).then((results: Array<BaseModel>) => {
             results.forEach(result => {
                 if (selectedFields && selectedFields.length > 0) {
