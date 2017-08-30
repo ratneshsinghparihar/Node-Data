@@ -142,7 +142,6 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public bulkPutMany(objIds: Array<any>, obj: any) {
-        obj = InstanceService.getInstance(this.getEntity(), null, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPutMany(this.path, objIds, obj).then(result => {
             if (result && result.length > 0) {
                 var res = [];

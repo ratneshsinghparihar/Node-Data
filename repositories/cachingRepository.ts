@@ -142,7 +142,11 @@ export class CachingRepository extends DynamicRepository {
         }
 
         return super.bulkPutMany(objIds, obj).then(results => {
-            results && results.forEach(x => this.setEntityIntoCache(CacheConstants.idCache, x._id, x));
+            results && results.forEach((x: BaseModel) => {
+                // in bulkPutMany we do not load egarLoading properties (children objects) so its partially loaded
+                x.__partialLoaded = true;
+                this.setEntityIntoCache(CacheConstants.idCache, x._id, x);
+            });
             return results;
         });
     }
