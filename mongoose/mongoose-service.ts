@@ -221,7 +221,7 @@ export class MongooseService implements IEntityService {
         }
         let currentUser: IUser = PrincipalContext.User;
         if (!currentUser) {
-            currentUser = {};
+            currentUser = <any>{};
             PrincipalContext.User = currentUser;
         }
 
