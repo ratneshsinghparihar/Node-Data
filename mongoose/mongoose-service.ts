@@ -10,6 +10,7 @@ import {BaseModel} from "../models/baseModel";
 import * as utils from '../mongoose/utils';
 import { PrincipalContext } from '../security/auth/principalContext';
 import * as configUtil from '../core/utils';
+import {IUser} from '../tests/models/user';
 var hash = require('object-hash');
 
 export class MongooseService implements IEntityService {
@@ -197,10 +198,16 @@ export class MongooseService implements IEntityService {
         if (!configUtil.config().Config.isCacheEnabled) {
             return undefined;
         }
-        let currentUser: any = PrincipalContext.User;
+        let currentUser: IUser = PrincipalContext.User;
         if (currentUser && currentUser.entityCache && currentUser.entityCache[repoPath] &&
             currentUser.entityCache[repoPath][param] && currentUser.entityCache[repoPath][param][id]) {
 
+            // if current context view is changed then clear cache objects
+            if (currentUser.cacheContext != currentUser.viewContext) {
+                currentUser.cacheContext = currentUser.viewContext;
+                currentUser.entityCache = [];
+                return undefined;
+            }
             return currentUser.entityCache[repoPath][param][id];
         }
         return undefined;
@@ -212,7 +219,7 @@ export class MongooseService implements IEntityService {
         if (!configUtil.config().Config.isCacheEnabled) {
             return undefined;
         }
-        let currentUser: any = PrincipalContext.User;
+        let currentUser: IUser = PrincipalContext.User;
         if (!currentUser) {
             currentUser = {};
             PrincipalContext.User = currentUser;
