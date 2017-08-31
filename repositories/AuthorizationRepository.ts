@@ -174,24 +174,17 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntity" }) // ACL part
-    findOne(id: any, donotLoadChilds?: boolean): Q.Promise<any> {
+    findOne(id: any): Q.Promise<any> {
         let params: EntityActionParam = this.getEntityFromArgs.apply(this, arguments);
         if (!params) {
             params = {};
         }
-
-        return mongooseHelper.embeddedChildrenForBusinessRepository(this.getModel(), params.newPersistentEntity, false, donotLoadChilds).then(result => {
-
-            return this.postRead(params).then((updatedParams: EntityActionParam) => {
-                return Q.resolve(updatedParams.newPersistentEntity);
-            },
-                (error) => {
-                    return Q.reject(error);
-                });
-        }).catch(exc => {
-            console.log(exc);
-            return Q.reject(exc);
-        });
+        return this.postRead(params).then((updatedParams: EntityActionParam) => {
+            return Q.resolve(updatedParams.newPersistentEntity);
+        },
+            (error) => {
+                return Q.reject(error);
+            });
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntities" }) // ACL part
@@ -200,25 +193,14 @@ export class AuthorizationRepository extends DynamicRepository {
         if (!actionEntities) {
             actionEntities = [];
         }
-        let asyncCalls = [];
-        if (toLoadEmbededChilds) {
-            actionEntities.forEach(x => {
-                asyncCalls.push(mongooseHelper.embeddedChildren(this.getModel(), x.newPersistentEntity, false));
-            });
-        }
-
-        return Q.allSettled(asyncCalls).then(results => {
-            let qualifiedEntities: Array<any> = results.map(x => x.value);
-            qualifiedEntities.forEach(actionEntities => actionEntities);
-            return this.preBulkRead(actionEntities).then(results => {
-                return this.postBulkRead(results).then(newResults => {
-                    return Q.when(newResults.map(entity => entity.newPersistentEntity));
-                }).catch(exc => {
-                    return Q.reject(exc);
-                });
+        return this.preBulkRead(actionEntities).then(results => {
+            return this.postBulkRead(results).then(newResults => {
+                return Q.when(newResults.map(entity => entity.newPersistentEntity));
             }).catch(exc => {
                 return Q.reject(exc);
             });
+        }).catch(exc => {
+            return Q.reject(exc);
         });
     }
 
