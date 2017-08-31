@@ -8,10 +8,10 @@ import { DynamicRepository } from '../core/dynamic/dynamic-repository';
 import {CachingRepository} from './cachingRepository';
 import { inject } from '../di/decorators/inject';
 import Q = require('q');
-//import { logger } from "../logging";
+import * as mongooseHelper from '../mongoose/mongoose-model-helper';
 
 
-export class AuthorizationRepository extends CachingRepository {
+export class AuthorizationRepository extends DynamicRepository {
 
     preCreate(params: EntityActionParam): Q.Promise<EntityActionParam> {
         return Q.resolve(params);
@@ -115,7 +115,7 @@ export class AuthorizationRepository extends CachingRepository {
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntities" })
-    bulkPut(objArr: Array<any>) {
+    bulkPut(objArr: Array<any>, batchSize?: number) {
         if (!objArr || !objArr.length) return Q.when(objArr);
         let actionEntities: Array<EntityActionParam> = this.getEntityFromArgs.apply(this, arguments);
         if (!actionEntities) {
@@ -126,8 +126,9 @@ export class AuthorizationRepository extends CachingRepository {
             .then((params: Array<EntityActionParam>) => {
                 let entitiesToCreate: Array<any> = new Array<any>();
                 params.forEach((input: EntityActionParam) => { entitiesToCreate.push(input.newPersistentEntity); })
-                return super.bulkPut(entitiesToCreate).then((createdDbOEntites: Array<any>) => {
-
+                arguments[0] = entitiesToCreate;
+                arguments[arguments.length - 1] = undefined;
+                return super.bulkPut.apply(this, arguments).then((createdDbOEntites: Array<any>) => {
                     let indexInMainCollection: number = 0;
                     createdDbOEntites.forEach((createdEntity) => {
                         actionEntities[indexInMainCollection].newPersistentEntity = createdEntity;
@@ -173,17 +174,24 @@ export class AuthorizationRepository extends CachingRepository {
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntity" }) // ACL part
-    findOne(id: any): Q.Promise<any> {
+    findOne(id: any, donotLoadChilds?: boolean): Q.Promise<any> {
         let params: EntityActionParam = this.getEntityFromArgs.apply(this, arguments);
         if (!params) {
             params = {};
         }
-        return this.postRead(params).then((updatedParams: EntityActionParam) => {
-            return Q.resolve(updatedParams.newPersistentEntity);
-        },
-            (error) => {
-                return Q.reject(error);
-            });
+
+        return mongooseHelper.embeddedChildrenForBusinessRepository(this.getModel(), params.newPersistentEntity, false, donotLoadChilds).then(result => {
+
+            return this.postRead(params).then((updatedParams: EntityActionParam) => {
+                return Q.resolve(updatedParams.newPersistentEntity);
+            },
+                (error) => {
+                    return Q.reject(error);
+                });
+        }).catch(exc => {
+            console.log(exc);
+            return Q.reject(exc);
+        });
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntities" }) // ACL part
@@ -192,14 +200,25 @@ export class AuthorizationRepository extends CachingRepository {
         if (!actionEntities) {
             actionEntities = [];
         }
-        return this.preBulkRead(actionEntities).then(results => {
-            return this.postBulkRead(results).then(newResults => {
-                return Q.when(newResults.map(entity => entity.newPersistentEntity));
+        let asyncCalls = [];
+        if (toLoadEmbededChilds) {
+            actionEntities.forEach(x => {
+                asyncCalls.push(mongooseHelper.embeddedChildren(this.getModel(), x.newPersistentEntity, false));
+            });
+        }
+
+        return Q.allSettled(asyncCalls).then(results => {
+            let qualifiedEntities: Array<any> = results.map(x => x.value);
+            qualifiedEntities.forEach(actionEntities => actionEntities);
+            return this.preBulkRead(actionEntities).then(results => {
+                return this.postBulkRead(results).then(newResults => {
+                    return Q.when(newResults.map(entity => entity.newPersistentEntity));
+                }).catch(exc => {
+                    return Q.reject(exc);
+                });
             }).catch(exc => {
                 return Q.reject(exc);
             });
-        }).catch(exc => {
-            return Q.reject(exc);
         });
     }
 
@@ -223,6 +242,12 @@ export class AuthorizationRepository extends CachingRepository {
     findByField(fieldName, value): Q.Promise<any> {
         return super.findByField(fieldName, value);
     }
+
+    @postfilter({ serviceName: "authorizationService", methodName: "canReadChildren" }) // ACL part
+    findChild(id, prop): Q.Promise<any> {
+        return super.findChild(id, prop);
+    }
+
 
     @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntity" })
     put(id: any, obj: any): Q.Promise<any> {
@@ -299,7 +324,7 @@ export class AuthorizationRepository extends CachingRepository {
         }
         return this.preUpdate(resultEntityActionObj)
             .then((params: EntityActionParam) => {
-                return super.patch(id, params.newPersistentEntity).then((updatedDbObj: any) => {
+                return super.patch(id, params.inputEntity).then((updatedDbObj: any) => {
                     resultEntityActionObj.newPersistentEntity = updatedDbObj;
                     // return this.postUpdate(resultEntityActionObj.newPersistentEntity);
                     return this.postUpdate(resultEntityActionObj).then((updatedEntity: EntityActionParam) => {

@@ -7,6 +7,7 @@ import { entityAction, EntityActionParam } from "../core/decorators/entityAction
 import {inject} from '../di/decorators/inject';
 import Q = require('q');
 import { PrincipalContext } from '../security/auth/principalContext';
+import {InstanceService} from '../core/services/instance-service';
 import * as utils from '../mongoose/utils';
 var hash = require('object-hash');
 
@@ -179,7 +180,14 @@ export class CachingRepository extends DynamicRepository {
         let currentUser: any = PrincipalContext.User;
         if (currentUser && currentUser.entityCache && currentUser.entityCache[(<any>this).path] &&
             currentUser.entityCache[(<any>this).path][param] && currentUser.entityCache[(<any>this).path][param][id]) {
-            return currentUser.entityCache[(<any>this).path][param][id];
+
+            if (param === CacheConstants.hashCache) {
+                return currentUser.entityCache[(<any>this).path][param][id];
+            }
+
+            let cachedEntity: BaseModel = currentUser.entityCache[(<any>this).path][param][id];
+            let newCachedEntity = InstanceService.getInstance(this.getEntity(), null, cachedEntity);
+            return newCachedEntity;
         }
         return undefined;
     }
