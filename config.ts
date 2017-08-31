@@ -9,6 +9,7 @@ export class Config {
     public static isMultiThreaded = true; // This param is for configuring multi process using worker/ process control attribute..
     public static worker = 'worker.js';
     public static process = 1;
+    public static isCacheEnabled: boolean = false; // by default caching is false, make it true to enable cahing in your application
 }
 
 export class SqlConfig {
