@@ -17,6 +17,17 @@ export class MongooseService implements IEntityService {
 
     constructor() {
     }
+    
+    updateWriteCount() {
+        if (PrincipalContext) {
+            var count = PrincipalContext.get('cacheCount');
+            if (!count) {
+                count = 0;
+            }
+            PrincipalContext.save('cacheCount', ++count);
+        }
+
+    }
 
     bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
         return MongooseModel.bulkPost(this.getModel(repoPath), objArr, batchSize);
@@ -66,6 +77,8 @@ export class MongooseService implements IEntityService {
             let cachedValueResults = cacheValueIds.map(id => this.getEntityFromCache(repoPath, CacheConstants.idCache, id))
                 .filter((x: BaseModel) => x && !x.__selectedFindWhere && !x.__partialLoaded);
             if (cacheValueIds.length === cachedValueResults.length) {
+                console.log("cache hit success findWhere " + repoPath + " count " + cachedValueResults.length);
+                this.updateWriteCount();
                 return Q.when(cachedValueResults);
             }
         }
@@ -98,6 +111,8 @@ export class MongooseService implements IEntityService {
     findOne(repoPath: string, id, donotLoadChilds?: boolean): Q.Promise<any> {
         let cacheValue: BaseModel = this.getEntityFromCache(repoPath, CacheConstants.idCache, id);
         if (cacheValue && !cacheValue.__partialLoaded && !cacheValue.__selectedFindWhere) {
+            console.log("cache hit success findone " + repoPath);
+            this.updateWriteCount();
             return Q.when(cacheValue);
         }
         return MongooseModel.findOne(this.getModel(repoPath), id, donotLoadChilds).then(result => {
@@ -137,7 +152,12 @@ export class MongooseService implements IEntityService {
         if (unChachedIds.length === 0) {
             return Q.when(chachedValues);
         }
-
+        
+        if (chachedValues && chachedValues.length) {
+            console.log("cache hit success findMany " + repoPath + " count " + chachedValues.length);
+            this.updateWriteCount();
+        }
+        
         return MongooseModel.findMany(this.getModel(repoPath), ids, toLoadEmbeddedChilds).then((results: Array<BaseModel>) => {
             results.forEach(result => {
                 if (!toLoadEmbeddedChilds) {
