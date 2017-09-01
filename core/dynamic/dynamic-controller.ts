@@ -798,6 +798,9 @@ export class DynamicController {
         if (PrincipalContext && PrincipalContext.get('write')) {
             console.log('Total number of writes before response:' + PrincipalContext.get('write'));
         }
+        if (PrincipalContext && PrincipalContext.get('cacheCount')) {
+            console.log('Total number of cache hits before response:' + PrincipalContext.get('cacheCount'));
+        }
         res.set("Content-Type", "application/json");
         res.send(JSON.stringify(result, null, 4));
     }
