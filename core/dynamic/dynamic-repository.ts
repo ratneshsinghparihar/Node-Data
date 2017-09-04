@@ -13,7 +13,6 @@ import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 import {QueryOptions} from '../interfaces/queryOptions';
 import * as utils from '../../mongoose/utils';
-import {CachingRepository} from '../../repositories/cachingRepository';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
@@ -59,15 +58,13 @@ export class DynamicRepository implements IDynamicRepository {
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
-    private cacheRepo: CachingRepository;
     //private modelRepo: any;
 
-    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository, cacheRepo?: CachingRepository) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
         //console.log(schema);
         this.path = repositoryPath;
         this.entity = target;
         this.rootLevelRep = rootRepo;
-        this.cacheRepo = cacheRepo;
         if (target instanceof DynamicRepository) {
             target.rootLevelRep = rootRepo;
         }
@@ -84,10 +81,6 @@ export class DynamicRepository implements IDynamicRepository {
 
     public getRootRepo() {
         return this.rootLevelRep;
-    }
-
-    public getCacheRepo() {
-        return this.cacheRepo || this.rootLevelRep;
     }
 
     public bulkPost(objArr: Array<any>, batchSize?: number) {

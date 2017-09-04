@@ -43,12 +43,9 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
                 }
             });
             var asyncCalls = [];
-            if (!batchSize) {
-                asyncCalls.push(executeBulk(model, clonedModels));
-            } else {
-                for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
-                    asyncCalls.push(executeBulk(model, clonedModels.slice(curCount, curCount + batchSize)))
-                }
+            if (!batchSize) batchSize = 1000;
+            for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
+                asyncCalls.push(executeBulk(model, clonedModels.slice(curCount, curCount + batchSize)))
             }
             return Q.allSettled(asyncCalls).then(suces => {
                 let values = [];

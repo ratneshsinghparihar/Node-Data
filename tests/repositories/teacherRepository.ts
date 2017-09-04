@@ -4,13 +4,12 @@ import {inject} from "../../di/decorators";
 import {entityAction, EntityActionParam} from '../../core/decorators/entityAction';
 import {teacher} from '../models/teacher';
 import {AuthorizationRepository} from '../../repositories/authorizationRepository';
-import {CachingRepository} from '../../repositories/cachingRepository';
 import * as TeacherService from '../services/teacherService';
 import {Types} from 'mongoose';
 import Q = require('q');
 
 @repository({ path: 'teacher', model: teacher })
-export class TeacherRepository extends CachingRepository {
+export class TeacherRepository extends DynamicRepository {
 
     @inject(TeacherService)
     private _teacherService: TeacherService.TeacherService;

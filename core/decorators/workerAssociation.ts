@@ -55,7 +55,7 @@ export function Worker(params?: WorkerAssociation): any {
 function getDebugOption(offset: number) {
     var execArgv = (<any>process).execArgv.slice(); //create args shallow copy
     var debugPort = (<any>process).debugPort + offset + 1;
-
+    console.log("Debugging port:", debugPort);
     for (var i = 0; i < execArgv.length; i++) {
         var match = execArgv[i].match(/^(--debug|--debug-brk)(=\d+)?$/);
         if (match) {
@@ -97,7 +97,7 @@ function executeNextProcess(param: workerParamsDto) {
             if (configUtil.config().Config.worker) {
                 path = _appRoot + '/' + configUtil.config().Config.worker;
             }
-            winstonLog.logInfo("Forking a new child_process: " + path);
+            winstonLog.logInfo(`Forking a new child_process: path- ${path}, p id-${proc.fork.pid}  `);
             proc.fork = child_process.fork(path, [], getDebugOption(workerProcess.length));
             if (proc.fork.error == null) {
                 proc.processId = proc.fork.pid;
@@ -225,6 +225,8 @@ export function executeWorkerHandler(params, target, propertyKey, originalMethod
         if (workerParams.principalContext['res']) {
             delete workerParams.principalContext['res'];
         }
+
+        console.log(`task will execute: Service Name ${workerParams.serviceName}, Method Name ${workerParams.servicemethodName}, Args ${workerParams.arguments}`);
 
         if (workerParams.serviceName != null) {
             workerParams.id = uuid.v4();

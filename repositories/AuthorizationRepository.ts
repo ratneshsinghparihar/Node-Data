@@ -5,7 +5,6 @@ import { postfilter } from "../core/decorators/postfilter";
 import { authorize } from "../core/decorators/authorize";
 import { } from '../di/decorators/inject';
 import { DynamicRepository } from '../core/dynamic/dynamic-repository';
-import {CachingRepository} from './cachingRepository';
 import { inject } from '../di/decorators/inject';
 import Q = require('q');
 import * as mongooseHelper from '../mongoose/mongoose-model-helper';

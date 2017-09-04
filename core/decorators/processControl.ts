@@ -40,11 +40,11 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
 
                 if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
                     // Parent - processcontrol management executing with worker 
-                    console.log('process initialized started');
+                    console.log('process control initializing started');
                     return processControlService.initialize(serviceName, propertyKey, targetObjectId, params, argsObj).then((sucess) => {
-                        
+
                         var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
-                        console.log('process initialized started successfully');
+                        console.log('process control initialized successfully');
                         return processControlService.sendResponse(sucess, taskInfo);
                     });
                 }
@@ -53,25 +53,26 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                     if (params.executeInWorker && MetaUtils.childProcessId) {
                         // already initialized in parent process
                         initialize = Q.when(true);
-                        console.log('process already initialized');
+                        console.log('process control already initialized');
                     }
                     else {
-                        console.log('process initialized started');
+                        console.log('process control initialized started');
                         initialize = processControlService.initialize(serviceName, propertyKey, targetObjectId, params, argsObj);
                     }
                     return initialize.then(res => {
                         return processControlService.startProcess().then((sucess) => {
-                            console.log('process started');
+                            console.log('process control In progress');
                             if (sucess) {
                                 //actual method of caller
-                                var result = originalMethod.apply(this, arguments); 
+                                console.log('method execution started', originalMethod.name, argsObj);
+                                var result = originalMethod.apply(this, arguments);
                                 if (Utils.isPromise(result)) {
-                                    console.log('process method executed');
+                                    console.log('method executing...');
                                     return result.then((sucess) => {
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
                                             return processControlService.completeProcess(result).then((result) => {
-                                                console.log('process completed');    
+                                                console.log('method execution completed');
                                                 return sucess;
                                             });
                                         } else {
@@ -81,10 +82,10 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
                                             return processControlService.errorOutProcess(JSON.stringify(error)).then((result) => {
-                                                console.log('process error');
+                                                console.log('method execution error', error);
                                                 throw error;
                                             }).catch((err) => {
-                                                console.log('process error');
+                                                console.log('method execution error', error);
                                                 throw error;
                                             })
                                         } else {
@@ -95,9 +96,9 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                                 else {
                                     if (type == Decorators.PROCESS_START_AND_END) {
                                         //return statement
-                                        console.log('process method executed');
+                                        console.log('method execution started', originalMethod.name, argsObj);
                                         return processControlService.completeProcess(result).then(res => {
-                                            console.log('process completed');
+                                            console.log('method execution completed');
                                             return result;
                                         });
                                     }
