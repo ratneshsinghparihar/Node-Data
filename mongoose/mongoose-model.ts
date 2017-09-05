@@ -76,6 +76,7 @@ function executeBulk(model, arrayOfDbModels) {
  * @param objArr
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+	 if (!objArr || !objArr.length) return Q.when([]);
     console.log("bulkPut " + model.modelName);
     mongooseHelper.updateWriteCount();
     var asyncCalls = [];
