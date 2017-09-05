@@ -29,7 +29,7 @@ export interface IDynamicRepository {
     getRootRepo(): IDynamicRepository;
 
     bulkPost(objArr: Array<any>);
-    bulkPut(objArr: Array<any>);
+    bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean);
     bulkPatch(objArr: Array<any>);
     bulkPutMany(objIds: Array<any>, obj: any);
     bulkDel(objArr: Array<any>);
@@ -100,12 +100,12 @@ export class DynamicRepository implements IDynamicRepository {
         });
     }
 
-    public bulkPut(objArr: Array<any>, batchSize?: number) {
+    public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
         var objs = [];
         objArr.forEach(x => {
             objs.push(InstanceService.getInstance(this.getEntity(), null, x));
         });
-        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize).then(result => {
+        return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize, donotLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {

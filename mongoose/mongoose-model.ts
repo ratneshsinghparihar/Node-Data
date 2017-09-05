@@ -75,7 +75,7 @@ function executeBulk(model, arrayOfDbModels) {
  * @param model
  * @param objArr
  */
-export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean): Q.Promise<any> {
 	 if (!objArr || !objArr.length) return Q.when([]);
     console.log("bulkPut " + model.modelName);
     mongooseHelper.updateWriteCount();
@@ -85,10 +85,10 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
     var bulk = model.collection.initializeUnorderedBulkOp();
     var asyncCalls = [];
     if (!batchSize) {
-        asyncCalls.push(executeBulkPut(model, objArr));
+        asyncCalls.push(executeBulkPut(model, objArr, donotLoadChilds));
     } else {
         for (let curCount = 0; curCount < objArr.length; curCount += batchSize) {
-            asyncCalls.push(executeBulkPut(model, objArr.slice(curCount, curCount + batchSize)))
+            asyncCalls.push(executeBulkPut(model, objArr.slice(curCount, curCount + batchSize), donotLoadChilds))
         }
     }
 
@@ -103,7 +103,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
     });
 }
 
-function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
+function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>,donotLoadChilds?: boolean) {
     let length = objArr.length;
     var asyncCalls = [];
     var ids = objArr.map(x => x._id);
@@ -130,6 +130,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>) {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];
+                    if (donotLoadChilds === true) {
+                        return Q.when(objects);
+                    }
                     Enumerable.from(objects).forEach(x => {
                         asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
                             resultObject.push(r);

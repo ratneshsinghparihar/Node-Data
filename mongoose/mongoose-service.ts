@@ -40,8 +40,8 @@ export class MongooseService implements IEntityService {
         });
     }
 
-    bulkPut(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
-        return MongooseModel.bulkPut(this.getModel(repoPath), objArr, batchSize).then(results => {
+    bulkPut(repoPath: string, objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean): Q.Promise<any> {
+        return MongooseModel.bulkPut(this.getModel(repoPath), objArr, batchSize, donotLoadChilds).then(results => {
             results.forEach(x => this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x));
             return results;
         });
