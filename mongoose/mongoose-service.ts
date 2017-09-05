@@ -158,7 +158,7 @@ export class MongooseService implements IEntityService {
             this.updateWriteCount();
         }
         
-        return MongooseModel.findMany(this.getModel(repoPath), ids, toLoadEmbeddedChilds).then((results: Array<BaseModel>) => {
+        return MongooseModel.findMany(this.getModel(repoPath), unChachedIds, toLoadEmbeddedChilds).then((results: Array<BaseModel>) => {
             results.forEach(result => {
                 if (!toLoadEmbeddedChilds) {
                     result.__partialLoaded = true;
