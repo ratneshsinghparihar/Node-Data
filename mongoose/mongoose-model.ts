@@ -334,18 +334,17 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     }
     //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
-        .then(result => {
+        .then((result: Array<any>) => {
+            result = Utils.toObject(result);
             // update embedded property, if any
             if (toLoadChilds != undefined && toLoadChilds == false) {
-                return Utils.toObject(result);
+                return result;
             }
 
             var asyncCalls = [];
-            Enumerable.from(result).forEach(x => {
-                asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));
-            });
+            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
             return Q.allSettled(asyncCalls).then(r => {
-                return Enumerable.from(r).select(x => Utils.toObject(x.value)).toArray();
+                return result;
             });
         }).catch(error => {
             winstonLog.logError(`Error in findWhere ${error}`);
@@ -370,9 +369,10 @@ export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolea
     console.log("findOne " + model.modelName);
     return Q.nbind(model.findOne, model)({ '_id': id })
         .then(result => {
-            return mongooseHelper.embeddedChildren(model, result, false, donotLoadChilds)
+            result = Utils.toObject(result);
+            return mongooseHelper.embeddedChildren1(model, [result], false, donotLoadChilds)
                 .then(r => {
-                    return Utils.toObject(r);
+                    return result;
                 });
         }).catch(error => {
             winstonLog.logError(`Error in findOne ${error}`);
@@ -392,9 +392,10 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
     param[fieldName] = value;
     return Q.nbind(model.findOne, model)(param)
         .then(result => {
-            return mongooseHelper.embeddedChildren(model, result, false)
+            result = Utils.toObject(result);
+            return mongooseHelper.embeddedChildren1(model, [result], false)
                 .then(r => {
-                    return Utils.toObject(r);
+                    return result;
                 });
         },
         err => {
@@ -417,23 +418,22 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
         '_id': {
             $in: ids
         }
-    }).then((result: any) => {
+    }).then((result: Array<any>) => {
         if (result.length !== ids.length) {
             var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length;
             winstonLog.logError(`Error in findMany ${error}`);
             return Q.reject(error);
         }
+        result = Utils.toObject(result);
 
         var asyncCalls = [];
         if (toLoadEmbeddedChilds) {
-            Enumerable.from(result).forEach(x => {
-                asyncCalls.push(mongooseHelper.embeddedChildren(model, x, false));
-            });
+            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
             return Q.allSettled(asyncCalls).then(r => {
-                return Enumerable.from(r).select(x => Utils.toObject(x.value)).toArray();
+                return result;
             });
         } else {
-            return Utils.toObject(result);
+            return result;
         }
 
     });
@@ -456,7 +456,7 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
                 // create new object and add only that property for which we want to do eagerloading
                 var result = {};
                 result[prop] = res;
-                return mongooseHelper.embeddedChildren(model, result, true)
+                return mongooseHelper.embeddedChildren1(model, [result], true)
                     .then(r => {
                         return result[prop];
                     });

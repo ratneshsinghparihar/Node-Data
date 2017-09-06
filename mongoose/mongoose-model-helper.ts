@@ -57,6 +57,77 @@ export function removeTransientProperties(model: Mongoose.Model<any>, obj: any):
     return clonedObj;
 }
 
+export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, donotLoadChilds?: boolean) {
+    if (!model)
+        return;
+
+    if (donotLoadChilds) {
+        return Q.when(values);
+    }
+
+    var asyncCalls = [];
+    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+
+    Enumerable.from(metas).forEach(x => {
+        var m: MetaData = x;
+        var param: IAssociationParams = <IAssociationParams>m.params;
+        //if (param.embedded)
+        //    return;
+
+        if (force || param.eagerLoading || param.embedded) {
+            var relModel = Utils.getCurrentDBModel(param.rel);
+            // find model repo and findMany from repo instead of calling mongoose model directly
+            let repo: DynamicRepository = repoFromModel[relModel.modelName];
+            var ids = [];
+            values.forEach(val => {
+                if (!val[m.propertyKey])
+                    return;
+
+                if (m.propertyType.isArray) {
+                    ids = ids.concat(val[m.propertyKey]);
+                }
+                else {
+                    ids.push(val[m.propertyKey]);
+                }
+            });
+            if (ids.length == 0)
+                return;
+            asyncCalls.push(repo.findMany(ids).then((result: Array<any>) => {
+                let res = {}
+                result.forEach(x => res[x._id] = x);
+                values.forEach(val => {
+                    if (!val[m.propertyKey])
+                        return;
+
+                    if (m.propertyType.isArray) {
+                        var newVal = [];
+                        if (param.embedded) {
+                            // select only those objects which have been returned
+                            newVal = Enumerable.from(val[m.propertyKey]).where((x:any) => !res[x._id]).toArray();
+                        }
+                        else {
+                            val[m.propertyKey].forEach(x => {
+                                newVal.push(res[x]);
+                            });
+                        }
+                        val[m.propertyKey] = newVal;
+                    }
+                    else {
+                        val[m.propertyKey] = param.embedded ? (res[val[m.propertyKey]._id] ? val[m.propertyKey] : undefined) : res[val[m.propertyKey]];
+                    }
+                });
+            }));
+        }
+    });
+
+    if (asyncCalls.length == 0)
+        return Q.when(values);
+
+    return Q.allSettled(asyncCalls).then(res => {
+        return values;
+    });
+}
+
 /**
  * For eagerLoading, finds all the children and add this to the parent object.
  * This function is then recursively called to update all the embedded children.
