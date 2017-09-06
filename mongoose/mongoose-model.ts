@@ -126,7 +126,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>,donotLoad
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
-            return findMany(model, ids).then(objects => {
+            return findMany(model, ids).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];
@@ -185,7 +185,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
         });
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
-            return findMany(model, ids).then(objects => {
+            return findMany(model, ids).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];
@@ -226,7 +226,7 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
     var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
     return Q.nbind(model.update, model)(cond, updatedProps, { multi: true })
         .then(result => {
-            return findMany(model, objIds).then(objects => {
+            return findMany(model, objIds).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     return objects;
                 });

@@ -379,7 +379,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
-                return mongooseModel.findMany(model, parentIds).then(objects => {
+                return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
                     return updateParent(model, objects).then(res => {
                         return objects;
                     });
@@ -431,7 +431,7 @@ function updateParentDocumentOld(model: Mongoose.Model<any>, meta: MetaData, obj
 }
 
 function bulkDelete(model: Mongoose.Model<any>, ids: any) {
-    return mongooseModel.findMany(model, ids).then(data => {
+    return mongooseModel.findMany(model, ids).then((data: Array<any>) => {
         return Q.nbind(model.remove, model)({
             '_id': {
                 $in: ids
@@ -752,7 +752,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise
         }));
     }
     if (searchObj.length > 0) {
-        queryCalls.push(mongooseModel.findMany(relModel, searchObj).then(res => {
+        queryCalls.push(mongooseModel.findMany(relModel, searchObj).then((res: Array<any>) => {
             // set searched objects into actual objects
             res.forEach(obj => {
                 var val = params.embedded ? obj : obj['_id'];
