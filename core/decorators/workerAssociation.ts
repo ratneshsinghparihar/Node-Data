@@ -97,8 +97,8 @@ function executeNextProcess(param: workerParamsDto) {
             if (configUtil.config().Config.worker) {
                 path = _appRoot + '/' + configUtil.config().Config.worker;
             }
-            winstonLog.logInfo(`Forking a new child_process: path- ${path}, p id-${proc.fork.pid}  `);
             proc.fork = child_process.fork(path, [], getDebugOption(workerProcess.length));
+            winstonLog.logInfo(`Forking a new child_process: path- ${path}, p id-${proc.fork.pid}  `);
             if (proc.fork.error == null) {
                 proc.processId = proc.fork.pid;
                 proc.executing = <workerParamsDto>({ initialize: true, processId: proc.processId });
