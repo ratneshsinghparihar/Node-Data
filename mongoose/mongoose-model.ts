@@ -60,6 +60,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels) {
+	arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
