@@ -194,7 +194,6 @@
     <TypeScriptCompile Include="tests\repositories\promisibleTestRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\schoolRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\cityRepository.ts" />
-    <TypeScriptCompile Include="tests\repositories\security\AuthorizationRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\subjectRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\role.repository.ts" />
