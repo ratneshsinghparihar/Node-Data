@@ -103,17 +103,24 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
                         var newVal = [];
                         if (param.embedded) {
                             // select only those objects which have been returned
-                            newVal = Enumerable.from(val[m.propertyKey]).where((x:any) => !res[x._id]).toArray();
+                            //newVal = Enumerable.from(val[m.propertyKey]).where((x:any) => res[x._id]).toArray();
+                            val[m.propertyKey].forEach(x => {
+                                if (res[x._id]) {
+                                    newVal.push(res[x._id]);
+                                }
+                            });
                         }
                         else {
                             val[m.propertyKey].forEach(x => {
-                                newVal.push(res[x]);
+                                if (res[x]) {
+                                    newVal.push(res[x]);
+                                }
                             });
                         }
                         val[m.propertyKey] = newVal;
                     }
                     else {
-                        val[m.propertyKey] = param.embedded ? (res[val[m.propertyKey]._id] ? val[m.propertyKey] : undefined) : res[val[m.propertyKey]];
+                        val[m.propertyKey] = param.embedded ? res[val[m.propertyKey]._id] : res[val[m.propertyKey]];
                     }
                 });
             }));
