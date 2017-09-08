@@ -802,7 +802,7 @@ export class DynamicController {
             console.log('Total number of cache hits before response:' + PrincipalContext.get('cacheCount'));
         }
         res.set("Content-Type", "application/json");
-        res.send(JSON.stringify(result, null, 4));
+        res.send(result);
     }
 
     private getFullDataUrl(req): string {

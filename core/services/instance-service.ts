@@ -13,12 +13,12 @@ export class InstanceService {
                 param[meta.propertyKey] = id;
             }
         }
-        InstanceService.initProperties(entity, true, param);
+        //InstanceService.initProperties(entity, true, param);
         return InstanceService.getInstanceFromType(entity, true, param);
     }
 
     static getObjectFromJson(entity: any, param?: any) {
-        InstanceService.initProperties(entity, true, param);
+        //InstanceService.initProperties(entity, true, param);
         return InstanceService.getInstanceFromType(entity, true, param);
     }
 
