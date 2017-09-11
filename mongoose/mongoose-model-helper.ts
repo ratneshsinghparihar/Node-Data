@@ -746,7 +746,8 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise
 
     let relModel = Utils.getCurrentDBModel(params.rel);
     if (objs.length > 0) {
-        queryCalls.push(objs.bulkPost().then(res => {
+        let repo: DynamicRepository = repoFromModel[relModel.modelName];
+        queryCalls.push(repo.bulkPost(objs).then(res => {
             res.forEach(obj => {
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
