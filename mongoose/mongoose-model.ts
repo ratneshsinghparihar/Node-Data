@@ -410,7 +410,7 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
         }
     }).lean().then((result: Array<any>) => {
         if (result.length !== ids.length) {
-            var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length + ' for model: ' + model.name;
+            var error = 'findmany - numbers of items found:' + result.length + 'number of items searched: ' + ids.length + ' for model: ' + model.modelName;
             winstonLog.logError(`Error in findMany ${error}`);
             return Q.reject(error);
         }
