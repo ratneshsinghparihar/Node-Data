@@ -57,13 +57,9 @@ export function removeTransientProperties(model: Mongoose.Model<any>, obj: any):
     return clonedObj;
 }
 
-export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, donotLoadChilds?: boolean) {
+export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, toLoadChildren?: boolean) {
     if (!model)
         return;
-
-    if (donotLoadChilds) {
-        return Q.when(values);
-    }
 
     var asyncCalls = [];
     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
@@ -74,7 +70,7 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
         //if (param.embedded)
         //    return;
 
-        if (force || param.eagerLoading || param.embedded) {
+        if (force || param.embedded || (param.eagerLoading && toLoadChildren)) {
             var relModel = Utils.getCurrentDBModel(param.rel);
             // find model repo and findMany from repo instead of calling mongoose model directly
             let repo: DynamicRepository = repoFromModel[relModel.modelName];
@@ -743,7 +739,6 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise
     });
 
     let queryCalls = [];
-
     let relModel = Utils.getCurrentDBModel(params.rel);
     if (objs.length > 0) {
         let repo: DynamicRepository = repoFromModel[relModel.modelName];

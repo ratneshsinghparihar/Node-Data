@@ -60,7 +60,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels) {
-	arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
+    arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
@@ -76,7 +76,7 @@ function executeBulk(model, arrayOfDbModels) {
  * @param objArr
  */
 export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean): Q.Promise<any> {
-	 if (!objArr || !objArr.length) return Q.when([]);
+    if (!objArr || !objArr.length) return Q.when([]);
     console.log("bulkPut " + model.modelName);
     mongooseHelper.updateWriteCount();
     var asyncCalls = [];
@@ -103,7 +103,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
     });
 }
 
-function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>,donotLoadChilds?: boolean) {
+function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoadChilds?: boolean) {
     let length = objArr.length;
     var asyncCalls = [];
     var ids = objArr.map(x => x._id);
@@ -243,12 +243,12 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
  */
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
     console.log("findAll " + model.modelName);
-    return <any>model.find({}).lean().then(result=>{
-            return result;
-        }).catch(error => {
-            winstonLog.logError(`Error in findAll ${error}`);
-            return Q.reject(error);
-        });
+    return <any>model.find({}).lean().then(result => {
+        return result;
+    }).catch(error => {
+        winstonLog.logError(`Error in findAll ${error}`);
+        return Q.reject(error);
+    });
 }
 
 
@@ -335,12 +335,8 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     return Q.nbind(queryObj.exec, queryObj)()
         .then((result: Array<any>) => {
             // update embedded property, if any
-            if (toLoadChilds != undefined && toLoadChilds == false) {
-                return result;
-            }
-
             var asyncCalls = [];
-            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
+            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false, toLoadChilds));
             return Q.allSettled(asyncCalls).then(r => {
                 return result;
             });
@@ -366,7 +362,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
 export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolean): Q.Promise<any> {
     console.log("findOne " + model.modelName);
     return <any>model.findOne({ '_id': id }).lean().then(result => {
-        return mongooseHelper.embeddedChildren1(model, [result], false, donotLoadChilds)
+        return mongooseHelper.embeddedChildren1(model, [result], false, !donotLoadChilds)
             .then(r => {
                 return result;
             });
@@ -419,14 +415,10 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
             return Q.reject(error);
         }
         var asyncCalls = [];
-        if (toLoadEmbeddedChilds) {
-            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
-            return Q.allSettled(asyncCalls).then(r => {
-                return result;
-            });
-        } else {
+        asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false, toLoadEmbeddedChilds));
+        return Q.allSettled(asyncCalls).then(r => {
             return result;
-        }
+        });
     });
 }
 
@@ -494,14 +486,14 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
  * @param id
  */
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
-    return <any>model.findByIdAndRemove({ '_id': id }).lean().then((response:any)=>{
-            return mongooseHelper.deleteCascade(model, [response]).then(x => {
-                return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
-                    .then(res => {
-                        return ({ delete: 'success' });
-                    });
-            });
-        })
+    return <any>model.findByIdAndRemove({ '_id': id }).lean().then((response: any) => {
+        return mongooseHelper.deleteCascade(model, [response]).then(x => {
+            return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
+                .then(res => {
+                    return ({ delete: 'success' });
+                });
+        });
+    })
         .catch(err => {
             winstonLog.logError(`delete failed ${err}`);
             return Q.reject({ delete: 'failed', error: err });
