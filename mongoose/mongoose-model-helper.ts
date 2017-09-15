@@ -323,7 +323,7 @@ export function addChildModelToParent(model: Mongoose.Model<any>, objects: Array
     var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
     for (var m in metaArr) {
         var meta: MetaData = <any>metaArr[m];
-        asyncCalls.push(embedChild(objects, meta.propertyKey, meta));
+        asyncCalls.push(embedChild(objects, meta.propertyKey, meta, model.modelName));
     }
 
     return Q.allSettled(asyncCalls).then(x => {
@@ -666,7 +666,7 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
     });
 }
 
-function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise<any> {
+function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentModelName: string): Q.Promise<any> {
     var searchResult = {};
     var objs = [];
     var searchObj = [];
@@ -682,6 +682,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise
                 if (CoreUtils.isJSON(val[i])) {
                     if (!val[i]['_id']) {
                         val[i]['batch'] = index;
+                        val[i][parentModelName + '.' + prop] = obj._id ? obj._id : obj['_tempId'];
                         objs.push(val[i]);
                     }
                     else {
@@ -711,6 +712,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData): Q.Promise
             if (CoreUtils.isJSON(val)) {
                 if (!val['_id']) {
                     val['batch'] = index;
+                    val[parentModelName + '.' + prop] = obj._id ? obj._id : obj['_tempId'];
                     objs.push(val);
                 }
                 else {
