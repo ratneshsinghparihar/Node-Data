@@ -28,7 +28,6 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     var clonedModels = [];
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeTransientProperties(model, obj);
-        cloneObj['_tempId'] = cloneObj._id ? cloneObj._id : new Mongoose.Types.ObjectId();
         clonedModels.push(cloneObj);
     });
     return mongooseHelper.addChildModelToParent(model, clonedModels)
@@ -60,14 +59,8 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
         });
 }
 
-function executeBulk(model, arrayOfDbModels: Array<any>) {
+function executeBulk(model, arrayOfDbModels) {
     arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
-    arrayOfDbModels.forEach(x => {
-        if (x['_tempId']) {
-            x._id = x['_tempId']
-            delete x['_tempId']
-        }
-    });
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
@@ -469,7 +462,6 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    obj['_tempId'] = obj._id ? obj._id : new Mongoose.Types.ObjectId();
     return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             //try {
@@ -479,10 +471,6 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
             //    console.log(ex);
             //    return Q.reject(ex);
             //}
-            if (obj['_tempId']) {
-                obj._id = obj['_tempId'];
-                delete obj['_tempId'];
-            }
             return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
