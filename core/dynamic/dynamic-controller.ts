@@ -662,7 +662,7 @@ export class DynamicController {
 
     }
 
-    private getHalModel1(model: any, resourceName: string, req, repo: any): any {
+    private getHalModel1(model: any, resourceName: string, req, repo: any, noChildRecursion?: boolean): any {
         var selfUrl = {};
         selfUrl["href"] = resourceName;// + "/" + model._id;
         model["_links"] = {};
@@ -672,31 +672,33 @@ export class DynamicController {
         let modelRepo = repo.getEntityType();
         this.removeJSONIgnore(modelRepo.model.prototype, model, req);
         var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(modelRepo.model.prototype) || [];
+        if (noChildRecursion) {
+            return model;
+        }
         relations.forEach(relation => {
             var relUrl = {};
             relUrl["href"] = resourceName + "/" + relation.propertyKey;
             model["_links"][relation.propertyKey] = relUrl;
-
             // [***\ Below code has been commented as we are generating hall model for 1 level entity only not for all its child entities. /***]
-
-            //var repo = GetRepositoryForName(relation.params.rel);
-            //if (repo) {
-            //    var param = relation.params;
-            //    if (!param.embedded && !param.eagerLoading) { return model; }
-            //    if (model[relation.propertyKey] instanceof Array) {
-            //        if (model[relation.propertyKey] && model[relation.propertyKey].length && Utils.isJSON(model[relation.propertyKey][0])) {
-            //            model[relation.propertyKey].forEach(key => {
-            //                var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
-            //                this.getHalModel1(key, url + '/' + key['_id'], req, repo);
-            //            });
-            //        }
-            //    } else {
-            //        if (model[relation.propertyKey] && Utils.isJSON(model[relation.propertyKey])) {
-            //            var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
-            //            this.getHalModel1(model[relation.propertyKey], url + '/' + model[relation.propertyKey]['_id'], req, repo);
-            //        }
-            //    }
-            //}
+            //we have again uncommented it to get only 1 level _links, so a new flag noChildRecursion is used
+            var repo = GetRepositoryForName(relation.params.rel);
+            if (repo) {
+                var param = relation.params;
+                if (!param.embedded && !param.eagerLoading) { return model; }
+                if (model[relation.propertyKey] instanceof Array) {
+                    if (model[relation.propertyKey] && model[relation.propertyKey].length && Utils.isJSON(model[relation.propertyKey][0])) {
+                        model[relation.propertyKey].forEach(key => {
+                            var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
+                            this.getHalModel1(key, url + '/' + key['_id'], req, repo, true);
+                        });
+                    }
+                } else {
+                    if (model[relation.propertyKey] && Utils.isJSON(model[relation.propertyKey])) {
+                        var url = this.getFullBaseUrlUsingRepo(req, repo.modelName());
+                        this.getHalModel1(model[relation.propertyKey], url + '/' + model[relation.propertyKey]['_id'], req, repo, true);
+                    }
+                }
+            }
 
         });
         return model;
