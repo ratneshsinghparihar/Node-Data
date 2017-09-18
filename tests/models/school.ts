@@ -6,7 +6,7 @@ import {baseModel} from './baseModel';
 import {teacher} from './teacher';
 import {onetomany, manytoone, manytomany, onetoone} from '../../core/decorators';
 
-@document({ name: 'school', strict: Strict.throw })
+@document({ name: 'school', strict: Strict.true })
 export class school extends baseModel {
     @field()
     age: string;

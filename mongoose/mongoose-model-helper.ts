@@ -15,6 +15,7 @@ import * as Enumerable from 'linq';
 import { winstonLog } from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
 import {PrincipalContext} from '../security/auth/principalContext';
+import { ConstantKeys } from '../core/constants';
 
 /**
  * finds all the parent and update them. It is called when bulk objects are updated
@@ -32,7 +33,7 @@ export function updateParent(model: Mongoose.Model<any>, objs: Array<any>) {
                 var targetModelMeta = meta[0];
                 var repoName = (<IDocumentParams>targetModelMeta.params).name;
                 var model = Utils.getCurrentDBModel(repoName);
-                asyncCalls.push(updateParentDocumentEasy(model, x, objs));
+                asyncCalls.push(updateParentDocument1(model, x, objs));
             }
         });
     return Q.allSettled(asyncCalls);
@@ -321,6 +322,102 @@ function updateParentDocumentEasy(model: Mongoose.Model<any>, meta: MetaData, ob
         return updatedParents;
     });
 
+}
+
+function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
+    var queryCond = {};
+    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+    queryCond[meta.propertyKey + '._id'] = { $in: ids };
+    console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
+    updateWriteCount();
+    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
+        console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
+        if (!result) {
+            return Q.resolve([]);
+        }
+        if (result && !result.length) {
+            return Q.resolve(result);
+        }
+        var parents: Array<any> = Utils.toObject(result);
+        var parentIds = parents.map(x => x._id);
+        var bulk = model.collection.initializeUnorderedBulkOp();
+        // classic for loop used gives high performanance
+        for (var i = 0; i < objs.length; i++) {
+            var queryFindCond = {};
+            var updateSet = {};
+            var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
+            queryFindCond['_id'] = { $in: parentIds };
+            let flat = true;
+            if (flat) {
+                updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+            }
+            else {
+                let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
+                updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+            }
+            bulk.find(queryFindCond).update({ $set: updateSet });
+        }
+        console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
+        return Q.nbind(bulk.execute, bulk)().then(result => {
+            return parentIds;
+        });
+    });
+}
+
+function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
+    let parents = {};
+    for (var i = 0; i < objs.length; i++) {
+        let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
+        var queryFindCond = {};
+        var updateSet = {};
+        parents[parentId] = parents[parentId] ? parents[parentId] : {};
+        // check meta then update with array or keyvalue
+        let flat = true;
+        if (flat) {
+            updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+        }
+        else {
+            let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
+            updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+        }
+        parents[parentId] = updateSet;
+    }
+    var bulk = model.collection.initializeUnorderedBulkOp();
+    Object.keys(parents).forEach(x => {
+        var queryFindCond = {};
+        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId)
+        bulk.find(queryFindCond).update({ $set: parents[x] });
+    });
+    return Q.nbind(bulk.execute, bulk)().then(result => {
+        return Object.keys(parents);
+    });
+}
+
+function updateParentDocument1(model: Mongoose.Model<any>, meta: MetaData, objects: Array<any>) {
+    let noParentId = Enumerable.from(objects).where(x => !x[ConstantKeys.parent]).toArray();
+    let withParent = Enumerable.from(objects).where(x => x[ConstantKeys.parent]).toArray();
+    let prom;
+    let asyncCalls = [];
+    if (noParentId && noParentId.length) {
+        asyncCalls.push(updateParentDocument(model, meta, noParentId));
+    }
+    if (withParent && withParent.length) {
+        asyncCalls.push(updateParentWithParentId(model, meta, withParent));
+    }
+    return Q.allSettled(asyncCalls).then(allresult => {
+        let parentIds = Enumerable.from(allresult.map(x => x.value)).selectMany(x => x).toArray();
+        var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+        var asyncCalls = [];
+        var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
+        if (isEmbedded) {
+            return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
+                return updateParent(model, objects).then(res => {
+                    return objects;
+                });
+            });
+        }
+        return objects;
+    });
 }
 
 
@@ -622,6 +719,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     var searchResult = {};
     var objs = [];
     var searchObj = [];
+    
     let params: IAssociationParams = <any>relMetadata.params;
     objects.forEach((obj, index) => {
         if (!obj[prop])
@@ -634,7 +732,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 if (CoreUtils.isJSON(val[i])) {
                     if (!val[i]['_id']) {
                         val[i]['batch'] = index;
-                        val[i][parentModelName + '.' + prop] = obj._id ? obj._id : obj['_tempId'];
+                        val[i][ConstantKeys.parent] = Utils.getParentKey(parentModelName, prop, (obj._id ? obj._id : obj[ConstantKeys.TempId]));
                         objs.push(val[i]);
                     }
                     else {
@@ -664,7 +762,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
             if (CoreUtils.isJSON(val)) {
                 if (!val['_id']) {
                     val['batch'] = index;
-                    val[parentModelName + '.' + prop] = obj._id ? obj._id : obj['_tempId'];
+                    val[ConstantKeys.parent] = Utils.getParentKey(parentModelName, prop, (obj._id ? obj._id : obj[ConstantKeys.TempId]));
                     objs.push(val);
                 }
                 else {

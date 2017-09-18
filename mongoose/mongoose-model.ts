@@ -6,6 +6,7 @@ import * as Enumerable from 'linq';
 import { winstonLog } from '../logging/winstonLog';
 import * as mongooseHelper from './mongoose-model-helper';
 import * as CoreUtils from "../core/utils";
+import { ConstantKeys } from '../core/constants';
 import * as Utils from './utils';
 import { QueryOptions } from '../core/interfaces/queryOptions';
 import { MetaUtils } from "../core/metadata/utils";
@@ -28,7 +29,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     var clonedModels = [];
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeTransientProperties(model, obj);
-        cloneObj['_tempId'] = cloneObj._id ? cloneObj._id : new Mongoose.Types.ObjectId();
+        cloneObj[ConstantKeys.TempId] = cloneObj._id ? cloneObj._id : new Mongoose.Types.ObjectId();
         clonedModels.push(cloneObj);
     });
     return mongooseHelper.addChildModelToParent(model, clonedModels)
@@ -61,13 +62,13 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels: Array<any>) {
-    arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
     arrayOfDbModels.forEach(x => {
-        if (x['_tempId']) {
-            x._id = x['_tempId']
-            delete x['_tempId']
+        if (x[ConstantKeys.TempId]) {
+            x._id = x[ConstantKeys.TempId]
+            delete x[ConstantKeys.TempId]
         }
     });
+    arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
         result = result && result.ops;
         return result;
@@ -113,6 +114,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
 function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoadChilds?: boolean) {
     let length = objArr.length;
     var asyncCalls = [];
+    let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
     var ids = objArr.map(x => x._id);
     var bulk = model.collection.initializeUnorderedBulkOp();
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
@@ -133,11 +135,20 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         return Q.nbind(bulk.execute, bulk)().then(result => {
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
-            return findMany(model, ids).then((objects: Array<any>) => {
+            let prom;
+            if (fullyLoaded) {
+                // remove eagerloading propeties because it will be used for updating parent
+                // validate that no one have tampered the new persistent entity
+                prom = Q.when(objArr);
+            }
+            else {
+                prom = findMany(model, ids);
+            }
+            return prom.then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];
-                    if (donotLoadChilds === true) {
+                    if (donotLoadChilds === true || fullyLoaded) {
                         return Q.when(objects);
                     }
                     Enumerable.from(objects).forEach(x => {
@@ -469,7 +480,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    obj['_tempId'] = obj._id ? obj._id : new Mongoose.Types.ObjectId();
+    clonedObj[ConstantKeys.TempId] = clonedObj._id ? clonedObj._id : new Mongoose.Types.ObjectId();
     return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             //try {
@@ -479,9 +490,9 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
             //    console.log(ex);
             //    return Q.reject(ex);
             //}
-            if (obj['_tempId']) {
-                obj._id = obj['_tempId'];
-                delete obj['_tempId'];
+            if (clonedObj[ConstantKeys.TempId]) {
+                clonedObj._id = clonedObj[ConstantKeys.TempId];
+                delete clonedObj[ConstantKeys.TempId];
             }
             return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
                 let resObj = Utils.toObject(result);

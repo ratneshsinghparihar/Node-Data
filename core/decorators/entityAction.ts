@@ -1,5 +1,6 @@
 import { MetaUtils } from "../metadata/utils";
 import { Decorators } from '../constants/decorators';
+import { ConstantKeys } from '../constants';
 import { DecoratorType } from '../enums/decorator-type';
 import { IPreauthorizeParams } from './interfaces/preauthorize-params';
 import { PrincipalContext } from '../../security/auth/principalContext';
@@ -217,6 +218,15 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             break;
     }
     return prom.then(res => {
+        // set fully loaded attribute to root element
+        if (res instanceof Array) {
+            res.forEach(x => {
+                res[ConstantKeys.FullyLoaded] = true;
+            });
+        }
+        else {
+            res[ConstantKeys.FullyLoaded] = true;
+        }
         return res;
     }).catch(exc => {
         console.log(exc);
