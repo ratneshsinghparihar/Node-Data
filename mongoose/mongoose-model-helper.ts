@@ -16,6 +16,7 @@ import { winstonLog } from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
 import {PrincipalContext} from '../security/auth/principalContext';
 import { ConstantKeys } from '../core/constants';
+import { StorageType } from "../core/enums/index"
 
 /**
  * finds all the parent and update them. It is called when bulk objects are updated
@@ -60,6 +61,7 @@ export function removeTransientProperties(model: Mongoose.Model<any>, obj: any):
 
 //assuming relName is type of array already
 export function transformEmbeddedChildern(value: any, relName: string) {
+    // If already array then retun;
     if (value && value[relName] && value[relName].length) {
         return;
     }
@@ -75,6 +77,37 @@ export function transformEmbeddedChildern(value: any, relName: string) {
         delete value[key];
     })
 
+}
+// transform json object into array after post operations.
+// export function transformEmbeddedChildernAfterWriteOps(model: Mongoose.Model<any>, values: Array<any>) {
+//     //TODO consider only to get metedata for onetoMany only.
+//     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+//     if (metas) {
+//         for (let i = 0, len = metas.length; i < len; i++) {
+//             for (let j = 0, jlen = values.length; j < jlen; j++) {
+//                 transformEmbeddedChildern1(values[j], metas[i]);
+//             }
+//         }
+//     }
+// }
+//assuming relName is type of array already
+export function transformEmbeddedChildern1(value: any, meta: MetaData) {
+    console.log("transform_overHead_start - ", meta.propertyKey);
+    if (!meta.propertyType.isArray) {
+        return;
+    }
+    var relName = meta.propertyKey;
+    // If already array then retun;
+    if (value && value[relName] && value[relName].length) {
+        return;
+    }
+    let transformedData = [];
+    for (let key in value[relName]) {
+        transformedData.push(value[relName][key]);
+    }
+    // delete value[relName];
+    value[relName] = transformedData;
+    console.log("transform_overHead_start - ", meta.propertyKey);
 }
 
 export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, toLoadChildren?: boolean) {
@@ -101,7 +134,7 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
 
                 if (m.propertyType.isArray) {
                     console.log("transform_overHead_start - ", m.propertyKey);
-                    transformEmbeddedChildern(val, m.propertyKey);
+                    transformEmbeddedChildern1(val, m);
                     console.log("transform_overHead_start - ", m.propertyKey);
                     ids = ids.concat(val[m.propertyKey]);
                 }
@@ -295,34 +328,34 @@ export function updateWriteCount() {
 }
 
 function updateParentDocumentEasy(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
-
-    var queryCond = {};
-    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
-    queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
-
-    updateWriteCount();
-    console.log("updateParentDocument_start " + model.modelName + " count " + ids.length);
-    let parent = {};
-    // parent._id = objs[0].parentId;
-    parent[meta.propertyKey] = [];
-    objs.forEach((child) => {
-        parent[meta.propertyKey + "_" + child._id] = child;
-    })
-
-    var bulk = model.collection.initializeUnorderedBulkOp();
-
-    var objectId = Utils.castToMongooseType(objs[0].parentId, Mongoose.Types.ObjectId);
-
-
-    bulk.find({ _id: objectId }).update({ $set: parent });
-
-    return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
-        // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
-        console.log("updateParentDocument_end " + model.modelName + " count " + ids.length);
-        return updatedParents;
-    });
-
-}
+    
+        //var queryCond = {};
+        //var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+        //queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
+    
+       // updateWriteCount();
+        console.log("updateParentDocument_start " + model.modelName );
+        let parent = {};
+        // parent._id = objs[0].parentId;
+        parent[meta.propertyKey] = {};
+        objs.forEach((child) => {
+            parent[meta.propertyKey][child._id] = child;
+        })
+    
+        var bulk = model.collection.initializeUnorderedBulkOp();
+        
+        var objectId = Utils.castToMongooseType(objs[0].parentId, Mongoose.Types.ObjectId);
+    
+    
+        bulk.find({ _id: objectId }).update({ $set: parent });
+    
+        return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
+            // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
+            console.log("updateParentDocument_end " + model.modelName );
+            return updatedParents;
+        });
+    
+    }
 
 function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     var queryCond = {};
@@ -719,15 +752,15 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     var searchResult = {};
     var objs = [];
     var searchObj = [];
-    
     let params: IAssociationParams = <any>relMetadata.params;
+    let isJsonMap = params && (params.storageType == StorageType.JSONMAP);
     objects.forEach((obj, index) => {
         if (!obj[prop])
             return;
         var val = obj[prop];
         var newVal;
         if (relMetadata.propertyType.isArray) {
-            newVal = [];
+            newVal = isJsonMap ? {}:[];
             for (var i in val) {
                 if (CoreUtils.isJSON(val[i])) {
                     if (!val[i]['_id']) {
@@ -738,10 +771,12 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                     else {
                         val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'].toString(), Mongoose.Types.ObjectId);
                         if (params.embedded) {
-                            newVal.push(val[i]);
+                            // newVal.push(val[i]);
+                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(),val[i],newVal,isJsonMap);
                         }
                         else {
-                            newVal.push(val[i]['_id']);
+                            // newVal.push(val[i]['_id']);
+                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(),val[i]['_id'],newVal,isJsonMap);
                         }
                     }
                 }
@@ -798,7 +833,8 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
             res.forEach(obj => {
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
-                    objects[obj['batch']][prop].push(val);
+                    // objects[obj['batch']][prop].push(val);
+                    Utils.pushPropToArrayOrObject(val['_id'].toString(),val,objects[obj['batch']][prop],isJsonMap);
                 }
                 else {
                     objects[obj['batch']][prop] = val;
@@ -824,13 +860,13 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     return Q.allSettled(queryCalls).then(res => {
         objects.forEach(obj => {
             if (obj[prop]) {
-                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop]);
+                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop],true);
             }
         });
     });
 }
 
-function embedSelectedPropertiesOnly(params: IAssociationParams, result: any) {
+function embedSelectedPropertiesOnly(params: IAssociationParams, result: any, isEmbeddedObjectInResult?: boolean) {
     if (result && params.properties && params.properties.length > 0 && params.embedded) {
         if (result instanceof Array) {
             var newResult = [];
@@ -838,8 +874,13 @@ function embedSelectedPropertiesOnly(params: IAssociationParams, result: any) {
                 newResult.push(trimProperties(x, params.properties));
             });
             return newResult;
-        }
-        else {
+        } else if (isEmbeddedObjectInResult) {
+            let returnObject = {};
+            for (let key in result) {
+                returnObject[key] = trimProperties(result[key], params.properties);
+            }
+            return returnObject;
+        } else {
             return trimProperties(result, params.properties);
         }
     }

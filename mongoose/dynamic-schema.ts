@@ -3,16 +3,17 @@
 //import aa = require('mongoose');
 import * as Enumerable from 'linq';
 import * as Types from './datatype';
-import {Strict} from './enums/document-strict';
-import {Decorators} from '../core/constants/decorators';
-import {MetadataConstants} from '../core/constants';
+import { Strict } from './enums/document-strict';
+import { Decorators } from '../core/constants/decorators';
+import { MetadataConstants } from '../core/constants';
 
-import {IMongooseSchemaOptions,schemaGenerator} from "./mongooseSchemaGenerator";
+import { IMongooseSchemaOptions, schemaGenerator } from "./mongooseSchemaGenerator";
 
-import {DecoratorType} from '../core/enums/decorator-type';
-import {MetaUtils} from "../core/metadata/utils";
-import {MetaData} from '../core/metadata/metadata';
-import {IDocumentParams} from './decorators/interfaces/document-params';
+import { DecoratorType } from '../core/enums/decorator-type';
+import { MetaUtils } from "../core/metadata/utils";
+import { MetaData } from '../core/metadata/metadata';
+import { IDocumentParams } from './decorators/interfaces/document-params';
+import { StorageType } from "../core/enums/index"
 
 export class DynamicSchema {
     parsedSchema: any;
@@ -24,13 +25,13 @@ export class DynamicSchema {
         this.schemaName = name;
         this.parsedSchema = this.parse(target);
     }
-    
+
     public getSchema() {
         var fieldMetaArr = MetaUtils.getMetaData(this.target, Decorators.FIELD);
         var idx = Enumerable.from(fieldMetaArr)
             .where((keyVal) => keyVal && keyVal.params && (keyVal.params).searchIndex).any();
-            var options = this.getMongooseOptions(this.target);
-            var mongooseOptions: IMongooseSchemaOptions = { options: options, searchIndex: idx };
+        var options = this.getMongooseOptions(this.target);
+        var mongooseOptions: IMongooseSchemaOptions = { options: options, searchIndex: idx };
         return schemaGenerator.createSchema(this.parsedSchema, mongooseOptions);
     }
 
@@ -56,14 +57,14 @@ export class DynamicSchema {
             if (fieldMetadata.params && (<any>fieldMetadata.params).searchIndex) {
                 schema[field] = this.getSearchSchemaTypeForParam(fieldMetadata);
             }
-            else{
+            else {
                 schema[field] = this.getSchemaTypeForParam(fieldMetadata);
-        }
+            }
         }
         return schema;
     }
 
-    private getSearchSchemaTypeForParam(fieldMetadata: MetaData):any {
+    private getSearchSchemaTypeForParam(fieldMetadata: MetaData): any {
         var schemaType = this.getSchemaTypeForType(fieldMetadata.getType());
         if (fieldMetadata.params && fieldMetadata.params.rel) {
             return fieldMetadata.propertyType.isArray ? [schemaType] : schemaType;
@@ -90,7 +91,7 @@ export class DynamicSchema {
 
     private getSchemaTypeForParam(fieldMetadata: MetaData) {
         var schemaType = this.getSchemaTypeForType(fieldMetadata.getType());
-        return fieldMetadata.propertyType.isArray ? [schemaType] : schemaType;
+        return fieldMetadata.propertyType.isArray ? (fieldMetadata.params && fieldMetadata.params.storageType == StorageType.JSONMAP ? <any>{} : [schemaType]) : schemaType;
         //var schemaType = this.getSchemaTypeForType(paramType.itemType);
         //if (paramType.rel) {
         //    //var metaData = Utils.getPrimaryKeyMetadata(paramType.itemType);
@@ -108,7 +109,7 @@ export class DynamicSchema {
         //return paramType.isArray ? [schemaType] : schemaType;
     }
 
-    private getSchemaTypeForType(type?):any {
+    private getSchemaTypeForType(type?): any {
         switch (type) {
             case Mongoose.Types.ObjectId: return Mongoose.Schema.Types.ObjectId;
             case String: return String;

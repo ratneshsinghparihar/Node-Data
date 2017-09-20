@@ -497,14 +497,17 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
             return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
-                return obj;
+                return mongooseHelper.embeddedChildren1(model, [obj],false)
+                .then(r => {
+                    return obj;
+                });
+                
             });
         }).catch(error => {
             winstonLog.logError(`Error in post ${error}`);
             return Q.reject(error);
         });
 }
-
 /**
  * Delete object with given id. Check if, any children have deletecase=true, then delete children from master table
  * Update parent document for all the deleted objects

@@ -161,3 +161,10 @@ export function getParentKey(modelName, prop, id) {
     parent[ConstantKeys.parentId] = id;
     return parent;
 }
+export function pushPropToArrayOrObject(prop:any,propVal:any,collecionObj:any,isFlat:boolean){
+    if(isFlat){
+        collecionObj[prop] = propVal;
+    }else{
+        collecionObj.push(propVal);
+    }
+}
