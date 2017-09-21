@@ -232,13 +232,20 @@ function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
         });
         return res;
     }
-    Enumerable.from(entities).forEach(entity => {
+    let dbEntityKeyVal = {};
+    let megredEntityKeyVal = {};
+    dbEntities.forEach(dbE => dbEntityKeyVal[dbE._id] = dbE);
+
+    mergeEntities1.forEach(mgE => megredEntityKeyVal[mgE._id] = mgE);
+
+    entities.forEach(entity => {
+
         var dbEntity, mergeEntity;
         if (dbEntities) {
-            dbEntity = Enumerable.from(dbEntities).where(x => x['_id'].toString() == entity['_id'].toString()).firstOrDefault();
+            dbEntity = dbEntityKeyVal[entity['_id']];
         }
         if (mergeEntities1) {
-            mergeEntity = Enumerable.from(mergeEntities1).where(x => x['_id'].toString() == entity['_id'].toString()).firstOrDefault();
+            mergeEntity = megredEntityKeyVal[entity['_id']];
         }
 
         res.push(mergeProperties(dbEntity, entity, mergeEntity));
@@ -252,23 +259,37 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
         mergedEntity = <any>{};
     }
 
+    let tempMergedEntity = {};
     if (dbEntity) {
         for (var prop in dbEntity) {
-            mergedEntity[prop] = dbEntity[prop];
+            tempMergedEntity[prop] = dbEntity[prop];
+        }
+
+    }
+    if (entity) {
+        for (var prop in entity) {
+            tempMergedEntity[prop] = entity[prop];
         }
     }
 
-    if (entity && (entity instanceof Object && !(entity instanceof Types.ObjectId))) {
+    if (tempMergedEntity && (tempMergedEntity instanceof Object && !(tempMergedEntity instanceof Types.ObjectId))) {
 
-        for (var prop in entity) {
-            if (typeof entity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {
-                mergedEntity[prop] = this.mergeProperties(mergedEntity[prop], entity[prop]);
+        for (var prop in tempMergedEntity) {
+            if (typeof tempMergedEntity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {
+                mergedEntity[prop] = this.mergeProperties(mergedEntity[prop], tempMergedEntity[prop]);
             }
             else {
-                mergedEntity[prop] = entity[prop];
+                if (tempMergedEntity[prop] === undefined) {
+                    delete mergedEntity[prop];
+                }
+                else {
+                    mergedEntity[prop] = tempMergedEntity[prop];
+                }
             }
         }
     }
+
+    mergedEntity['_fullyloaded'] = true;
     return { inputEntity: entity, oldPersistentEntity: dbEntity, newPersistentEntity: mergedEntity };
 }
 

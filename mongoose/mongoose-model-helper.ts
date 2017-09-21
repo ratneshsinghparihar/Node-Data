@@ -57,6 +57,24 @@ export function removeTransientProperties(model: Mongoose.Model<any>, obj: any):
     return clonedObj;
 }
 
+export function removeGivenTransientProperties(model: Mongoose.Model<any>, obj: any, transientProps: Array<MetaData>): any {
+    transientProps.forEach(element => {
+        delete obj[element.propertyKey];
+    });
+    return obj;
+}
+
+export function getAllTransientProps(model: Mongoose.Model<any>) {
+    var transientProps = Enumerable.from(MetaUtils.getMetaData(getEntity(model.modelName))).where((ele: MetaData, idx) => {
+        if (ele.decorator === Decorators.TRANSIENT) {
+            return true;
+        }
+        return false;
+    }).toArray();
+
+    return transientProps;
+}
+
 export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, donotLoadChilds?: boolean) {
     if (!model)
         return;

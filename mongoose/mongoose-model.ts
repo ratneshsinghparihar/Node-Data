@@ -26,8 +26,9 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 
     // create all cloned models
     var clonedModels = [];
+    let transientProps = mongooseHelper.getAllTransientProps(model);
     Enumerable.from(objArr).forEach(obj => {
-        var cloneObj = mongooseHelper.removeTransientProperties(model, obj);
+        var cloneObj = mongooseHelper.removeGivenTransientProperties(model, obj, transientProps);
         clonedModels.push(cloneObj);
     });
     return mongooseHelper.addChildModelToParent(model, clonedModels)
@@ -103,44 +104,99 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
     });
 }
 
-function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>,donotLoadChilds?: boolean) {
+function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoadChilds?: boolean) {
     let length = objArr.length;
     var asyncCalls = [];
     var ids = objArr.map(x => x._id);
+    var isFullyLoaded: boolean = false;
+    if (objArr.length > 0 && objArr[0]['_fullyloaded']) {
+        isFullyLoaded = true;
+    }
     var bulk = model.collection.initializeUnorderedBulkOp();
+    console.log("addChildModelToParent_start_" + model.modelName);
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
-        objArr.forEach(result => {
+        console.log("addChildModelToParent_end_" + model.modelName);
+
+        let transientProps = mongooseHelper.getAllTransientProps(model);
+        var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+        let isRelationsExist = false;
+
+        if (metaArr && metaArr.length) {
+            isRelationsExist = true;
+        }
+        let updatePropsReq = !isFullyLoaded || isRelationsExist;
+        // check if not relationship present in the docs then do not call updateProps
+        // 
+        for (let i = 0; i < objArr.length; i++) {
+            let result = objArr[i];
+            //objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
-            delete result._id;
-            let clonedObj = mongooseHelper.removeTransientProperties(model, result);
-            var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
             let query: Object = { _id: objectId };
+            delete result._id;
+            //let clonedObj = mongooseHelper.removeTransientProperties(model, result);
+            for (let prop in transientProps) {
+                delete result[transientProps[prop].propertyKey];
+            }
+            var updatedProps;
+
+            if (updatePropsReq) {
+                updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            }
+            let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
+
             if (isDecoratorPresent === true) {
                 updatedProps["$set"] && delete updatedProps["$set"]["__v"];
                 updatedProps["$inc"] = { '__v': 1 };
                 query["__v"] = result["__v"];
             }
-            bulk.find(query).update(updatedProps);
-        });
+            if (updatePropsReq) {
+                bulk.find({ _id: objectId }).update(updatedProps);
+            }
+            else {
+                bulk.find({ _id: objectId }).replaceOne(result);
+            }
+        }
+
+        console.log("executeBulkPut_start_" + model.modelName);
         return Q.nbind(bulk.execute, bulk)().then(result => {
+            console.log("executeBulkPut_end_" + model.modelName);
+            let prom;
+            if (isFullyLoaded) {
+                prom = Q.when(objArr);
+                ids.forEach((id, index) => {
+                    objArr[index]['_id'] = id;
+                });
+            }
+            else {
+                //let repo: DynamicRepository = repoFromModel[model.modelName];
+                prom = findMany(model, ids);
+            }
             // update parent
-            let repo: DynamicRepository = repoFromModel[model.modelName];
-            return findMany(model, ids).then((objects: Array<any>) => {
+            return prom.then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
+                    console.log("mongooseHelper.updateParent_end_" + model.modelName);
                     asyncCalls = [];
                     var resultObject = [];
                     if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
-                    Enumerable.from(objects).forEach(x => {
-                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                            resultObject.push(r);
-                        }));
-                    });
-                    return Q.allSettled(asyncCalls).then(final => {
-                        return resultObject;
-                    });
+
+                    if (!isFullyLoaded) {
+                        Enumerable.from(objects).forEach(x => {
+                            asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
+                                resultObject.push(r);
+                            }));
+                        });
+                        return Q.allSettled(asyncCalls).then(final => {
+                            return resultObject;
+                        });
+                    }
+                    console.log("mongooseHelper.updateParent_return_" + model.modelName);
+                    return objects;
+
+                    //return mongooseHelper.embeddedChildren1(model, objects,false).then(final => {
+                    //    return objects;
+                    //});
                 });
             });
 
@@ -169,11 +225,15 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
     var asyncCalls = [];
 
     return mongooseHelper.addChildModelToParent(model, objArr).then(x => {
+        let transientProps = mongooseHelper.getAllTransientProps(model);
+
         objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
-            let clonedObj = mongooseHelper.removeTransientProperties(model, result);
-            var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
+            for (let prop in transientProps) {
+                delete result[transientProps[prop].propertyKey];
+            }
+            var updatedProps = Utils.getUpdatedProps(result, EntityChange.patch);
             let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "patch");
             let query: Object = { _id: objectId };
             if (isDecoratorPresent === true) {
