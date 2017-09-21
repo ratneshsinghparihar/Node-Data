@@ -13,6 +13,12 @@ export class baseModel extends CrudEntity {
     @field()
     name: String;
 
+    @field()
+    parent: any;
+
+    @field()
+    batch: any;
+
     /*
         nodedata internal use for caching, use for findWhere case
     */

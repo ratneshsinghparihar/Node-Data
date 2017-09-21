@@ -5,5 +5,6 @@ export interface IAssociationParams {
     eagerLoading: boolean,
     deleteCascade?: boolean,
     properties?: [string],
-    persist?: boolean
+    persist?: boolean,
+    storageType?:string
 }

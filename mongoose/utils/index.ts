@@ -8,6 +8,7 @@ import {pathRepoMap, getModel, getSchema} from '../../core/dynamic/model-entity'
 import {MetaData} from '../../core/metadata/metadata';
 import {Decorators} from '../../core/constants/decorators';
 import {Types} from "mongoose";
+import { ConstantKeys } from '../../core/constants';
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -151,4 +152,19 @@ export function isBasonOrStringType(obj: any) {
         return undefined;
     }
     return obj instanceof Types.ObjectId || typeof obj === "string";
+}
+
+export function getParentKey(modelName, prop, id) {
+    let parent = {};
+    parent[ConstantKeys.collectionName] = modelName;
+    parent[ConstantKeys.property] = prop;
+    parent[ConstantKeys.parentId] = id;
+    return parent;
+}
+export function pushPropToArrayOrObject(prop:any,propVal:any,collecionObj:any,isFlat:boolean){
+    if(isFlat){
+        collecionObj[prop] = propVal;
+    }else{
+        collecionObj.push(propVal);
+    }
 }

@@ -1,5 +1,6 @@
 import { MetaUtils } from "../metadata/utils";
 import { Decorators } from '../constants/decorators';
+import { ConstantKeys } from '../constants';
 import { DecoratorType } from '../enums/decorator-type';
 import { IPreauthorizeParams } from './interfaces/preauthorize-params';
 import { PrincipalContext } from '../../security/auth/principalContext';
@@ -52,7 +53,7 @@ export function entityAction(params: IPreauthorizeParams): any {
 
         descriptor.value = function () {
             var anonymous = MetaUtils.getMetaData(target, Decorators.ALLOWANONYMOUS, propertyKey);
-            if (anonymous) return originalMethod.apply(this, arguments);
+            if (anonymous) return originalMethod.call(this, ...arguments);
             let args = [];
             args = Array.apply(null, arguments);
 
@@ -83,7 +84,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         else {
                             args[0] = fullyQualifiedEntities;
                         }
-                        return originalMethod.apply(this, args);
+                        return originalMethod.call(this, ...args);
                     });
                 }
                 else {
@@ -99,7 +100,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                                     args[0] = fullyQualifiedEntities;
                                 }
                             //}
-                            return originalMethod.apply(this, args);
+                            return originalMethod.call(this, ...args);
                             //return originalMethod.apply(this, [fullyQualifiedEntities]);
                         }
                         else {
@@ -217,6 +218,15 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             break;
     }
     return prom.then(res => {
+        // set fully loaded attribute to root element
+        if (res instanceof Array) {
+            res.forEach(x => {
+                res[ConstantKeys.FullyLoaded] = true;
+            });
+        }
+        else {
+            res[ConstantKeys.FullyLoaded] = true;
+        }
         return res;
     }).catch(exc => {
         console.log(exc);
