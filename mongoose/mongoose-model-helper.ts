@@ -111,7 +111,7 @@ export function transformEmbeddedChildern(value: any, relName: string) {
 //assuming relName is type of array already
 export function transformEmbeddedChildern1(value: any, meta: MetaData) {
     console.log("transform_overHead_start - ", meta.propertyKey);
-    if (!meta.propertyType.isArray) {
+    if (!isJsonMapEnabled(meta.params) || !meta.propertyType.isArray) {
         return;
     }
     var relName = meta.propertyKey;
@@ -398,8 +398,8 @@ function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData,
             var updateSet = {};
             var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
             queryFindCond['_id'] = { $in: parentIds };
-            let flat = true;
-            if (flat) {
+            let isJsonMap = isJsonMapEnabled(meta.params);
+            if (isJsonMap) {
                 updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
             }
             else {
@@ -417,21 +417,23 @@ function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData,
 
 function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     let parents = {};
+    console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
         var queryFindCond = {};
-        var updateSet = {};
+        
         parents[parentId] = parents[parentId] ? parents[parentId] : {};
+       // var updateSet = {};
         // check meta then update with array or keyvalue
-        let flat = true;
-        if (flat) {
-            updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+        let isJsonMap = isJsonMapEnabled(meta.params);
+        if (isJsonMap) {
+            parents[parentId][meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
         else {
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-            updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+            parents[parentId][meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
-        parents[parentId] = updateSet;
+       // parents[parentId] = updateSet;
     }
     var bulk = model.collection.initializeUnorderedBulkOp();
     Object.keys(parents).forEach(x => {
@@ -440,6 +442,8 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         bulk.find(queryFindCond).update({ $set: parents[x] });
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
+        console.log(JSON.stringify(result));
+        console.log("updateParentWithParentId end" + model.modelName);
         return Object.keys(parents);
     });
 }
@@ -765,13 +769,18 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
         return val;
     });
 }
-
+function isJsonMapEnabled(params: IAssociationParams) { 
+    if (params && (params.storageType == StorageType.JSONMAP)) { 
+        return true;
+    }
+    return false;
+}
 function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentModelName: string): Q.Promise<any> {
     var searchResult = {};
     var objs = [];
     var searchObj = [];
     let params: IAssociationParams = <any>relMetadata.params;
-    let isJsonMap = params && (params.storageType == StorageType.JSONMAP);
+    let isJsonMap = isJsonMapEnabled(params);
     objects.forEach((obj, index) => {
         if (!obj[prop])
             return;
@@ -852,7 +861,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
                     // objects[obj['batch']][prop].push(val);
-                    Utils.pushPropToArrayOrObject(val['_id'].toString(),val,objects[obj['batch']][prop],isJsonMap);
+                    Utils.pushPropToArrayOrObject(obj['_id'].toString(),val,objects[obj['batch']][prop],isJsonMap);
                 }
                 else {
                     objects[obj['batch']][prop] = val;
@@ -960,4 +969,3 @@ function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
         ? Enumerable.from(obj[prop]).select(x => Utils.castToMongooseType(x, primaryType)).toArray()
         : [Utils.castToMongooseType(obj[prop], primaryType)];
 }
-
