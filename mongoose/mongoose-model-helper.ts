@@ -77,40 +77,10 @@ export function getAllTransientProps(model: Mongoose.Model<any>) {
     return transientProps;
 }
 
-//assuming relName is type of array already
-export function transformEmbeddedChildern(value: any, relName: string) {
-    // If already array then retun;
-    if (value && value[relName] && value[relName].length) {
-        return;
-    }
-    value[relName] = [];
-    let keysTodelete = [];
-    for (let key in value) {
-        if (key.startsWith(relName) && key != relName) {
-            value[relName].push(value[key]);
-            keysTodelete.push(key);
-        }
-    }
-    keysTodelete.forEach((key) => {
-        delete value[key];
-    })
 
-}
-// transform json object into array after post operations.
-// export function transformEmbeddedChildernAfterWriteOps(model: Mongoose.Model<any>, values: Array<any>) {
-//     //TODO consider only to get metedata for onetoMany only.
-//     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
-//     if (metas) {
-//         for (let i = 0, len = metas.length; i < len; i++) {
-//             for (let j = 0, jlen = values.length; j < jlen; j++) {
-//                 transformEmbeddedChildern1(values[j], metas[i]);
-//             }
-//         }
-//     }
-// }
 //assuming relName is type of array already
 export function transformEmbeddedChildern1(value: any, meta: MetaData) {
-    console.log("transform_overHead_start - ", meta.propertyKey);
+   
     if (!isJsonMapEnabled(meta.params) || !meta.propertyType.isArray) {
         return;
     }
@@ -119,6 +89,7 @@ export function transformEmbeddedChildern1(value: any, meta: MetaData) {
     if (value && value[relName] && value[relName].length) {
         return;
     }
+    console.log("transform_overHead_start - ", meta.propertyKey);
     let transformedData = [];
     for (let key in value[relName]) {
         transformedData.push(value[relName][key]);
