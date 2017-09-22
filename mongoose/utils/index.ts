@@ -65,7 +65,7 @@ export function toObject(result): any {
  * @param obj
  * @param type
  */
-export function getUpdatedProps(obj: any, type: EntityChange) {
+export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Array<any>) {
     var push = {};
     var set = {};
     var unset = {};
@@ -83,7 +83,14 @@ export function getUpdatedProps(obj: any, type: EntityChange) {
                 p = true;
             }
             else {
-                set[i] = obj[i];
+                if (type == EntityChange.patch && jsonMapProp && jsonMapProp.indexOf(i) >= 0) {
+                    for (var j in obj[i]) {
+                        set[i + '.' + j] = obj[i][j];
+                    }
+                }
+                else {
+                    set[i] = obj[i];
+                }
                 s = true;
             }
         }
