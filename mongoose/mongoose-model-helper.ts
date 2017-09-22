@@ -607,7 +607,12 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
     var changesObjIds = {
         $in: updateObjs.map(x => x._id)
     };
-    var parentIds = updateObjs.map(x => x.parent && x.parent.parentId);
+    var parentIds = [];
+    updateObjs.forEach(x => {
+        if (x.parent && x.parent.parentId) {
+            parentIds.push(x.parent.parentId);
+        }
+    });
     var isParentIdsPresent = parentIds && parentIds.length;
     isEmbedded ? searchQueryCond[prop + '._id'] = changesObjIds : searchQueryCond[prop] = changesObjIds;
     isEmbedded ? pullQuery[prop]['_id'] = changesObjIds : pullQuery[prop] = changesObjIds;
