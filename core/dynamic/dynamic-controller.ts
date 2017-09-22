@@ -733,6 +733,7 @@ export class DynamicController {
     }
 
     private removePropertyFromModel(model: any, field: any, req: any) {
+        if (!model) return;
         var jsonIgnoreParams = field.params;
         if (jsonIgnoreParams && jsonIgnoreParams == JsonIgnore.READ && req.method != 'GET') {
             if (model[field.propertyKey]) {

@@ -213,13 +213,14 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
 
     return mongooseHelper.addChildModelToParent(model, objArr).then(x => {
         let transientProps = mongooseHelper.getAllTransientProps(model);
+        let jsonProps = mongooseHelper.getEmbeddedPropWithFlat(model).map(x => x.propertyKey);
         objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
             }
-            var updatedProps = Utils.getUpdatedProps(result, EntityChange.patch);
+            var updatedProps = Utils.getUpdatedProps(result, EntityChange.patch, jsonProps);
             let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "patch");
             let query: Object = { _id: objectId };
             if (isDecoratorPresent === true) {
@@ -381,8 +382,12 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     return Q.nbind(queryObj.exec, queryObj)()
         .then((result: Array<any>) => {
             // update embedded property, if any
+            if (toLoadChilds != undefined && toLoadChilds == false) {
+                mongooseHelper.transformAllEmbeddedChildern1(model, result);
+                return result;
+            }
             var asyncCalls = [];
-            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false, toLoadChilds));
+            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
             return Q.allSettled(asyncCalls).then(r => {
                 return result;
             });
@@ -408,7 +413,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
 export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolean): Q.Promise<any> {
     console.log("findOne " + model.modelName);
     return <any>model.findOne({ '_id': id }).lean().then(result => {
-        return mongooseHelper.embeddedChildren1(model, [result], false, !donotLoadChilds)
+        return mongooseHelper.embeddedChildren1(model, [result], false, donotLoadChilds)
             .then(r => {
                 return result;
             });
@@ -464,11 +469,16 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
             winstonLog.logError(`Error in findMany ${error}`);
             return Q.reject(error);
         }
-        var asyncCalls = [];
-        asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false, toLoadEmbeddedChilds));
-        return Q.allSettled(asyncCalls).then(r => {
+        if (toLoadEmbeddedChilds) {
+            let asyncCalls = [];
+            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
+            return Q.allSettled(asyncCalls).then(r => {
+                return result;
+            });
+        } else {
+            mongooseHelper.transformAllEmbeddedChildern1(model, result);
             return result;
-        });
+        }
     });
 }
 

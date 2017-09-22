@@ -128,9 +128,26 @@ export function transformEmbeddedChildern1(value: any, meta: MetaData) {
     console.log("transform_overHead_start - ", meta.propertyKey);
 }
 
-export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, toLoadChildren?: boolean) {
+export function transformAllEmbeddedChildern1(model: any, objs: Array<any>) {
+    getEmbeddedPropWithFlat(model).forEach(x => {
+        objs.forEach(object => {
+            transformEmbeddedChildern1(object, x);
+        });
+    });
+}
+
+export function getEmbeddedPropWithFlat(model: any) {
+    let allReferencingEntities = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+    return allReferencingEntities.filter(x => x.params && x.params.embedded && isJsonMapEnabled(x.params)).map(x => x);
+}
+
+export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>, force: boolean, donotLoadChilds?: boolean) {
     if (!model)
         return;
+
+    if (donotLoadChilds) {
+        return Q.when(values);
+    }
 
     var asyncCalls = [];
     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
@@ -141,7 +158,7 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
         //if (param.embedded)
         //    return;
 
-        if (force || param.embedded || (param.eagerLoading && toLoadChildren)) {
+        if (force || param.eagerLoading || param.embedded) {
             var relModel = Utils.getCurrentDBModel(param.rel);
             // find model repo and findMany from repo instead of calling mongoose model directly
             let repo: DynamicRepository = repoFromModel[relModel.modelName];
@@ -769,7 +786,7 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
         return val;
     });
 }
-function isJsonMapEnabled(params: IAssociationParams) { 
+export function isJsonMapEnabled(params: IAssociationParams) { 
     if (params && (params.storageType == StorageType.JSONMAP)) { 
         return true;
     }
