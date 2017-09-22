@@ -222,8 +222,27 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
     });
 }
 
-
-
+/**
+ * This method used to get actual child object from relation where storage type is jsonmap.
+ * This is used in cascadeDelete.
+ * @param props 
+ * @param isJsonMap 
+ */
+function getListOfObjectsTobeDeleted(props, isJsonMap: boolean) {
+    let listOfAllSameObjects = [];
+    if (CoreUtils.isJSON(props) && isJsonMap) {
+        for (let i = 0, len = props.length; i < len; i++) {
+            for (let key in props[i]) {
+                listOfAllSameObjects.push(props[i][key]);
+            }
+        }
+    } else {
+        listOfAllSameObjects = props.reduce((prev, current) => {
+            return prev.concat(current);
+        });
+    }
+    return listOfAllSameObjects;
+}
 /**
  * It find all children with deleteCascade = true, and delete those children.
  * Recursively, it finds all the relation with deleteCascade = true and delete them.
@@ -239,6 +258,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
 
     relationToDelete.forEach(res => {
         var x = <IAssociationParams>res.params;
+        let isJsonMap = isJsonMapEnabled(x);
         var props = [];
         for (let i = 0; i < updateObj.length; i++) {
             if (updateObj[i] && updateObj[i][res.propertyKey]) {
@@ -250,9 +270,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
         ids[x.rel] = ids[x.rel] || [];
         if (x.embedded) {
             if (res.propertyType.isArray) {
-                let listOfAllSameObjects = props.reduce((prev, current) => {
-                    return prev.concat(current);
-                })  //Enumerable.from(prop).select(x => x['_id']).toArray();
+                let listOfAllSameObjects = getListOfObjectsTobeDeleted(props,isJsonMap);
                 let listOfIds = listOfAllSameObjects.map(x => x._id);
                 ids[x.rel] = ids[x.rel].concat(listOfIds);
             }
@@ -263,9 +281,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
         }
         else {
             if (res.propertyType.isArray) {
-                let listOfAllSameIds = props.reduce((prev, current) => {
-                    return prev.concat(current);
-                })  //Enumerable.from(prop).select(x => x['_id']).toArray();
+                let listOfAllSameIds = getListOfObjectsTobeDeleted(props,isJsonMap);
                 ids[x.rel] = ids[x.rel].concat(listOfAllSameIds);
             }
             else {
@@ -326,8 +342,9 @@ export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChang
         .forEach((x: MetaData) => {
             var param = <IAssociationParams>x.params;
             if (entityChange == EntityChange.delete) {
+                let isJsonMap = isJsonMapEnabled(param);
                 //var newObj = getFilteredValue(obj, param.properties);
-                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, param.embedded, entityChange, model));
+                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, param.embedded, entityChange, model,isJsonMap));
             }
         });
     return Q.allSettled(asyncCalls);
@@ -569,25 +586,46 @@ function bulkDelete(model: Mongoose.Model<any>, ids: any) {
     });
 }
 
-function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean): Q.Promise<any> {
+/**
+ * Get unset query for onetomany relationship where storegaType is json map.
+ * This is used while updating parent after child deleted.
+ * @param prop 
+ * @param updateObjs 
+ */
+function getUnsetQueryForJsonMapStructure(prop,updateObjs){
+    let setCondition = {};
+    setCondition['$unset'] = {};
+    for(let i=0,len=updateObjs.length;i<len;i++){
+        setCondition['$unset'][prop +"."+updateObjs[i]["_id"].toString()] = "";
+    }
+    return setCondition;
+}
+function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean,isJsonMap?:boolean): Q.Promise<any> {
     var searchQueryCond = {};
     var pullQuery = {};
     pullQuery[prop] = {};
     var changesObjIds = {
         $in: updateObjs.map(x => x._id)
     };
+    var parentIds = updateObjs.map(x => x.parent && x.parent.parentId);
+    var isParentIdsPresent = parentIds && parentIds.length;
     isEmbedded ? searchQueryCond[prop + '._id'] = changesObjIds : searchQueryCond[prop] = changesObjIds;
     isEmbedded ? pullQuery[prop]['_id'] = changesObjIds : pullQuery[prop] = changesObjIds;
-    return Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 }).then((parents: any) => {
-        parents = Utils.toObject(parents);
-        if (!parents || !parents.length) return Q.when(true);
-        parents = parents.map(x => x._id);
+    // If parent ids are available then no need to call parent from db.
+    var parentCallPromise = isParentIdsPresent ? Q.resolve(true) : Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 });
+    return parentCallPromise.then((parents: any) => {
+        if(!isParentIdsPresent){
+            parents = Utils.toObject(parents);
+            if (!parents || !parents.length) return Q.when(true);
+            parentIds = parents.map(x => x._id);
+        }
         console.log(prop);
         let setCondition = {};
         setCondition['$unset'] = {};
         setCondition['$unset'][prop] = "";
-        searchQueryCond['_id'] = { $in: parents };
-        var prom = isArray ? Q.nbind(model.update, model)({ _id: { $in: parents } }, { $pull: pullQuery }, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
+        searchQueryCond['_id'] = { $in: parentIds };
+        let setConditionForArr = (isArray && isJsonMap) ? getUnsetQueryForJsonMapStructure(prop,updateObjs) : { $pull: pullQuery };
+        var prom = isArray ? Q.nbind(model.update, model)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
@@ -596,7 +634,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
                 // fetch all the parent and call update parent
                 return Q.nbind(model.find, model)({
                     '_id': {
-                        $in: parents
+                        $in: parentIds
                     }
                 }).then((result: any) => {
                     return updateParent(model, Utils.toObject(result));
@@ -742,7 +780,7 @@ function getQueryCondition(id: any, cond: any): any {
     }
 }
 
-function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>): Q.Promise<any> {
+function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>,isJsonMap?:boolean): Q.Promise<any> {
     var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
 
     if (!meta) {
@@ -755,7 +793,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
         winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
     }
-    return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray);
+    return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray,isJsonMap);
 }
 
 export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any): Q.Promise<any> {
