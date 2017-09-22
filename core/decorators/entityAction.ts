@@ -236,7 +236,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
 
 function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
     var res = [];
-    if (!entities) {
+    if (!entities && dbEntities) {
         dbEntities.forEach(x => {
             res.push(mergeProperties(x, undefined, x));
         });
@@ -244,9 +244,13 @@ function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
     }
     let dbEntityKeyVal = {};
     let megredEntityKeyVal = {};
-    dbEntities.forEach(dbE => dbEntityKeyVal[dbE._id] = dbE);
+    if (dbEntities) {
+        dbEntities.forEach(dbE => dbEntityKeyVal[dbE._id] = dbE);
+    }
 
-    mergeEntities1.forEach(mgE => megredEntityKeyVal[mgE._id] = mgE);
+    if (mergeEntities1) {
+        mergeEntities1.forEach(mgE => megredEntityKeyVal[mgE._id] = mgE);
+    }
 
     entities.forEach(entity => {
 
