@@ -86,9 +86,14 @@ export function transformEmbeddedChildern1(value: any, meta: MetaData) {
     }
     var relName = meta.propertyKey;
     // If already array then retun;
-    if (value && value[relName] && value[relName].length) {
+    if (!value || value[relName] instanceof Array)
+        return;
+
+    if (!value[relName]) {
+        value[relName] = [];
         return;
     }
+
     console.log("transform_overHead_start - ", meta.propertyKey);
     let transformedData = [];
     for (let key in value[relName]) {
@@ -135,13 +140,14 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
             let repo: DynamicRepository = repoFromModel[relModel.modelName];
             var ids = [];
             values.forEach(val => {
-                if (!val[m.propertyKey])
+                if (m.propertyType.isArray) {
+                    transformEmbeddedChildern1(val, m);
+                }
+
+                if (!val[m.propertyKey] || (val[m.propertyKey] instanceof Array && !val[m.propertyKey].length))
                     return;
 
                 if (m.propertyType.isArray) {
-                    console.log("transform_overHead_start - ", m.propertyKey);
-                    transformEmbeddedChildern1(val, m);
-                    console.log("transform_overHead_start - ", m.propertyKey);
                     ids = ids.concat(val[m.propertyKey]);
                 }
                 else {
