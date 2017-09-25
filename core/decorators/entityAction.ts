@@ -303,7 +303,7 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
         }
     }
 
-    mergedEntity['_fullyloaded'] = true;
+    mergedEntity[ConstantKeys.FullyLoaded] = true;
     return { inputEntity: entity, oldPersistentEntity: dbEntity, newPersistentEntity: mergedEntity };
 }
 
