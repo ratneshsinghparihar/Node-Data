@@ -729,7 +729,6 @@ export class DynamicController {
 
     private jsonIgnoreModels(entity, model, req) {
         var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
-            if (!cacheForModelFromHalModel) { cacheForModelFromHalModel = {}; }
         if (decFields) {
             decFields.forEach(field => {
                 if (model instanceof Array) {
