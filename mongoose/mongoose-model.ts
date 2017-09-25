@@ -165,6 +165,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 // remove eagerloading propeties because it will be used for updating parent
                 // validate that no one have tampered the new persistent entity
                 prom = Q.when(objArr);
+                ids.forEach((id, index) => {
+                    objArr[index]['_id'] = id;
+                });
             }
             else {
                 prom = findMany(model, ids);

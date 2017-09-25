@@ -186,11 +186,16 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.bulkPut.toUpperCase():
             var ids = Enumerable.from(args[0]).select(x => x['_id'].toString()).toArray();
             let mergeEntities1 = [];
+            console.log("entity action findmany instance service start " + this.path);
             args[0].forEach(x => {
                 mergeEntities1.push(InstanceService.getInstance(this.getEntity(), null, x));
             });
+            console.log("entity action findmany start " + this.path);
             prom = rootRepo.findMany(ids, true).then(dbEntities => {
-                return mergeEntities(dbEntities, args[0], mergeEntities1);
+                console.log("entity action merge entity start " + this.path);
+                let retval = mergeEntities(dbEntities, args[0], mergeEntities1);
+                console.log("entity action merge entity end " + this.path);
+                return retval;
             });
             break;
         case RepoActions.bulkDel.toUpperCase():
