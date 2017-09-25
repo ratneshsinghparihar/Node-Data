@@ -14,6 +14,7 @@ import {IRepositoryParams} from '../decorators/interfaces/repository-params';
 let _metadataRoot: MetaRoot = new Map<Function | Object, DecoratorMetaData>();
 let _nameAndTargetMapping: any = {};
 let _documnetNameAndTargetMapping: any = {};
+let _decoratorsCache: any = {};
 
 let childProcessId:any;
 
@@ -242,14 +243,20 @@ class MetadataHelper {
         }
 
         var metaKey = MetadataHelper.getMetaKey(target);
+        let cacheKey = metaKey.constructor.name + "_" + decorator;
+        if (_decoratorsCache[cacheKey]) {
+            return _decoratorsCache[cacheKey];
+        }
 
         if (!_metadataRoot.get(metaKey)) {
             return null;
         }
 
-        return Enumerable.from(_metadataRoot.get(metaKey)[decorator])
+        let decoratorsData = Enumerable.from(_metadataRoot.get(metaKey)[decorator])
             .select(keyVal => keyVal.value)
             .toArray();
+        _decoratorsCache[cacheKey] = decoratorsData;
+        return decoratorsData;      
     }
 
     private static getMetaDataForTargetDecoratorAndPropKey(

@@ -231,7 +231,7 @@ export class DynamicController {
                 //cacheForModelFromHalModel.decFields = decFields;
                 
                 Enumerable.from(req.body).forEach(x => {
-                    this.getModelFromHalModel(x, req, res, cacheForModelFromHalModel);
+                    this.getModelFromHalModel(x, req, res);
                 });
                 console.log("hal model conversion end " + this.path);
                 return this.repository.bulkPut(req.body as Array<any>)
@@ -617,7 +617,7 @@ export class DynamicController {
         return model;
     }
 
-    private getModelFromHalModel(model: any, req: any, res: any, cacheForModelFromHalModel?:any) {
+    private getModelFromHalModel(model: any, req: any, res: any) {
         if (model["_links"]) {
             delete model["_links"];
         }
@@ -627,7 +627,7 @@ export class DynamicController {
         if (req.method == "POST") {
             this.ensureALLRequiredPresent(modelRepo.model.prototype, model, req, res);
         }
-        this.removeJSONIgnore(modelRepo.model.prototype, model, req, cacheForModelFromHalModel);
+        this.removeJSONIgnore(modelRepo.model.prototype, model, req);
 
         //code to change url to id, for relations.
         //if (req.method != "GET") {
@@ -715,37 +715,20 @@ export class DynamicController {
     }
 
 
-    private removeJSONIgnore(entity: any, model: any, req: any, cacheForModelFromHalModel?:any) {
+    private removeJSONIgnore(entity: any, model: any, req: any) {
         if (!model) return;
-        this.jsonIgnoreModels(entity, model, req, cacheForModelFromHalModel);
-        var relations: Array<MetaData>;
-        if (cacheForModelFromHalModel && cacheForModelFromHalModel.relations) {
-            relations = cacheForModelFromHalModel.relations;
-        } else {
-            relations = Utils.getAllRelationsForTargetInternal(entity) || [];
-            if (!cacheForModelFromHalModel) { cacheForModelFromHalModel = {};}
-            cacheForModelFromHalModel.relations = relations;
-        }
+        this.jsonIgnoreModels(entity, model, req);
+        var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity) || [];
         relations.forEach(relation => {
             var param = <IAssociationParams>relation.params;
             if (param.embedded || param.eagerLoading) {
-                if (!cacheForModelFromHalModel[relation.propertyKey]) {
-                    cacheForModelFromHalModel[relation.propertyKey] = {};
-                }
-                this.removeJSONIgnore(param.itemType, model[relation.propertyKey], req, cacheForModelFromHalModel[relation.propertyKey]);
+                this.removeJSONIgnore(param.itemType, model[relation.propertyKey], req);
             }
         });
     }
 
-    private jsonIgnoreModels(entity, model, req, cacheForModelFromHalModel?:any) {
-        var decFields;
-        if (cacheForModelFromHalModel && cacheForModelFromHalModel.decFields) {
-            decFields = cacheForModelFromHalModel.decFields;
-        }
-        else {
-            decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
-            cacheForModelFromHalModel.decFields = decFields;
-        }
+    private jsonIgnoreModels(entity, model, req) {
+        var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
         if (decFields) {
             decFields.forEach(field => {
                 if (model instanceof Array) {
@@ -758,6 +741,7 @@ export class DynamicController {
             });
         }
     }
+
 
     private removePropertyFromModel(model: any, field: any, req: any) {
         if (!model) return;
