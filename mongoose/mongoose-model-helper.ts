@@ -326,7 +326,6 @@ export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChang
         });
     return Q.allSettled(asyncCalls);
 }
-
 /**
  * Add child model only if relational property have set embedded to true
  * @param model
@@ -787,15 +786,16 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any
         var param: IAssociationParams = <IAssociationParams>m.params;
         if (param && !param.embedded && param.eagerLoading && val[m.propertyKey]) {
             var relModel = Utils.getCurrentDBModel(param.rel);
+            let repo: DynamicRepository = repoFromModel[relModel.modelName];
             if (m.propertyType.isArray) {
                 if (val[m.propertyKey].length > 0) {
-                    asyncCalls.push(mongooseModel.findMany(relModel, val[m.propertyKey]).then(res => {
+                    asyncCalls.push(repo.getRootRepo().findMany(val[m.propertyKey]).then(res => {
                         val[m.propertyKey] = res;
                     }));
                 }
             }
             else {
-                asyncCalls.push(mongooseModel.findMany(relModel, [val[m.propertyKey]]).then(res => {
+                asyncCalls.push(repo.getRootRepo().findMany([val[m.propertyKey]]).then(res => {
                     val[m.propertyKey] = res[0];
                 }));
             }

@@ -176,7 +176,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     asyncCalls = [];
                     var resultObject = [];
-                    if (donotLoadChilds === true || fullyLoaded) {
+                    if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
                     Enumerable.from(objects).forEach(x => {
