@@ -697,6 +697,8 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
  */
 export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> {
     console.log("patch " + model.modelName);
+    // need to set id in case id is not supplied in patched obj
+    obj._id = id;
     // Mayank - Check with suresh how to reject the changes in optimistic locking
     return bulkPatch(model, [obj]).then((res: Array<any>) => {
         if (res.length)
