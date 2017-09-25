@@ -31,7 +31,7 @@
     "linq": "3.0.5",
     "mongodb": "https://github.com/Anujarya300/node-mongodb-native/tarball/2.2",
     "mongoosastic": "4.0.2",
-    "mongoose": "4.0.6",
+    "mongoose": "https://github.com/ratneshsinghparihar/mongoose/tarball/4.5",
     "morgan": "1.6.1",
     "multer": "^1.2.0",
     "noogger": "0.1.3",
