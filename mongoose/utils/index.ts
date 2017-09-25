@@ -72,7 +72,7 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
     var s = false, u = false, p = false;
     for (var i in obj) {
         if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || (obj[i] instanceof Array && obj[i] == []) || obj[i] == {}) {
-            unset[i] = obj[i];
+            unset[i] = '';
             u = true;
         }
         else {
@@ -86,12 +86,13 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
                 if (type == EntityChange.patch && jsonMapProp && jsonMapProp.indexOf(i) >= 0) {
                     for (var j in obj[i]) {
                         set[i + '.' + j] = obj[i][j];
+                        s = true;
                     }
                 }
-                else {
+                else if (!(obj[i] instanceof Function)) {
                     set[i] = obj[i];
+                    s = true;
                 }
-                s = true;
             }
         }
     }
