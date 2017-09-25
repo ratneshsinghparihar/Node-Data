@@ -744,6 +744,7 @@ export class DynamicController {
         }
         else {
             decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
+            if (!cacheForModelFromHalModel) { cacheForModelFromHalModel = {}; }
             cacheForModelFromHalModel.decFields = decFields;
         }
         if (decFields) {
