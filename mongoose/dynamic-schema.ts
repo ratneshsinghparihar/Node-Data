@@ -10,7 +10,7 @@ import { MetadataConstants } from '../core/constants';
 import { IMongooseSchemaOptions, schemaGenerator } from "./mongooseSchemaGenerator";
 
 import { DecoratorType } from '../core/enums/decorator-type';
-import { MetaUtils } from "../core/metadata/utils";
+import { MetaUtils,resetFieldDecoratorCache} from "../core/metadata/utils";
 import { MetaData } from '../core/metadata/metadata';
 import { IDocumentParams } from './decorators/interfaces/document-params';
 import { StorageType } from "../core/enums/index"
@@ -28,6 +28,7 @@ export class DynamicSchema {
 
     public getSchema() {
         var fieldMetaArr = MetaUtils.getMetaData(this.target, Decorators.FIELD);
+        resetFieldDecoratorCache();
         var idx = Enumerable.from(fieldMetaArr)
             .where((keyVal) => keyVal && keyVal.params && (keyVal.params).searchIndex).any();
         var options = this.getMongooseOptions(this.target);
