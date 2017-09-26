@@ -777,33 +777,41 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
     return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray,isJsonMap);
 }
 
-export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, val: any): Q.Promise<any> {
+export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, values: Array<any>): Q.Promise<any> {
+    if (!values || values.length)
+        return Q.when(values);
+
     var asyncCalls = [];
     var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
 
     Enumerable.from(metas).forEach(x => {
         var m: MetaData = x;
         var param: IAssociationParams = <IAssociationParams>m.params;
-        if (param && !param.embedded && param.eagerLoading && val[m.propertyKey]) {
-            var relModel = Utils.getCurrentDBModel(param.rel);
-            let repo: DynamicRepository = repoFromModel[relModel.modelName];
-            if (m.propertyType.isArray) {
-                if (val[m.propertyKey].length > 0) {
-                    asyncCalls.push(repo.getRootRepo().findMany(val[m.propertyKey]).then(res => {
-                        val[m.propertyKey] = res;
+        if (param && !param.embedded && param.eagerLoading) {
+            values.forEach(val => {
+                if (!val[m.propertyKey])
+                    return;
+
+                var relModel = Utils.getCurrentDBModel(param.rel);
+                let repo: DynamicRepository = repoFromModel[relModel.modelName];
+                if (m.propertyType.isArray) {
+                    if (val[m.propertyKey].length > 0) {
+                        asyncCalls.push(repo.getRootRepo().findMany(val[m.propertyKey]).then(res => {
+                            val[m.propertyKey] = res;
+                        }));
+                    }
+                }
+                else {
+                    asyncCalls.push(repo.getRootRepo().findMany([val[m.propertyKey]]).then(res => {
+                        val[m.propertyKey] = res[0];
                     }));
                 }
-            }
-            else {
-                asyncCalls.push(repo.getRootRepo().findMany([val[m.propertyKey]]).then(res => {
-                    val[m.propertyKey] = res[0];
-                }));
-            }
+            });
         }
     });
 
     return Q.allSettled(asyncCalls).then(result => {
-        return val;
+        return values;
     });
 }
 export function isJsonMapEnabled(params: IAssociationParams) { 
