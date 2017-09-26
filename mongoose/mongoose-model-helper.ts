@@ -778,7 +778,7 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
 }
 
 export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, values: Array<any>): Q.Promise<any> {
-    if (!values || values.length)
+   if (!values || !values.length)
         return Q.when(values);
 
     var asyncCalls = [];
