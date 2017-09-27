@@ -35,7 +35,7 @@ function getConnection(connectionString, connectionOption): Q.IPromise<any> {
         return Q.when(false);
 
     if (!allConnections[connectionString]) {
-        var conn = Mongoose.createConnection(connectionString, connectionOption);
+        var conn = Mongoose.createConnection(connectionString, defaultDomainOptions(connectionOption));
         allConnections[connectionString] = conn;
         return connectDataBase(conn, connectionString);
     }
@@ -65,4 +65,19 @@ function connectDataBase(conn, connectionString): Q.IPromise<any> {
         defer.resolve(false);
     });
     return defer.promise;
+}
+
+function defaultDomainOptions(connectionOption: any) {
+    if (!connectionOption) {
+        connectionOption = {};
+    }
+    if (!connectionOption['server']) {
+        connectionOption['server'] = {};
+    }
+    if (!connectionOption['replset']) {
+        connectionOption['replset'] = {};
+    }
+    connectionOption['server']['domainsEnabled'] = true;
+    connectionOption['replset']['domainsEnabled'] = true;
+    return connectionOption;
 }
