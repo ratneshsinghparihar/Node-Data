@@ -12,6 +12,7 @@ import { QueryOptions } from '../core/interfaces/queryOptions';
 import { MetaUtils } from "../core/metadata/utils";
 import { Decorators } from '../core/constants/decorators';
 import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
+import {_arrayPropListSchema} from './dynamic-schema';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -63,14 +64,25 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 }
 
 function executeBulk(model, arrayOfDbModels: Array<any>) {
+    console.log("start executeBulk", model.modelName);
     arrayOfDbModels.forEach(x => {
         if (x[ConstantKeys.TempId]) {
             x._id = x[ConstantKeys.TempId]
             delete x[ConstantKeys.TempId]
         }
+        if (!_arrayPropListSchema[model.modelName]) {
+            return;
+        }
+        // assign empty array for not defined properties
+        _arrayPropListSchema[model.modelName].forEach(prop => {
+            if (!x[prop]) {
+                x[prop] = [];
+            }
+        });
     });
-    arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
+    console.log("empty array executeBulk ", model.modelName);
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
+        console.log("end executeBulk ", model.modelName);
         result = result && result.ops;
         return result;
     }).catch(err => {
@@ -522,7 +534,15 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 clonedObj._id = clonedObj[ConstantKeys.TempId];
                 delete clonedObj[ConstantKeys.TempId];
             }
-            return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
+            // assign empty array for not defined properties
+            if (_arrayPropListSchema[model.modelName]) {
+                _arrayPropListSchema[model.modelName].forEach(prop => {
+                    if (!clonedObj[prop]) {
+                        clonedObj[prop] = [];
+                    }
+                });
+            }
+            return Q.nbind(model.create, model)(clonedObj).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
                 return mongooseHelper.embeddedChildren1(model, [obj], false)
