@@ -148,6 +148,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             var objectId = new Mongoose.Types.ObjectId(result._id);
             objectIds.push(objectId);
             delete result._id;
+            delete result[ConstantKeys.FullyLoaded];
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
             }
