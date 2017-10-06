@@ -13,6 +13,7 @@ import { MetaUtils } from "../core/metadata/utils";
 import { Decorators } from '../core/constants/decorators';
 import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
 import {_arrayPropListSchema} from './dynamic-schema';
+import { MetaData } from '../core/metadata/metadata';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -276,11 +277,18 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
     var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
     return Q.nbind(model.update, model)(cond, updatedProps, { multi: true })
         .then(result => {
-            return findMany(model, objIds).then((objects: Array<any>) => {
-                return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+            let allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+            let ref = allReferencingEntities.find((x: MetaData) => x.params && x.params.embedded);
+            if (ref) {
+                return findMany(model, objIds).then((objects: Array<any>) => {
+                    return mongooseHelper.updateParent(model, objects).then(res => {
+                        return objects;
+                    });
                 });
-            });
+            }
+            else {
+                return result;
+            }
         }).catch(error => {
             winstonLog.logError(`Error in put ${error}`);
             return Q.reject(error);
