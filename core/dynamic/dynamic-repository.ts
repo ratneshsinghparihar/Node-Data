@@ -49,6 +49,7 @@ export interface IDynamicRepository {
     delete(id: any);
     patch(id: any, obj);
     setRestResponse(obj: any);
+    setSocket(obj: any);
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -58,17 +59,26 @@ export class DynamicRepository implements IDynamicRepository {
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
+    private socket: { socket: any, clients: Array<any> };
     //private modelRepo: any;
 
-    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository, socket?:any) {
         //console.log(schema);
         this.path = repositoryPath;
         this.entity = target;
         this.rootLevelRep = rootRepo;
+        
+
+        
+
         if (target instanceof DynamicRepository) {
             target.rootLevelRep = rootRepo;
         }
         modelNameRepoModelMap[this.path] = this;
+    }
+
+    public setSocket(socket?:  { socket: any, clients: Array<any> }) {
+        this.socket = socket;
     }
 
     public getEntity() {
@@ -93,7 +103,11 @@ export class DynamicRepository implements IDynamicRepository {
                 var res = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                });
+                    if (this.socket) {
+                        
+                        this.socket.socket.sockets.emit(this.path, x);
+                    }
+                })
                 return res;
             }
             return result;
@@ -110,6 +124,9 @@ export class DynamicRepository implements IDynamicRepository {
                 var res = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
+                    if (this.socket) {
+                        this.socket.socket.sockets.emit(this.path, x);
+                    }
                 });
                 return res;
             }

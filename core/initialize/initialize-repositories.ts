@@ -21,19 +21,24 @@ export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
+    private socketClientholder: { socket: any, clients: Array<any> } = { socket: {}, clients:[]};
 
-    constructor() {
-        this.initializeRepo();
+    private socket: any;
+    constructor(server?: any) {
+        this.initializeRepo(server);
     }
 
     public schemaGenerator(schemaGenerator: ISchemaGenerator) {
         this._schemaGenerator = schemaGenerator;
     }
 
-    private initializeRepo() {
+    private initializeRepo(server?: any) {
         let repositories = MetaUtils.getMetaDataForDecorators([Decorators.REPOSITORY]);
 
         let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
+
+        
+
 
         Enumerable.from(repositories)
             .forEach((x: { target: Object, metadata: Array<MetaData> }) => {
@@ -53,7 +58,10 @@ export class InitializeRepositories {
                 let model = repoParams.model;
                 let newRepo: DynamicRepository;
                 let rootRepo = new DynamicRepository();
-                rootRepo.initialize(repoParams.path, x.target, model);
+                rootRepo.initialize(repoParams.path, x.target, model, this.socket);
+
+               
+
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }
@@ -70,6 +78,32 @@ export class InitializeRepositories {
                 meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
+
+        if (server) {
+            var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
+            this.socketClientholder.socket = io;
+            for (let key in repoMap) {
+                let repo = repoMap[key].repo;
+                repo.setSocket(this.socketClientholder);
+            }
+
+            io.on('connection', function (client) {               
+               // this.socketClientholder.clients.push(client);
+                for (let key in repoMap) {
+                    let repo = repoMap[key].repo;
+                    client.on(key, function (data) {
+                        try {
+                            let parsedData = data;
+                            if (parsedData && parsedData.action && parsedData.message) {
+                                repo[parsedData.action](parsedData.message);
+                            }
+                        } catch (exceptio) {
+                            console.log(exceptio);
+                        }
+                    });
+                }
+            });
+        }
 
         //let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
         //for (var path in mongooseSchemaMap) {

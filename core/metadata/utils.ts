@@ -361,5 +361,7 @@ class MetadataHelper {
 
 
 }
-
+export function resetFieldDecoratorCache() {
+    _decoratorsCache = {};
+}
 export var MetaUtils: IMetadataHelper = MetadataHelper;

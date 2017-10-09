@@ -116,7 +116,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let length = objArr.length;
     var asyncCalls = [];
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
-    var ids = objArr.map(x => x._id);
+    var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
 
@@ -134,6 +134,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         for (let i = 0; i < objArr.length; i++) {
             let result = objArr[i];
             var objectId = new Mongoose.Types.ObjectId(result._id);
+            objectIds.push(objectId);
             delete result._id;
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
@@ -165,26 +166,19 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 // remove eagerloading propeties because it will be used for updating parent
                 // validate that no one have tampered the new persistent entity
                 prom = Q.when(objArr);
-                ids.forEach((id, index) => {
+                objectIds.forEach((id, index) => {
                     objArr[index]['_id'] = id;
                 });
             }
             else {
-                prom = findMany(model, ids);
+                prom = findMany(model, objectIds);
             }
             return prom.then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    asyncCalls = [];
-                    var resultObject = [];
                     if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
-                    Enumerable.from(objects).forEach(x => {
-                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                            resultObject.push(r);
-                        }));
-                    });
-                    return Q.allSettled(asyncCalls).then(final => {
+                    return mongooseHelper.fetchEagerLoadingProperties(model, objects).then(resultObject => {
                         return resultObject;
                     });
                 });
@@ -237,14 +231,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             // update parent
             return findMany(model, ids).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
-                    asyncCalls = [];
-                    var resultObject = [];
-                    Enumerable.from(objects).forEach(x => {
-                        asyncCalls.push(mongooseHelper.fetchEagerLoadingProperties(model, x).then(r => {
-                            resultObject.push(r);
-                        }));
-                    });
-                    return Q.allSettled(asyncCalls).then(final => {
+                    return mongooseHelper.fetchEagerLoadingProperties(model, objects).then(resultObject => {
                         return resultObject;
                     });
                 });
@@ -538,11 +525,11 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
             return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
-                return mongooseHelper.embeddedChildren1(model, [obj],false)
-                .then(r => {
-                    return obj;
-                });
-                
+                return mongooseHelper.embeddedChildren1(model, [obj], false)
+                    .then(r => {
+                        return obj;
+                    });
+
             });
         }).catch(error => {
             winstonLog.logError(`Error in post ${error}`);

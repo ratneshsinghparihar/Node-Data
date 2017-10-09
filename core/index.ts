@@ -31,7 +31,7 @@ function readIgnore(file: string, stats: fs.Stats) {
 let _appRoot = process.cwd();
 
 class Dynamic {
-    constructor(config: any, securityConfig: any) {
+    constructor(config: any, securityConfig: any,server?:any) {
         Utils.config(config);
         Utils.securityConfig(securityConfig);
         config = config;
@@ -39,7 +39,7 @@ class Dynamic {
         let ignorePaths = config.Config && config.Config.ignorePaths || [];
         var files = this.scanDirectories(ignorePaths);
         this.loadComponents(files);
-        this.initialize(files);
+        this.initialize(files, server);
     }
 
     scanDirectories(ignorePaths: Array<string|Function>): Array<string> {
@@ -61,14 +61,14 @@ class Dynamic {
             });
     }
 
-    initialize(files: Array<string>) {
-        new Initalize(files);
+    initialize(files: Array<string>, server: any) {
+        new Initalize(files,server);
     }
 }
 
 module.exports = function (config: any, securityConfig: any, appRoot?: string,
     entityServiceInst?: IEntityService,
-    sqlServerInst?: IEntityService) {
+    sqlServerInst?: IEntityService,server?:any) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
@@ -76,7 +76,7 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
     //Utils.entityService(entityServiceInst);
     //Utils.sqlEntityService(sqlServerInst);
-    new Dynamic(config, securityConfig);
+    new Dynamic(config, securityConfig,server);
     MetaUtils.refreshDerivedObjectsMetadata();
 }
 
@@ -88,14 +88,14 @@ export function addComponent(comp: any) {
 
 export function initialize(config: any, securityConfig: any, appRoot?: string,
     entityServiceInst?: IEntityService,
-    sqlServerInst?: IEntityService) {
+    sqlServerInst?: IEntityService, server?: any) {
     // application root (where we scan the components) set priority: 
     // 1. User provided 
     // 2. Environment Variable 
     // 3. Current working directory
     _appRoot = appRoot || process.env.APP_ROOT || process.cwd();
     //Utils.entityService(entityServiceInst);
-    new Dynamic(config, securityConfig);
+    new Dynamic(config, securityConfig,server);
     //Utils.sqlEntityService(sqlServerInst);
     components.forEach(x => {
         x.default();

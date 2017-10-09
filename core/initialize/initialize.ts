@@ -10,8 +10,8 @@ import * as Utils from "../utils";
 import {CrudEntity} from "../dynamic/crud.entity";
 
 export class Initalize {
-    constructor(files: Array<String>) {
-        new InitializeRepositories();
+    constructor(files: Array<String>, server?: any) {
+        new InitializeRepositories(server);
         new InitializeControllers();
         //this.configureAcl();
         this.configureBase();
