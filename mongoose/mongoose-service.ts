@@ -42,7 +42,12 @@ export class MongooseService implements IEntityService {
 
     bulkPut(repoPath: string, objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean): Q.Promise<any> {
         return MongooseModel.bulkPut(this.getModel(repoPath), objArr, batchSize, donotLoadChilds).then(results => {
-            results.forEach(x => this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x));
+            results.forEach((x: BaseModel) => {
+                if (donotLoadChilds) {
+                    x.__partialLoaded = true;
+                }
+                this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x)
+            });
             return results;
         });
     }
@@ -115,7 +120,10 @@ export class MongooseService implements IEntityService {
             this.updateWriteCount();
             return Q.when(cacheValue);
         }
-        return MongooseModel.findOne(this.getModel(repoPath), id, donotLoadChilds).then(result => {
+        return MongooseModel.findOne(this.getModel(repoPath), id, donotLoadChilds).then((result: BaseModel) => {
+            if (donotLoadChilds) {
+                result.__partialLoaded = true;
+            }
             this.setEntityIntoCache(repoPath, CacheConstants.idCache, id, result);
             return result;
         });
