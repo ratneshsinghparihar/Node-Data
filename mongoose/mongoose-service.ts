@@ -61,11 +61,11 @@ export class MongooseService implements IEntityService {
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
         return MongooseModel.bulkPutMany(this.getModel(repoPath), objIds, obj).then(results => {
-            results && results.forEach((x: BaseModel) => {
-                // in bulkPutMany we do not load egarLoading properties (children objects) so its partially loaded
-                x.__partialLoaded = true;
-                this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x);
-            });
+            //results && results.forEach((x: BaseModel) => {
+            //    // in bulkPutMany we do not load egarLoading properties (children objects) so its partially loaded
+            //    x.__partialLoaded = true;
+            //    this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x);
+            //});
             return results;
         });
     }
