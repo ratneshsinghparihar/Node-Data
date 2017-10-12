@@ -475,9 +475,12 @@ function updateParentDocument1(model: Mongoose.Model<any>, meta: MetaData, objec
         var asyncCalls = [];
         var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
         if (isEmbedded) {
+            console.log("updateParentDocument1 isEmbedded" + model.modelName);
             return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
+                console.log("updateParentDocument1 findMany end" + model.modelName);
                 return updateParent(model, objects).then(res => {
-                    return objects;
+                    console.log("updateParentDocument1 updateParent end" + model.modelName);
+                return objects;
                 });
             });
         }

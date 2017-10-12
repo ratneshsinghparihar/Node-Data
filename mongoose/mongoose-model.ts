@@ -135,8 +135,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
     var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
+    console.log("bulkPut addChildModelToParent child start" + model.modelName);
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
-
+        console.log("bulkPut addChildModelToParent child end" + model.modelName);
         let transientProps = mongooseHelper.getAllTransientProps(model);
         var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
         let isRelationsExist = false;
@@ -176,7 +177,10 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 bulk.find({ _id: objectId }).replaceOne(result);
             }
         }
+        console.log("bulkPut bulk.execute start" + model.modelName);
         return Q.nbind(bulk.execute, bulk)().then(result => {
+            console.log("bulkPut bulk.execute end" + model.modelName);
+
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
             let prom;
@@ -192,7 +196,10 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 prom = findMany(model, objectIds);
             }
             return prom.then((objects: Array<any>) => {
+               
                 return mongooseHelper.updateParent(model, objects).then(res => {
+                    console.log("bulkPut updateParent start" + model.modelName);
+
                     if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
