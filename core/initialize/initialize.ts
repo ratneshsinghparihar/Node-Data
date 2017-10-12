@@ -13,7 +13,7 @@ export class Initalize {
     constructor(files: Array<String>, server?: any) {
         new InitializeRepositories(server);
         new InitializeControllers();
-        //this.configureAcl();
+       
         this.configureBase();
         ['bulkPost', 'bulkPut', 'bulkPatch', 'bulkDel'].forEach(x => {
             Object.defineProperty(Array.prototype, x, {
@@ -59,33 +59,7 @@ export class Initalize {
         )
     }
 
-    configureAcl() {
-        var acl = require('acl');
-        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));        
-
-        Utils.securityConfig().SecurityConfig.ResourceAccess.forEach(resource => {
-            resource.acl.forEach(access => {
-                var aclString: Array<string> = this.aclStringFromMask(access["accessmask"]);
-                acl.allow(access["role"], resource["name"], aclString, function (err, res) {
-                    if (res) {
-                        console.log("User joed is allowed to view blogs")
-                    }
-                    if (err) {
-                        //console.log("error in acl " + err);
-                    }
-                })
-            });
-
-        });
-    }
-
-    aclStringFromMask(mask: number): Array<string> {
-        var aclString: Array<string> = new Array<string>();
-        if ((mask & 1) == 1) aclString.push("view");
-        if ((mask & 2) == 2) aclString.push("edit");
-        if ((mask & 4) == 4) aclString.push("delete");
-        return aclString;
-    }
+    
 
     private getProtocol(req) : string{
         if(req.headers && req.headers["x-arr-ssl"]){
