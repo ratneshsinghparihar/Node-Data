@@ -135,6 +135,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
     var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
+    let isUpdateReq: boolean = false;
     console.log("bulkPut addChildModelToParent child start" + model.modelName);
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
         console.log("bulkPut addChildModelToParent child end" + model.modelName);
@@ -159,10 +160,21 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 delete result[transientProps[prop].propertyKey];
             }
             var updatedProps;
-
-            if (updatePropsReq) {
-                updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            delete result.__dbEntity;
+            // update only modified objects
+            if (Object.keys(updatedProps).length === 0) {
+                continue;
             }
+            isUpdateReq = true;
+            //if (updatePropsReq) {
+            //    updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            //    // update only modified objects
+            //    if (Object.keys(updatedProps).length === 0) {
+            //        continue;
+            //    }
+            //}
+            
             let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
             let query: Object = { _id: objectId };
             if (isDecoratorPresent === true) {
@@ -177,8 +189,12 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 bulk.find({ _id: objectId }).replaceOne(result);
             }
         }
+        let promBulkUpdate = Q.when({});
         console.log("bulkPut bulk.execute start" + model.modelName);
-        return Q.nbind(bulk.execute, bulk)().then(result => {
+        if (isUpdateReq) {
+            promBulkUpdate = Q.nbind(bulk.execute, bulk)();
+        }
+        return promBulkUpdate.then(result => {
             console.log("bulkPut bulk.execute end" + model.modelName);
 
             // update parent
@@ -196,8 +212,11 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 prom = findMany(model, objectIds);
             }
             return prom.then((objects: Array<any>) => {
-               
-                return mongooseHelper.updateParent(model, objects).then(res => {
+                let updateParentProm = Q.when([]);
+                if (isUpdateReq) {
+                    updateParentProm = mongooseHelper.updateParent(model, objects);
+                }
+                return updateParentProm.then(res => {
                     console.log("bulkPut updateParent start" + model.modelName);
 
                     if (donotLoadChilds === true) {
