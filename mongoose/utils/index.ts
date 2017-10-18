@@ -76,10 +76,17 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
             continue;
         }
         let curValue = obj[key];
-        if (curValue == undefined || curValue == null || curValue == undefined && curValue == '' || (curValue instanceof Array && curValue == []) || curValue == {}) {
+        if (curValue == undefined || curValue == null ||
+            curValue == undefined && curValue == '' ||
+            (curValue instanceof Array && !curValue.length ) ) {
             if (orginalDbEntity && curValue === orginalDbEntity[key]) { // add json.parse(json.stringify)
                 continue;
             }
+
+            if (curValue instanceof Array && orginalDbEntity && orginalDbEntity[key].length == curValue.length)
+            {
+                continue;
+            }            
             unset[key] = '';
             u = true;
         }
