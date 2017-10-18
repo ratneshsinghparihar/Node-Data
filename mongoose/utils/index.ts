@@ -109,7 +109,7 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
                     // in case of object, use JSON.stringify to compare serialize object.
                     if (!Array.isArray(curValue) && curValue instanceof Object && orginalDbEntity) {
                         let serializeOrgObj = JSON.stringify(orginalDbEntity[key]);
-                        let serializeCurObj = JSON.stringify(orginalDbEntity[key]);
+                        let serializeCurObj = JSON.stringify(curValue);
                         if (serializeCurObj == serializeOrgObj) {
                             continue;
                         }
