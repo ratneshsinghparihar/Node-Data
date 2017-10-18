@@ -38,7 +38,7 @@ class Dynamic {
         securityConfig = securityConfig;
         let ignorePaths = config.Config && config.Config.ignorePaths || [];
         let internalIgnorePaths = config.Config && config.Config.internalIgnorePaths || [];
-        ignorePaths = [...ignorePaths, ...config.Config.internalIgnorePaths];
+        ignorePaths = [...ignorePaths, internalIgnorePaths];
         var files = this.scanDirectories(ignorePaths);
         this.loadComponents(files);
         this.initialize(files);
