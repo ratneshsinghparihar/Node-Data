@@ -321,7 +321,7 @@ export class DynamicController {
                         && meta
                         && meta.params
                         && (<any>meta.params).searchIndex;
-                }).toArray();
+                }).select(x => x.propertyKey).toArray();
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
 

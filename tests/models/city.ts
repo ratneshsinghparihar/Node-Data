@@ -11,6 +11,9 @@ export class city extends baseModel {
     @field()
     age: string;
 
+    @field({ searchIndex: true })
+    name: string;
+
     @field()
     createdDate: string;
 
