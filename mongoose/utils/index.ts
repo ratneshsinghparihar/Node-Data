@@ -70,27 +70,55 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
     var set = {};
     var unset = {};
     var s = false, u = false, p = false;
-    for (var i in obj) {
-        if (obj[i] == undefined || obj[i] == null || obj[i] == undefined && obj[i] == '' || (obj[i] instanceof Array && obj[i] == []) || obj[i] == {}) {
-            unset[i] = '';
+    let orginalDbEntity = obj.__dbEntity;
+    for (var key in obj) {
+        if (key === "__dbEntity") {
+            continue;
+        }
+        let curValue = obj[key];
+        if (curValue == undefined || curValue == null ||
+            curValue == undefined && curValue == '' ||
+            (curValue instanceof Array && !curValue.length ) ) {
+            if (orginalDbEntity && curValue === orginalDbEntity[key]) { // add json.parse(json.stringify)
+                continue;
+            }
+
+            if (curValue instanceof Array && orginalDbEntity && orginalDbEntity[key].length == curValue.length)
+            {
+                continue;
+            }            
+            unset[key] = '';
             u = true;
         }
         else {
-            if (type == EntityChange.patch && obj[i] instanceof Array) {
-                push[i] = {
-                    $each: obj[i]
+            if (type == EntityChange.patch && curValue instanceof Array) {
+                push[key] = {
+                    $each: curValue
                 }
                 p = true;
             }
             else {
-                if (type == EntityChange.patch && jsonMapProp && jsonMapProp.indexOf(i) >= 0) {
-                    for (var j in obj[i]) {
-                        set[i + '.' + j] = obj[i][j];
+                if (type == EntityChange.patch && jsonMapProp && jsonMapProp.indexOf(key) >= 0) {
+                    for (var j in curValue) {
+                        set[key + '.' + j] = curValue[j];
                         s = true;
                     }
                 }
-                else if (!(obj[i] instanceof Function)) {
-                    set[i] = obj[i];
+                else if (!(curValue instanceof Function)) {
+                    // do not set for not modified keys
+                    // in case of object, use JSON.stringify to compare serialize object.
+                    if (!Array.isArray(curValue) && curValue instanceof Object && orginalDbEntity) {
+                        let serializeOrgObj = JSON.stringify(orginalDbEntity[key]);
+                        let serializeCurObj = JSON.stringify(curValue);
+                        if (serializeCurObj == serializeOrgObj) {
+                            continue;
+                        }
+                    }
+                    // in case of string, number, boolean etc. direct compare.
+                    if (orginalDbEntity && curValue === orginalDbEntity[key]) { // add json.parse(json.stringify)
+                        continue;
+                    }
+                    set[key] = curValue;
                     s = true;
                 }
             }

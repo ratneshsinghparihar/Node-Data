@@ -429,6 +429,11 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     let parents = {};
     console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
+
+        if (!objs[i].__updatedProps) {
+            continue;
+        }
+        delete objs[i].__updatedProps;// deleting so that it doesn't get updated on parent Document
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
         var queryFindCond = {};
         
@@ -445,10 +450,12 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         }
        // parents[parentId] = updateSet;
     }
+   // console.log("parents", parents);
     var bulk = model.collection.initializeUnorderedBulkOp();
     Object.keys(parents).forEach(x => {
         var queryFindCond = {};
-        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId)
+        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
+  //      console.log("parent $set", parents[x]);
         bulk.find(queryFindCond).update({ $set: parents[x] });
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {

@@ -67,8 +67,10 @@ export function entityAction(params: IPreauthorizeParams): any {
                     // Converting Repo method names into uppercase as check with original method name is in uppercase.
                     // This is require othewise it will go in else condition and some of the entities will visible user without access e.g. questionnaire not assigned ot user.
                     findActions = findActions.map(methodName => methodName.toUpperCase());
-                if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
-                    return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
+                    if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
+                        console.log("CanRead entity Security " + this.path);
+                        return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
+                            console.log("CanRead entity Security End " + this.path);
                         if (!result) {
                             fullyQualifiedEntities = null;
                         }
@@ -88,7 +90,9 @@ export function entityAction(params: IPreauthorizeParams): any {
                     });
                 }
                 else {
+                    console.log("CanSave entity Security" + this.path);
                     return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
+                        console.log("CanSave entity Security End" + this.path);
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
                             // for delete, post action no need to save merged entity else save merged entity to db
