@@ -22,7 +22,7 @@ export class InstanceService {
         return InstanceService.getInstanceFromType(entity, true, param);
     }
 
-    private static getInstanceFromType(type: any, isNew: boolean, param?: any) {
+    public static getInstanceFromType(type: any, isNew: boolean, param?: any) {
         var t: (param) => void = type.constructor;
         return InstanceService.createObjectInstance(t, isNew, param);
     }
