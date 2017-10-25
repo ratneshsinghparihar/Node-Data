@@ -18,6 +18,8 @@ import * as Enumerable from 'linq';
 import {repoFromModel} from '../dynamic/model-entity';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
+import * as securityImpl from '../dynamic/security-impl';
+var domain = require('domain');
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
@@ -81,6 +83,7 @@ export class InitializeRepositories {
 
         if (server) {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
+            
             this.socketClientholder.socket = io;
             for (let key in repoMap) {
                 let repo = repoMap[key].repo;
@@ -92,14 +95,31 @@ export class InitializeRepositories {
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
                     client.on(key, function (data) {
-                        try {
-                            let parsedData = data;
-                            if (parsedData && parsedData.action && parsedData.message) {
-                                repo[parsedData.action](parsedData.message);
+
+
+                        var d = domain.create();
+                        d.run(() => {
+                            try {
+                                let parsedData = data;
+                                let executefun = () => {
+                                    try {
+
+                                        if (parsedData && parsedData.action && parsedData.message) {
+                                            if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                repo[parsedData.action](parsedData.message);
+                                            }
+                                        }
+                                    } catch (exceptio) {
+                                        console.log(exceptio);
+                                    }
+                                };
+                                securityImpl.ensureLoggedIn()(parsedData, undefined, executefun).catch((err) => { console.log(err); });
+
                             }
-                        } catch (exceptio) {
-                            console.log(exceptio);
-                        }
+                            catch (exc) {
+                                console.log(exc);
+                            }
+                        });
                     });
                 }
             });
