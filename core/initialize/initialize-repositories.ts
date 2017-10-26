@@ -113,7 +113,7 @@ export class InitializeRepositories {
                                         console.log(exceptio);
                                     }
                                 };
-                                securityImpl.ensureLoggedIn()(parsedData, undefined, executefun).catch((err) => { console.log(err); });
+                                 (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
 
                             }
                             catch (exc) {
