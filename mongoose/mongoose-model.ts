@@ -14,6 +14,8 @@ import { Decorators } from '../core/constants/decorators';
 import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
 import {_arrayPropListSchema} from './dynamic-schema';
 import { MetaData } from '../core/metadata/metadata';
+import {InstanceService} from '../core/services/instance-service';
+import {getDbSpecifcModel} from './db';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -23,6 +25,13 @@ import { MetaData } from '../core/metadata/metadata';
  * @param objArr
  */
 export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
+    if (!objArr) {
+        return Q.when([]);
+    }
+    if (objArr && objArr.length <= 0) {
+        return Q.when([]);
+    }
+
     console.log("bulkPost " + model.modelName);
     mongooseHelper.updateWriteCount();
     var addChildModel = [];
@@ -73,6 +82,9 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
             x._id = x[ConstantKeys.TempId]
             delete x[ConstantKeys.TempId]
         }
+        if (x.getUniqueId) {
+            x._id = x.getUniqueId();
+        }
         if (!_arrayPropListSchema[model.modelName]) {
             return;
         }
@@ -84,7 +96,12 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
         });
     });
     console.log("empty array executeBulk ", model.modelName);
-    return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
+    let newModel = model;
+    let obj = arrayOfDbModels[0];
+    if (obj.getCollectionName) {
+        newModel = getDbSpecifcModel(obj.getCollectionName(), model.schema);
+    }
+    return Q.nbind(newModel.collection.insertMany, newModel.collection)(arrayOfDbModels).then((result: any) => {
         console.log("end executeBulk post", model.modelName);
         result = result && result.ops;
         return result;
@@ -134,9 +151,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     var asyncCalls = [];
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
     var objectIds = [];
-    var bulk = model.collection.initializeUnorderedBulkOp();
     let isUpdateReq: boolean = false;
     console.log("bulkPut addChildModelToParent child start" + model.modelName);
+    let allUpdateProps = [];
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
         console.log("bulkPut addChildModelToParent child end" + model.modelName);
         let transientProps = mongooseHelper.getAllTransientProps(model);
@@ -146,14 +163,20 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         if (metaArr && metaArr.length) {
             isRelationsExist = true;
         }
-        let updatePropsReq = !fullyLoaded || isRelationsExist;
+        //let updatePropsReq = !fullyLoaded || isRelationsExist;
         // check if not relationship present in the docs then do not call updateProps
         // 
+
+        //it has to be group by
+        let newModel = getChangedModelForDynamicSchema(model, objArr[0]._id.toString());
+        var bulk = newModel.collection.initializeUnorderedBulkOp();
 
         for (let i = 0; i < objArr.length; i++) {
             let result = objArr[i];
             var objectId = new Mongoose.Types.ObjectId(result._id);
             objectIds.push(objectId);
+            let id = result._id;
+            let parent = result.parent;
             delete result._id;
             delete result[ConstantKeys.FullyLoaded];
             for (let prop in transientProps) {
@@ -161,11 +184,14 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             var updatedProps;
             updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+
+            // console.log("update props", updatedProps);
             delete result.__dbEntity;
             // update only modified objects
             if (Object.keys(updatedProps).length === 0) {
                 continue;
             }
+            result.__updatedProps = updatedProps;
             isUpdateReq = true;
             //if (updatePropsReq) {
             //    updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
@@ -174,7 +200,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             //        continue;
             //    }
             //}
-            
+
             let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
             let query: Object = { _id: objectId };
             if (isDecoratorPresent === true) {
@@ -182,12 +208,8 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 updatedProps["$inc"] = { '__v': 1 };
                 query["__v"] = result["__v"];
             }
-            if (updatePropsReq) {
-                bulk.find({ _id: objectId }).update(updatedProps);
-            }
-            else {
-                bulk.find({ _id: objectId }).replaceOne(result);
-            }
+
+            bulk.find({ _id: objectId }).update(updatedProps);
         }
         let promBulkUpdate = Q.when({});
         console.log("bulkPut bulk.execute start" + model.modelName);
@@ -209,7 +231,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 });
             }
             else {
-                prom = findMany(model, objectIds);
+                prom = findMany(newModel, objectIds);
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
@@ -218,7 +240,6 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 }
                 return updateParentProm.then(res => {
                     console.log("bulkPut updateParent start" + model.modelName);
-
                     if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
@@ -244,17 +265,22 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
  * @param objArr
  */
 export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Promise<any> {
+    if (!objArr || !objArr.length) return Q.when([]);
     console.log("bulkPatch " + model.modelName);
     mongooseHelper.updateWriteCount();
     var asyncCalls = [];
     var length = objArr.length;
     var ids = objArr.map(x => x._id);
-    var bulk = model.collection.initializeUnorderedBulkOp();
+
     var asyncCalls = [];
 
     return mongooseHelper.addChildModelToParent(model, objArr).then(x => {
         let transientProps = mongooseHelper.getAllTransientProps(model);
         let jsonProps = mongooseHelper.getEmbeddedPropWithFlat(model).map(x => x.propertyKey);
+
+        //it has to be group by
+        let newModel = getChangedModelForDynamicSchema(model, ids[0].toString());
+        var bulk = newModel.collection.initializeUnorderedBulkOp();
         objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
             delete result._id;
@@ -296,6 +322,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
  * @param obj
  */
 export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj: any): Q.Promise<any> {
+    if (!objIds || !objIds.length) return Q.when([]);
     console.log("bulkPutMany " + model.modelName);
     mongooseHelper.updateWriteCount();
     delete obj._id;
@@ -306,12 +333,14 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
         $in: objIds
     };
     var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-    return Q.nbind(model.update, model)(cond, updatedProps, { multi: true })
+    //it has to be group by
+    let newModel = getChangedModelForDynamicSchema(model, objIds[0].toString());
+    return Q.nbind(newModel.update, newModel)(cond, updatedProps, { multi: true })
         .then(result => {
             let allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             let ref = allReferencingEntities.find((x: MetaData) => x.params && x.params.embedded);
             if (ref) {
-                return findMany(model, objIds).then((objects: Array<any>) => {
+                return findMany(newModel, objIds).then((objects: Array<any>) => {
                     return mongooseHelper.updateParent(model, objects).then(res => {
                         console.log("bulkPutMany end" + model.modelName);
                         return objects;
@@ -459,7 +488,8 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
  */
 export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolean): Q.Promise<any> {
     console.log("findOne " + model.modelName);
-    return <any>model.findOne({ '_id': id }).lean().then(result => {
+    let newModel = getChangedModelForDynamicSchema(model, id);
+    return <any>newModel.findOne({ '_id': id }).lean().then(result => {
         return mongooseHelper.embeddedChildren1(model, [result], false, donotLoadChilds)
             .then(r => {
                 console.log("findOne end" + model.modelName);
@@ -500,11 +530,13 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
  * @param ids
  */
 export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbeddedChilds?: boolean) {
+    if (!ids || !ids.length) return Q.when([]);
     console.log("findMany " + model.modelName);
     if (toLoadEmbeddedChilds == undefined) {
         toLoadEmbeddedChilds = false;
     }
-    return <any>model.find({
+    let newModel = getChangedModelForDynamicSchema(model, ids[0]);
+    return <any>newModel.find({
         '_id': {
             $in: ids
         }
@@ -545,7 +577,8 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
  */
 export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> {
     console.log("findChild " + model.modelName);
-    return <any>model.findOne({ '_id': id }).lean().then(res => {
+    let newModel = getChangedModelForDynamicSchema(model, id);
+    return <any>newModel.findOne({ '_id': id }).lean().then(res => {
         var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
         if (Enumerable.from(metas).any(x => x.propertyKey == prop)) {
             // create new object and add only that property for which we want to do eagerloading
@@ -588,6 +621,9 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 clonedObj._id = clonedObj[ConstantKeys.TempId];
                 delete clonedObj[ConstantKeys.TempId];
             }
+            if (clonedObj.getUniqueId) {
+                clonedObj._id = clonedObj.getUniqueId();
+            }
             // assign empty array for not defined properties
             if (_arrayPropListSchema[model.modelName]) {
                 _arrayPropListSchema[model.modelName].forEach(prop => {
@@ -596,7 +632,11 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                     }
                 });
             }
-            return Q.nbind(model.create, model)(clonedObj).then(result => {
+            let newModel = model;
+            if (clonedObj.getCollectionName) {
+                newModel = getDbSpecifcModel(obj.getCollectionName(), model.schema);
+            }
+            return Q.nbind(newModel.create, newModel)(clonedObj).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
                 return mongooseHelper.embeddedChildren1(model, [obj], false)
@@ -620,7 +660,8 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
  */
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
     console.log("delete " + model.modelName);
-    return <any>model.findByIdAndRemove({ '_id': id }).lean().then((response: any) => {
+    let newModel = getChangedModelForDynamicSchema(model, id);
+    return <any>newModel.findByIdAndRemove({ '_id': id }).lean().then((response: any) => {
         return mongooseHelper.deleteCascade(model, [response]).then(x => {
             return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
                 .then(res => {
@@ -644,7 +685,6 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
     console.log("bulkDel " + model.modelName);
     var asyncCalls = [];
     var ids = [];
-    var bulk = model.collection.initializeUnorderedBulkOp();
     Enumerable.from(objs).forEach(x => {
         if (CoreUtils.isJSON(x)) {
             ids.push(x._id);
@@ -653,10 +693,12 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
             ids.push(x);
         }
     });
+    if (!ids || !ids.length) return Q.when([]);
+    let newModel = getChangedModelForDynamicSchema(model, ids[0]);
+    var bulk = model.collection.initializeUnorderedBulkOp();
     ids.forEach(x => {
         bulk.find({ _id: x }).remove();
     });
-
     return <any>model.find({
         '_id': {
             $in: ids
@@ -743,4 +785,20 @@ function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, prope
         isDecoratorPresent = true;
     }
     return isDecoratorPresent;
+}
+
+export function getChangedModelForDynamicSchema(model: Mongoose.Model<any>, id: any): Mongoose.Model<any> {
+    let newModel = model;
+    try {
+        let obj = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+
+        if (obj.getCollectionName) {
+            newModel = getDbSpecifcModel(obj.getCollectionName(id), model.schema);
+            newModel.modelName = model.modelName;
+        }
+    } catch (ex) {
+        winstonLog.logError(ex);
+    }
+
+    return newModel;
 }

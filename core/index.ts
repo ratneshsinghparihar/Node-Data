@@ -54,6 +54,9 @@ class Dynamic {
         Enumerable.from(files)
             .forEach(x => {
                 try {
+                    if (x.indexOf("gulpfile") > -1) {
+                        return;
+                    }
                     var route = path.resolve(x.substring(0, x.lastIndexOf('.')));
                     require(route);
                 } catch (e) {

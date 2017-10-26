@@ -358,80 +358,86 @@ export function updateWriteCount() {
 
 }
 
-function updateParentDocumentEasy(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
+//function updateParentDocumentEasy(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     
-        //var queryCond = {};
-        //var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
-        //queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
+//        //var queryCond = {};
+//        //var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+//        //queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
     
-       // updateWriteCount();
-        console.log("updateParentDocument_start " + model.modelName );
-        let parent = {};
-        // parent._id = objs[0].parentId;
-        parent[meta.propertyKey] = {};
-        objs.forEach((child) => {
-            parent[meta.propertyKey][child._id] = child;
-        })
+//       // updateWriteCount();
+//        console.log("updateParentDocument_start " + model.modelName );
+//        let parent = {};
+//        // parent._id = objs[0].parentId;
+//        parent[meta.propertyKey] = {};
+//        objs.forEach((child) => {
+//            parent[meta.propertyKey][child._id] = child;
+//        })
     
-        var bulk = model.collection.initializeUnorderedBulkOp();
+//        var bulk = model.collection.initializeUnorderedBulkOp();
         
-        var objectId = Utils.castToMongooseType(objs[0].parentId, Mongoose.Types.ObjectId);
+//        var objectId = Utils.castToMongooseType(objs[0].parentId, Mongoose.Types.ObjectId);
     
     
-        bulk.find({ _id: objectId }).update({ $set: parent });
+//        bulk.find({ _id: objectId }).update({ $set: parent });
     
-        return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
-            // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
-            console.log("updateParentDocument_end " + model.modelName );
-            return updatedParents;
-        });
+//        return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
+//            // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
+//            console.log("updateParentDocument_end " + model.modelName );
+//            return updatedParents;
+//        });
     
-    }
+//    }
 
-function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
-    var queryCond = {};
-    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
-    queryCond[meta.propertyKey + '._id'] = { $in: ids };
-    console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
-    updateWriteCount();
-    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
-        console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
-        if (!result) {
-            return Q.resolve([]);
-        }
-        if (result && !result.length) {
-            return Q.resolve(result);
-        }
-        var parents: Array<any> = Utils.toObject(result);
-        var parentIds = parents.map(x => x._id);
-        var bulk = model.collection.initializeUnorderedBulkOp();
-        // classic for loop used gives high performanance
-        for (var i = 0; i < objs.length; i++) {
-            var queryFindCond = {};
-            var updateSet = {};
-            var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
-            queryFindCond['_id'] = { $in: parentIds };
-            let isJsonMap = isJsonMapEnabled(meta.params);
-            if (isJsonMap) {
-                updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
-            }
-            else {
-                let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-                updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
-            }
-            bulk.find(queryFindCond).update({ $set: updateSet });
-        }
-        console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
-        return Q.nbind(bulk.execute, bulk)().then(result => {
-            return parentIds;
-        });
-    });
-}
+//function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
+//    var queryCond = {};
+//    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
+//    queryCond[meta.propertyKey + '._id'] = { $in: ids };
+//    console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
+//    updateWriteCount();
+//    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
+//        console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
+//        if (!result) {
+//            return Q.resolve([]);
+//        }
+//        if (result && !result.length) {
+//            return Q.resolve(result);
+//        }
+//        var parents: Array<any> = Utils.toObject(result);
+//        var parentIds = parents.map(x => x._id);
+//        var bulk = model.collection.initializeUnorderedBulkOp();
+//        // classic for loop used gives high performanance
+//        for (var i = 0; i < objs.length; i++) {
+//            var queryFindCond = {};
+//            var updateSet = {};
+//            var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
+//            queryFindCond['_id'] = { $in: parentIds };
+//            let isJsonMap = isJsonMapEnabled(meta.params);
+//            if (isJsonMap) {
+//                updateSet[meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+//            }
+//            else {
+//                let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
+//                updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+//            }
+//            bulk.find(queryFindCond).update({ $set: updateSet });
+//        }
+//        console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
+//        return Q.nbind(bulk.execute, bulk)().then(result => {
+//            return parentIds;
+//        });
+//    });
+//}
 
 function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     let parents = {};
     console.log("updateParentWithParentId start" + model.modelName);
+    let parentObjectId;
     for (var i = 0; i < objs.length; i++) {
+
+        if (!objs[i].__updatedProps) {
+            continue;
+        }
+        delete objs[i].__updatedProps;// deleting so that it doesn't get updated on parent Document
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
         var queryFindCond = {};
         
@@ -446,12 +452,17 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
             parents[parentId][meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
+        parentObjectId = parentId;
        // parents[parentId] = updateSet;
     }
-    var bulk = model.collection.initializeUnorderedBulkOp();
+    // console.log("parents", parents);
+    //it has to be group by
+    let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentObjectId);
+    var bulk = newModel.collection.initializeUnorderedBulkOp();
     Object.keys(parents).forEach(x => {
         var queryFindCond = {};
-        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId)
+        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
+  //      console.log("parent $set", parents[x]);
         bulk.find(queryFindCond).update({ $set: parents[x] });
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
@@ -505,6 +516,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
     console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
     updateWriteCount();
+    // For dynamic-schema , this will not work, it should try to search from all the shards
     return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
         console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
         if (!result) {
@@ -515,7 +527,8 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
         var parents: Array<any> = Utils.toObject(result);
         var parentIds = parents.map(x => x._id);
-        var bulk = model.collection.initializeUnorderedBulkOp();
+        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentIds[0]);
+        var bulk = newModel.collection.initializeUnorderedBulkOp();
         // classic for loop used gives high performanance
         for (var i = 0; i < objs.length; i++) {
             var queryFindCond = {};
@@ -554,7 +567,9 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
 }
 
 function bulkDelete(model: Mongoose.Model<any>, ids: any) {
+    if (!ids || !ids.length) return Q.when([]);
     return mongooseModel.findMany(model, ids).then((data: Array<any>) => {
+        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, ids[0]);
         return Q.nbind(model.remove, model)({
             '_id': {
                 $in: ids
@@ -611,15 +626,16 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
         setCondition['$unset'] = {};
         setCondition['$unset'][prop] = "";
         searchQueryCond['_id'] = { $in: parentIds };
-        let setConditionForArr = (isArray && isJsonMap) ? getUnsetQueryForJsonMapStructure(prop,updateObjs) : { $pull: pullQuery };
-        var prom = isArray ? Q.nbind(model.update, model)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(model.update, model)(searchQueryCond, setCondition, { multi: true });
+        let setConditionForArr = (isArray && isJsonMap) ? getUnsetQueryForJsonMapStructure(prop, updateObjs) : { $pull: pullQuery };
+        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentIds[0]);
+        var prom = isArray ? Q.nbind(newModel.update, model)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(newModel.update, model)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
                 // fetch all the parent and call update parent
-                return Q.nbind(model.find, model)({
+                return Q.nbind(newModel.find, model)({
                     '_id': {
                         $in: parentIds
                     }
@@ -664,108 +680,108 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
 //        });
 //}
 
-function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
-    var asyncCalls = [];
-    var ret: boolean = true;
-    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
-    Enumerable.from(metas).forEach(x => {
-        var m: MetaData = x;
-        if (val[m.propertyKey]) {
-            asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
-                if (res != undefined && !res) {
-                    let error: any = new Error();
-                    error.propertyKey = m.propertyKey;
-                    throw error;
-                }
-            }));
-        }
-    });
-    return Q.all(asyncCalls).catch(f => {
-        let errorMessage = 'Invalid value. Adding to property ' + "'" + f.propertyKey + "'" + ' will break the relation in model: ' + model.modelName;
-        winstonLog.logError(errorMessage);
-        throw errorMessage;
-    });
-}
+//function isDataValid(model: Mongoose.Model<any>, val: any, id: any) {
+//    var asyncCalls = [];
+//    var ret: boolean = true;
+//    var metas = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
+//    Enumerable.from(metas).forEach(x => {
+//        var m: MetaData = x;
+//        if (val[m.propertyKey]) {
+//            asyncCalls.push(isRelationPropertyValid(model, m, val[m.propertyKey], id).then(res => {
+//                if (res != undefined && !res) {
+//                    let error: any = new Error();
+//                    error.propertyKey = m.propertyKey;
+//                    throw error;
+//                }
+//            }));
+//        }
+//    });
+//    return Q.all(asyncCalls).catch(f => {
+//        let errorMessage = 'Invalid value. Adding to property ' + "'" + f.propertyKey + "'" + ' will break the relation in model: ' + model.modelName;
+//        winstonLog.logError(errorMessage);
+//        throw errorMessage;
+//    });
+//}
 
-function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData, val: any, id: any) {
-    switch (metadata.decorator) {
-        case Decorators.ONETOMANY: // for array of objects
-            if (metadata.propertyType.isArray) {
-                if (Array.isArray(val) && val.length > 0) {
-                    var queryCond = [];
-                    var params = <IAssociationParams>metadata.params;
-                    Enumerable.from(val).forEach(x => {
-                        var con = {};
-                        if (params.embedded) {
-                            con[metadata.propertyKey + '._id'] = x['_id'];
-                        }
-                        else {
-                            con[metadata.propertyKey] = { $in: [x] };
-                        }
-                        queryCond.push(con);
-                    });
-                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
-                        .then(result => {
-                            if (Array.isArray(result) && result.length > 0)
-                                return false;
-                            else
-                                return true;
-                        }).catch(error => {
-                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
-                            return Q.reject(error);
-                        });
-                }
-            }
-            break;
-        case Decorators.ONETOONE: // for single object
-            if (!metadata.propertyType.isArray) {
-                if (!Array.isArray(val)) {
-                    var queryCond = [];
-                    var con = {};
-                    var params = <IAssociationParams>metadata.params;
-                    if (params.embedded) {
-                        con[metadata.propertyKey + '._id'] = val['_id'];
-                    }
-                    else {
-                        con[metadata.propertyKey] = { $in: [val] };
-                    }
-                    queryCond.push(con);
+//function isRelationPropertyValid(model: Mongoose.Model<any>, metadata: MetaData, val: any, id: any) {
+//    switch (metadata.decorator) {
+//        case Decorators.ONETOMANY: // for array of objects
+//            if (metadata.propertyType.isArray) {
+//                if (Array.isArray(val) && val.length > 0) {
+//                    var queryCond = [];
+//                    var params = <IAssociationParams>metadata.params;
+//                    Enumerable.from(val).forEach(x => {
+//                        var con = {};
+//                        if (params.embedded) {
+//                            con[metadata.propertyKey + '._id'] = x['_id'];
+//                        }
+//                        else {
+//                            con[metadata.propertyKey] = { $in: [x] };
+//                        }
+//                        queryCond.push(con);
+//                    });
+//                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
+//                        .then(result => {
+//                            if (Array.isArray(result) && result.length > 0)
+//                                return false;
+//                            else
+//                                return true;
+//                        }).catch(error => {
+//                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
+//                            return Q.reject(error);
+//                        });
+//                }
+//            }
+//            break;
+//        case Decorators.ONETOONE: // for single object
+//            if (!metadata.propertyType.isArray) {
+//                if (!Array.isArray(val)) {
+//                    var queryCond = [];
+//                    var con = {};
+//                    var params = <IAssociationParams>metadata.params;
+//                    if (params.embedded) {
+//                        con[metadata.propertyKey + '._id'] = val['_id'];
+//                    }
+//                    else {
+//                        con[metadata.propertyKey] = { $in: [val] };
+//                    }
+//                    queryCond.push(con);
 
-                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
-                        .then(result => {
-                            if (Array.isArray(result) && result.length > 0) {
-                                return false;
-                            }
-                        }).catch(error => {
-                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
-                            return Q.reject(error);
-                        });
-                }
-            }
-            break;
-        case Decorators.MANYTOONE: // for single object
-            // do nothing
-            return Q.when(true);
-        case Decorators.MANYTOMANY: // for array of objects
-            // do nothing
-            return Q.when(true);
-    }
-    return Q.when(true);
-}
+//                    return Q.nbind(model.find, model)(getQueryCondition(id, queryCond))
+//                        .then(result => {
+//                            if (Array.isArray(result) && result.length > 0) {
+//                                return false;
+//                            }
+//                        }).catch(error => {
+//                            winstonLog.logError(`Error in isRelationPropertyValid ${error}`);
+//                            return Q.reject(error);
+//                        });
+//                }
+//            }
+//            break;
+//        case Decorators.MANYTOONE: // for single object
+//            // do nothing
+//            return Q.when(true);
+//        case Decorators.MANYTOMANY: // for array of objects
+//            // do nothing
+//            return Q.when(true);
+//    }
+//    return Q.when(true);
+//}
 
-function getQueryCondition(id: any, cond: any): any {
-    if (id) {
-        return {
-            $and: [
-                { $or: cond },
-                { '_id': { $ne: id } }
-            ]
-        };
-    }
-    else {
-        return { $or: cond }
-    }
-}
+//function getQueryCondition(id: any, cond: any): any {
+//    if (id) {
+//        return {
+//            $and: [
+//                { $or: cond },
+//                { '_id': { $ne: id } }
+//            ]
+//        };
+//    }
+//    else {
+//        return { $or: cond }
+//    }
+//}
 
 function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>,isJsonMap?:boolean): Q.Promise<any> {
     var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);

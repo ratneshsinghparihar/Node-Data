@@ -8,4 +8,7 @@ export default class CityRepository extends DynamicRepository {
     dotest() {
         return [new city()].bulkPost();
     }
+
+    findByName() {
+    }
 }
