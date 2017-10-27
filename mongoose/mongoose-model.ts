@@ -332,7 +332,7 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
             let allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             let ref = allReferencingEntities.find((x: MetaData) => x.params && x.params.embedded);
             if (ref) {
-                return findMany(newModel, objIds).then((objects: Array<any>) => {
+                return findMany(model, objIds).then((objects: Array<any>) => {
                     return mongooseHelper.updateParent(model, objects).then(res => {
                         console.log("bulkPutMany end" + model.modelName);
                         return objects;

@@ -1063,7 +1063,7 @@ export function setUniqueIdFromShard(x: any) {
 
 export function getNewModelFromObject(model, obj: ShardInfo, id?: string) {
     if (obj && obj.getCollectionNameFromSelf) {
-        return getDbSpecifcModel(obj.getCollectionNameFromSelf(id), model.schema);
+        return getDbSpecifcModel(obj.getCollectionNameFromSelf(id.toString()), model.schema);
     }
     return model;
 }
