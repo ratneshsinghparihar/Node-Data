@@ -3,7 +3,7 @@ import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 
 //export function repository(path: string, model: Function) {
-export function repository(params: { path: string, model: any }) {
+export function repository(params: { path: string, model: any, sharded?: boolean }) {
     //params = params || <any>{};
 
     return function (target: Function) {

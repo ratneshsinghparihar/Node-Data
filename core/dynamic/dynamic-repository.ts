@@ -49,6 +49,7 @@ export interface IDynamicRepository {
     delete(id: any);
     patch(id: any, obj);
     setRestResponse(obj: any);
+    getShardCondition();
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -310,4 +311,8 @@ export class DynamicRepository implements IDynamicRepository {
 
     }
 
+    // This function should return the additional shard condition which will be added in all the query to avoid the queries for cross sharding
+    public getShardCondition() {        
+        return null;
+    }
 }

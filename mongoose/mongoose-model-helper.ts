@@ -16,7 +16,10 @@ import { winstonLog } from '../logging/winstonLog';
 import * as mongooseModel from './mongoose-model';
 import {PrincipalContext} from '../security/auth/principalContext';
 import { ConstantKeys } from '../core/constants';
-import { StorageType } from "../core/enums/index"
+import { StorageType } from "../core/enums/index";
+import {ShardInfo} from '../core/interfaces/shard-Info';
+import {getDbSpecifcModel} from './db';
+import {InstanceService} from '../core/services/instance-service';
 
 /**
  * finds all the parent and update them. It is called when bulk objects are updated
@@ -457,13 +460,13 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     }
     // console.log("parents", parents);
     //it has to be group by
-    let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentObjectId);
+    let newModel = getChangedModelForDynamicSchema(model, parentObjectId);
     var bulk = newModel.collection.initializeUnorderedBulkOp();
     Object.keys(parents).forEach(x => {
         var queryFindCond = {};
         queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
         //      console.log("parent $set", parents[x]);
-        bulk.find(queryFindCond).update({ $set: parents[x] });
+        bulk.find(setShardCondition(model, queryFindCond)).update({ $set: parents[x] });
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
         console.log(JSON.stringify(result));
@@ -516,8 +519,8 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
     console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
     updateWriteCount();
-    // For dynamic-schema , this will not work, it should try to search from all the shards
-    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
+    //ToDo - For dynamic-schema (vertical sharding) , this will not work, it should try to search from all the shards
+    return Q.nbind(model.find, model)(setShardCondition(model, queryCond), { '_id': 1 }).then((result: Array<any>) => {
         console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
         if (!result) {
             return Q.resolve([]);
@@ -527,7 +530,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
         var parents: Array<any> = Utils.toObject(result);
         var parentIds = parents.map(x => x._id);
-        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentIds[0]);
+        let newModel = getChangedModelForDynamicSchema(model, parentIds[0]);
         var bulk = newModel.collection.initializeUnorderedBulkOp();
         // classic for loop used gives high performanance
         for (var i = 0; i < objs.length; i++) {
@@ -538,7 +541,7 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             queryFindCond[meta.propertyKey + '._id'] = objectId;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
             updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
-            bulk.find(queryFindCond).update({ $set: updateSet });
+            bulk.find(setShardCondition(model, queryFindCond)).update({ $set: updateSet });
         }
         console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
         return Q.nbind(bulk.execute, bulk)().then(result => {
@@ -569,12 +572,12 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
 function bulkDelete(model: Mongoose.Model<any>, ids: any) {
     if (!ids || !ids.length) return Q.when([]);
     return mongooseModel.findMany(model, ids).then((data: Array<any>) => {
-        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, ids[0]);
-        return Q.nbind(model.remove, model)({
+        let newModel = getChangedModelForDynamicSchema(model, ids[0]);
+        return Q.nbind(newModel.remove, newModel)(setShardCondition(model, {
             '_id': {
                 $in: ids
             }
-        }).then(x => {
+        })).then(x => {
             var asyncCalls = [];
             // will not call update embedded parent because these children should not exist without parent
             asyncCalls.push(deleteCascade(model, data));
@@ -614,7 +617,8 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
     isEmbedded ? searchQueryCond[prop + '._id'] = changesObjIds : searchQueryCond[prop] = changesObjIds;
     isEmbedded ? pullQuery[prop]['_id'] = changesObjIds : pullQuery[prop] = changesObjIds;
     // If parent ids are available then no need to call parent from db.
-    var parentCallPromise = isParentIdsPresent ? Q.resolve(true) : Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 });
+    //ToDo - For dynamic-schema (vertical sharding) , this will not work, it should try to search from all the shards
+    var parentCallPromise = isParentIdsPresent ? Q.resolve(true) : Q.nbind(model.find, model)(setShardCondition(model, searchQueryCond), { '_id': 1 });
     return parentCallPromise.then((parents: any) => {
         if (!isParentIdsPresent) {
             parents = Utils.toObject(parents);
@@ -627,19 +631,19 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
         setCondition['$unset'][prop] = "";
         searchQueryCond['_id'] = { $in: parentIds };
         let setConditionForArr = (isArray && isJsonMap) ? getUnsetQueryForJsonMapStructure(prop, updateObjs) : { $pull: pullQuery };
-        let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentIds[0]);
-        var prom = isArray ? Q.nbind(newModel.update, newModel)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(newModel.update, newModel)(searchQueryCond, setCondition, { multi: true });
+        let newModel = getChangedModelForDynamicSchema(model, parentIds[0]);
+        var prom = isArray ? Q.nbind(newModel.update, newModel)(setShardCondition(model, { _id: { $in: parentIds } }), setConditionForArr, { multi: true }) : Q.nbind(newModel.update, newModel)(setShardCondition(model, searchQueryCond), setCondition, { multi: true });
         return prom.then(res => {
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
                 // fetch all the parent and call update parent
-                return Q.nbind(newModel.find, newModel)({
+                return Q.nbind(newModel.find, newModel)(setShardCondition(model, {
                     '_id': {
                         $in: parentIds
                     }
-                }).then((result: any) => {
+                })).then((result: any) => {
                     return updateParent(model, Utils.toObject(result));
                 });
             }
@@ -1035,4 +1039,46 @@ function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
     return obj[prop] instanceof Array
         ? Enumerable.from(obj[prop]).select(x => Utils.castToMongooseType(x, primaryType)).toArray()
         : [Utils.castToMongooseType(obj[prop], primaryType)];
+}
+
+// Implementation for vertical sharding
+export function getChangedModelForDynamicSchema(model: Mongoose.Model<any>, id: any): Mongoose.Model<any> {
+    let newModel = model;
+    try {
+        let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+        return getNewModelFromObject(model, obj, id);
+    } catch (ex) {
+        winstonLog.logError(ex);
+    }
+
+    return newModel;
+}
+
+export function setUniqueIdFromShard(x: any) {
+    let shard: ShardInfo = x;
+    if (shard.getUniqueId) {
+        x._id = shard.getUniqueId();
+    }
+}
+
+export function getNewModelFromObject(model, obj: ShardInfo, id?: string) {
+    if (obj && obj.getCollectionNameFromSelf) {
+        return getDbSpecifcModel(obj.getCollectionNameFromSelf(id), model.schema);
+    }
+    return model;
+}
+
+// Implementation for horizontal sharding
+export function setShardCondition(model, searchCond) {
+    var meta = MetaUtils.getMetaData(getEntity(model.modelName), Decorators.REPOSITORY);
+    if (meta && meta[0] && meta[0].params.sharded) {
+        let repo: DynamicRepository = repoFromModel[model.modelName];
+        let cond = repo.getShardCondition();
+        if (cond) {
+            Object.keys(cond).forEach(key => {
+                searchCond[key] = cond[key];
+            });
+        }
+    }
+    return searchCond;
 }
