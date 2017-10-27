@@ -80,7 +80,7 @@ export function getAllTransientProps(model: Mongoose.Model<any>) {
 
 //assuming relName is type of array already
 export function transformEmbeddedChildern1(value: any, meta: MetaData) {
-   
+
     if (!isJsonMapEnabled(meta.params) || !meta.propertyType.isArray) {
         return;
     }
@@ -247,7 +247,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
         ids[x.rel] = ids[x.rel] || [];
         if (x.embedded) {
             if (res.propertyType.isArray) {
-                let listOfAllSameObjects = getListOfObjectsTobeDeleted(props,isJsonMap);
+                let listOfAllSameObjects = getListOfObjectsTobeDeleted(props, isJsonMap);
                 let listOfIds = listOfAllSameObjects.map(x => x._id);
                 ids[x.rel] = ids[x.rel].concat(listOfIds);
             }
@@ -258,7 +258,7 @@ export function deleteCascade(model: Mongoose.Model<any>, updateObj: Array<any>)
         }
         else {
             if (res.propertyType.isArray) {
-                let listOfAllSameIds = getListOfObjectsTobeDeleted(props,isJsonMap);
+                let listOfAllSameIds = getListOfObjectsTobeDeleted(props, isJsonMap);
                 ids[x.rel] = ids[x.rel].concat(listOfAllSameIds);
             }
             else {
@@ -321,7 +321,7 @@ export function deleteEmbeddedFromParent(model: Mongoose.Model<any>, entityChang
             if (entityChange == EntityChange.delete) {
                 let isJsonMap = isJsonMapEnabled(param);
                 //var newObj = getFilteredValue(obj, param.properties);
-                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, param.embedded, entityChange, model,isJsonMap));
+                asyncCalls.push(updateEntity(x.target, x.propertyKey, x.propertyType.isArray, obj, param.embedded, entityChange, model, isJsonMap));
             }
         });
     return Q.allSettled(asyncCalls);
@@ -356,11 +356,11 @@ export function updateWriteCount() {
 }
 
 //function updateParentDocumentEasy(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
-    
+
 //        //var queryCond = {};
 //        //var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
 //        //queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
-    
+
 //       // updateWriteCount();
 //        console.log("updateParentDocument_start " + model.modelName );
 //        let parent = {};
@@ -369,20 +369,20 @@ export function updateWriteCount() {
 //        objs.forEach((child) => {
 //            parent[meta.propertyKey][child._id] = child;
 //        })
-    
+
 //        var bulk = model.collection.initializeUnorderedBulkOp();
-        
+
 //        var objectId = Utils.castToMongooseType(objs[0].parentId, Mongoose.Types.ObjectId);
-    
-    
+
+
 //        bulk.find({ _id: objectId }).update({ $set: parent });
-    
+
 //        return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
 //            // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
 //            console.log("updateParentDocument_end " + model.modelName );
 //            return updatedParents;
 //        });
-    
+
 //    }
 
 //function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
@@ -437,9 +437,9 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         delete objs[i].__updatedProps;// deleting so that it doesn't get updated on parent Document
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
         var queryFindCond = {};
-        
+
         parents[parentId] = parents[parentId] ? parents[parentId] : {};
-       // var updateSet = {};
+        // var updateSet = {};
         // check meta then update with array or keyvalue
         let isJsonMap = isJsonMapEnabled(meta.params);
         if (isJsonMap) {
@@ -450,7 +450,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
             parents[parentId][meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
         parentObjectId = parentId;
-       // parents[parentId] = updateSet;
+        // parents[parentId] = updateSet;
     }
     // console.log("parents", parents);
     //it has to be group by
@@ -459,7 +459,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     Object.keys(parents).forEach(x => {
         var queryFindCond = {};
         queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
-  //      console.log("parent $set", parents[x]);
+        //      console.log("parent $set", parents[x]);
         bulk.find(queryFindCond).update({ $set: parents[x] });
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
@@ -491,7 +491,7 @@ function updateParentDocument1(model: Mongoose.Model<any>, meta: MetaData, objec
                 console.log("updateParentDocument1 findMany end" + model.modelName);
                 return updateParent(model, objects).then(res => {
                     console.log("updateParentDocument1 updateParent end" + model.modelName);
-                return objects;
+                    return objects;
                 });
             });
         }
@@ -586,15 +586,15 @@ function bulkDelete(model: Mongoose.Model<any>, ids: any) {
  * @param prop 
  * @param updateObjs 
  */
-function getUnsetQueryForJsonMapStructure(prop,updateObjs){
+function getUnsetQueryForJsonMapStructure(prop, updateObjs) {
     let setCondition = {};
     setCondition['$unset'] = {};
-    for(let i=0,len=updateObjs.length;i<len;i++){
-        setCondition['$unset'][prop +"."+updateObjs[i]["_id"].toString()] = "";
+    for (let i = 0, len = updateObjs.length; i < len; i++) {
+        setCondition['$unset'][prop + "." + updateObjs[i]["_id"].toString()] = "";
     }
     return setCondition;
 }
-function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean,isJsonMap?:boolean): Q.Promise<any> {
+function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: Array<any>, entityChange: EntityChange, isEmbedded: boolean, childModel: Mongoose.Model<any>, isArray?: boolean, isJsonMap?: boolean): Q.Promise<any> {
     var searchQueryCond = {};
     var pullQuery = {};
     pullQuery[prop] = {};
@@ -613,7 +613,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
     // If parent ids are available then no need to call parent from db.
     var parentCallPromise = isParentIdsPresent ? Q.resolve(true) : Q.nbind(model.find, model)(searchQueryCond, { '_id': 1 });
     return parentCallPromise.then((parents: any) => {
-        if(!isParentIdsPresent){
+        if (!isParentIdsPresent) {
             parents = Utils.toObject(parents);
             if (!parents || !parents.length) return Q.when(true);
             parentIds = parents.map(x => x._id);
@@ -625,14 +625,14 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
         searchQueryCond['_id'] = { $in: parentIds };
         let setConditionForArr = (isArray && isJsonMap) ? getUnsetQueryForJsonMapStructure(prop, updateObjs) : { $pull: pullQuery };
         let newModel = mongooseModel.getChangedModelForDynamicSchema(model, parentIds[0]);
-        var prom = isArray ? Q.nbind(newModel.update, model)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(newModel.update, model)(searchQueryCond, setCondition, { multi: true });
+        var prom = isArray ? Q.nbind(newModel.update, newModel)({ _id: { $in: parentIds } }, setConditionForArr, { multi: true }) : Q.nbind(newModel.update, newModel)(searchQueryCond, setCondition, { multi: true });
         return prom.then(res => {
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
                 // fetch all the parent and call update parent
-                return Q.nbind(newModel.find, model)({
+                return Q.nbind(newModel.find, newModel)({
                     '_id': {
                         $in: parentIds
                     }
@@ -780,7 +780,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
 //    }
 //}
 
-function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>,isJsonMap?:boolean): Q.Promise<any> {
+function updateEntity(targetModel: Object, propKey: string, targetPropArray: boolean, updatedObjects: Array<any>, embedded: boolean, entityChange: EntityChange, childModel: Mongoose.Model<any>, isJsonMap?: boolean): Q.Promise<any> {
     var meta = MetaUtils.getMetaData(targetModel, Decorators.DOCUMENT);
 
     if (!meta) {
@@ -793,11 +793,11 @@ function updateEntity(targetModel: Object, propKey: string, targetPropArray: boo
         winstonLog.logError('no repository found for relation');
         throw 'no repository found for relation';
     }
-    return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray,isJsonMap);
+    return patchAllEmbedded(model, propKey, updatedObjects, entityChange, embedded, childModel, targetPropArray, isJsonMap);
 }
 
 export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, values: Array<any>): Q.Promise<any> {
-   if (!values || !values.length)
+    if (!values || !values.length)
         return Q.when(values);
 
     var asyncCalls = [];
@@ -833,8 +833,8 @@ export function fetchEagerLoadingProperties(model: Mongoose.Model<any>, values: 
         return values;
     });
 }
-export function isJsonMapEnabled(params: IAssociationParams) { 
-    if (params && (params.storageType == StorageType.JSONMAP)) { 
+export function isJsonMapEnabled(params: IAssociationParams) {
+    if (params && (params.storageType == StorageType.JSONMAP)) {
         return true;
     }
     return false;
@@ -851,7 +851,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
         var val = obj[prop];
         var newVal;
         if (relMetadata.propertyType.isArray) {
-            newVal = isJsonMap ? {}:[];
+            newVal = isJsonMap ? {} : [];
             for (var i in val) {
                 if (CoreUtils.isJSON(val[i])) {
                     if (!val[i]['_id']) {
@@ -863,11 +863,11 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                         val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'].toString(), Mongoose.Types.ObjectId);
                         if (params.embedded) {
                             // newVal.push(val[i]);
-                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(),val[i],newVal,isJsonMap);
+                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i], newVal, isJsonMap);
                         }
                         else {
                             // newVal.push(val[i]['_id']);
-                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(),val[i]['_id'],newVal,isJsonMap);
+                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i]['_id'], newVal, isJsonMap);
                         }
                     }
                 }
@@ -925,7 +925,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
                     // objects[obj['batch']][prop].push(val);
-                    Utils.pushPropToArrayOrObject(obj['_id'].toString(),val,objects[obj['batch']][prop],isJsonMap);
+                    Utils.pushPropToArrayOrObject(obj['_id'].toString(), val, objects[obj['batch']][prop], isJsonMap);
                 }
                 else {
                     objects[obj['batch']][prop] = val;
@@ -951,7 +951,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     return Q.allSettled(queryCalls).then(res => {
         objects.forEach(obj => {
             if (obj[prop]) {
-                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop],true);
+                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop], true);
             }
         });
     });

@@ -23,7 +23,7 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 
 export interface IDynamicRepository {
     getEntity();
-    getModel();
+    getModel(dynamicName?: string);
     modelName();
     getEntityType(): any;
     getRootRepo(): IDynamicRepository;
@@ -75,8 +75,8 @@ export class DynamicRepository implements IDynamicRepository {
         return getEntity(pathRepoMap[this.path].schemaName);
     }
 
-    public getModel() {
-        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path);
+    public getModel(dynamicName?: string) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path, dynamicName);
     }
 
     public getRootRepo() {

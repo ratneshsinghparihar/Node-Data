@@ -3,7 +3,7 @@ import {Decorators} from '../../core/constants';
 import {DecoratorType} from '../../core/enums/decorator-type';
 import {Strict} from '../enums/document-strict';
 
-export function document(params: { name: string, strict?: Strict }) {
+export function document(params: { name: string, strict?: Strict, dynamicName?: boolean }) {
     params = params || <any>{};
     return function(target: Object){
         // add metadata to prototype

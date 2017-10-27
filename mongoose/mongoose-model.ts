@@ -16,6 +16,7 @@ import {_arrayPropListSchema} from './dynamic-schema';
 import { MetaData } from '../core/metadata/metadata';
 import {InstanceService} from '../core/services/instance-service';
 import {getDbSpecifcModel} from './db';
+import {ShardInfo} from '../core/interfaces/shard-Info';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -82,9 +83,7 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
             x._id = x[ConstantKeys.TempId]
             delete x[ConstantKeys.TempId]
         }
-        if (x.getUniqueId) {
-            x._id = x.getUniqueId();
-        }
+        setUniqueIdFromShard(x);
         if (!_arrayPropListSchema[model.modelName]) {
             return;
         }
@@ -96,11 +95,7 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
         });
     });
     console.log("empty array executeBulk ", model.modelName);
-    let newModel = model;
-    let obj = arrayOfDbModels[0];
-    if (obj.getCollectionName) {
-        newModel = getDbSpecifcModel(obj.getCollectionName(), model.schema);
-    }
+    let newModel = getNewModelFromObject(model, arrayOfDbModels[0]);
     return Q.nbind(newModel.collection.insertMany, newModel.collection)(arrayOfDbModels).then((result: any) => {
         console.log("end executeBulk post", model.modelName);
         result = result && result.ops;
@@ -621,9 +616,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 clonedObj._id = clonedObj[ConstantKeys.TempId];
                 delete clonedObj[ConstantKeys.TempId];
             }
-            if (clonedObj.getUniqueId) {
-                clonedObj._id = clonedObj.getUniqueId();
-            }
+            setUniqueIdFromShard(clonedObj);
             // assign empty array for not defined properties
             if (_arrayPropListSchema[model.modelName]) {
                 _arrayPropListSchema[model.modelName].forEach(prop => {
@@ -632,10 +625,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                     }
                 });
             }
-            let newModel = model;
-            if (clonedObj.getCollectionName) {
-                newModel = getDbSpecifcModel(obj.getCollectionName(), model.schema);
-            }
+            let newModel = getNewModelFromObject(model, clonedObj);
             return Q.nbind(newModel.create, newModel)(clonedObj).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
@@ -790,15 +780,25 @@ function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, prope
 export function getChangedModelForDynamicSchema(model: Mongoose.Model<any>, id: any): Mongoose.Model<any> {
     let newModel = model;
     try {
-        let obj = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
-
-        if (obj.getCollectionName) {
-            newModel = getDbSpecifcModel(obj.getCollectionName(id), model.schema);
-            newModel.modelName = model.modelName;
-        }
+        let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+        return getNewModelFromObject(model, obj);
     } catch (ex) {
         winstonLog.logError(ex);
     }
 
     return newModel;
+}
+
+function setUniqueIdFromShard(x: any) {
+    let shard: ShardInfo = x;
+    if (shard.getUniqueId) {
+        x._id = shard.getUniqueId();
+    }
+}
+
+function getNewModelFromObject(model, obj: ShardInfo) {
+    if (obj && obj.getCollectionNameFromSelf) {
+        return getDbSpecifcModel(obj.getCollectionNameFromSelf(), model.schema);
+    }
+    return model;
 }
