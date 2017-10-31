@@ -59,7 +59,7 @@ export class DynamicRepository implements IDynamicRepository {
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
-    private socket: { socket: any, clients: Array<any> };
+    private socket: { socket: any, clients: Array<any> ,messenger:any};
     //private modelRepo: any;
 
     public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository, socket?:any) {
@@ -77,7 +77,7 @@ export class DynamicRepository implements IDynamicRepository {
         modelNameRepoModelMap[this.path] = this;
     }
 
-    public setSocket(socket?:  { socket: any, clients: Array<any> }) {
+    public setSocket(socket?: { socket: any, clients: Array<any>, messenger: any }) {
         this.socket = socket;
     }
 
@@ -104,8 +104,12 @@ export class DynamicRepository implements IDynamicRepository {
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.socket) {
-                        
-                        this.socket.socket.sockets.emit(this.path, x);
+
+                        this.socket.messenger.send(this.path, x, function (err) {
+                            console.log('Sent message');
+                        });
+
+                       // this.socket.socket.sockets.emit(this.path, x);
                     }
                 })
                 return res;
@@ -125,7 +129,10 @@ export class DynamicRepository implements IDynamicRepository {
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.socket) {
-                        this.socket.socket.sockets.emit(this.path, x);
+                        this.socket.messenger.send(this.path, x, function (err) {
+                            console.log('Sent message');
+                        });
+                       // this.socket.socket.sockets.emit(this.path, x);
                     }
                 });
                 return res;

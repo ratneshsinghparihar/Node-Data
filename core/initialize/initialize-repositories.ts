@@ -23,7 +23,7 @@ var domain = require('domain');
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
-    private socketClientholder: { socket: any, clients: Array<any> } = { socket: {}, clients:[]};
+    private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {}};
 
     private socket: any;
     constructor(server?: any) {
@@ -83,12 +83,31 @@ export class InitializeRepositories {
 
         if (server) {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
-            
+            var MessageQueue = require('mongoose-pubsub');
+            var messenger = new MessageQueue({ retryInterval: 100 });
+
+
             this.socketClientholder.socket = io;
+            this.socketClientholder.messenger = messenger;
             for (let key in repoMap) {
                 let repo = repoMap[key].repo;
                 repo.setSocket(this.socketClientholder);
+                messenger.subscribe(key, true);
             }
+
+            // connect() begins "tailing" the collection 
+            messenger.connect(function () {
+                // emits events for each new message on the channel 
+
+                for (let key in repoMap) {
+
+                    messenger.on(key, function (message) {
+                        console.log(key, message);
+                        io.sockets.emit(key, message);
+                    });
+                }
+            });
+
 
             io.on('connection', function (client) {               
                // this.socketClientholder.clients.push(client);
@@ -113,7 +132,7 @@ export class InitializeRepositories {
                                         console.log(exceptio);
                                     }
                                 };
-                                securityImpl.ensureLoggedIn()(parsedData, undefined, executefun).catch((err) => { console.log(err); });
+                                (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
 
                             }
                             catch (exc) {
