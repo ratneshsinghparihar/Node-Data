@@ -12,7 +12,7 @@ export function repository(params: { path: string, model: any, exportType?: Expo
         target.prototype.path = params.path;
         target.prototype.model = params.model;
         if (!params.exportType) {
-            params.exportType = ExportTypes.ALL;
+            params.exportType = ExportTypes.REST;
         }
         MetaUtils.addMetaData(((<any>target).prototype || target),
             {
