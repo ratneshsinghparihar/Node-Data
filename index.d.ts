@@ -6,3 +6,4 @@
         bulkDel():  Q.Promise<any>;
     }
  }
+ 
