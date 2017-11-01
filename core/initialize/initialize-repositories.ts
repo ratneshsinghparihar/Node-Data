@@ -2,7 +2,7 @@
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
-
+import {ExportTypes} from '../constants/decorators';
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
 import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
@@ -18,7 +18,7 @@ import * as Enumerable from 'linq';
 import {repoFromModel} from '../dynamic/model-entity';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
-import {ExportTypes} from '../constants/decorators';
+
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
@@ -80,9 +80,9 @@ export class InitializeRepositories {
                     repo: newRepo
                 };
                 var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
-                if (meta && meta[0]) {
+                if (meta && meta[0] && x.metadata[0]) {
                     repoFromModel[meta[0].params.name] = newRepo;
-                    newRepo.setMetaData(meta[0]); 
+                    newRepo.setMetaData(x.metadata[0]); 
                 }
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
