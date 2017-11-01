@@ -37,6 +37,8 @@ class Dynamic {
         config = config;
         securityConfig = securityConfig;
         let ignorePaths = config.Config && config.Config.ignorePaths || [];
+        let internalIgnorePaths = config.Config && config.Config.internalIgnorePaths || [];
+        ignorePaths = [...ignorePaths, ...internalIgnorePaths];
         var files = this.scanDirectories(ignorePaths);
         this.loadComponents(files);
         this.initialize(files, server);
@@ -52,6 +54,9 @@ class Dynamic {
         Enumerable.from(files)
             .forEach(x => {
                 try {
+                    if (x.indexOf("gulpfile") > -1) {
+                        return;
+                    }
                     var route = path.resolve(x.substring(0, x.lastIndexOf('.')));
                     require(route);
                 } catch (e) {

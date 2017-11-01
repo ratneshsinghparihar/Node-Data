@@ -114,7 +114,7 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntities" })
-    bulkPut(objArr: Array<any>, batchSize?: number) {
+    bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
         if (!objArr || !objArr.length) return Q.when(objArr);
         let actionEntities: Array<EntityActionParam> = this.getEntityFromArgs.apply(this, arguments);
         if (!actionEntities) {
@@ -123,11 +123,12 @@ export class AuthorizationRepository extends DynamicRepository {
         this.logEntityInfo("bulkPut", objArr);
         return this.preBulkUpdate(actionEntities)
             .then((params: Array<EntityActionParam>) => {
-                let entitiesToCreate: Array<any> = new Array<any>();
-                params.forEach((input: EntityActionParam) => { entitiesToCreate.push(input.newPersistentEntity); })
-                arguments[0] = entitiesToCreate;
-                arguments[arguments.length - 1] = undefined;
-                return super.bulkPut.apply(this, arguments).then((createdDbOEntites: Array<any>) => {
+                let entitiesToUpdate: Array<any> = new Array<any>();
+                let dbEntities: Array<any> = new Array<any>();
+                params.forEach((input: EntityActionParam) => { input.newPersistentEntity.__dbEntity = input.oldPersistentEntity; entitiesToUpdate.push(input.newPersistentEntity); })
+                batchSize = batchSize ? batchSize : undefined;
+                donotLoadChilds = donotLoadChilds ? donotLoadChilds : undefined;
+                return super.bulkPut(entitiesToUpdate, batchSize, donotLoadChilds).then((createdDbOEntites: Array<any>) => {
                     let indexInMainCollection: number = 0;
                     createdDbOEntites.forEach((createdEntity) => {
                         actionEntities[indexInMainCollection].newPersistentEntity = createdEntity;
@@ -173,17 +174,20 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntity" }) // ACL part
-    findOne(id: any): Q.Promise<any> {
+    findOne(id: any, donotLoadChilds?: boolean): Q.Promise<any> {
         let params: EntityActionParam = this.getEntityFromArgs.apply(this, arguments);
         if (!params) {
             params = {};
         }
-        return this.postRead(params).then((updatedParams: EntityActionParam) => {
-            return Q.resolve(updatedParams.newPersistentEntity);
-        },
-            (error) => {
-                return Q.reject(error);
+        return this.preRead(params).then(result => {
+            return this.postRead(result).then((updatedParams: EntityActionParam) => {
+                return Q.resolve(updatedParams.newPersistentEntity);
+            }).catch(exc => {
+                return Q.reject(exc);
             });
+        }).catch(exc => {
+            return Q.reject(exc);
+        });
     }
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntities" }) // ACL part
@@ -202,6 +206,10 @@ export class AuthorizationRepository extends DynamicRepository {
             return Q.reject(exc);
         });
     }
+
+
+
+
 
     @entityAction({ serviceName: "authorizationService", methodName: "canReadActionEntities" }) // ACL part
     findWhere(query, selectedFields?: Array<any> | any, queryOptions?: any, toLoadChilds?: boolean): Q.Promise<any> {
@@ -239,6 +247,7 @@ export class AuthorizationRepository extends DynamicRepository {
         this.logEntityInfo("put", obj);
         return this.preUpdate(resultEntityActionObj)
             .then((params: EntityActionParam) => {
+                params.newPersistentEntity.__dbEntity = params.oldPersistentEntity;
                 return super.put(id, params.newPersistentEntity).then((updatedDbObj: any) => {
                     resultEntityActionObj.newPersistentEntity = updatedDbObj;
                     return this.postUpdate(resultEntityActionObj).then((updatedEntity: EntityActionParam) => {
@@ -305,6 +314,7 @@ export class AuthorizationRepository extends DynamicRepository {
         }
         return this.preUpdate(resultEntityActionObj)
             .then((params: EntityActionParam) => {
+                params.inputEntity.__dbEntity = params.oldPersistentEntity;
                 return super.patch(id, params.inputEntity).then((updatedDbObj: any) => {
                     resultEntityActionObj.newPersistentEntity = updatedDbObj;
                     // return this.postUpdate(resultEntityActionObj.newPersistentEntity);
