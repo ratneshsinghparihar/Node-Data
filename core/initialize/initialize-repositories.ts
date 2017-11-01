@@ -100,7 +100,7 @@ export class InitializeRepositories {
                 let repo = repoMap[key].repo;
                 let meta:MetaData = repo.getMetaData();
                 if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
-                    repo.setSocket(this.socketClientholder);
+                    repo.setSocket(this.socketClientholder); 
                     messenger.subscribe(key, true);
                 }
             }
