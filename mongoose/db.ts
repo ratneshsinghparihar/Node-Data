@@ -7,6 +7,7 @@ import Q = require('q');
 export var mainConnection: any = {};
 var allConnections: any = {};
 var connectionOptions;
+var messenger: any;
 
 export function connect() {
     let dbLoc = CoreUtils.config().Config.DbConnection;
@@ -23,6 +24,10 @@ export function getDbSpecifcModel(schemaName: any, schema: any): any {
     else {
         return mainConnection.model(schemaName, schema);
     }
+}
+
+export function setMessenger(msg: any) {
+    messenger = msg;
 }
 
 export function updateConnection(connectionString, connectionOption): Q.IPromise<any> {
@@ -53,6 +58,9 @@ function connectDataBase(conn, connectionString): Q.IPromise<any> {
     conn.on('connected', () => {
         winstonLog.logInfo(`connection established successfully ${connectionString}`);
         defer.resolve(true);
+        if (messenger) {
+            messenger.emit('connected', conn);
+        }
     });
 
     conn.on('error', (err) => {

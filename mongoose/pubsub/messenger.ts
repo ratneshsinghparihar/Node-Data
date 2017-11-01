@@ -3,6 +3,7 @@
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var getMessage = require('./model');
+var db:any = require('../db');
 var Message;
 var parentCallBack;
 function Messenger(options) {
@@ -12,12 +13,13 @@ function Messenger(options) {
     this.lastMessageTimestamp = null;
     this.startingMessageTimestamp = new Date();
     this.retryInterval = o.retryInterval || 100;
+    db.setMessenger(this);
 }
 
 util.inherits(Messenger, EventEmitter);
 
 Messenger.prototype.send = function send(channel, msg, callback) {
-    var self = this;
+   
     var cb = function noop() { };
     if (typeof callback === 'function') {
         cb = callback;
@@ -32,12 +34,17 @@ Messenger.prototype.send = function send(channel, msg, callback) {
     message.save(function (err) {
         return true;
     });
-    self.connect(self.parentCallBack);
+    
 };
+
+
 
 Messenger.prototype.onConnect = function onConnect(callback) {
     var self = this;
     self.parentCallBack = callback;
+    self.on('connected', (conn) => {
+        self.connect(self.parentCallBack);
+    });
 }
 
 

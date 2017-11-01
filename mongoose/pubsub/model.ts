@@ -20,4 +20,4 @@ export function getMessage()
     return db.getDbSpecifcModel('Message', Message);
 }
 
-
+module.exports = getMessage 
