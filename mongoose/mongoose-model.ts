@@ -12,6 +12,8 @@ import { QueryOptions } from '../core/interfaces/queryOptions';
 import { MetaUtils } from "../core/metadata/utils";
 import { Decorators } from '../core/constants/decorators';
 import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
+import {_arrayPropListSchema} from './dynamic-schema';
+import { MetaData } from '../core/metadata/metadata';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -55,22 +57,35 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
                 values = suces.map(x => x.value).reduce((prev, current) => {
                     return prev.concat(current);
                 });
+                console.log("bulkPost end" + model.modelName);
                 return values;
             }).catch(er => {
+                winstonLog.logError(`Error in bulkPost ${model.modelName}: ${er}`);
                 throw er;
             });
         });
 }
 
 function executeBulk(model, arrayOfDbModels: Array<any>) {
+    console.log("start executeBulk post", model.modelName);
     arrayOfDbModels.forEach(x => {
         if (x[ConstantKeys.TempId]) {
             x._id = x[ConstantKeys.TempId]
             delete x[ConstantKeys.TempId]
         }
+        if (!_arrayPropListSchema[model.modelName]) {
+            return;
+        }
+        // assign empty array for not defined properties
+        _arrayPropListSchema[model.modelName].forEach(prop => {
+            if (!x[prop]) {
+                x[prop] = [];
+            }
+        });
     });
-    arrayOfDbModels = Utils.toObject(arrayOfDbModels.map(x => new model(x)));
+    console.log("empty array executeBulk ", model.modelName);
     return Q.nbind(model.collection.insertMany, model.collection)(arrayOfDbModels).then((result: any) => {
+        console.log("end executeBulk post", model.modelName);
         result = result && result.ops;
         return result;
     }).catch(err => {
@@ -106,8 +121,10 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
         values = suces.map(x => x.value).reduce((prev, current) => {
             return prev.concat(current);
         });
+        console.log("bulkPut end" + model.modelName);
         return values;
     }).catch(er => {
+        winstonLog.logError(`Error in bulkPut ${model.modelName}: ${er}`);
         throw er;
     });
 }
@@ -118,8 +135,11 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
     var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
+    let isUpdateReq: boolean = false;
+    console.log("bulkPut addChildModelToParent child start" + model.modelName);
+    let allUpdateProps = [];
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
-
+        console.log("bulkPut addChildModelToParent child end" + model.modelName);
         let transientProps = mongooseHelper.getAllTransientProps(model);
         var metaArr = CoreUtils.getAllRelationsForTargetInternal(getEntity(model.modelName));
         let isRelationsExist = false;
@@ -127,7 +147,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         if (metaArr && metaArr.length) {
             isRelationsExist = true;
         }
-        let updatePropsReq = !fullyLoaded || isRelationsExist;
+        //let updatePropsReq = !fullyLoaded || isRelationsExist;
         // check if not relationship present in the docs then do not call updateProps
         // 
 
@@ -135,15 +155,32 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             let result = objArr[i];
             var objectId = new Mongoose.Types.ObjectId(result._id);
             objectIds.push(objectId);
+            let id = result._id;
+            let parent = result.parent;
             delete result._id;
+            delete result[ConstantKeys.FullyLoaded];
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
             }
             var updatedProps;
-
-            if (updatePropsReq) {
-                updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+           
+           // console.log("update props", updatedProps);
+            delete result.__dbEntity;
+            // update only modified objects
+            if (Object.keys(updatedProps).length === 0) {
+                continue;
             }
+            result.__updatedProps = updatedProps;
+            isUpdateReq = true;
+            //if (updatePropsReq) {
+            //    updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
+            //    // update only modified objects
+            //    if (Object.keys(updatedProps).length === 0) {
+            //        continue;
+            //    }
+            //}
+            
             let isDecoratorPresent = isDecoratorApplied(model, Decorators.OPTIMISTICLOCK, "put");
             let query: Object = { _id: objectId };
             if (isDecoratorPresent === true) {
@@ -151,14 +188,17 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 updatedProps["$inc"] = { '__v': 1 };
                 query["__v"] = result["__v"];
             }
-            if (updatePropsReq) {
+           
                 bulk.find({ _id: objectId }).update(updatedProps);
-            }
-            else {
-                bulk.find({ _id: objectId }).replaceOne(result);
-            }
         }
-        return Q.nbind(bulk.execute, bulk)().then(result => {
+        let promBulkUpdate = Q.when({});
+        console.log("bulkPut bulk.execute start" + model.modelName);
+        if (isUpdateReq) {
+            promBulkUpdate = Q.nbind(bulk.execute, bulk)();
+        }
+        return promBulkUpdate.then(result => {
+            console.log("bulkPut bulk.execute end" + model.modelName);
+
             // update parent
             let repo: DynamicRepository = repoFromModel[model.modelName];
             let prom;
@@ -174,7 +214,12 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 prom = findMany(model, objectIds);
             }
             return prom.then((objects: Array<any>) => {
-                return mongooseHelper.updateParent(model, objects).then(res => {
+                let updateParentProm = Q.when([]);
+                if (isUpdateReq) {
+                    updateParentProm = mongooseHelper.updateParent(model, objects);
+                }
+                return updateParentProm.then(res => {
+                    console.log("bulkPut updateParent start" + model.modelName);
                     if (donotLoadChilds === true) {
                         return Q.when(objects);
                     }
@@ -186,7 +231,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
 
         });
     }).catch(error => {
-        winstonLog.logError(`Error in bulkPut ${error}`);
+        winstonLog.logError(`Error in executeBulkPut ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
 }
@@ -232,12 +277,13 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             return findMany(model, ids).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
                     return mongooseHelper.fetchEagerLoadingProperties(model, objects).then(resultObject => {
+                        console.log("bulkPatch end" + model.modelName);
                         return resultObject;
                     });
                 });
             });
         }).catch(error => {
-            winstonLog.logError(`Error in bulkPut ${error}`);
+            winstonLog.logError(`Error in bulkPatch ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
     });
@@ -263,13 +309,22 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
     var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
     return Q.nbind(model.update, model)(cond, updatedProps, { multi: true })
         .then(result => {
-            return findMany(model, objIds).then((objects: Array<any>) => {
-                return mongooseHelper.updateParent(model, objects).then(res => {
-                    return objects;
+            let allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
+            let ref = allReferencingEntities.find((x: MetaData) => x.params && x.params.embedded);
+            if (ref) {
+                return findMany(model, objIds).then((objects: Array<any>) => {
+                    return mongooseHelper.updateParent(model, objects).then(res => {
+                        console.log("bulkPutMany end" + model.modelName);
+                        return objects;
+                    });
                 });
-            });
+            }
+            else {
+                console.log("bulkPutMany end" + model.modelName);
+                return result;
+            }
         }).catch(error => {
-            winstonLog.logError(`Error in put ${error}`);
+            winstonLog.logError(`Error in bulkPutMany ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
 }
@@ -281,9 +336,10 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
 export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
     console.log("findAll " + model.modelName);
     return <any>model.find({}).lean().then(result => {
+        console.log("findAll end" + model.modelName);
         return result;
     }).catch(error => {
-        winstonLog.logError(`Error in findAll ${error}`);
+        winstonLog.logError(`Error in findAll ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
 }
@@ -304,7 +360,7 @@ export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<an
             // update embedded property, if any
             return Q.resolve(result);
         }).catch(error => {
-            winstonLog.logError(`Error in countWhere ${error}`);
+            winstonLog.logError(`Error in countWhere ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
 
@@ -319,7 +375,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
             // update embedded property, if any
             return Q.resolve(result);
         }).catch(error => {
-            winstonLog.logError(`Error in distinctWhere ${error}`);
+            winstonLog.logError(`Error in distinctWhere ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
 
@@ -378,15 +434,17 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             // update embedded property, if any
             if (toLoadChilds != undefined && toLoadChilds == false) {
                 mongooseHelper.transformAllEmbeddedChildern1(model, result);
+                console.log("findWhere end" + model.modelName);
                 return result;
             }
             var asyncCalls = [];
             asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
             return Q.allSettled(asyncCalls).then(r => {
+                console.log("findWhere end" + model.modelName);
                 return result;
             });
         }).catch(error => {
-            winstonLog.logError(`Error in findWhere ${error}`);
+            winstonLog.logError(`Error in findWhere ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
     // winstonLog.logInfo(`findWhere query is ${query}`);
@@ -409,10 +467,11 @@ export function findOne(model: Mongoose.Model<any>, id, donotLoadChilds?: boolea
     return <any>model.findOne({ '_id': id }).lean().then(result => {
         return mongooseHelper.embeddedChildren1(model, [result], false, donotLoadChilds)
             .then(r => {
+                console.log("findOne end" + model.modelName);
                 return result;
             });
     }).catch(error => {
-        winstonLog.logError(`Error in findOne ${error}`);
+        winstonLog.logError(`Error in findOne ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
 }
@@ -430,11 +489,12 @@ export function findByField(model: Mongoose.Model<any>, fieldName, value): Q.Pro
     return <any>model.findOne(param).lean().then(result => {
         return mongooseHelper.embeddedChildren1(model, [result], false)
             .then(r => {
+                console.log("findByField end" + model.modelName);
                 return result;
             });
     },
         err => {
-            winstonLog.logError(`Error in findByField ${err}`);
+            winstonLog.logError(`Error in findByField ${model.modelName}: ${err}`);
             return Q.reject(err);
         });
 }
@@ -466,13 +526,18 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
         if (toLoadEmbeddedChilds) {
             let asyncCalls = [];
             asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
+            console.log("findMany end" + model.modelName);
             return Q.allSettled(asyncCalls).then(r => {
                 return result;
             });
         } else {
             mongooseHelper.transformAllEmbeddedChildern1(model, result);
+            console.log("findMany end" + model.modelName);
             return result;
         }
+    }).catch(error => {
+        winstonLog.logError(`Error in findMany ${model.modelName}: ${error}`);
+        return Q.reject(error);
     });
 }
 
@@ -493,12 +558,14 @@ export function findChild(model: Mongoose.Model<any>, id, prop): Q.Promise<any> 
             result[prop] = res;
             return mongooseHelper.embeddedChildren1(model, [result], true)
                 .then(r => {
+                    console.log("findChild end" + model.modelName);
                     return result[prop];
                 });
         }
+        console.log("findChild end" + model.modelName);
         return res;
     }).catch(error => {
-        winstonLog.logError(`Error in findChild ${error}`);
+        winstonLog.logError(`Error in findChild ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
 }
@@ -526,17 +593,26 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
                 clonedObj._id = clonedObj[ConstantKeys.TempId];
                 delete clonedObj[ConstantKeys.TempId];
             }
-            return Q.nbind(model.create, model)(new model(clonedObj)).then(result => {
+            // assign empty array for not defined properties
+            if (_arrayPropListSchema[model.modelName]) {
+                _arrayPropListSchema[model.modelName].forEach(prop => {
+                    if (!clonedObj[prop]) {
+                        clonedObj[prop] = [];
+                    }
+                });
+            }
+            return Q.nbind(model.create, model)(clonedObj).then(result => {
                 let resObj = Utils.toObject(result);
                 Object.assign(obj, resObj);
                 return mongooseHelper.embeddedChildren1(model, [obj], false)
                     .then(r => {
+                        console.log("post end " + model.modelName);
                         return obj;
                     });
 
             });
         }).catch(error => {
-            winstonLog.logError(`Error in post ${error}`);
+            winstonLog.logError(`Error in post ${model.modelName}: ${error}`);
             return Q.reject(error);
         });
 }
@@ -548,16 +624,18 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
  * @param id
  */
 export function del(model: Mongoose.Model<any>, id: any): Q.Promise<any> {
+    console.log("delete " + model.modelName);
     return <any>model.findByIdAndRemove({ '_id': id }).lean().then((response: any) => {
         return mongooseHelper.deleteCascade(model, [response]).then(x => {
             return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, [response])
                 .then(res => {
+                    console.log("delete end" + model.modelName);
                     return ({ delete: 'success' });
                 });
         });
     })
         .catch(err => {
-            winstonLog.logError(`delete failed ${err}`);
+            winstonLog.logError(`delete failed ${model.modelName}: ${err}`);
             return Q.reject({ delete: 'failed', error: err });
         });
 }
@@ -594,33 +672,18 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
                 return mongooseHelper.deleteCascade(model, parents).then(success => {
                     let asyncCalls = [];
                     return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
+                        console.log("bulkDel end" + model.modelName);
                         return ({ delete: 'success' });
                     });
                 });
             })
             .catch(err => {
-                winstonLog.logError(`bulkDel failed ${err}`);
+                winstonLog.logError(`bulkDel failed ${model.modelName}: ${err}`);
                 return Q.reject('bulkDel failed');
             });
     })
 }
 
-/**
- * Check whether decorator is applied or not.
- * @param path
- * @param decorator
- * @param propertyKey
- */
-function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, propertyKey: string) {
-    var isDecoratorPresent: boolean = false;
-    let repo = repoFromModel[model.modelName];
-    var repoEntity = repo && repo.getEntityType();
-    var optimisticLock = repoEntity && MetaUtils.getMetaData(repoEntity, decorator, propertyKey);
-    if (optimisticLock) {
-        isDecoratorPresent = true;
-    }
-    return isDecoratorPresent;
-}
 /**
  * Check if any child object need to be added, if yes, then add those child objects.
  * update the object with propertie. And then update the parent objects.
@@ -636,46 +699,15 @@ export function put(model: Mongoose.Model<any>, id: any, obj: any): Q.Promise<an
         if (res.length) {
             //this merging is wrong, as we cannnot send transient props in API rsult.Inconsistency @Ratnesh sugestion
             Object.assign(obj, res[0]);
+            console.log("put end" + model.modelName);
             return obj;
         }
+        console.log("put end" + model.modelName);
         return [];
     }).catch(error => {
-        winstonLog.logError(`Error in put ${error}`);
+        winstonLog.logError(`Error in put ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
-
-    //let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    //// First update the any embedded property and then update the model
-    //return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
-    //    var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-    //    let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "put");
-    //    let query: Object = { '_id': id };
-    //    if (isDecoratorPresent === true) {
-    //        updatedProps["$set"] && delete updatedProps["$set"]["__v"];
-    //        updatedProps["$inc"] = { '__v': 1 };
-    //        query["__v"] = obj["__v"];
-    //    }
-    //    return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
-    //        .then(result => {
-    //            if (!result && isDecoratorPresent === true) {
-    //                return Q.reject("You are trying to update with stale data,please try again after some time.");
-    //            }
-    //            return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.put, result, Utils.getPropertiesFromObject(clonedObj))
-    //                .then(res => {
-    //                    var resObj = Utils.toObject(result);
-    //                    return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
-    //                        Object.assign(obj, r);
-    //                        return obj;
-    //                    });
-    //                });
-    //        }).catch(error => {
-    //            winstonLog.logError(`Error in put ${error}`);
-    //            return Q.reject(error);
-    //        });
-    //}).catch(error => {
-    //    winstonLog.logError(`Error in put ${error}`);
-    //    return Q.reject(error);
-    //});
 }
 
 /**
@@ -696,41 +728,24 @@ export function patch(model: Mongoose.Model<any>, id: any, obj): Q.Promise<any> 
             return res[0];
         return [];
     }).catch(error => {
-        winstonLog.logError(`Error in put ${error}`);
+        winstonLog.logError(`Error in patch ${model.modelName}: ${error}`);
         return Q.reject(error);
     });
+}
 
-    //let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-
-    //// First update the any embedded property and then update the model
-    //return mongooseHelper.addChildModelToParent(model, clonedObj, id).then(result => {
-    //    var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.patch);
-    //    let isDecoratorPresent = isDecoratorApplied(path, Decorators.OPTIMISTICLOCK, "patch");
-    //    let query: Object = { '_id': id };
-    //    if (isDecoratorPresent === true) {
-    //        updatedProps["$set"] && delete updatedProps["$set"]["__v"];
-    //        updatedProps["$push"] && delete updatedProps["$push"]["__v"];
-    //        updatedProps["$inc"] = { '__v': 1 };
-    //        if (obj["__v"]) {
-    //            query["__v"] = obj["__v"];
-    //        }
-    //    }
-    //    return Q.nbind(model.findOneAndUpdate, model)(query, updatedProps, { new: true })
-    //        .then(result => {
-    //            if (!result && isDecoratorPresent === true) {
-    //                return Q.reject("You are trying to update with stale data,please try again after some time.");
-    //            }
-    //            return mongooseHelper.updateEmbeddedOnEntityChange(model, EntityChange.patch, result, Utils.getPropertiesFromObject(clonedObj))
-    //                .then(res => {
-    //                    var resObj = Utils.toObject(result);
-    //                    return mongooseHelper.fetchEagerLoadingProperties(model, resObj).then(r => {
-    //                        Object.assign(obj, r);
-    //                        return obj;
-    //                    });
-    //                });
-    //        });
-    //}).catch(error => {
-    //    winstonLog.logError(`Error in patch ${error}`);
-    //    return Q.reject(error);
-    //});
+/**
+ * Check whether decorator is applied or not.
+ * @param path
+ * @param decorator
+ * @param propertyKey
+ */
+function isDecoratorApplied(model: Mongoose.Model<any>, decorator: string, propertyKey: string) {
+    var isDecoratorPresent: boolean = false;
+    let repo = repoFromModel[model.modelName];
+    var repoEntity = repo && repo.getEntityType();
+    var optimisticLock = repoEntity && MetaUtils.getMetaData(repoEntity, decorator, propertyKey);
+    if (optimisticLock) {
+        isDecoratorPresent = true;
+    }
+    return isDecoratorPresent;
 }
