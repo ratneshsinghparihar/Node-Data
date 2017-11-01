@@ -13,7 +13,7 @@ function Messenger(options) {
     this.lastMessageTimestamp = null;
     this.startingMessageTimestamp = new Date();
     this.retryInterval = o.retryInterval || 100;
-    db.setMessenger(this);
+    db.addEmitter(this);
 }
 
 util.inherits(Messenger, EventEmitter);

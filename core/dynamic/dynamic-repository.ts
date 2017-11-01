@@ -13,6 +13,7 @@ import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 import {QueryOptions} from '../interfaces/queryOptions';
 import * as utils from '../../mongoose/utils';
+import {MetaData} from '../metadata/metadata';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
@@ -50,12 +51,14 @@ export interface IDynamicRepository {
     patch(id: any, obj);
     setRestResponse(obj: any);
     setSocket(obj: any);
+    setMetaData(meta: MetaData);
+    getMetaData(): MetaData;
 }
 
 export class DynamicRepository implements IDynamicRepository {
     private path: string;
     private model: any;
-    private metaModel: any;
+    private metaModel: MetaData;
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
@@ -75,6 +78,14 @@ export class DynamicRepository implements IDynamicRepository {
             target.rootLevelRep = rootRepo;
         }
         modelNameRepoModelMap[this.path] = this;
+    }
+
+    public setMetaData(meta: MetaData) {
+        this.metaModel = meta;
+    }
+
+    public getMetaData(): MetaData {
+        return this.metaModel;
     }
 
     public setSocket(socket?: { socket: any, clients: Array<any>, messenger: any }) {
@@ -120,15 +131,7 @@ export class DynamicRepository implements IDynamicRepository {
             return result;
         });
     }
-
-    private sendMessage1(path: string, message: any): Q.Promise<any> {
-        return Q.nbind(this.socket.messenger.send, this.socket.messenger)(path, message).then(result => {
-            return true;
-        }).catch(err => {
-            throw err;
-        });
-    }
-
+       
     private sendMessage(path: string, message: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.socket.messenger.send(path, message, function (err, data) {

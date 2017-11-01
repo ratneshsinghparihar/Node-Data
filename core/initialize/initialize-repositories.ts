@@ -18,6 +18,7 @@ import * as Enumerable from 'linq';
 import {repoFromModel} from '../dynamic/model-entity';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
+import {ExportTypes} from '../constants/decorators';
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
@@ -79,14 +80,17 @@ export class InitializeRepositories {
                     repo: newRepo
                 };
                 var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
-                meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
+                if (meta && meta[0]) {
+                    repoFromModel[meta[0].params.name] = newRepo;
+                    newRepo.setMetaData(meta[0]); 
+                }
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
 
         if (server) {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
             
-            var Message = require('mongoose-pubsub/lib/model');
+            
             var messenger = new Messenger({ retryInterval: 100 });
 
 
@@ -94,8 +98,11 @@ export class InitializeRepositories {
             this.socketClientholder.messenger = messenger;
             for (let key in repoMap) {
                 let repo = repoMap[key].repo;
-                repo.setSocket(this.socketClientholder);
-                messenger.subscribe(key, true);
+                let meta:MetaData = repo.getMetaData();
+                if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                    repo.setSocket(this.socketClientholder);
+                    messenger.subscribe(key, true);
+                }
             }
 
             // connect() begins "tailing" the collection 
@@ -103,11 +110,14 @@ export class InitializeRepositories {
                 // emits events for each new message on the channel 
 
                 for (let key in repoMap) {
-
-                    messenger.on(key, function (message) {
-                        console.log(key, message);
-                        io.sockets.emit(key, message);
-                    });
+                    let repo = repoMap[key].repo;
+                    let meta: MetaData = repo.getMetaData();
+                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                        messenger.on(key, function (message) {
+                            console.log(key, message);
+                            io.sockets.emit(key, message);
+                        });
+                    }
                 }
             });
 
@@ -116,33 +126,34 @@ export class InitializeRepositories {
                // this.socketClientholder.clients.push(client);
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
-                    client.on(key, function (data) {
-
-
-                        var d = domain.create();
-                        d.run(() => {
-                            try {
-                                let parsedData = data;
-                                let executefun = () => {
-                                    try {
-
-                                        if (parsedData && parsedData.action && parsedData.message) {
-                                            if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                                                repo[parsedData.action](parsedData.message);
+                    let meta: MetaData = repo.getMetaData();
+                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                        client.on(key, function (data) {
+                            var d = domain.create();
+                            d.run(() => {
+                                try {
+                                    let parsedData = data;
+                                    let executefun = () => {
+                                        try {
+                                            if (parsedData && parsedData.action && parsedData.message) {
+                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                    repo[parsedData.action](parsedData.message);
+                                                }
                                             }
+                                        } catch (exceptio) {
+                                            console.log(exceptio);
                                         }
-                                    } catch (exceptio) {
-                                        console.log(exceptio);
-                                    }
-                                };
-                                (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
+                                    };
+                                    (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
 
-                            }
-                            catch (exc) {
-                                console.log(exc);
-                            }
+                                }
+                                catch (exc) {
+                                    console.log(exc);
+                                }
+                            });
                         });
-                    });
+                    }
+                    
                 }
             });
         }
