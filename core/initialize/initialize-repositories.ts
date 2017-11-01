@@ -21,6 +21,8 @@ export var mongooseNameSchemaMap: { [key: string]: any } = {};
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
+var  Messenger=require( '../../mongoose/pubsub/messenger');
+
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
     private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {}};
@@ -83,8 +85,9 @@ export class InitializeRepositories {
 
         if (server) {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
-            var MessageQueue = require('mongoose-pubsub');
-            var messenger = new MessageQueue({ retryInterval: 100 });
+            
+            var Message = require('mongoose-pubsub/lib/model');
+            var messenger = new Messenger({ retryInterval: 100 });
 
 
             this.socketClientholder.socket = io;
@@ -96,7 +99,7 @@ export class InitializeRepositories {
             }
 
             // connect() begins "tailing" the collection 
-            messenger.connect(function () {
+            messenger.onConnect(function () {
                 // emits events for each new message on the channel 
 
                 for (let key in repoMap) {

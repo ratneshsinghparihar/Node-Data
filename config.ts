@@ -1,5 +1,5 @@
 
-let DbConnectionOptions = { server: { poolSize: 20, domainsEnabled: true } };
+let DbConnectionOptions = { server: { poolSize: 20, domainsEnabled: true, socketOptions: { keepAlive: 1 } } };
 
 export class Config {
     public static DbConnection: string = "mongodb://localhost:27017/test_nodedata";

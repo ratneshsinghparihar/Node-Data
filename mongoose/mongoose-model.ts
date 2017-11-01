@@ -339,6 +339,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     console.log("findWhere " + model.modelName);
     var sel = {};
+    let order = undefined;
     if (select instanceof Array) {
         select.forEach(x => {
             sel[x] = 1;
@@ -356,6 +357,8 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
 
         if (queryOptions.sort != null)
             sort = queryOptions.sort;
+        if (queryOptions.order != null)
+            order = queryOptions.order;
     }
 
     let queryObj = model.find(query, sel).lean();
@@ -368,6 +371,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     if (limit) {
         queryObj = queryObj.limit(limit);
     }
+   
     //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
         .then((result: Array<any>) => {

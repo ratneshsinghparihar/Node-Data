@@ -101,21 +101,41 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.socket) {
 
-                        this.socket.messenger.send(this.path, x, function (err) {
-                            console.log('Sent message');
-                        });
+                        messagesToSend.push(this.sendMessage(this.path, x));
 
                        // this.socket.socket.sockets.emit(this.path, x);
                     }
                 })
+
+                if (this.socket && messagesToSend.length) {
+                    return Q.allSettled(messagesToSend).then((sucess) => { return res; });
+                }
                 return res;
             }
             return result;
         });
+    }
+
+    private sendMessage1(path: string, message: any): Q.Promise<any> {
+        return Q.nbind(this.socket.messenger.send, this.socket.messenger)(path, message).then(result => {
+            return true;
+        }).catch(err => {
+            throw err;
+        });
+    }
+
+    private sendMessage(path: string, message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.socket.messenger.send(path, message, function (err, data) {
+                resolve(true);
+                console.log('Sent message');
+            });
+        })
     }
 
     public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
