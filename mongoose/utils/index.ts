@@ -88,6 +88,7 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
                 continue;
             }            
             unset[key] = '';
+            delete obj[key]; // make sure data should consistent for master collection with embedded entities
             u = true;
         }
         else {
