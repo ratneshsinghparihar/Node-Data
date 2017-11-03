@@ -1046,7 +1046,7 @@ export function getChangedModelForDynamicSchema(model: Mongoose.Model<any>, id: 
     let newModel = model;
     try {
         let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
-        return getNewModelFromObject(model, obj, id);
+        return getNewModelFromObject(model, obj);
     } catch (ex) {
         winstonLog.logError(ex);
     }
@@ -1061,9 +1061,9 @@ export function setUniqueIdFromShard(x: any) {
     }
 }
 
-export function getNewModelFromObject(model, obj: ShardInfo, id?: string) {
+export function getNewModelFromObject(model, obj: ShardInfo) {
     if (obj && obj.getCollectionNameFromSelf) {
-        return getDbSpecifcModel(obj.getCollectionNameFromSelf(id.toString()), model.schema);
+        return getDbSpecifcModel(obj.getCollectionNameFromSelf(), model.schema);
     }
     return model;
 }
