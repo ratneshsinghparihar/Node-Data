@@ -38,6 +38,30 @@ Messenger.prototype.send = function send(channel, msg, callback) {
 };
 
 
+Messenger.prototype.sendPendingMessage = function sendPendingMessage(rechannel, lastemit,receiver:any) {
+    var self = this;
+    var query: any = { channel: rechannel, timestamp: { $gte: lastemit } };
+    
+    if (!Message) {
+        Message = getMessage();
+    }
+    var stream = Message.find(query).stream();
+
+    stream.on('data', function data(doc) {
+        self.lastMessageTimestamp = doc.timestamp;
+        doc.message.receiver = receiver;
+        if (self.subscribed[doc.channel]) {
+            self.emit(doc.channel, doc.message);
+        }
+    });
+
+    // reconnect on error
+    stream.on('error', function streamError() {
+        stream.destroy();
+        self.connect();
+    });
+}
+
 
 Messenger.prototype.onConnect = function onConnect(callback) {
     var self = this;

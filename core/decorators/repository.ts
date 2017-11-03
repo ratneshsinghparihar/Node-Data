@@ -11,7 +11,7 @@ export function repository(params: { path: string, model: any, exportType?: Expo
         console.log('Repository - Path : ', params.path);
         target.prototype.path = params.path;
         target.prototype.model = params.model;
-        if (!params.exportType) {
+        if (params.exportType == undefined) {
             params.exportType = ExportTypes.REST;
         }
         MetaUtils.addMetaData(((<any>target).prototype || target),

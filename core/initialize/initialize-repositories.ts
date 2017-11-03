@@ -22,11 +22,12 @@ export var mongooseNameSchemaMap: { [key: string]: any } = {};
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
-var  Messenger=require( '../../mongoose/pubsub/messenger');
+var Messenger = require('../../mongoose/pubsub/messenger');
+import {PrincipalContext} from 'nodedata/security/auth/principalContext';
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
-    private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {}};
+    private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
 
     private socket: any;
     constructor(server?: any) {
@@ -42,7 +43,7 @@ export class InitializeRepositories {
 
         let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
 
-        
+
 
 
         Enumerable.from(repositories)
@@ -65,7 +66,7 @@ export class InitializeRepositories {
                 let rootRepo = new DynamicRepository();
                 rootRepo.initialize(repoParams.path, x.target, model, this.socket);
 
-               
+
 
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
@@ -82,15 +83,15 @@ export class InitializeRepositories {
                 var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
                 if (meta && meta[0] && x.metadata[0]) {
                     repoFromModel[meta[0].params.name] = newRepo;
-                    newRepo.setMetaData(x.metadata[0]); 
+                    newRepo.setMetaData(x.metadata[0]);
                 }
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
 
         if (server) {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
-            
-            
+
+
             var messenger = new Messenger({ retryInterval: 100 });
 
 
@@ -98,9 +99,9 @@ export class InitializeRepositories {
             this.socketClientholder.messenger = messenger;
             for (let key in repoMap) {
                 let repo = repoMap[key].repo;
-                let meta:MetaData = repo.getMetaData();
+                let meta: MetaData = repo.getMetaData();
                 if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
-                    repo.setSocket(this.socketClientholder); 
+                    repo.setSocket(this.socketClientholder);
                     messenger.subscribe(key, true);
                 }
             }
@@ -115,62 +116,139 @@ export class InitializeRepositories {
                     if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
                         messenger.on(key, function (message) {
                             console.log(key, message);
-                            io.sockets.emit(key, message);
-                        });
-                    }
-                }
-            });
+                            //io.sockets.emit(key, message);
+                            // io.in(key).emit(key, message);
+                            for (let channelId in io.sockets.connected) {
+                                if (message.receiver && message.receiver != channelId) {
+                                    continue;
+                                }
 
+                                if (message.receiver) {
+                                    delete message.receiver;
+                                }
 
-            io.on('connection', function (client) {               
-               // this.socketClientholder.clients.push(client);
-                for (let key in repoMap) {
-                    let repo = repoMap[key].repo;
-                    let meta: MetaData = repo.getMetaData();
-                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
-                        client.on(key, function (data) {
-                            var d = domain.create();
-                            d.run(() => {
-                                try {
-                                    let parsedData = data;
-                                    let executefun = () => {
-                                        try {
-                                            if (parsedData && parsedData.action && parsedData.message) {
-                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                                                    repo[parsedData.action](parsedData.message);
+                                let client = io.sockets.connected[channelId];
+
+                                //call security to check if (enity(message), for user (client.handshake.query) , can read entity
+                                if (client.handshake.query && client.handshake.query.curSession) {
+                                    var d = domain.create();
+                                    d.run(() => {
+                                        PrincipalContext.User = securityImpl.getContextObjectFromSession(client.handshake.query.curSession);
+                                        if (securityImpl.isAuthorize({ headers: client.handshake.query}, repo, "findMany")) {
+                                            repo.findMany([message]).then((data: Array<any>) => {
+                                                if (data && data.length) {
+                                                    client.emit(key, data[0]);
                                                 }
-                                            }
-                                        } catch (exceptio) {
-                                            console.log(exceptio);
+                                            }).catch((error) => {
+                                                console.log("error in findmany socket emmitter", error);
+                                            });
                                         }
-                                    };
-                                    (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
+
+                                       
+                                    });
 
                                 }
-                                catch (exc) {
-                                    console.log(exc);
+                                if (client.handshake.query && client.handshake.query.reliableChannles) {
+                                    let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
+
+                                    channelArr.forEach((rechannel) => {
+
+                                        if (rechannel == key) {
+                                            let query = client.handshake.query;
+                                            let curSession = client.handshake.query.curSession;
+                                            securityImpl.updateSession({
+                                                netsessionid: query.netsessionid,
+                                                channelName: rechannel,
+                                                lastemit: new Date(),
+                                                status: 'active'
+                                            }, curSession);
+                                        }
+                                    });
+
                                 }
-                            });
+                            }
                         });
                     }
-                    
                 }
+                io.on('connection', function (socket) {
+                    // this.socketClientholder.clients.push(client);
+
+
+
+                    console.log('client connected', socket.id);
+
+                    if (socket.handshake.query) {
+                        securityImpl.getSession(socket.handshake.query).then((session) => {
+                            socket.handshake.query.curSession = session;
+                        }).catch((error) => {
+                            console.log("error in getSession", error);
+                        });
+                    }
+
+                    //emitt pending messages 
+                    //fetch last timestam of client for each reliable channel
+                    if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                        let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+
+                        channelArr.forEach((rechannel) => {
+                            securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
+                                if (lastemit) {
+                                    //for each chnnel ask messeger the send an array of pending message
+                                   
+                                    messenger.sendPendingMessage(rechannel, lastemit, socket.id);
+
+                                    //use socket.emitt to send previous message
+                                }
+                            }).catch((error) => {
+                                console.log(error);
+                            });
+                        }
+                        )
+                    }
+
+
+                    socket.on('disconnect', function () {
+                        console.log('client disconnected', socket.id);
+                    });
+
+                    for (let key in repoMap) {
+                        let repo = repoMap[key].repo;
+                        let meta: MetaData = repo.getMetaData();
+                        if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                            socket.on(key, function (data) {
+                                var d = domain.create();
+                                d.run(() => {
+                                    try {
+                                        let parsedData = data;
+                                        let executefun = () => {
+                                            try {
+                                                if (parsedData && parsedData.action && parsedData.message) {
+                                                    if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                        repo[parsedData.action](parsedData.message);
+                                                    }
+                                                }
+                                            } catch (exceptio) {
+                                                console.log(exceptio);
+                                            }
+                                        };
+                                        (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
+
+                                    }
+                                    catch (exc) {
+                                        console.log(exc);
+                                    }
+                                });
+                            });
+                        }
+
+                    }
+                });
             });
+
+
+
         }
 
-        //let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
-        //for (var path in mongooseSchemaMap) {
-        //    var schemaMapVal = mongooseSchemaMap[path];
-        //    if (!schemaNameModel[schemaMapVal.name]) {
-        //        schemaNameModel[schemaMapVal.name] = { entity: schemaMapVal.fn.model, model: Mongoose.model(schemaMapVal.name, schemaMapVal.schema) };
-        //    }
-
-        //    repoMap[path] = {
-        //        fn: mongooseSchemaMap[path].fn,
-        //        repo: new DynamicRepository(schemaMapVal.name, GetEntity(schemaMapVal.name), GetModel(schemaMapVal.name), schemaMapVal.fn)
-        //    };
-        //    searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
-        //}
         repositoryMap(repoMap);
     }
 }
