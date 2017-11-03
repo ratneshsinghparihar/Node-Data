@@ -23,7 +23,7 @@ import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
 var Messenger = require('../../mongoose/pubsub/messenger');
-import {PrincipalContext} from 'nodedata/security/auth/principalContext';
+import {PrincipalContext} from '../../security/auth/principalContext';
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
