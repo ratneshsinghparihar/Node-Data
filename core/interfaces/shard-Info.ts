@@ -1,5 +1,5 @@
 ﻿export interface ShardInfo {
     getUniqueId();
-    getCollectionNameFromSelf(id?: string);
+    getCollectionNameFromSelf();
     getCollectionNameFromShardKey(id: string);
 }
