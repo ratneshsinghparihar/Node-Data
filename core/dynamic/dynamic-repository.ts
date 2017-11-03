@@ -119,12 +119,13 @@ export class DynamicRepository implements IDynamicRepository {
 
                         messagesToSend.push(this.sendMessage(this.path, x));
 
-                       // this.socket.socket.sockets.emit(this.path, x);
+                        // this.socket.socket.sockets.emit(this.path, x);
                     }
                 })
 
                 if (this.socket && messagesToSend.length) {
-                    return Q.allSettled(messagesToSend).then((sucess) => { return res; });
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
                 }
                 return res;
             }
@@ -149,15 +150,21 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize, donotLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.socket) {
-                        this.socket.messenger.send(this.path, x, function (err) {
-                            console.log('Sent message');
-                        });
-                       // this.socket.socket.sockets.emit(this.path, x);
+
+                        messagesToSend.push(this.sendMessage(this.path, x));
+
+                        // this.socket.socket.sockets.emit(this.path, x);
                     }
-                });
+                })
+
+                if (this.socket && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;

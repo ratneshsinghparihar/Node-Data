@@ -200,7 +200,7 @@ export class InitializeRepositories {
                                     //use socket.emitt to send previous message
                                 }
                             }).catch((error) => {
-                                console.log(error);
+                                console.log("error in securityImpl.getSessionLastTimeStampForChannel",error);
                             });
                         }
                         )
