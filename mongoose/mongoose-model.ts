@@ -14,6 +14,8 @@ import { Decorators } from '../core/constants/decorators';
 import { GetRepositoryForName, DynamicRepository } from '../core/dynamic/dynamic-repository';
 import {_arrayPropListSchema} from './dynamic-schema';
 import { MetaData } from '../core/metadata/metadata';
+import {ShardInfo} from '../core/interfaces/shard-Info';
+import {InstanceService} from '../core/services/instance-service';
 
 /**
  * Iterate through objArr and check if any child object need to be added. If yes, then add those child objects.
@@ -61,11 +63,11 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
             }
             return Q.allSettled(asyncCalls).then(suces => {
                 let values = [];
-                values = suces.map(x => x.value).reduce((prev, current) => {
-                    return prev.concat(current);
+                suces.map(x => x.value).forEach(x => {
+                    values = values.concat(x);
                 });
                 console.log("bulkPost end" + model.modelName);
-                return values;
+                return suces;
             }).catch(er => {
                 winstonLog.logError(`Error in bulkPost ${model.modelName}: ${er}`);
                 throw er;
@@ -75,6 +77,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
 
 function executeBulk(model, arrayOfDbModels: Array<any>) {
     console.log("start executeBulk post", model.modelName);
+    let executeBulkPost = {};
     arrayOfDbModels.forEach(x => {
         if (x[ConstantKeys.TempId]) {
             x._id = x[ConstantKeys.TempId]
@@ -82,6 +85,11 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
         }
         mongooseHelper.setUniqueIdFromShard(x);
         mongooseHelper.setShardCondition(model, x);
+        let newModel = mongooseHelper.getNewModelFromObject(model, x);
+        if (!executeBulkPost[newModel.modelName]) {
+            executeBulkPost[newModel.modelName] = { objs: [], model: newModel };
+        }
+        executeBulkPost[newModel.modelName].objs.push(x);
         if (!_arrayPropListSchema[model.modelName]) {
             return;
         }
@@ -92,12 +100,18 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
             }
         });
     });
+    let asycnCalls = [];
+    Object.keys(executeBulkPost).forEach(x => {
+        asycnCalls.push(Q.nbind(executeBulkPost[x].collection.insertMany, executeBulkPost[x].collection)(executeBulkPost[x].objs));
+    });
     console.log("empty array executeBulk ", model.modelName);
-    let newModel = mongooseHelper.getNewModelFromObject(model, arrayOfDbModels[0]);
-    return Q.nbind(newModel.collection.insertMany, newModel.collection)(arrayOfDbModels).then((result: any) => {
+    return Q.allSettled(asycnCalls).then(result => {
         console.log("end executeBulk post", model.modelName);
-        result = result && result.ops;
-        return result;
+        let values = [];
+        values = result.map(x => x.value).reduce((prev, current) => {
+            return prev.concat(current);
+        });
+        return values;
     }).catch(err => {
         throw err;
     });
@@ -160,16 +174,20 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         // check if not relationship present in the docs then do not call updateProps
         // 
 
-        //it has to be group by
-        let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, objArr[0]._id.toString());
-        var bulk = newModel.collection.initializeUnorderedBulkOp();
-
+        let allBulkExecute = {}; 
         for (let i = 0; i < objArr.length; i++) {
             let result = objArr[i];
+            let newModel = mongooseHelper.getNewModelFromObject(model, result);
             var objectId = new Mongoose.Types.ObjectId(result._id);
             objectIds.push(objectId);
             let id = result._id;
             let parent = result.parent;
+
+            if (!allBulkExecute[newModel.modelName]) {
+                allBulkExecute[newModel.modelName] = newModel.collection.initializeUnorderedBulkOp();
+            }
+            let bulk = allBulkExecute[newModel.modelName];
+
             delete result._id;
             delete result[ConstantKeys.FullyLoaded];
             for (let prop in transientProps) {
@@ -203,12 +221,17 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             bulk.find(mongooseHelper.setShardCondition(model, { _id: objectId })).update(updatedProps);
         }
-        let promBulkUpdate = Q.when({});
+        let asyncCalls = [];
+        //let promBulkUpdate = Q.when({});
         console.log("bulkPut bulk.execute start" + model.modelName);
         if (isUpdateReq) {
-            promBulkUpdate = Q.nbind(bulk.execute, bulk)();
+            Object.keys(allBulkExecute).forEach(x => {
+                let bulk = allBulkExecute[x];
+                asyncCalls.push(Q.nbind(bulk.execute, bulk)());
+            });
         }
-        return promBulkUpdate.then(result => {
+        return Q.allSettled(asyncCalls).then(result => {
+            //return promBulkUpdate.then(result => {
             console.log("bulkPut bulk.execute end" + model.modelName);
 
             // update parent
@@ -223,7 +246,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 });
             }
             else {
-                prom = findMany(newModel, objectIds);
+                prom = findMany(model, objectIds);
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
@@ -271,10 +294,15 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
         let jsonProps = mongooseHelper.getEmbeddedPropWithFlat(model).map(x => x.propertyKey);
 
         //it has to be group by
-        let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, ids[0].toString());
-        var bulk = newModel.collection.initializeUnorderedBulkOp();
+        let allBulkExecute = {};
         objArr.forEach(result => {
             var objectId = new Mongoose.Types.ObjectId(result._id);
+            let newModel = mongooseHelper.getNewModelFromObject(model, result);
+            if (!allBulkExecute[newModel.modelName]) {
+                allBulkExecute[newModel.modelName] = newModel.collection.initializeUnorderedBulkOp();
+            }
+            let bulk = allBulkExecute[newModel.modelName];
+
             delete result._id;
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
@@ -289,7 +317,12 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
             }
             bulk.find(mongooseHelper.setShardCondition(model, query)).update(updatedProps);
         });
-        return Q.nbind(bulk.execute, bulk)().then(result => {
+        let asyncCalls = [];
+        Object.keys(allBulkExecute).forEach(x => {
+            let bulk = allBulkExecute[x];
+            asyncCalls.push(Q.nbind(bulk.execute, bulk)());
+        });
+        return Q.allSettled(asyncCalls).then(result => {
             // update parent
             return findMany(model, ids).then((objects: Array<any>) => {
                 return mongooseHelper.updateParent(model, objects).then(res => {
@@ -324,10 +357,14 @@ export function bulkPutMany(model: Mongoose.Model<any>, objIds: Array<any>, obj:
     cond['_id'] = {
         $in: objIds
     };
+    cond = mongooseHelper.setShardCondition(model, cond);
     var updatedProps = Utils.getUpdatedProps(clonedObj, EntityChange.put);
-    //it has to be group by
-    let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, objIds[0].toString());
-    return Q.nbind(newModel.update, newModel)(mongooseHelper.setShardCondition(model, cond), updatedProps, { multi: true })
+    let newModels = mongooseHelper.getAllShardModelsFromIds(model, objIds);
+    let asyncCalls = [];
+    Object.keys(newModels).forEach(x => {
+        asyncCalls.push(Q.nbind(newModels[x].update, newModels[x])(cond, updatedProps, { multi: true }));
+    });
+    return Q.allSettled(asyncCalls)
         .then(result => {
             let allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             let ref = allReferencingEntities.find((x: MetaData) => x.params && x.params.embedded);
@@ -414,6 +451,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
  */
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     console.log("findWhere " + model.modelName);
+
     var sel = {};
     if (select instanceof Array) {
         select.forEach(x => {
@@ -434,35 +472,69 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             sort = queryOptions.sort;
     }
 
-    let queryObj = model.find(mongooseHelper.setShardCondition(model, query), sel).lean();
-    if (sort) {
-        queryObj = queryObj.sort(sort);
-    }
-    if (skip) {
-        queryObj = queryObj.skip(skip);
-    }
-    if (limit) {
-        queryObj = queryObj.limit(limit);
-    }
-    //winstonLog.logInfo(`findWhere query is ${query}`);
-    return Q.nbind(queryObj.exec, queryObj)()
-        .then((result: Array<any>) => {
-            // update embedded property, if any
-            if (toLoadChilds != undefined && toLoadChilds == false) {
-                mongooseHelper.transformAllEmbeddedChildern1(model, result);
-                console.log("findWhere end" + model.modelName);
-                return result;
+    let newModels = {};
+    newModels[model.modelName] = model;
+    let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+    if (obj.getShardKey) {
+        let key = obj.getShardKey();
+        if (query[key]) {
+            if (CoreUtils.isJSON(query[key])) {
+                if (query[key]['$in']) {
+                    query[key]['$in'].forEach(x => {
+                        let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, query[key]);
+                        newModels[newModel.modelName] = newModel;
+                    });
+                }
             }
-            var asyncCalls = [];
-            asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
-            return Q.allSettled(asyncCalls).then(r => {
-                console.log("findWhere end" + model.modelName);
-                return result;
+            else {
+                // get shard collection 
+                let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, query[key]);
+                newModels[newModel.modelName] = newModel;
+            }
+        }
+        if (Object.keys(newModels).length == 0) {
+            // find all the collection name and execute the query
+            mongooseHelper.getAllTheShards(model).forEach(x => {
+                newModels[x.modelName] = x;
             });
-        }).catch(error => {
-            winstonLog.logError(`Error in findWhere ${model.modelName}: ${error}`);
-            return Q.reject(error);
+        }
+    }
+    let asyncCalls = [];
+    Object.keys(newModels).forEach(x => {
+        let queryObj = newModels[x].find(mongooseHelper.setShardCondition(newModels[x], query), sel).lean();
+        if (sort) {
+            queryObj = queryObj.sort(sort);
+        }
+        if (skip) {
+            queryObj = queryObj.skip(skip);
+        }
+        if (limit) {
+            queryObj = queryObj.limit(limit);
+        }
+        asyncCalls.push(Q.nbind(queryObj.exec, queryObj)());
+    });
+    return Q.allSettled(asyncCalls).then(res => {
+        let result = [];
+        result = res.map(x => x.value).reduce((prev, current) => {
+            return prev.concat(current);
         });
+        //winstonLog.logInfo(`findWhere query is ${query}`);
+        // update embedded property, if any
+        if (toLoadChilds != undefined && toLoadChilds == false) {
+            mongooseHelper.transformAllEmbeddedChildern1(model, result);
+            console.log("findWhere end" + model.modelName);
+            return result;
+        }
+        var asyncCalls = [];
+        asyncCalls.push(mongooseHelper.embeddedChildren1(model, result, false));
+        return Q.allSettled(asyncCalls).then(r => {
+            console.log("findWhere end" + model.modelName);
+            return result;
+        });
+    }).catch(error => {
+        winstonLog.logError(`Error in findWhere ${model.modelName}: ${error}`);
+        return Q.reject(error);
+    });
     // winstonLog.logInfo(`findWhere query is ${query}`);
     // return Q.nbind(model.find, model)(query)
     //     .then(result => {
@@ -527,12 +599,20 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
     if (toLoadEmbeddedChilds == undefined) {
         toLoadEmbeddedChilds = false;
     }
-    let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, ids[0]);
-    return <any>newModel.find(mongooseHelper.setShardCondition(model, {
-        '_id': {
-            $in: ids
-        }
-    })).lean().then((result: Array<any>) => {
+    let newModels = mongooseHelper.getAllShardModelsFromIds(model, ids);
+    let asyncCalls = [];
+    Object.keys(newModels).forEach(x => {
+        asyncCalls.push(<any>newModels[x].find(mongooseHelper.setShardCondition(model, {
+            '_id': {
+                $in: ids
+            }
+        })).lean());
+    });
+    return Q.allSettled(asyncCalls).then(res => {
+        let result = [];
+        result = res.map(x => x.value).reduce((prev, current) => {
+            return prev.concat(current);
+        });
         if (result.length !== ids.length) {
             let oneId = "";
             if (ids && ids.length) {
@@ -682,31 +762,40 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
         }
     });
     if (!ids || !ids.length) return Q.when([]);
-    let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, ids[0]);
-    var bulk = newModel.collection.initializeUnorderedBulkOp();
-    ids.forEach(x => {
-        bulk.find(mongooseHelper.setShardCondition(model, { _id: x })).remove();
+    let newModels = mongooseHelper.getAllShardModelsFromIds(model, ids);
+    Object.keys(newModels).forEach(x => {
+        asyncCalls.push(<any>newModels[x].find(mongooseHelper.setShardCondition(model, {
+            '_id': {
+                $in: ids
+            }
+        })).lean());
     });
-    return <any>newModel.find(mongooseHelper.setShardCondition(model, {
-        '_id': {
-            $in: ids
-        }
-    })).lean().then((parents: Array<any>) => {
-        return Q.nbind(bulk.execute, bulk)()
-            .then(result => {
-                return mongooseHelper.deleteCascade(model, parents).then(success => {
-                    let asyncCalls = [];
-                    return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
-                        console.log("bulkDel end" + model.modelName);
-                        return ({ delete: 'success' });
-                    });
+    return Q.allSettled(asyncCalls).then(res => {
+        let parents = [];
+        parents = res.map(x => x.value).reduce((prev, current) => {
+            return prev.concat(current);
+        });
+        asyncCalls = [];
+        Object.keys(newModels).forEach(x => {
+            asyncCalls.push(Q.nbind(newModels[x].remove, newModels[x])(mongooseHelper.setShardCondition(model, {
+                '_id': {
+                    $in: ids
+                }
+            })));
+        });
+        return Q.allSettled(asyncCalls).then(result => {
+            return mongooseHelper.deleteCascade(model, parents).then(success => {
+                let asyncCalls = [];
+                return mongooseHelper.deleteEmbeddedFromParent(model, EntityChange.delete, parents).then(x => {
+                    console.log("bulkDel end" + model.modelName);
+                    return ({ delete: 'success' });
                 });
-            })
-            .catch(err => {
-                winstonLog.logError(`bulkDel failed ${model.modelName}: ${err}`);
-                return Q.reject('bulkDel failed');
             });
-    })
+        }).catch(err => {
+            winstonLog.logError(`bulkDel failed ${model.modelName}: ${err}`);
+            return Q.reject('bulkDel failed');
+        });
+    });
 }
 
 /**

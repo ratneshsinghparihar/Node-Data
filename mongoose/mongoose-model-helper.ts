@@ -530,12 +530,17 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
         }
         var parents: Array<any> = Utils.toObject(result);
         var parentIds = parents.map(x => x._id);
-        let newModel = getChangedModelForDynamicSchema(model, parentIds[0]);
-        var bulk = newModel.collection.initializeUnorderedBulkOp();
+        let allBulkExecute = {}; 
         // classic for loop used gives high performanance
         for (var i = 0; i < objs.length; i++) {
             var queryFindCond = {};
             var updateSet = {};
+            let newModel = getNewModelFromObject(model, objs[i]);
+            if (!allBulkExecute[newModel.modelName]) {
+                allBulkExecute[newModel.modelName] = newModel.collection.initializeUnorderedBulkOp();
+            }
+            let bulk = allBulkExecute[newModel.modelName];
+
             var objectId = Utils.castToMongooseType(objs[i]._id, Mongoose.Types.ObjectId);
             queryFindCond['_id'] = { $in: parentIds };
             queryFindCond[meta.propertyKey + '._id'] = objectId;
@@ -544,7 +549,12 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             bulk.find(setShardCondition(model, queryFindCond)).update({ $set: updateSet });
         }
         console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
-        return Q.nbind(bulk.execute, bulk)().then(result => {
+        let asyncCalls = [];
+        Object.keys(allBulkExecute).forEach(x => {
+            let bulk = allBulkExecute[x];
+            asyncCalls.push(Q.nbind(bulk.execute, bulk)());
+        });
+        return Q.allSettled(asyncCalls).then(result => {
             console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
@@ -572,13 +582,17 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
 function bulkDelete(model: Mongoose.Model<any>, ids: any) {
     if (!ids || !ids.length) return Q.when([]);
     return mongooseModel.findMany(model, ids).then((data: Array<any>) => {
-        let newModel = getChangedModelForDynamicSchema(model, ids[0]);
-        return Q.nbind(newModel.remove, newModel)(setShardCondition(model, {
-            '_id': {
-                $in: ids
-            }
-        })).then(x => {
-            var asyncCalls = [];
+        let newModels = getAllShardModelsFromIds(model, ids);
+        let asyncCalls = [];
+        Object.keys(newModels).forEach(x => {
+            asyncCalls.push(Q.nbind(newModels[x].remove, newModels[x])(setShardCondition(model, {
+                '_id': {
+                    $in: ids
+                }
+            })));
+        });
+        return Q.allSettled(asyncCalls).then(x => {
+            asyncCalls = [];
             // will not call update embedded parent because these children should not exist without parent
             asyncCalls.push(deleteCascade(model, data));
             return Q.allSettled(asyncCalls);
@@ -1045,7 +1059,8 @@ function castAndGetPrimaryKeys(obj, prop, relMetaData: MetaData): Array<any> {
 export function getChangedModelForDynamicSchema(model: Mongoose.Model<any>, id: any): Mongoose.Model<any> {
     let newModel = model;
     try {
-        let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+        let obj: any = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+        obj._id = id;
         return getNewModelFromObject(model, obj);
     } catch (ex) {
         winstonLog.logError(ex);
@@ -1066,6 +1081,37 @@ export function getNewModelFromObject(model, obj: ShardInfo) {
         return getDbSpecifcModel(obj.getCollectionNameFromSelf(), model.schema);
     }
     return model;
+}
+
+// It returns all collection name and ids for these collection name
+export function getAllShardModelsFromIds(model: Mongoose.Model<any>, ids: Array<string>): any {
+    let shardModelInfo = {};
+    shardModelInfo[model.modelName] = model;
+    try {
+        let shardobj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+        if (shardobj && shardobj.getCollectionNameFromSelf()) {
+            let obj: any = shardobj;
+            ids.forEach(x => {
+                obj._id = x;
+                let newModel = getNewModelFromObject(model, obj);
+                shardModelInfo[newModel.modelName] = newModel;
+            });
+        }
+
+    } catch (ex) {
+        winstonLog.logError(ex);
+    }
+    return shardModelInfo;
+}
+
+export function getAllTheShards(model: Mongoose.Model<any>) {
+    let shardobj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
+    if (shardobj.getAllShardCollectionNames) {
+        let newModels = [];
+        newModels = shardobj.getAllShardCollectionNames().map(x => getDbSpecifcModel(x, model.schema));
+        return newModels;
+    }
+    return [model];
 }
 
 // Implementation for horizontal sharding
