@@ -25,6 +25,8 @@ var domain = require('domain');
 var Messenger = require('../../mongoose/pubsub/messenger');
 import {PrincipalContext} from '../../security/auth/principalContext';
 
+
+
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
     private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
@@ -38,7 +40,42 @@ export class InitializeRepositories {
         this._schemaGenerator = schemaGenerator;
     }
 
+    private executeFindMany = (client, repo, message, multiClients?: any) => {
+        return repo.findMany([message]).then((data: Array<any>) => {
+            if (data && data.length) {
+                if (multiClients && multiClients.length) {
+                    multiClients.forEach((client) => { client.emit(repo.modelName(), data[0]); });
+                }
+                else {
+                    client.emit(repo.modelName(), data[0]);
+                }
+                return data
+            }
+            return undefined
+        }).catch((error) => {
+            console.log("error in findmany socket emmitter", error);
+            throw error;
+        });
+    }
+
+    private sendMessageToclient = (client, repo, message, multiClients?: any) => {
+        if (client.handshake.query && client.handshake.query.curSession) {
+            var d = domain.create();
+            d.run(() => {
+                PrincipalContext.User = securityImpl.getContextObjectFromSession(client.handshake.query.curSession);
+                //move to above 
+                if (securityImpl.isAuthorize({ headers: client.handshake.query }, repo, "findMany")) {
+                    this.executeFindMany(client, repo, message, multiClients);
+                }
+
+
+            });
+
+        }
+    }
+
     private initializeRepo(server?: any) {
+        let self = this;
         let repositories = MetaUtils.getMetaDataForDecorators([Decorators.REPOSITORY]);
 
         let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
@@ -118,7 +155,18 @@ export class InitializeRepositories {
                             console.log(key, message);
                             //io.sockets.emit(key, message);
                             // io.in(key).emit(key, message);
+
+                            let broadcastClients: Array<any> = new Array<any>();
+
                             for (let channelId in io.sockets.connected) {
+                                let client = io.sockets.connected[channelId];
+
+                                if (client.handshake.query && client.handshake.query.broadcastChannels &&
+                                    client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }) > 0) {
+                                    broadcastClients.push(client);
+                                    continue;
+                                }
+                                
                                 if (message.receiver && message.receiver != channelId) {
                                     continue;
                                 }
@@ -127,27 +175,10 @@ export class InitializeRepositories {
                                     delete message.receiver;
                                 }
 
-                                let client = io.sockets.connected[channelId];
-
                                 //call security to check if (enity(message), for user (client.handshake.query) , can read entity
-                                if (client.handshake.query && client.handshake.query.curSession) {
-                                    var d = domain.create();
-                                    d.run(() => {
-                                        PrincipalContext.User = securityImpl.getContextObjectFromSession(client.handshake.query.curSession);
-                                        if (securityImpl.isAuthorize({ headers: client.handshake.query}, repo, "findMany")) {
-                                            repo.findMany([message]).then((data: Array<any>) => {
-                                                if (data && data.length) {
-                                                    client.emit(key, data[0]);
-                                                }
-                                            }).catch((error) => {
-                                                console.log("error in findmany socket emmitter", error);
-                                            });
-                                        }
 
-                                       
-                                    });
 
-                                }
+                                self.sendMessageToclient(client, repo, message);
                                 if (client.handshake.query && client.handshake.query.reliableChannles) {
                                     let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
 
@@ -166,6 +197,10 @@ export class InitializeRepositories {
                                     });
 
                                 }
+                            }
+
+                            if (broadcastClients && broadcastClients.length) {
+                                self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
                             }
                         });
                     }
@@ -194,13 +229,13 @@ export class InitializeRepositories {
                             securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
                                 if (lastemit) {
                                     //for each chnnel ask messeger the send an array of pending message
-                                   
+
                                     messenger.sendPendingMessage(rechannel, lastemit, socket.id);
 
                                     //use socket.emitt to send previous message
                                 }
                             }).catch((error) => {
-                                console.log("error in securityImpl.getSessionLastTimeStampForChannel",error);
+                                console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
                             });
                         }
                         )
