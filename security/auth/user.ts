@@ -33,7 +33,7 @@ export class User implements UserDetails {
         }
     }
 
-    getAuthorities(): Array<any> {
+    getAuthorities(): Array<string> {
         return this.authorities;
     };
 

@@ -4,11 +4,13 @@ import { ConstantKeys } from '../constants';
 import { DecoratorType } from '../enums/decorator-type';
 import { IPreauthorizeParams } from './interfaces/preauthorize-params';
 import { PrincipalContext } from '../../security/auth/principalContext';
+import { User } from '../../security/auth/user';
 import { PreAuthService } from '../services/pre-auth-service';
 import {PostFilterService} from '../services/post-filter-service';
 import { pathRepoMap, getEntity, getModel } from '../dynamic/model-entity';
 import { InstanceService } from '../services/instance-service';
 import * as Utils from '../utils';
+import * as configUtil from '../../security-config';
 import { RepoActions } from '../enums/repo-actions-enum';
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
 import * as Enumerable from 'linq';
@@ -90,22 +92,48 @@ export function entityAction(params: IPreauthorizeParams): any {
                     });
                 }
                 else {
-                    console.log("CanSave entity Security" + this.path);
+                        console.log("CanSave entity Security" + this.path);
+                        
+                        //read security config
+                        //check for this.path if acl is false then execute 
+                        //return originalMethod.call(this, ...args);
+
+
+                        let executeNextMethod = () => {
+                            if (args.length) {
+                                args[args.length] = fullyQualifiedEntities;
+                            }
+                            else {
+                                args[0] = fullyQualifiedEntities;
+                            }
+                            //}
+                            return originalMethod.call(this, ...args);
+                        }
+
+                        let user: User = PrincipalContext.User;
+                        if (user && user.getAuthorities() && configUtil.SecurityConfig) {
+                            let matchedConfigs = configUtil.SecurityConfig.ResourceAccess.filter((config) => { return config.name == this.path })
+                            if (matchedConfigs && matchedConfigs.length) {
+                                let matchedConfig = matchedConfigs[0].acl;
+                                let matchedRoleConfig;
+                                user.getAuthorities().forEach((curRole: string) => {
+                                     matchedRoleConfig = matchedConfig.filter((config) => { return config.role == curRole && config.acl  })
+                                });
+
+                                if (matchedRoleConfig) {
+                                    //need to by pass acl , role is good enough to do everythingh on is own
+                                    executeNextMethod();
+                                }
+
+                            }
+
+                        }
+
                     return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
                         console.log("CanSave entity Security End" + this.path);
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
-                            // for delete, post action no need to save merged entity else save merged entity to db
-                            //if (originalMethod.name.toUpperCase() != RepoActions.delete.toUpperCase()) {
-                                if (args.length) {
-                                    args[args.length] = fullyQualifiedEntities;
-                                }
-                                else {
-                                    args[0] = fullyQualifiedEntities;
-                                }
-                            //}
-                            return originalMethod.call(this, ...args);
-                            //return originalMethod.apply(this, [fullyQualifiedEntities]);
+                            executeNextMethod();
                         }
                         else {
                             var error = 'unauthorize access for resource';

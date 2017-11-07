@@ -1,6 +1,6 @@
 
 export class SecurityConfig {
-    public static ResourceAccess: any = [{
+    public static ResourceAccess: Array<{ name: string, acl: Array<{ role: string, accessmask: number, acl?: boolean }> }> = [{
         "name": "blogs",
         "acl": [{ "role": "ROLE_ADMIN", "accessmask": 7 },
             { "role": "ROLE_USER", "accessmask": 1 },
