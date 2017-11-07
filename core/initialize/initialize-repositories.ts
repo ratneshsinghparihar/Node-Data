@@ -122,6 +122,9 @@ export class InitializeRepositories {
                     repoFromModel[meta[0].params.name] = newRepo;
                     newRepo.setMetaData(x.metadata[0]);
                 }
+               
+
+                
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
 
@@ -152,18 +155,23 @@ export class InitializeRepositories {
                     let meta: MetaData = repo.getMetaData();
                     if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
                         messenger.on(key, function (message) {
-                            console.log(key, message);
+                            
                             //io.sockets.emit(key, message);
                             // io.in(key).emit(key, message);
 
                             let broadcastClients: Array<any> = new Array<any>();
-
+                            let messageSendStatistics: any = {};
+                            let connectedClients = 0;
+                            let broadCastClients = 0;
+                            let reliableClients = 0;
                             for (let channelId in io.sockets.connected) {
+                                connectedClients++;
                                 let client = io.sockets.connected[channelId];
 
                                 if (client.handshake.query && client.handshake.query.broadcastChannels &&
-                                    client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }) > 0) {
+                                    client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }).length > 0) {
                                     broadcastClients.push(client);
+                                    broadCastClients++
                                     continue;
                                 }
                                 
@@ -181,7 +189,7 @@ export class InitializeRepositories {
                                 self.sendMessageToclient(client, repo, message);
                                 if (client.handshake.query && client.handshake.query.reliableChannles) {
                                     let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
-
+                                    reliableClients++;
                                     channelArr.forEach((rechannel) => {
 
                                         if (rechannel == key) {
@@ -190,7 +198,7 @@ export class InitializeRepositories {
                                             securityImpl.updateSession({
                                                 netsessionid: query.netsessionid,
                                                 channelName: rechannel,
-                                                lastemit: new Date(),
+                                                lastemit: messenger.lastMessageTimestamp,
                                                 status: 'active'
                                             }, curSession);
                                         }
@@ -202,6 +210,13 @@ export class InitializeRepositories {
                             if (broadcastClients && broadcastClients.length) {
                                 self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
                             }
+
+                            messageSendStatistics.connectedClients = connectedClients;
+                            messageSendStatistics.broadCastClients = broadCastClients;
+                            messageSendStatistics.reliableClients = reliableClients;
+                            messageSendStatistics.channel = key;
+                            messageSendStatistics.id = message._id && message._id.toString();
+                            console.log("pub-sub message sent ", messageSendStatistics);
                         });
                     }
                 }

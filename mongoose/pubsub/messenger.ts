@@ -74,6 +74,7 @@ Messenger.prototype.onConnect = function onConnect(callback) {
 
 Messenger.prototype.connect = function connect(callback) {
     var self = this;
+    console.log("messenger started on ", self.startingMessageTimestamp);
     var query:any = { timestamp: { $gte: self.startingMessageTimestamp } };
     if (self.lastMessageTimestamp) {
         query = { timestamp: { $gt: self.lastMessageTimestamp } };
