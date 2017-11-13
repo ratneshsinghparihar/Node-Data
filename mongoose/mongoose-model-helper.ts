@@ -140,6 +140,10 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
             let repo: DynamicRepository = repoFromModel[relModel.modelName];
             var ids = [];
             values.forEach(val => {
+                if (!val) {
+                    return;
+                }
+
                 if (m.propertyType.isArray) {
                     transformEmbeddedChildern1(val, m);
                 }
