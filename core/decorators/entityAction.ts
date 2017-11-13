@@ -117,12 +117,12 @@ export function entityAction(params: IPreauthorizeParams): any {
                                 let matchedConfig = matchedConfigs[0].acl;
                                 let matchedRoleConfig;
                                 user.getAuthorities().forEach((curRole: string) => {
-                                     matchedRoleConfig = matchedConfig.filter((config) => { return config.role == curRole && config.acl  })
+                                     matchedRoleConfig = matchedConfig.filter((config) => { return config.role == curRole && config.acl===false  })
                                 });
 
                                 if (matchedRoleConfig) {
                                     //need to by pass acl , role is good enough to do everythingh on is own
-                                    executeNextMethod();
+                                    return executeNextMethod();
                                 }
 
                             }
@@ -133,7 +133,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         console.log("CanSave entity Security End" + this.path);
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
-                            executeNextMethod();
+                            return executeNextMethod();
                         }
                         else {
                             var error = 'unauthorize access for resource';
