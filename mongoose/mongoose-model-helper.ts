@@ -429,38 +429,41 @@ function updateParentWithoutParentId(model: Mongoose.Model<any>, meta: MetaData,
     });
 }
 
+
 function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     let parents = {};
+    let isJsonMap = isJsonMapEnabled(meta.params);
     console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
-
-        if (!objs[i].__updatedProps) {
-            continue;
-        }
-        delete objs[i].__updatedProps;// deleting so that it doesn't get updated on parent Document
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
-        var queryFindCond = {};
-        
-        parents[parentId] = parents[parentId] ? parents[parentId] : {};
-       // var updateSet = {};
+        parents[parentId] = parents[parentId] ? parents[parentId] : (isJsonMap ? {} : []);
         // check meta then update with array or keyvalue
-        let isJsonMap = isJsonMapEnabled(meta.params);
         if (isJsonMap) {
             parents[parentId][meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
         else {
+            var queryFindCond = {};
+            queryFindCond['_id'] = new Mongoose.mongo.ObjectID(parentId);
+            queryFindCond[meta.propertyKey + '._id'] = objs[i]._id;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
-            parents[parentId][meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+            let updateSet = {};
+            updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
+            parents[parentId].push({ cond: queryFindCond, updateSet: updateSet });
         }
-       // parents[parentId] = updateSet;
     }
-   // console.log("parents", parents);
+    // console.log("parents", parents);
     var bulk = model.collection.initializeUnorderedBulkOp();
     Object.keys(parents).forEach(x => {
-        var queryFindCond = {};
-        queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
-  //      console.log("parent $set", parents[x]);
-        bulk.find(queryFindCond).update({ $set: parents[x] });
+        if (isJsonMap) {
+            var queryFindCond = {};
+            queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
+            bulk.find(queryFindCond).update({ $set: parents[x] });
+        }
+        else {
+            parents[x].forEach(item => {
+                bulk.find(item.cond).update({ $set: item.updateSet });
+            });
+        }
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
         console.log(JSON.stringify(result));
