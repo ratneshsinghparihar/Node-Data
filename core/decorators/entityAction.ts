@@ -298,6 +298,11 @@ function mergeProperties(dbEntity?: any, entity?: any, mergedEntity?: any): Enti
     if (tempMergedEntity && (tempMergedEntity instanceof Object && !(tempMergedEntity instanceof Types.ObjectId))) {
 
         for (var prop in tempMergedEntity) {
+            if (Array.isArray(tempMergedEntity[prop])) {
+                mergedEntity[prop] = [...tempMergedEntity[prop]];
+                continue;
+            }
+
             if (typeof tempMergedEntity[prop] == "Object" && typeof mergedEntity[prop] == "Object") {
                 mergedEntity[prop] = this.mergeProperties(mergedEntity[prop], tempMergedEntity[prop]);
             }
