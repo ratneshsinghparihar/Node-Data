@@ -434,36 +434,40 @@ export function updateWriteCount() {
 function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, objs: Array<any>) {
     let parents = {};
     console.log("updateParentWithParentId start" + model.modelName);
+    let isJsonMap = isJsonMapEnabled(meta.params);
+    let parentQueryCond = {};
     let parentObjectId;
     for (var i = 0; i < objs.length; i++) {
 
-        if (!objs[i].__updatedProps) {
-            continue;
-        }
-        delete objs[i].__updatedProps;// deleting so that it doesn't get updated on parent Document
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
         var queryFindCond = {};
 
         parents[parentId] = parents[parentId] ? parents[parentId] : {};
         // var updateSet = {};
         // check meta then update with array or keyvalue
-        let isJsonMap = isJsonMapEnabled(meta.params);
         if (isJsonMap) {
             parents[parentId][meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
         else {
+            parentQueryCond[parentId]
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
             parents[parentId][meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
         }
         parentObjectId = parentId;
         // parents[parentId] = updateSet;
     }
+
+    if (Object.keys(parents).length == 0)
+        return Q.when([]);
+
     // console.log("parents", parents);
     //it has to be group by
     let newModel = getChangedModelForDynamicSchema(model, parentObjectId);
     var bulk = newModel.collection.initializeUnorderedBulkOp();
+
     Object.keys(parents).forEach(x => {
         var queryFindCond = {};
+
         queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
         //      console.log("parent $set", parents[x]);
         bulk.find(setShardCondition(model, queryFindCond)).update({ $set: parents[x] });
@@ -491,7 +495,7 @@ function updateParentDocument1(model: Mongoose.Model<any>, meta: MetaData, objec
         var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
         var asyncCalls = [];
         var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
-        if (isEmbedded) {
+        if (isEmbedded && parentIds.length > 0) {
             console.log("updateParentDocument1 isEmbedded" + model.modelName);
             return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
                 console.log("updateParentDocument1 findMany end" + model.modelName);
@@ -1086,16 +1090,18 @@ export function getNewModelFromObject(model, obj: ShardInfo) {
 // It returns all collection name and ids for these collection name
 export function getAllShardModelsFromIds(model: Mongoose.Model<any>, ids: Array<string>): any {
     let shardModelInfo = {};
-    shardModelInfo[model.modelName] = model;
     try {
         let shardobj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
-        if (shardobj && shardobj.getCollectionNameFromSelf()) {
+        if (shardobj && shardobj.getCollectionNameFromSelf) {
             let obj: any = shardobj;
             ids.forEach(x => {
                 obj._id = x;
                 let newModel = getNewModelFromObject(model, obj);
                 shardModelInfo[newModel.modelName] = newModel;
             });
+        }
+        else {
+            shardModelInfo[model.modelName] = model;
         }
 
     } catch (ex) {
