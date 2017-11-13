@@ -32,6 +32,7 @@ export enum ExportTypes  {
      ALL,
      REST,
      WS,
+     WS_BROAD_CAST,
      NONE
 }
 

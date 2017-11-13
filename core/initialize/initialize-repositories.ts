@@ -132,7 +132,7 @@ export class InitializeRepositories {
             var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
 
 
-            var messenger = new Messenger({ retryInterval: 100 });
+            var messenger = new Messenger({ retryInterval: 3000 });
 
 
             this.socketClientholder.socket = io;
@@ -153,10 +153,13 @@ export class InitializeRepositories {
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
                     let meta: MetaData = repo.getMetaData();
-                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS || meta.params.exportType == ExportTypes.WS_BROAD_CAST )) {
                         messenger.on(key, function (message) {
-                            
-                            //io.sockets.emit(key, message);
+                            if (meta.params.broadCastType && meta.params.broadCastType == ExportTypes.WS_BROAD_CAST) {
+                                io.broadcast.to(key).emit(key, message);
+                               // io.to(key).emit(message);
+                                return;
+                            }
                             // io.in(key).emit(key, message);
 
                             let broadcastClients: Array<any> = new Array<any>();
@@ -164,10 +167,18 @@ export class InitializeRepositories {
                             let connectedClients = 0;
                             let broadCastClients = 0;
                             let reliableClients = 0;
-                            for (let channelId in io.sockets.connected) {
-                                connectedClients++;
-                                let client = io.sockets.connected[channelId];
 
+                            var roomclients = io.sockets.adapter.rooms[key].sockets;   
+
+                            for (let channelId in roomclients) {
+                                
+                                let client = io.sockets.connected[channelId];
+                                if (!client) {
+                                    continue;
+                                }
+                               
+
+                                //if acl = false in security config
                                 if (client.handshake.query && client.handshake.query.broadcastChannels &&
                                     client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }).length > 0) {
                                     broadcastClients.push(client);
@@ -185,7 +196,7 @@ export class InitializeRepositories {
 
                                 //call security to check if (enity(message), for user (client.handshake.query) , can read entity
 
-
+                                connectedClients++;
                                 self.sendMessageToclient(client, repo, message);
                                 if (client.handshake.query && client.handshake.query.reliableChannles) {
                                     let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
@@ -226,10 +237,18 @@ export class InitializeRepositories {
 
 
                     console.log('client connected', socket.id);
+                    
 
                     if (socket.handshake.query) {
-                        securityImpl.getSession(socket.handshake.query).then((session) => {
+                        securityImpl.getSession(socket.handshake.query).then((session:any) => {
                             socket.handshake.query.curSession = session;
+                            if (socket.handshake.query && socket.handshake.query.applicableChannels
+                                && socket.handshake.query.applicableChannels.length) {
+                                socket.handshake.query.applicableChannels.forEach((room) => {
+                                    console.log("joined room", room);
+                                    socket.join(room);
+                                });
+                            }
                         }).catch((error) => {
                             console.log("error in getSession", error);
                         });

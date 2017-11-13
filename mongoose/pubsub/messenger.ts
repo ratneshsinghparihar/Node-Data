@@ -12,8 +12,9 @@ function Messenger(options) {
     this.subscribed = {};
     this.lastMessageTimestamp = null;
     this.startingMessageTimestamp = new Date();
-    this.retryInterval = o.retryInterval || 100;
+    this.retryInterval = o.retryInterval || 3000;
     db.addEmitter(this);
+    console.log("messenger created");
 }
 
 util.inherits(Messenger, EventEmitter);
@@ -66,15 +67,18 @@ Messenger.prototype.sendPendingMessage = function sendPendingMessage(rechannel, 
 Messenger.prototype.onConnect = function onConnect(callback) {
     var self = this;
     self.parentCallBack = callback;
-    self.on('connected', (conn) => {
-        self.connect(self.parentCallBack);
+    console.log("on connect recieved");
+    self.on('databaseconnected', (conn) => {
+        console.log('databaseconnected');
+       self.connect(self.parentCallBack);
     });
 }
 
 
 Messenger.prototype.connect = function connect(callback) {
     var self = this;
-    console.log("messenger started on ", self.startingMessageTimestamp);
+    console.log("messenger started on ", new Date());
+    console.log("messenger last time stamp is", self.startingMessageTimestamp);
     var query:any = { timestamp: { $gte: self.startingMessageTimestamp } };
     if (self.lastMessageTimestamp) {
         query = { timestamp: { $gt: self.lastMessageTimestamp } };
@@ -92,9 +96,14 @@ Messenger.prototype.connect = function connect(callback) {
     });
     
     // reconnect on error
-    stream.on('error', function streamError() {
+    stream.on('error', function streamError(error) {
+        if (error && error.message) {
+            console.log(error.message);
+        }
         stream.destroy();
-        self.connect();
+        setTimeout(() => {
+            self.connect()
+        }, 2000); 
     });
     
     if (callback) callback();

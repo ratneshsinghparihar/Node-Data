@@ -70,19 +70,19 @@ function connectDataBase(conn, connectionString): Q.IPromise<any> {
     conn.on('connected', () => {
         winstonLog.logInfo(`connection established successfully ${connectionString}`);
         defer.resolve(true);
-        emitMesseageToALL('connected', conn);
+        emitMesseageToALL('databaseconnected', conn);
     });
 
     conn.on('error', (err) => {
         winstonLog.logInfo(`connection to mongo failed for ${connectionString} with error ${err}`);
         defer.resolve(false);
-        emitMesseageToALL('connected', conn);
+        emitMesseageToALL('error', conn);
     });
 
     conn.on('disconnected', () => {
         winstonLog.logInfo(`connection closed successfully ${connectionString}`);
         defer.resolve(false);
-        emitMesseageToALL('connected', conn);
+        emitMesseageToALL('disconnected', conn);
     });
     return defer.promise;
 }
