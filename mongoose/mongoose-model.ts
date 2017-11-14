@@ -215,16 +215,11 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
                 if (updateParentRequired.length > 0) {
-                    if (!fullyLoaded) {
-                        updateParentProm = mongooseHelper.updateParent(model, objects);
-                    }
-                    else {
-                        let updateObject = [];
-                        updateParentRequired.forEach(x => {
-                            updateObject.push(objArr.find(obj => obj._id == x));
-                        });
-                        updateParentProm = mongooseHelper.updateParent(model, objects);
-                    }
+                    let updateObject = [];
+                    updateParentRequired.forEach(x => {
+                        updateObject.push(objects.find(obj => obj._id.toString() == x));
+                    });
+                    updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
                 return updateParentProm.then(res => {
                     console.log("bulkPut updateParent start" + model.modelName);
