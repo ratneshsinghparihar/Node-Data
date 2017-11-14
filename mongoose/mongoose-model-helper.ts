@@ -417,7 +417,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         }
         else {
             var queryFindCond = {};
-            queryFindCond['_id'] = new Mongoose.mongo.ObjectID(parentId);
+            queryFindCond['_id'] = Utils.getCastObjectId(model, parentId);
             queryFindCond[meta.propertyKey + '._id'] = objs[i]._id;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
             let updateSet = {};
@@ -430,7 +430,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     Object.keys(parents).forEach(x => {
         if (isJsonMap) {
             var queryFindCond = {};
-            queryFindCond['_id'] = Utils.castToMongooseType(x, Mongoose.Types.ObjectId);
+            queryFindCond['_id'] = Utils.getCastObjectId(model, x);
             bulk.find(queryFindCond).update({ $set: parents[x] });
         }
         else {
