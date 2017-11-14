@@ -24,13 +24,15 @@ var domain = require('domain');
 
 var Messenger = require('../../mongoose/pubsub/messenger');
 import {PrincipalContext} from '../../security/auth/principalContext';
+import {Session} from  '../../models/session';
 
 
 
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
     private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
-
+    private socketChannelGroups: any = {}; // key is channel name and values array of groups
+    private sessionSocketIdMap = {}; //need to be handled the disconnection
     private socket: any;
     constructor(server?: any) {
         this.initializeRepo(server);
@@ -73,6 +75,15 @@ export class InitializeRepositories {
 
         }
     }
+
+    private getAllUsersForNotification = (entity: any) => {
+        var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
+        var service:any = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == "authorizationService").select(x => x.metadata[0]).firstOrDefault();
+        if (service) {
+            return service.getAllUsersForNotification(entity);
+        }
+    }
+
 
     private initializeRepo(server?: any) {
         let self = this;
@@ -155,6 +166,8 @@ export class InitializeRepositories {
                     let meta: MetaData = repo.getMetaData();
                     if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS || meta.params.exportType == ExportTypes.WS_BROAD_CAST )) {
                         messenger.on(key, function (message) {
+
+                            //handle if repo is completly broadcast
                             if (meta.params.broadCastType && meta.params.broadCastType == ExportTypes.WS_BROAD_CAST) {
                                 io.broadcast.to(key).emit(key, message);
                                // io.to(key).emit(message);
@@ -162,64 +175,86 @@ export class InitializeRepositories {
                             }
                             // io.in(key).emit(key, message);
 
-                            let broadcastClients: Array<any> = new Array<any>();
+                            
+
                             let messageSendStatistics: any = {};
                             let connectedClients = 0;
                             let broadCastClients = 0;
                             let reliableClients = 0;
 
-                            var roomclients = io.sockets.adapter.rooms[key].sockets;   
+                            
 
-                            for (let channelId in roomclients) {
-                                
-                                let client = io.sockets.connected[channelId];
-                                if (!client) {
-                                    continue;
-                                }
-                               
+                            //handle broad cast group ..acl ==false
 
-                                //if acl = false in security config
-                                if (client.handshake.query && client.handshake.query.broadcastChannels &&
-                                    client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }).length > 0) {
-                                    broadcastClients.push(client);
-                                    broadCastClients++
-                                    continue;
-                                }
-                                
-                                if (message.receiver && message.receiver != channelId) {
-                                    continue;
-                                }
-
-                                if (message.receiver) {
-                                    delete message.receiver;
-                                }
-
-                                //call security to check if (enity(message), for user (client.handshake.query) , can read entity
-
-                                connectedClients++;
-                                self.sendMessageToclient(client, repo, message);
-                                if (client.handshake.query && client.handshake.query.reliableChannles) {
-                                    let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
-                                    reliableClients++;
-                                    channelArr.forEach((rechannel) => {
-
-                                        if (rechannel == key) {
-                                            let query = client.handshake.query;
-                                            let curSession = client.handshake.query.curSession;
-                                            securityImpl.updateSession({
-                                                netsessionid: query.netsessionid,
-                                                channelName: rechannel,
-                                                lastemit: messenger.lastMessageTimestamp,
-                                                status: 'active'
-                                            }, curSession);
-                                        }
-                                    });
-
-                                }
+                            if (!self.socketChannelGroups[key]) {
+                                return;
                             }
 
-                            if (broadcastClients && broadcastClients.length) {
-                                self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                            let updateReliableChannelSettings = (client) => {
+                                reliableClients++;
+                                let query = client.handshake.query;
+                                let curSession = client.handshake.query.curSession;
+                                securityImpl.updateSession({
+                                    netsessionid: query.netsessionid,
+                                    channelName: key,
+                                    lastemit: messenger.lastMessageTimestamp,
+                                    status: 'active'
+                                }, curSession);}
+
+                            for (let channleGroup in self.socketChannelGroups[key]) {
+                                var roomclients = io.sockets.adapter.rooms[channleGroup].sockets;
+                                let broadcastClients: Array<any> = new Array<any>();
+                                let isRealiableChannel = false;
+                                if (self.socketChannelGroups[key][channleGroup]) {
+                                    isRealiableChannel = self.socketChannelGroups[key][channleGroup];
+                                }
+                                for (let channelId in roomclients) {
+
+
+                                    if (message.receiver && message.receiver != channelId) {
+                                        continue;
+                                    }
+
+                                    if (message.receiver) {
+                                        delete message.receiver;
+                                    }
+
+
+                                    let client = io.sockets.connected[channelId];
+                                    if (!client) {
+                                        continue;
+                                    }
+                                    broadcastClients.push(client);
+                                    broadCastClients++
+                                    connectedClients++;
+                                    //under reliable channel
+                                   
+                                    if (isRealiableChannel) {
+                                        updateReliableChannelSettings(updateReliableChannelSettings(client));
+                                    }
+                                }
+                                if (broadcastClients && broadcastClients.length) {
+                                    self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                                }
+                            }
+                            //individual messages
+                            let individualUsers = self.getAllUsersForNotification(message);
+                            if (individualUsers && individualUsers.length) {
+                                individualUsers.forEach((user: string) => {
+                                    let channelId = self.sessionSocketIdMap[user];
+                                    let client = io.sockets.connected[channelId];
+                                    if (!client) {
+                                        return;
+                                    }
+                                    connectedClients++;
+                                    self.sendMessageToclient(client, repo, message);
+                                    if (client.handshake.query && client.handshake.query.reliableChannles) {
+                                        let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
+                                        if (channelArr.indexOf(key) > -1) {
+                                            updateReliableChannelSettings(updateReliableChannelSettings(client));
+                                        }
+                                    }
+                                });
                             }
 
                             messageSendStatistics.connectedClients = connectedClients;
@@ -240,13 +275,37 @@ export class InitializeRepositories {
                     
 
                     if (socket.handshake.query) {
-                        securityImpl.getSession(socket.handshake.query).then((session:any) => {
+                        securityImpl.getSession(socket.handshake.query).then((session:Session) => {
                             socket.handshake.query.curSession = session;
+                            self.sessionSocketIdMap[session.userId] = socket.id;
                             if (socket.handshake.query && socket.handshake.query.applicableChannels
                                 && socket.handshake.query.applicableChannels.length) {
                                 socket.handshake.query.applicableChannels.forEach((room) => {
-                                    console.log("joined room", room);
-                                    socket.join(room);
+                                    if (room && room.name) {
+                                        console.log("joined room", room.name);
+                                        socket.join(room.name);
+                                        if (!self.socketChannelGroups[room.name]) { self.socketChannelGroups[room.name] = {}}
+                                    }
+                                });
+                            }
+                            
+                            if (socket.handshake.query && socket.handshake.query.broadcastChannels
+                                && socket.handshake.query.broadcastChannels.length) {
+                                socket.handshake.query.broadcastChannels.forEach((room) => {
+                                    if (room && room.name && room.group) {
+                                        if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                                            let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+                                            if (channelArr.indexOf(room) > -1) {
+                                                console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
+                                                socket.join(room.name + "_" + room.group + "_RC");
+                                                if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
+                                                return;
+                                            }
+                                        }
+                                        console.log("joined room group", room.name + "_" + room.group);
+                                        if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
+                                        socket.join(room.name + "_" + room.group);
+                                    }
                                 });
                             }
                         }).catch((error) => {
@@ -278,6 +337,9 @@ export class InitializeRepositories {
 
                     socket.on('disconnect', function () {
                         console.log('client disconnected', socket.id);
+                        if (socket.handshake.query.curSession) {
+                            delete self.sessionSocketIdMap[socket.handshake.query.curSession.userId];
+                        }
                     });
 
                     for (let key in repoMap) {

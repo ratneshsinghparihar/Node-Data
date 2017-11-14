@@ -132,7 +132,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         console.log("CanSave entity Security End" + this.path);
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
-                            executeNextMethod();
+                            return executeNextMethod();
                         }
                         else {
                             var error = 'unauthorize access for resource';
