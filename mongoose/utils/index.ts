@@ -76,20 +76,20 @@ export function getUpdatedProps(obj: any, type: EntityChange, jsonMapProp?: Arra
             continue;
         }
         let curValue = obj[key];
-        if (curValue == undefined || curValue == null ||
-            curValue == undefined && curValue == '' ||
-            (curValue instanceof Array && !curValue.length ) ) {
+        if (curValue == undefined || curValue == null) {
             if (orginalDbEntity && curValue === orginalDbEntity[key]) { // add json.parse(json.stringify)
                 continue;
             }
-
-            if (curValue instanceof Array && orginalDbEntity && orginalDbEntity[key].length == curValue.length)
-            {
-                continue;
-            }            
+           
             unset[key] = '';
             delete obj[key]; // make sure data should consistent for master collection with embedded entities
             u = true;
+            continue;
+        }
+        if (orginalDbEntity && curValue instanceof Array && !curValue.length) {
+            if (curValue instanceof Array && orginalDbEntity && orginalDbEntity[key].length == curValue.length) {
+                continue;
+            }
         }
         else {
             if (type == EntityChange.patch && curValue instanceof Array) {

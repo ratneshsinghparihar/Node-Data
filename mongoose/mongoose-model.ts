@@ -134,9 +134,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let length = objArr.length;
     var asyncCalls = [];
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
+    let updateParentRequired = [];
     var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
-    let isUpdateReq: boolean = false;
     console.log("bulkPut addChildModelToParent child start" + model.modelName);
     let allUpdateProps = [];
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
@@ -172,8 +172,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             if (Object.keys(updatedProps).length === 0) {
                 continue;
             }
-            result.__updatedProps = updatedProps;
-            isUpdateReq = true;
+            updateParentRequired.push(objectId);
             //if (updatePropsReq) {
             //    updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
             //    // update only modified objects
@@ -194,7 +193,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         }
         let promBulkUpdate = Q.when({});
         console.log("bulkPut bulk.execute start" + model.modelName);
-        if (isUpdateReq) {
+        if (updateParentRequired.length > 0) {
             promBulkUpdate = Q.nbind(bulk.execute, bulk)();
         }
         return promBulkUpdate.then(result => {
@@ -216,8 +215,12 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
-                if (isUpdateReq) {
-                    updateParentProm = mongooseHelper.updateParent(model, objects);
+                if (updateParentRequired.length > 0) {
+                    let updateObject = [];
+                    updateParentRequired.forEach(x => {
+                        updateObject.push(objects.find(obj => obj._id.toString() == x));
+                    });
+                    updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
                 return updateParentProm.then(res => {
                     console.log("bulkPut updateParent start" + model.modelName);
