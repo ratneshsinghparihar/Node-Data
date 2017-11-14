@@ -80,7 +80,7 @@ export class InitializeRepositories {
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
         var service:any = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == "authorizationService").select(x => x.metadata[0]).firstOrDefault();
         if (service) {
-            return service.getAllUsersForNotification(entity);
+            return service.target.getAllUsersForNotification(entity);
         }
     }
 
@@ -133,7 +133,9 @@ export class InitializeRepositories {
                     repoFromModel[meta[0].params.name] = newRepo;
                     newRepo.setMetaData(x.metadata[0]);
                 }
+
                
+                meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
 
                 
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
@@ -202,12 +204,21 @@ export class InitializeRepositories {
                                 }, curSession);}
 
                             for (let channleGroup in self.socketChannelGroups[key]) {
-                                var roomclients = io.sockets.adapter.rooms[channleGroup].sockets;
-                                let broadcastClients: Array<any> = new Array<any>();
                                 let isRealiableChannel = false;
+                                let groupName = key + "_" + channleGroup;
                                 if (self.socketChannelGroups[key][channleGroup]) {
                                     isRealiableChannel = self.socketChannelGroups[key][channleGroup];
+                                    groupName += "_RC";
                                 }
+                                 
+
+                                let channelRoom = io.sockets.adapter.rooms[groupName];
+                                if (!channelRoom) {
+                                    continue;
+                                }
+                                var roomclients = channelRoom.sockets;
+                                let broadcastClients: Array<any> = new Array<any>();
+                               
                                 for (let channelId in roomclients) {
 
 

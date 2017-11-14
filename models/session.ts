@@ -3,7 +3,7 @@ import {field, document} from '../mongoose/decorators';
 import {Strict} from '../mongoose/enums/';
 import {onetomany, manytoone, manytomany, onetoone} from '../core/decorators';
 
-@document({ name: "session", strict: Strict.false })
+//@document({ name: "session", strict: Strict.false })
 export class Session {
 
     @field()
