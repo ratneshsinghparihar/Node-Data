@@ -8,7 +8,7 @@ import {ShardInfo} from '../../core/interfaces/shard-Info';
 @document({ name: 'topic', strict: Strict.false })
 export class topic extends baseModel implements ShardInfo {
     static count: number = 0;
-    static enableSharding: boolean = false;
+    static enableSharding: boolean = true;
     static collectionName: string = 'topic';
 
     constructor(object?: any) {

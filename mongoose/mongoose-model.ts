@@ -480,7 +480,6 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     }
 
     let newModels = {};
-    newModels[model.modelName] = model;
     let obj: ShardInfo = InstanceService.getInstanceFromType(getEntity(model.modelName), true);
     if (obj.getShardKey) {
         let key = obj.getShardKey();
@@ -506,9 +505,12 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             });
         }
     }
+    else {
+        newModels[model.modelName] = model;
+    }
     let asyncCalls = [];
     Object.keys(newModels).forEach(x => {
-        let queryObj = newModels[x].find(mongooseHelper.setShardCondition(newModels[x], query), sel).lean();
+        let queryObj = newModels[x].find(mongooseHelper.setShardCondition(model, query), sel).lean();
         if (sort) {
             queryObj = queryObj.sort(sort);
         }

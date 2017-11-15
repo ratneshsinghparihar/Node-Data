@@ -414,6 +414,10 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
+        let property = objs[i][ConstantKeys.parent][ConstantKeys.property].toString();
+        if (property != meta.propertyKey)
+            continue;
+
         parents[parentId] = parents[parentId] ? parents[parentId] : (isJsonMap ? {} : []);
         // check meta then update with array or keyvalue
         if (isJsonMap) {
@@ -421,7 +425,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         }
         else {
             var queryFindCond = {};
-            queryFindCond['_id'] = new Mongoose.mongo.ObjectID(parentId);
+            queryFindCond['_id'] = Utils.getCastObjectId(model, parentId);
             queryFindCond[meta.propertyKey + '._id'] = objs[i]._id;
             let updateMongoOperator = Utils.getMongoUpdatOperatorForRelation(meta);
             let updateSet = {};
