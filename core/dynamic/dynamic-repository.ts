@@ -24,7 +24,7 @@ export function GetRepositoryForName(name: string): IDynamicRepository {
 
 export interface IDynamicRepository {
     getEntity();
-    getModel();
+    getModel(dynamicName?: string);
     modelName();
     getEntityType(): any;
     getRootRepo(): IDynamicRepository;
@@ -50,6 +50,7 @@ export interface IDynamicRepository {
     delete(id: any);
     patch(id: any, obj);
     setRestResponse(obj: any);
+    getShardCondition();
     setSocket(obj: any);
     setMetaData(meta: MetaData);
     getMetaData(): MetaData;
@@ -96,8 +97,8 @@ export class DynamicRepository implements IDynamicRepository {
         return getEntity(pathRepoMap[this.path].schemaName);
     }
 
-    public getModel() {
-        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path);
+    public getModel(dynamicName?: string) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path, dynamicName);
     }
 
     public getRootRepo() {
@@ -366,4 +367,8 @@ export class DynamicRepository implements IDynamicRepository {
 
     }
 
+    // This function should return the additional shard condition which will be added in all the query to avoid the queries for cross sharding
+    public getShardCondition() {        
+        return null;
+    }
 }

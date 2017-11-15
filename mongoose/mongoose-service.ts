@@ -2,7 +2,7 @@
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 import * as MongooseModel from './mongoose-model';
-import {pathRepoMap, getModel} from '../core/dynamic/model-entity';
+import {pathRepoMap, getModel, getEntity} from '../core/dynamic/model-entity';
 import {winstonLog} from '../logging/winstonLog';
 import * as Utils from './utils';
 import {QueryOptions} from '../core/interfaces/queryOptions';
@@ -11,6 +11,8 @@ import * as utils from '../mongoose/utils';
 import { PrincipalContext } from '../security/auth/principalContext';
 import * as configUtil from '../core/utils';
 import {IUser} from '../tests/models/user';
+import {getDbSpecifcModel} from './db';
+import {Decorators} from '../core/constants';
 var hash = require('object-hash');
 
 export class MongooseService implements IEntityService {
@@ -211,9 +213,16 @@ export class MongooseService implements IEntityService {
         });
     }
 
-    getModel(repoPath: string) {
+    getModel(repoPath: string, dynamicName?: string) {
         try {
-            return Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
+            let model = Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
+            if (model && dynamicName) {
+                var meta = MetaUtils.getMetaData(getEntity(model.modelName), Decorators.DOCUMENT);
+                if (meta && meta[0] && meta[0].params.dynamicName) {
+                    model = getDbSpecifcModel(dynamicName, model.schema);
+                }
+            }
+            return model;
         } catch (e) {
             winstonLog.logError(`Error in getMongooseModel ${e}`);
             throw e;
