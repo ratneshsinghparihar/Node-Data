@@ -32,7 +32,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     let transientProps = mongooseHelper.getAllTransientProps(model);
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeGivenTransientProperties(model, obj, transientProps);
-        cloneObj[ConstantKeys.TempId] = cloneObj._id ? cloneObj._id : new Mongoose.Types.ObjectId();
+        cloneObj[ConstantKeys.TempId] = cloneObj._id ? cloneObj._id : Utils.autogenerateIds(model);
         clonedModels.push(cloneObj);
     });
     return mongooseHelper.addChildModelToParent(model, clonedModels)
@@ -47,6 +47,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
             //        return Q.reject(ex);
             //    }
             //});
+
             var asyncCalls = [];
             if (!batchSize) batchSize = 1000;
             for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
@@ -133,9 +134,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
     let length = objArr.length;
     var asyncCalls = [];
     let fullyLoaded = objArr && objArr.length > 0 && objArr[0][ConstantKeys.FullyLoaded];
+    let updateParentRequired = [];
     var objectIds = [];
     var bulk = model.collection.initializeUnorderedBulkOp();
-    let isUpdateReq: boolean = false;
     console.log("bulkPut addChildModelToParent child start" + model.modelName);
     let allUpdateProps = [];
     return mongooseHelper.addChildModelToParent(model, objArr).then(r => {
@@ -153,7 +154,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
 
         for (let i = 0; i < objArr.length; i++) {
             let result = objArr[i];
-            var objectId = new Mongoose.Types.ObjectId(result._id);
+            var objectId = Utils.getCastObjectId(model, result._id);
             objectIds.push(objectId);
             let id = result._id;
             let parent = result.parent;
@@ -171,8 +172,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             if (Object.keys(updatedProps).length === 0) {
                 continue;
             }
-            result.__updatedProps = updatedProps;
-            isUpdateReq = true;
+            updateParentRequired.push(objectId);
             //if (updatePropsReq) {
             //    updatedProps = Utils.getUpdatedProps(result, EntityChange.put);
             //    // update only modified objects
@@ -193,7 +193,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         }
         let promBulkUpdate = Q.when({});
         console.log("bulkPut bulk.execute start" + model.modelName);
-        if (isUpdateReq) {
+        if (updateParentRequired.length > 0) {
             promBulkUpdate = Q.nbind(bulk.execute, bulk)();
         }
         return promBulkUpdate.then(result => {
@@ -215,8 +215,12 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
-                if (isUpdateReq) {
-                    updateParentProm = mongooseHelper.updateParent(model, objects);
+                if (updateParentRequired.length > 0) {
+                    let updateObject = [];
+                    updateParentRequired.forEach(x => {
+                        updateObject.push(objects.find(obj => obj._id.toString() == x));
+                    });
+                    updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
                 return updateParentProm.then(res => {
                     console.log("bulkPut updateParent start" + model.modelName);
@@ -257,7 +261,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
         let transientProps = mongooseHelper.getAllTransientProps(model);
         let jsonProps = mongooseHelper.getEmbeddedPropWithFlat(model).map(x => x.propertyKey);
         objArr.forEach(result => {
-            var objectId = new Mongoose.Types.ObjectId(result._id);
+            var objectId = Utils.getCastObjectId(model, result._id);
             delete result._id;
             for (let prop in transientProps) {
                 delete result[transientProps[prop].propertyKey];
@@ -579,7 +583,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    clonedObj[ConstantKeys.TempId] = clonedObj._id ? clonedObj._id : new Mongoose.Types.ObjectId();
+    clonedObj[ConstantKeys.TempId] = clonedObj._id ? clonedObj._id : Utils.autogenerateIds(model);
     return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             //try {
