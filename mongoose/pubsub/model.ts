@@ -8,7 +8,7 @@ var Message = new mongoose.Schema({
   message: {}
 }, {
   capped: {
-    size: 1024 * 16 * 25, // in bytes
+    size: 1024 * 1024 * 10, // in bytes
         autoIndexId: true
 
     },
@@ -17,7 +17,7 @@ var Message = new mongoose.Schema({
 
 export function getMessage()
 {
-    return db.getDbSpecifcModel('Message', Message);
+    return db.getDbSpecifcModel('Message1', Message);
 }
 
 module.exports = getMessage 

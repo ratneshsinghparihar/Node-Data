@@ -8,7 +8,8 @@ var _dcoumentDecoratorCache={};
 export function document(params: { name: string, strict?: Strict }) {
     params = params || <any>{};
     return function(target: Object){
-        console.log("Document: "+params.name);
+
+        console.log("Document: " + params.name);
         if(_dcoumentDecoratorCache[params.name]){return;}
         _dcoumentDecoratorCache[params.name]=params;
 
