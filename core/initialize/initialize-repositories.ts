@@ -208,7 +208,7 @@ export class InitializeRepositories {
                                 let groupName = key + "_" + channleGroup;
                                 if (self.socketChannelGroups[key][channleGroup]) {
                                     isRealiableChannel = self.socketChannelGroups[key][channleGroup];
-                                    groupName += "_RC";
+                                    //groupName += "_RC";
                                 }
                                  
 
@@ -241,7 +241,7 @@ export class InitializeRepositories {
                                     //under reliable channel
                                    
                                     if (isRealiableChannel) {
-                                        updateReliableChannelSettings(updateReliableChannelSettings(client));
+                                        updateReliableChannelSettings(client);
                                     }
                                 }
                                 if (broadcastClients && broadcastClients.length) {
@@ -262,7 +262,7 @@ export class InitializeRepositories {
                                     if (client.handshake.query && client.handshake.query.reliableChannles) {
                                         let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
                                         if (channelArr.indexOf(key) > -1) {
-                                            updateReliableChannelSettings(updateReliableChannelSettings(client));
+                                            updateReliableChannelSettings(client);
                                         }
                                     }
                                 });
@@ -306,7 +306,7 @@ export class InitializeRepositories {
                                     if (room && room.name && room.group) {
                                         if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                                             let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
-                                            if (channelArr.indexOf(room) > -1) {
+                                            if (channelArr.indexOf(room.name) > -1) {
                                                 console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
                                                 socket.join(room.name + "_" + room.group + "_RC");
                                                 if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
