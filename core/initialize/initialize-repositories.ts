@@ -2,7 +2,7 @@
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
-
+import {ExportTypes} from '../constants/decorators';
 import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-repository';
 import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
@@ -19,21 +19,69 @@ import {repoFromModel} from '../dynamic/model-entity';
 
 export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
+import * as securityImpl from '../dynamic/security-impl';
+var domain = require('domain');
+
+var Messenger = require('../../mongoose/pubsub/messenger');
+import {PrincipalContext} from '../../security/auth/principalContext';
+
+
+
 export class InitializeRepositories {
     private _schemaGenerator: ISchemaGenerator;
+    private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
 
-    constructor() {
-        this.initializeRepo();
+    private socket: any;
+    constructor(server?: any) {
+        this.initializeRepo(server);
     }
 
     public schemaGenerator(schemaGenerator: ISchemaGenerator) {
         this._schemaGenerator = schemaGenerator;
     }
 
-    private initializeRepo() {
+    private executeFindMany = (client, repo, message, multiClients?: any) => {
+        return repo.findMany([message]).then((data: Array<any>) => {
+            if (data && data.length) {
+                if (multiClients && multiClients.length) {
+                    multiClients.forEach((client) => { client.emit(repo.modelName(), data[0]); });
+                }
+                else {
+                    client.emit(repo.modelName(), data[0]);
+                }
+                return data
+            }
+            return undefined
+        }).catch((error) => {
+            console.log("error in findmany socket emmitter", error);
+            throw error;
+        });
+    }
+
+    private sendMessageToclient = (client, repo, message, multiClients?: any) => {
+        if (client.handshake.query && client.handshake.query.curSession) {
+            var d = domain.create();
+            d.run(() => {
+                PrincipalContext.User = securityImpl.getContextObjectFromSession(client.handshake.query.curSession);
+                //move to above 
+                if (securityImpl.isAuthorize({ headers: client.handshake.query }, repo, "findMany")) {
+                    this.executeFindMany(client, repo, message, multiClients);
+                }
+
+
+            });
+
+        }
+    }
+
+    private initializeRepo(server?: any) {
+        let self = this;
         let repositories = MetaUtils.getMetaDataForDecorators([Decorators.REPOSITORY]);
 
         let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
+
+
+
 
         Enumerable.from(repositories)
             .forEach((x: { target: Object, metadata: Array<MetaData> }) => {
@@ -53,7 +101,10 @@ export class InitializeRepositories {
                 let model = repoParams.model;
                 let newRepo: DynamicRepository;
                 let rootRepo = new DynamicRepository();
-                rootRepo.initialize(repoParams.path, x.target, model);
+                rootRepo.initialize(repoParams.path, x.target, model, this.socket);
+
+
+
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }
@@ -67,23 +118,172 @@ export class InitializeRepositories {
                     repo: newRepo
                 };
                 var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
-                meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
+                if (meta && meta[0] && x.metadata[0]) {
+                    repoFromModel[meta[0].params.name] = newRepo;
+                    newRepo.setMetaData(x.metadata[0]);
+                }
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
             });
 
-        //let repoMap: { [key: string]: { fn: Object, repo: IDynamicRepository } } = <any>{};
-        //for (var path in mongooseSchemaMap) {
-        //    var schemaMapVal = mongooseSchemaMap[path];
-        //    if (!schemaNameModel[schemaMapVal.name]) {
-        //        schemaNameModel[schemaMapVal.name] = { entity: schemaMapVal.fn.model, model: Mongoose.model(schemaMapVal.name, schemaMapVal.schema) };
-        //    }
+        if (server) {
+            var io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
 
-        //    repoMap[path] = {
-        //        fn: mongooseSchemaMap[path].fn,
-        //        repo: new DynamicRepository(schemaMapVal.name, GetEntity(schemaMapVal.name), GetModel(schemaMapVal.name), schemaMapVal.fn)
-        //    };
-        //    searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());
-        //}
+
+            var messenger = new Messenger({ retryInterval: 100 });
+
+
+            this.socketClientholder.socket = io;
+            this.socketClientholder.messenger = messenger;
+            for (let key in repoMap) {
+                let repo = repoMap[key].repo;
+                let meta: MetaData = repo.getMetaData();
+                if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                    repo.setSocket(this.socketClientholder);
+                    messenger.subscribe(key, true);
+                }
+            }
+
+            // connect() begins "tailing" the collection 
+            messenger.onConnect(function () {
+                // emits events for each new message on the channel 
+
+                for (let key in repoMap) {
+                    let repo = repoMap[key].repo;
+                    let meta: MetaData = repo.getMetaData();
+                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                        messenger.on(key, function (message) {
+                            console.log(key, message);
+                            //io.sockets.emit(key, message);
+                            // io.in(key).emit(key, message);
+
+                            let broadcastClients: Array<any> = new Array<any>();
+
+                            for (let channelId in io.sockets.connected) {
+                                let client = io.sockets.connected[channelId];
+
+                                if (client.handshake.query && client.handshake.query.broadcastChannels &&
+                                    client.handshake.query.broadcastChannels.filter((bchannel) => { return bchannel == key }) > 0) {
+                                    broadcastClients.push(client);
+                                    continue;
+                                }
+                                
+                                if (message.receiver && message.receiver != channelId) {
+                                    continue;
+                                }
+
+                                if (message.receiver) {
+                                    delete message.receiver;
+                                }
+
+                                //call security to check if (enity(message), for user (client.handshake.query) , can read entity
+
+
+                                self.sendMessageToclient(client, repo, message);
+                                if (client.handshake.query && client.handshake.query.reliableChannles) {
+                                    let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
+
+                                    channelArr.forEach((rechannel) => {
+
+                                        if (rechannel == key) {
+                                            let query = client.handshake.query;
+                                            let curSession = client.handshake.query.curSession;
+                                            securityImpl.updateSession({
+                                                netsessionid: query.netsessionid,
+                                                channelName: rechannel,
+                                                lastemit: new Date(),
+                                                status: 'active'
+                                            }, curSession);
+                                        }
+                                    });
+
+                                }
+                            }
+
+                            if (broadcastClients && broadcastClients.length) {
+                                self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                            }
+                        });
+                    }
+                }
+                io.on('connection', function (socket) {
+                    // this.socketClientholder.clients.push(client);
+
+
+
+                    console.log('client connected', socket.id);
+
+                    if (socket.handshake.query) {
+                        securityImpl.getSession(socket.handshake.query).then((session) => {
+                            socket.handshake.query.curSession = session;
+                        }).catch((error) => {
+                            console.log("error in getSession", error);
+                        });
+                    }
+
+                    //emitt pending messages 
+                    //fetch last timestam of client for each reliable channel
+                    if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                        let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+
+                        channelArr.forEach((rechannel) => {
+                            securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
+                                if (lastemit) {
+                                    //for each chnnel ask messeger the send an array of pending message
+
+                                    messenger.sendPendingMessage(rechannel, lastemit, socket.id);
+
+                                    //use socket.emitt to send previous message
+                                }
+                            }).catch((error) => {
+                                console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
+                            });
+                        }
+                        )
+                    }
+
+
+                    socket.on('disconnect', function () {
+                        console.log('client disconnected', socket.id);
+                    });
+
+                    for (let key in repoMap) {
+                        let repo = repoMap[key].repo;
+                        let meta: MetaData = repo.getMetaData();
+                        if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
+                            socket.on(key, function (data) {
+                                var d = domain.create();
+                                d.run(() => {
+                                    try {
+                                        let parsedData = data;
+                                        let executefun = () => {
+                                            try {
+                                                if (parsedData && parsedData.action && parsedData.message) {
+                                                    if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                        repo[parsedData.action](parsedData.message);
+                                                    }
+                                                }
+                                            } catch (exceptio) {
+                                                console.log(exceptio);
+                                            }
+                                        };
+                                        (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
+
+                                    }
+                                    catch (exc) {
+                                        console.log(exc);
+                                    }
+                                });
+                            });
+                        }
+
+                    }
+                });
+            });
+
+
+
+        }
+
         repositoryMap(repoMap);
     }
 }

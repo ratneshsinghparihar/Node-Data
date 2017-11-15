@@ -10,37 +10,37 @@ import {baseModel} from './baseModel';
 export class teacher extends baseModel {
 
     @transient()
-    isSinger : boolean;
+    isSinger: boolean;
     
     @onetoone({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
     courseOTO: subject;
 
-    @onetoone({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
-    courseIdOTO: subject;
+    //@onetoone({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
+    //courseIdOTO: subject;
 
-    @onetomany({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
-    courseOTM: Array<subject>;
+    //@onetomany({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
+    //courseOTM: Array<subject>;
 
-    @onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
-    courseIdOTM: Array<subject>;
+    //@onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
+    //courseIdOTM: Array<subject>;
 
-    @onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
-    physics: Array<subject>;
+    //@onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
+    //physics: Array<subject>;
 
     @promisable({ targetKey: "physics" })
     physics_LAZY: (param?: IPromisableFetchParam) => Promise<any> | any;
 
-    @onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
-    physics1: Array<subject>;
+    //@onetomany({ rel: 'subject', itemType: subject, embedded: false, persist: true, eagerLoading: false })
+    //physics1: Array<subject>;
 
     @promisable({ targetKey: "physics1" })
     physics1_LAZY: (param?: IPromisableFetchParam) => Promise<any> | any;
 
-    @onetoone({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
-    physicsOne: subject;
+    //@onetoone({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
+    //physicsOne: subject;
 
-    @onetomany({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
-    physicsMany: Array<subject>;
+    //@onetomany({ rel: 'subject', itemType: subject, embedded: true, persist: true, eagerLoading: false })
+    //physicsMany: Array<subject>;
 
 }
 

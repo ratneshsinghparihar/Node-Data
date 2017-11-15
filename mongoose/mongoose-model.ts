@@ -41,7 +41,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
     let transientProps = mongooseHelper.getAllTransientProps(model);
     Enumerable.from(objArr).forEach(obj => {
         var cloneObj = mongooseHelper.removeGivenTransientProperties(model, obj, transientProps);
-        cloneObj[ConstantKeys.TempId] = cloneObj._id ? cloneObj._id : new Mongoose.Types.ObjectId();
+        cloneObj[ConstantKeys.TempId] = cloneObj._id ? cloneObj._id : Utils.autogenerateIds(model);
         clonedModels.push(cloneObj);
     });
     return mongooseHelper.addChildModelToParent(model, clonedModels)
@@ -56,6 +56,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
             //        return Q.reject(ex);
             //    }
             //});
+
             var asyncCalls = [];
             if (!batchSize) batchSize = 1000;
             for (let curCount = 0; curCount < clonedModels.length; curCount += batchSize) {
@@ -178,7 +179,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
         for (let i = 0; i < objArr.length; i++) {
             let result = objArr[i];
             let newModel = mongooseHelper.getNewModelFromObject(model, result);
-            var objectId = new Mongoose.Types.ObjectId(result._id);
+            var objectId = Utils.getCastObjectId(newModel, result._id);
             objectIds.push(objectId);
             let id = result._id;
             let parent = result.parent;
@@ -252,7 +253,7 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                 if (updateParentRequired.length > 0) {
                     let updateObject = [];
                     updateParentRequired.forEach(x => {
-                        updateObject.push(objArr.find(obj => obj._id == x));
+                        updateObject.push(objects.find(obj => obj._id.toString() == x));
                     });
                     updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
@@ -299,7 +300,7 @@ export function bulkPatch(model: Mongoose.Model<any>, objArr: Array<any>): Q.Pro
         //it has to be group by
         let allBulkExecute = {};
         objArr.forEach(result => {
-            var objectId = new Mongoose.Types.ObjectId(result._id);
+            var objectId = Utils.getCastObjectId(model, result._id);
             let newModel = mongooseHelper.getNewModelFromObject(model, result);
             if (!allBulkExecute[newModel.modelName]) {
                 allBulkExecute[newModel.modelName] = newModel.collection.initializeUnorderedBulkOp();
@@ -456,6 +457,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     console.log("findWhere " + model.modelName);
 
     var sel = {};
+    let order = undefined;
     if (select instanceof Array) {
         select.forEach(x => {
             sel[x] = 1;
@@ -473,6 +475,8 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
 
         if (queryOptions.sort != null)
             sort = queryOptions.sort;
+        if (queryOptions.order != null)
+            order = queryOptions.order;
     }
 
     let newModels = {};
@@ -682,7 +686,7 @@ export function post(model: Mongoose.Model<any>, obj: any): Q.Promise<any> {
     console.log("post " + model.modelName);
     mongooseHelper.updateWriteCount();
     let clonedObj = mongooseHelper.removeTransientProperties(model, obj);
-    clonedObj[ConstantKeys.TempId] = clonedObj._id ? clonedObj._id : new Mongoose.Types.ObjectId();
+    clonedObj[ConstantKeys.TempId] = clonedObj._id ? clonedObj._id : Utils.autogenerateIds(model);
     return mongooseHelper.addChildModelToParent(model, [clonedObj])
         .then(result => {
             //try {

@@ -13,6 +13,7 @@ import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 import {QueryOptions} from '../interfaces/queryOptions';
 import * as utils from '../../mongoose/utils';
+import {MetaData} from '../metadata/metadata';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
@@ -50,26 +51,46 @@ export interface IDynamicRepository {
     patch(id: any, obj);
     setRestResponse(obj: any);
     getShardCondition();
+    setSocket(obj: any);
+    setMetaData(meta: MetaData);
+    getMetaData(): MetaData;
 }
 
 export class DynamicRepository implements IDynamicRepository {
     private path: string;
     private model: any;
-    private metaModel: any;
+    private metaModel: MetaData;
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
+    private socket: { socket: any, clients: Array<any> ,messenger:any};
     //private modelRepo: any;
 
-    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository, socket?:any) {
         //console.log(schema);
         this.path = repositoryPath;
         this.entity = target;
         this.rootLevelRep = rootRepo;
+        
+
+        
+
         if (target instanceof DynamicRepository) {
             target.rootLevelRep = rootRepo;
         }
         modelNameRepoModelMap[this.path] = this;
+    }
+
+    public setMetaData(meta: MetaData) {
+        this.metaModel = meta;
+    }
+
+    public getMetaData(): MetaData {
+        return this.metaModel;
+    }
+
+    public setSocket(socket?: { socket: any, clients: Array<any>, messenger: any }) {
+        this.socket = socket;
     }
 
     public getEntity() {
@@ -92,13 +113,34 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                });
+                    if (this.socket) {
+
+                        messagesToSend.push(this.sendMessage(this.path, x));
+
+                        // this.socket.socket.sockets.emit(this.path, x);
+                    }
+                })
+
+                if (this.socket && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
         });
+    }
+       
+    private sendMessage(path: string, message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.socket.messenger.send(path, message, function (err, data) {
+                resolve(true);
+                console.log('Sent message');
+            });
+        })
     }
 
     public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
@@ -109,9 +151,21 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize, donotLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                });
+                    if (this.socket) {
+
+                        messagesToSend.push(this.sendMessage(this.path, x));
+
+                        // this.socket.socket.sockets.emit(this.path, x);
+                    }
+                })
+
+                if (this.socket && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
@@ -228,7 +282,9 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public findByField(fieldName, value): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findByField(this.path, fieldName, value);
+        return Utils.entityService(pathRepoMap[this.path].modelType).findByField(this.path, fieldName, value).then(result => {
+            return InstanceService.getObjectFromJson(this.getEntity(), result);
+        });
     }
 
     public findMany(ids: Array<any>, toLoadEmbeddedChilds?: boolean) {

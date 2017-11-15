@@ -28,4 +28,11 @@ export class Decorators {
     public static PROCESS_START_AND_END = 'processStartEnd';
 }
 
+export enum ExportTypes  {
+     ALL,
+     REST,
+     WS,
+     NONE
+}
+
 export var RelationDecorators: Array<string> = [Decorators.ONETOONE, Decorators.ONETOMANY, Decorators.MANYTOONE, Decorators.MANYTOMANY];

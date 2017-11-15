@@ -7,6 +7,8 @@ import Q = require('q');
 export var mainConnection: any = {};
 var allConnections: any = {};
 var connectionOptions;
+import EventEmitter = require('events');
+var emitters: Array<EventEmitter.EventEmitter> = new Array<EventEmitter.EventEmitter>()
 
 export function connect() {
     let dbLoc = CoreUtils.config().Config.DbConnection;
@@ -23,6 +25,13 @@ export function getDbSpecifcModel(schemaName: any, schema: any): any {
     else {
         return mainConnection.model(schemaName, schema);
     }
+}
+
+export function addEmitter(msg: EventEmitter.EventEmitter) {
+    emitters.push(msg);
+}
+export function removeEmitter(msg: EventEmitter.EventEmitter) {
+    emitters = emitters.filter((mem) => { return mem != msg });
 }
 
 export function updateConnection(connectionString, connectionOption): Q.IPromise<any> {
@@ -44,6 +53,14 @@ function getConnection(connectionString, connectionOption): Q.IPromise<any> {
     }
 }
 
+const emitMesseageToALL = (event, message) => {
+    if (emitters && emitters.length) {
+        emitters.forEach((emitter) => {
+            emitter.emit(event, message);
+        })
+    }
+};
+
 function connectDataBase(conn, connectionString): Q.IPromise<any> {
     let defer = Q.defer();
     conn.on('connecting', () => {
@@ -53,21 +70,26 @@ function connectDataBase(conn, connectionString): Q.IPromise<any> {
     conn.on('connected', () => {
         winstonLog.logInfo(`connection established successfully ${connectionString}`);
         defer.resolve(true);
+        emitMesseageToALL('connected', conn);
     });
 
     conn.on('error', (err) => {
         winstonLog.logInfo(`connection to mongo failed for ${connectionString} with error ${err}`);
         defer.resolve(false);
+        emitMesseageToALL('connected', conn);
     });
 
     conn.on('disconnected', () => {
         winstonLog.logInfo(`connection closed successfully ${connectionString}`);
         defer.resolve(false);
+        emitMesseageToALL('connected', conn);
     });
     return defer.promise;
 }
 
 function defaultDomainOptions(connectionOption: any) {
+
+
     if (!connectionOption) {
         connectionOption = {};
     }
