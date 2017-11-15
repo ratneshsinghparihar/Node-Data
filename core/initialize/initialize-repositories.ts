@@ -25,6 +25,7 @@ var domain = require('domain');
 var Messenger = require('../../mongoose/pubsub/messenger');
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {Session} from  '../../models/session';
+import * as configUtils from '../utils';
 
 
 
@@ -34,8 +35,32 @@ export class InitializeRepositories {
     private socketChannelGroups: any = {}; // key is channel name and values array of groups
     private sessionSocketIdMap = {}; //need to be handled the disconnection
     private socket: any;
+    private allAutherizationRules: Array<{
+        name: string;
+        acl: Array<{ role: string, accessmask: number, acl?: boolean }>;
+        isRepoAuthorize: boolean;
+    }> = <Array<{
+        name: string;
+        acl: Array<{ role: string, accessmask: number, acl?: boolean }>;
+        isRepoAuthorize: boolean;
+    }>>(configUtils.securityConfig().SecurityConfig.ResourceAccess);
+
+    private allAutherizationRulesMap: any = {};
+
     constructor(server?: any) {
         this.initializeRepo(server);
+        if (this.allAutherizationRules && this.allAutherizationRules.length) {
+            this.allAutherizationRules.forEach((rule) => {
+                this.socketChannelGroups[rule.name] = {};
+                let insideRulMap: any = {};
+                if (rule && rule.acl && rule.acl.length) {
+                    rule.acl.forEach((acl) => {
+                        insideRulMap[acl.role] = acl;
+                    })
+                }
+                this.allAutherizationRulesMap[rule.name] = insideRulMap;
+            });
+        }
     }
 
     public schemaGenerator(schemaGenerator: ISchemaGenerator) {
@@ -170,14 +195,31 @@ export class InitializeRepositories {
                         messenger.on(key, function (message) {
 
                             //handle if repo is completly broadcast
+                            let broadcastToAll = (castType: string) => {
+                                let channelRoom = io.sockets.adapter.rooms[key];
+                                if (channelRoom) {
+                                    var roomclients = channelRoom.length;
+
+                                    //io.sockets.emit(key, message);
+                                    io.to(key).emit(key, message);
+                                    //io.broadcast.to(key).emit(key, message);
+
+                                    console.log("WS_BROAD_CAST", { "channle": key, "no_of_broadcasts": roomclients });
+                                }
+                            }
+
                             if (meta.params.broadCastType && meta.params.broadCastType == ExportTypes.WS_BROAD_CAST) {
-                                io.broadcast.to(key).emit(key, message);
+
+                                broadcastToAll("WS_BROAD_CAST");
                                // io.to(key).emit(message);
                                 return;
                             }
                             // io.in(key).emit(key, message);
-
-                            
+                            //NO aACL define 
+                            if (!self.allAutherizationRulesMap[key]) {
+                                broadcastToAll("BROAD_CAST_NO_RULE");
+                                return;
+                            }
 
                             let messageSendStatistics: any = {};
                             let connectedClients = 0;
