@@ -487,7 +487,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             if (CoreUtils.isJSON(query[key])) {
                 if (query[key]['$in']) {
                     query[key]['$in'].forEach(x => {
-                        let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, query[key]);
+                        let newModel = mongooseHelper.getChangedModelForDynamicSchema(model, x);
                         newModels[newModel.modelName] = newModel;
                     });
                 }
