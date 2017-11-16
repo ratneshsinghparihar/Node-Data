@@ -413,7 +413,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     let parentObjectId;
     console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
-        let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId].toString();
+        let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId];
         let property = objs[i][ConstantKeys.parent][ConstantKeys.property].toString();
         if (property != meta.propertyKey)
             continue;
@@ -945,6 +945,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
             res.forEach(obj => {
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
+                    Utils.pushPropToArrayOrObject(prop, val, searchResult[obj['_id']][prop], isJsonMap);
                     searchResult[obj['_id']][prop].push(val);
                 }
                 else {

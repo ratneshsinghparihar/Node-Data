@@ -9,6 +9,12 @@ import {MetaData} from '../../core/metadata/metadata';
 import {Decorators} from '../../core/constants/decorators';
 import {Types} from "mongoose";
 import { ConstantKeys } from '../../core/constants';
+var rn = require('random-number');
+var gen = rn.generator({
+    min: 0,
+    max:999999999,
+    integer: true
+});
 
 export function castToMongooseType(value, schemaType) {
     var newVal;
@@ -188,7 +194,7 @@ export function isBasonOrStringType(obj: any) {
     if (!obj) {
         return undefined;
     }
-    return obj instanceof Types.ObjectId || typeof obj === "string";
+    return !CoreUtils.isJSON(obj) || (CoreUtils.isJSON(obj) && obj instanceof Types.ObjectId);
 }
 
 export function getParentKey(modelName, prop, id) {
@@ -235,12 +241,17 @@ export function pushPropToArrayOrObject(prop:any,propVal:any,collecionObj:any,is
 export function autogenerateIds(model: any): any {
     let primaryKey = '_id';
     let type = model.schema.paths[primaryKey].instance;
-    let id = new Mongoose.Types.ObjectId();
-    if (type == 'ObjectID') {
-        return id;
-    }
-    else {
-        return id.toString();
+    switch (type) {
+        case 'Number':
+            return gen()
+        default:
+            let id = new Mongoose.Types.ObjectId();
+            if (type == 'ObjectID') {
+                return id;
+            }
+            else {
+                return id.toString();
+            }
     }
 }
 
