@@ -946,7 +946,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
                     Utils.pushPropToArrayOrObject(prop, val, searchResult[obj['_id']][prop], isJsonMap);
-                    searchResult[obj['_id']][prop].push(val);
+                    //searchResult[obj['_id']][prop].push(val);
                 }
                 else {
                     searchResult[obj['_id']][prop] = val;
