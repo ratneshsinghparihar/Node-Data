@@ -11,6 +11,7 @@ export function entity(params: { name: string, strict?: Strict }) {
             {
                 decorator: Decorators.ENTITY,
                 decoratorType: DecoratorType.CLASS,
+                modelType: DecoratorType.MODEL,
                 params: params
             });
     }

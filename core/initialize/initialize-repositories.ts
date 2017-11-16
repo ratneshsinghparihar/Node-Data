@@ -9,6 +9,7 @@ import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
 var Config = Utils.config();
 import {Decorators} from '../constants';
+import {DecoratorType} from '../enums/decorator-type';
 
 import {IRepositoryParams} from '../decorators/interfaces';
 import {repositoryMap} from '../exports/repositories';
@@ -68,8 +69,6 @@ export class InitializeRepositories {
                 let rootRepo = new DynamicRepository();
                 rootRepo.initialize(repoParams.path, x.target, model);
 
-
-
                 if (x.target instanceof DynamicRepository) {
                     newRepo = <DynamicRepository>InstanceService.getInstance(x.target, null, null);
                 }
@@ -82,14 +81,14 @@ export class InitializeRepositories {
                     fn: x.target,
                     repo: newRepo
                 };
-                var meta = MetaUtils.getMetaData(model, Decorators.DOCUMENT);
-                if (meta && meta[0] && x.metadata[0]) {
-                    repoFromModel[meta[0].params.name] = newRepo;
+                var metas = MetaUtils.getMetaDataFromDecoratorType(model, DecoratorType.MODEL);
+                if (metas && metas[0] && x.metadata[0]) {
+                    repoFromModel[metas[0].params.name] = newRepo;
                     newRepo.setMetaData(x.metadata[0]);
                 }
 
                
-                meta && meta[0] && (repoFromModel[meta[0].params.name] = newRepo);
+                metas && metas[0] && (repoFromModel[metas[0].params.name] = newRepo);
 
                 
                 //searchMetaUtils.registerToMongoosastic(repoMap[path].repo.getModel());

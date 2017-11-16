@@ -18,6 +18,7 @@ export function document(params: { name: string, strict?: Strict, dynamicName?: 
             {
                 decorator: Decorators.DOCUMENT,
                 decoratorType: DecoratorType.CLASS,
+                modelType: DecoratorType.MODEL,
                 params: params
             });
     }

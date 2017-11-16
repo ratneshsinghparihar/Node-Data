@@ -11,6 +11,7 @@ export function entity(params: {name:string, tableName: string, timestamps?: boo
             {
                 decorator: Decorators.ENTITY,
                 decoratorType: DecoratorType.CLASS,
+                modelType: DecoratorType.MODEL,
                 params: params
             });
     }
