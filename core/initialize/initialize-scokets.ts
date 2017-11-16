@@ -111,6 +111,14 @@ export class InitializeScokets {
         }
     }
 
+    private sendMessageOnRepo = (repo: any, message: any) => {
+        try {
+            if (repo && message) {
+                repo.onMessage(message);
+            }
+        }
+        catch (ex) { console.log("error in on message", message); }
+    }
 
     private initializeSocketServer(server?: any) {
         let self = this;
@@ -146,7 +154,7 @@ export class InitializeScokets {
                     let meta: MetaData = repo.getMetaData();
                     if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS || meta.params.exportType == ExportTypes.WS_BROAD_CAST )) {
                         messenger.on(key, function (message) {
-
+                            self.sendMessageOnRepo(repo, message);
                             //handle if repo is completly broadcast
                             let broadcastToAll = (castType: string) => {
                                 let channelRoom = io.sockets.adapter.rooms[key];

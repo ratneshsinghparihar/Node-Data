@@ -55,6 +55,8 @@ export interface IDynamicRepository {
     setMetaData(meta: MetaData);
     getMetaData(): MetaData;
     castToPrimaryKey(id): any;
+
+    onMessage(message: any);
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -383,5 +385,9 @@ export class DynamicRepository implements IDynamicRepository {
             return Number.parseInt(id);
         }
         return id;        
+    }
+
+    public onMessage(message: any) {
+        return;
     }
 }
