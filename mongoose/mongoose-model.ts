@@ -617,7 +617,7 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
     Object.keys(newModels).forEach(x => {
         asyncCalls.push(<any>newModels[x].find(mongooseHelper.setShardCondition(model, {
             '_id': {
-                $in: ids
+                $in: ids.map(x => Utils.getCastObjectId(model, x))
             }
         })).lean());
     });
