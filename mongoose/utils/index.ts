@@ -251,6 +251,6 @@ export function getCastObjectId(model: any, id: any): any {
         return new Mongoose.Types.ObjectId(id.toString());
     }
     else {
-        return id.toString();
+        return id;
     }
 }

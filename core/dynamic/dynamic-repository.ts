@@ -66,7 +66,7 @@ export class DynamicRepository implements IDynamicRepository {
     private socket: { socket: any, clients: Array<any> ,messenger:any};
     //private modelRepo: any;
 
-    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository, socket?:any) {
+    public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
         //console.log(schema);
         this.path = repositoryPath;
         this.entity = target;
