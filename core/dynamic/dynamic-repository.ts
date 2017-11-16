@@ -54,6 +54,7 @@ export interface IDynamicRepository {
     setSocket(obj: any);
     setMetaData(meta: MetaData);
     getMetaData(): MetaData;
+    castToPrimaryKey(id): any;
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -275,8 +276,10 @@ export class DynamicRepository implements IDynamicRepository {
             return Q.when(InstanceService.getObjectFromJson(this.getEntity(), result));
         }
         else {
-            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id,donotLoadChilds).then(result => {
-                return InstanceService.getObjectFromJson(this.getEntity(), result);
+            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id, donotLoadChilds).then(result => {
+                if (result)
+                    return InstanceService.getObjectFromJson(this.getEntity(), result);
+                return result;
             });
         }
     }
@@ -370,5 +373,15 @@ export class DynamicRepository implements IDynamicRepository {
     // This function should return the additional shard condition which will be added in all the query to avoid the queries for cross sharding
     public getShardCondition() {        
         return null;
+    }
+
+    public castToPrimaryKey(id) {
+        let primaryKey = '_id';
+        let modelRepo = this.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD, primaryKey);
+        if (decoratorFields.params.primary && decoratorFields.getType() == Number) {
+            return Number.parseInt(id);
+        }
+        return id;        
     }
 }
