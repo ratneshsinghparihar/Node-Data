@@ -418,7 +418,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         if (property != meta.propertyKey)
             continue;
 
-        parents[parentId] = parents[parentId] ? parents[parentId] : (isJsonMap ? {} : []);
+        parents[parentId] = parents[parentId] ? parents[parentId] : (isJsonMap ? { '_id': parentId } : []);
         // check meta then update with array or keyvalue
         if (isJsonMap) {
             parents[parentId][meta.propertyKey + '.' + objs[i]._id.toString()] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
@@ -444,7 +444,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     Object.keys(parents).forEach(x => {
         if (isJsonMap) {
             var queryFindCond = {};
-            queryFindCond['_id'] = Utils.getCastObjectId(model, x);
+            queryFindCond['_id'] = Utils.getCastObjectId(model, parents[x]['_id']);
             bulk.find(setShardCondition(model, queryFindCond)).update({ $set: parents[x] });
         }
         else {
