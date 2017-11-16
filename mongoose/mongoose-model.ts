@@ -468,15 +468,19 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     }
     if (queryOptions) {
         if (queryOptions.limit != null)
-            limit = queryOptions.limit;
+            limit = <number>queryOptions.limit;
 
         if (queryOptions.skip != null)
-            skip = queryOptions.skip;
+            skip = <number>queryOptions.skip;
 
-        if (queryOptions.sort != null)
+        if (queryOptions.sort != null) {
             sort = queryOptions.sort;
-        if (queryOptions.order != null)
-            order = queryOptions.order;
+            if (queryOptions.order != null && queryOptions.order === 'desc') {
+                let descSort = {};
+                descSort[sort] = -1;
+                sort = descSort;
+            }
+        }
     }
 
     let newModels = {};
