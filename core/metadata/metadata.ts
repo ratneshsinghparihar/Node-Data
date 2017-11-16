@@ -6,7 +6,7 @@ import * as ReflectUtils from '../reflect/reflect-utils';
 export interface IMetaOptions {
     decorator: string;
     decoratorType: DecoratorType;
-    modelType: DecoratorType;
+    modelType?: DecoratorType;
     params?: any;
     propertyKey?: string;
     paramIndex?: number;
