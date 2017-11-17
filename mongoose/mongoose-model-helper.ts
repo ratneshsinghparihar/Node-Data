@@ -415,8 +415,9 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     for (var i = 0; i < objs.length; i++) {
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId];
         let property = objs[i][ConstantKeys.parent][ConstantKeys.property].toString();
-        if (property != meta.propertyKey)
-            continue;
+        // @anuj: below code commented casue it is not updating if same child master object is referenced more than once in parent with different properties name
+        //if (property != meta.propertyKey)
+        //    continue;
 
         parents[parentId] = parents[parentId] ? parents[parentId] : (isJsonMap ? {} : []);
         // check meta then update with array or keyvalue
