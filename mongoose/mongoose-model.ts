@@ -468,10 +468,10 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
     }
     if (queryOptions) {
         if (queryOptions.limit != null)
-            limit = <number>queryOptions.limit;
+            limit = Number.parseInt(queryOptions.limit.toString());
 
         if (queryOptions.skip != null)
-            skip = <number>queryOptions.skip;
+            skip = Number.parseInt(queryOptions.skip.toString());
 
         if (queryOptions.sort != null) {
             sort = queryOptions.sort;

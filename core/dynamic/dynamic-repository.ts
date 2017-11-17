@@ -344,13 +344,26 @@ export class DynamicRepository implements IDynamicRepository {
      */
     public post(obj: any): Q.Promise<any> {
         obj = InstanceService.getInstance(this.getEntity(), null, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj).then(result => {
+            if (result ) {               
+                    if (this.socket) {
+                        this.sendMessage(this.path, result);
+                    }
+            }
+            return result;
+        });
     }
 
     public put(id: any, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj).then(result => {
-            return InstanceService.getObjectFromJson(this.getEntity(), result);
+            let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);
+            if (retVal) {
+                if (this.socket) {
+                    this.sendMessage(this.path, retVal);
+                }
+            }
+            return retVal;
         });
     }
         
