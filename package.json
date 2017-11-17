@@ -74,7 +74,7 @@
     "typescript": "2.2.1",
     "uuid": "3.1.0",
     "winston": "2.2.0",
-	"socket.io":"2.0.4"
+    "socket.io": "2.0.4"
   },
   "description": "Node Data",
   "devDependencies": {
@@ -104,5 +104,5 @@
     "testone": "jasmine ",
     "tsd": ""
   },
-  "version": "3.0.5"
+  "version": "3.0.6"
 }
