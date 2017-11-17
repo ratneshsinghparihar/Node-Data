@@ -23,7 +23,7 @@ export var mongooseNameSchemaMap: { [key: string]: any } = {};
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
 
-var Messenger = require('../../mongoose/pubsub/messenger');
+import {Messenger} from '../../mongoose/pubsub/messenger';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {Session} from  '../../models/session';
 import * as configUtils from '../utils';
@@ -152,7 +152,8 @@ export class InitializeScokets {
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
                     let meta: MetaData = repo.getMetaData();
-                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS || meta.params.exportType == ExportTypes.WS_BROAD_CAST )) {
+                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS
+                        || meta.params.exportType == ExportTypes.WS_BROAD_CAST)) {
                         messenger.on(key, function (message) {
                             self.sendMessageOnRepo(repo, message);
                             //handle if repo is completly broadcast
@@ -199,6 +200,7 @@ export class InitializeScokets {
                                 reliableClients++;
                                 let query = client.handshake.query;
                                 let curSession = client.handshake.query.curSession;
+                                console.log("updating session timstamp for ", query && query.name);
                                 securityImpl.updateSession({
                                     netsessionid: query.netsessionid,
                                     channelName: key,
@@ -376,6 +378,13 @@ export class InitializeScokets {
                                                 console.log(exceptio);
                                             }
                                         };
+
+                                        if (socket.handshake.query && socket.handshake.query.curSession) {
+                                            PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
+                                            executefun();
+                                            return
+                                        }
+
                                         (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
 
                                     }
