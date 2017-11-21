@@ -1,4 +1,5 @@
-﻿/// <reference path="initialize-repositories.ts" />
+﻿/// <reference path="../services/workerProcessService.ts" />
+/// <reference path="initialize-repositories.ts" />
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
@@ -22,6 +23,7 @@ export var mongooseNameSchemaMap: { [key: string]: any } = {};
 
 import * as securityImpl from '../dynamic/security-impl';
 var domain = require('domain');
+import {inject} from '../../di/decorators/inject';
 
 import {Messenger} from '../../mongoose/pubsub/messenger';
 import {PrincipalContext} from '../../security/auth/principalContext';
@@ -29,9 +31,14 @@ import {Session} from  '../../models/session';
 import * as configUtils from '../utils';
 import {repoMap} from './initialize-repositories';
 import * as Q from 'q';
+const uuidv4 = require('uuid/v4');
+import {IWorkerProcessService} from "../services/workerProcessService";
 
 
 export class InitializeScokets {
+
+   
+
     private _schemaGenerator: ISchemaGenerator;
     private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
     private socketChannelGroups: any = {}; // key is channel name and values array of groups
@@ -41,6 +48,10 @@ export class InitializeScokets {
     private messenger = new Messenger({ retryInterval: 3000 });
     private io = undefined;
     private channleMessangerMap: any = {};
+    
+    private serverId = uuidv4();
+
+    private workerProcessService: IWorkerProcessService;
 
     private allAutherizationRules: Array<{
         name: string;
@@ -68,7 +79,24 @@ export class InitializeScokets {
                 this.allAutherizationRulesMap[rule.name] = insideRulMap;
             });
         }
+
+        
+
         this.initializeSocketServer(server);
+    }
+
+
+    private getProcessService(): any {
+       
+        if (this.workerProcessService) {
+            return this.workerProcessService;
+        }
+        var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
+        var processService: any = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == "workerprocessservice").select(x => x.metadata[0]).firstOrDefault();
+        if (processService) {
+            this.workerProcessService =processService;
+        }
+        return this.workerProcessService;;
     }
 
     public schemaGenerator(schemaGenerator: ISchemaGenerator) {
@@ -125,12 +153,12 @@ export class InitializeScokets {
         catch (ex) { console.log("error in on message", message); }
     }
 
-    private getRandomElementInArray = (collection: Array<any>): any => {
-        let high = collection.length - 1;
-        let low = 0;
-        let randomNo = Math.floor(Math.random() * (high - low + 1) + low);
-        return collection[randomNo];
-    }
+        private getRandomElementInArray = (collection: Array<any>): any => {
+            let high = collection.length - 1;
+            let low = 0;
+            let randomNo = Math.floor(Math.random() * (high - low + 1) + low);
+            return collection[randomNo];
+        }
 
     private checkIfRepoForMessenger = (meta: MetaData): boolean =>
         meta && (meta.params.exportType == ExportTypes.ALL ||
@@ -200,6 +228,15 @@ export class InitializeScokets {
                                 }
                             });
                         }
+
+                        if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                            let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+                            if (channelArr && channelArr.length) {
+                                let newWorker = { serverId: self.serverId, workerId: socket.id, status: "connected", channels: channelArr };
+                                self.getProcessService().target.createWorker(newWorker);
+                            }
+                        }
+
                     }).catch((error) => {
                         console.log("error in getSession", error);
                     });
@@ -229,6 +266,8 @@ export class InitializeScokets {
 
                 socket.on('disconnect', function () {
                     console.log('client disconnected', socket.id);
+                    let newWorker = { serverId: self.serverId, workerId: socket.id, status: "disconnected" };
+                    self.getProcessService().target.updateWorker(newWorker);
                     if (socket.handshake.query.curSession) {
                         delete self.sessionSocketIdMap[socket.handshake.query.curSession.userId];
                     }
@@ -242,41 +281,13 @@ export class InitializeScokets {
                             var d = domain.create();
                             d.run(() => {
                                 try {
-                                    let parsedData = data;
-
-                                    let messenger: Messenger = repo.getMessanger();
-
-                                    let sendMessage = (path: string, message: any): Promise<any> => {
-                                        return new Promise((resolve, reject) => {
-                                            messenger && messenger.send(path, message, function (err, data) {
-                                                resolve(true);
-                                                console.log('Sent message');
-                                            });
-                                        })
-                                    }
+                                    let parsedData = data;                                  
 
                                     let executefun = () => {
                                         try {
                                             if (parsedData && parsedData.action && parsedData.message) {
-                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                                                    let messagesToSend = [];
-                                                    repo[parsedData.action](parsedData.message).then((result) => {
-                                                        if (result) {
-                                                            if (result instanceof Array && result.length) {
-                                                                result.forEach(x => {
-                                                                    messagesToSend.push(sendMessage(key, x));
-                                                                });
-                                                            }
-                                                            else {
-                                                                messagesToSend.push(sendMessage(key, result));
-                                                            }
-                                                            if (messenger && messagesToSend.length) {
-                                                                Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucesss") })
-                                                                    .catch((err) => { console.log("error in sending message bulkPost", err) });
-                                                            }
-                                                        }
-
-                                                    }).catch((error) => { console.log(error); })
+                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {                                                    
+                                                    repo[parsedData.action](parsedData.message)                                                   
                                                 }
                                             }
                                         } catch (exceptio) {
@@ -312,7 +323,7 @@ export class InitializeScokets {
             let meta: MetaData = repo.getMetaData();
             if (self.checkIfRepoForMessenger(meta)) {
                 let messenger = self.messenger;
-                if (meta.params.messenger) {
+                if (meta.params.dedicatedMessenger) {
                     messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message" });
                     messengerPool.push(messenger);
                 }
@@ -404,7 +415,7 @@ export class InitializeScokets {
 
                         for (let channleGroup in self.socketChannelGroups[key]) {
                             let isRealiableChannel = false;
-                            let groupName = key + "_" + channleGroup;
+                            let groupName = key + "_" + channleGroup; //channleGroup is {role} , {role_RC} , key is repo name matchedorder_ROLE_ADMIN
                             if (self.socketChannelGroups[key][channleGroup]) {
                                 isRealiableChannel = self.socketChannelGroups[key][channleGroup];
                                 //groupName += "_RC";

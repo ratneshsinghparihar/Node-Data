@@ -17,7 +17,7 @@ import {MetaData} from '../metadata/metadata';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
- 
+
 export function GetRepositoryForName(name: string): IDynamicRepository {
     return modelNameRepoModelMap[name]
 }
@@ -75,9 +75,9 @@ export class DynamicRepository implements IDynamicRepository {
         this.path = repositoryPath;
         this.entity = target;
         this.rootLevelRep = rootRepo;
-        
 
-        
+
+
 
         if (target instanceof DynamicRepository) {
             target.rootLevelRep = rootRepo;
@@ -98,7 +98,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public getMessanger() {
-       return this.messenger;
+        return this.messenger;
     }
 
     public getEntity() {
@@ -124,17 +124,29 @@ export class DynamicRepository implements IDynamicRepository {
                 let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                   
+                    if (this.messenger) {
+                        messagesToSend.push(this.sendMessage(this.path, x));
+                    }
                 })
 
-               
+                if (this.messenger && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
         });
     }
-       
-   
+
+    private sendMessage(path: string, message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.messenger.send(path, message, function (err, data) {
+                resolve(true);
+                console.log('Sent message');
+            });
+        })
+    }
 
     public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
         var objs = [];
@@ -147,8 +159,18 @@ export class DynamicRepository implements IDynamicRepository {
                 let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                    
+                    if (this.messenger) {
+
+                        messagesToSend.push(this.sendMessage(this.path, x));
+
+                        // this.socket.socket.sockets.emit(this.path, x);
+                    }
                 })
+
+                if (this.messenger && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
@@ -227,7 +249,7 @@ export class DynamicRepository implements IDynamicRepository {
     // }
 
     public findWhere(query, selectedFields?: Array<any>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields,queryOptions, toLoadChilds).then(result => {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields, queryOptions, toLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
@@ -324,7 +346,12 @@ export class DynamicRepository implements IDynamicRepository {
      */
     public post(obj: any): Q.Promise<any> {
         obj = InstanceService.getInstance(this.getEntity(), null, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj).then(result => {            
+        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj).then(result => {
+            if (result) {
+                if (this.messenger) {
+                    this.sendMessage(this.path, result);
+                }
+            }
             return result;
         });
     }
@@ -332,11 +359,16 @@ export class DynamicRepository implements IDynamicRepository {
     public put(id: any, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj).then(result => {
-            let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);           
+            let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);
+            if (retVal) {
+                if (this.messenger) {
+                    this.sendMessage(this.path, retVal);
+                }
+            }
             return retVal;
         });
     }
-        
+
     public delete(id: any) {
         return Utils.entityService(pathRepoMap[this.path].modelType).del(this.path, id);
     }
@@ -356,7 +388,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     // This function should return the additional shard condition which will be added in all the query to avoid the queries for cross sharding
-    public getShardCondition() {        
+    public getShardCondition() {
         return null;
     }
 
@@ -367,7 +399,7 @@ export class DynamicRepository implements IDynamicRepository {
         if (decoratorFields.params.primary && decoratorFields.getType() == Number) {
             return Number.parseInt(id);
         }
-        return id;        
+        return id;
     }
 
     public onMessage(message: any) {
