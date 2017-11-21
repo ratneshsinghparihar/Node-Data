@@ -14,10 +14,12 @@ export class Messenger extends events.EventEmitter {
     startingMessageTimestamp = new Date();
     retryInterval;
     parentCallBack;
+    collectionName;
     constructor(options) {
         super();
         //this.apply(this, arguments);
         var o = options || {};
+        this.collectionName = options && options.collectionName;
         this.subscribed = {};
         this.lastMessageTimestamp = null;
         this.startingMessageTimestamp = new Date();
@@ -35,7 +37,7 @@ export class Messenger extends events.EventEmitter {
             cb = callback;
         }
         if (!Message) {
-            Message = getMessage();
+            Message = getMessage(this.collectionName );
         }
         var message = new Message({
             channel: channel,
@@ -94,7 +96,20 @@ export class Messenger extends events.EventEmitter {
         if (!Message) {
             Message = getMessage();
         }
-        var stream = Message.find(query).setOptions({ tailable: true, tailableRetryInterval: self.retryInterval, numberOfRetries: Number.MAX_VALUE }).stream();
+       // var stream = Message.find(query).setOptions({ tailable: true, tailableRetryInterval: self.retryInterval, numberOfRetries: Number.MAX_VALUE }).stream();
+        //var stream = Message.find(query).setOptions({
+        //    tailable: true, tailableRetryInterval: 200,
+        //    awaitdata: false,
+        //    numberOfRetries: -1
+        //}).stream();
+
+        // major performance improvement
+        let stream = Message.find(query)
+            .cursor()
+            .addCursorFlag('tailable', true)
+            .addCursorFlag('awaitData', true)
+            //.addCursorFlag('tailableRetryInterval', self.retryInterval)
+            //.addCursorFlag('numberOfRetries', Number.MAX_VALUE);
 
         stream.on('data', function data(doc) {
             self.lastMessageTimestamp = doc.timestamp;
@@ -103,7 +118,7 @@ export class Messenger extends events.EventEmitter {
             }
         });
 
-        // reconnect on error
+        //// reconnect on error
         stream.on('error', function streamError(error) {
             if (error && error.message) {
                 console.log(error.message);
