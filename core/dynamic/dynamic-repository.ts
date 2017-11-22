@@ -125,12 +125,11 @@ export class DynamicRepository implements IDynamicRepository {
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.messenger) {
-                        messagesToSend.push(this.sendMessage(this.path, x));
+                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
                     }
                 })
-
                 if (this.messenger && messagesToSend.length) {
-                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess"); })
                         .catch((err) => { console.log("error in sending message bulkPost", err) });
                 }
                 return res;
@@ -139,14 +138,7 @@ export class DynamicRepository implements IDynamicRepository {
         });
     }
 
-    private sendMessage(path: string, message: any): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.messenger.send(path, message, function (err, data) {
-                resolve(true);
-                console.log('Sent message');
-            });
-        })
-    }
+    
 
     public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
         var objs = [];
@@ -161,7 +153,7 @@ export class DynamicRepository implements IDynamicRepository {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                     if (this.messenger) {
 
-                        messagesToSend.push(this.sendMessage(this.path, x));
+                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
 
                         // this.socket.socket.sockets.emit(this.path, x);
                     }
@@ -349,7 +341,7 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj).then(result => {
             if (result) {
                 if (this.messenger) {
-                    this.sendMessage(this.path, result);
+                    this.messenger.chekAndSend(this.path, result);
                 }
             }
             return result;
@@ -362,7 +354,7 @@ export class DynamicRepository implements IDynamicRepository {
             let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);
             if (retVal) {
                 if (this.messenger) {
-                    this.sendMessage(this.path, retVal);
+                    this.messenger.chekAndSend(this.path, retVal);
                 }
             }
             return retVal;

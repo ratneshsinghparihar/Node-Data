@@ -6,5 +6,5 @@ export interface IWorkerProcessService {
 
      deleteWorker(worker: any);
 
-     getSingleRandomWoker(sessionId: any);
+     getSingleRandomWoker(sessionId: any,role: any):any;
 }

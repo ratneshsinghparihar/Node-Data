@@ -30,6 +30,15 @@ export class Messenger extends events.EventEmitter {
 
     //util.inherits(Messenger, EventEmitter);
 
+    public chekAndSend(path: string, message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.send(path, message, function (err, data) {
+                resolve(true);
+                console.log('Sent message');
+            });
+        })
+    }
+    
     send(channel, msg, callback) {
 
         var cb = function noop() { };
@@ -123,7 +132,7 @@ export class Messenger extends events.EventEmitter {
             if (error && error.message) {
                 console.log(error.message);
             }
-            stream.destroy();
+            //stream.destroy();
             setTimeout(() => {
                 self.connect()
             }, 2000);

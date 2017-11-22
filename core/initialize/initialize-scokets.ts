@@ -1,5 +1,4 @@
-﻿/// <reference path="../services/workerProcessService.ts" />
-/// <reference path="initialize-repositories.ts" />
+﻿
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
@@ -30,14 +29,19 @@ import {PrincipalContext} from '../../security/auth/principalContext';
 import {Session} from  '../../models/session';
 import * as configUtils from '../utils';
 import {repoMap} from './initialize-repositories';
+
 import * as Q from 'q';
 const uuidv4 = require('uuid/v4');
 import {IWorkerProcessService} from "../services/workerProcessService";
+import {IWorkerProcess} from "../../models/IWorkerProcess";
+import {IAutherizationParam} from "../../security/auth/autherizationParam";
+
+export var allAutherizationRulesMap: any = {};
 
 
 export class InitializeScokets {
 
-   
+
 
     private _schemaGenerator: ISchemaGenerator;
     private socketClientholder: { socket: any, clients: Array<any>, messenger: any } = { socket: {}, clients: [], messenger: {} };
@@ -48,23 +52,25 @@ export class InitializeScokets {
     private messenger = new Messenger({ retryInterval: 3000 });
     private io = undefined;
     private channleMessangerMap: any = {};
-    
+
     private serverId = uuidv4();
 
     private workerProcessService: IWorkerProcessService;
 
     private allAutherizationRules: Array<{
         name: string;
-        acl: Array<{ role: string, accessmask: number, acl?: boolean }>;
+        acl: Array<IAutherizationParam>;
         isRepoAuthorize: boolean;
     }> = <Array<{
         name: string;
-        acl: Array<{ role: string, accessmask: number, acl?: boolean }>;
+        acl: Array<IAutherizationParam>;
         isRepoAuthorize: boolean;
     }>>(configUtils.securityConfig().SecurityConfig.ResourceAccess);
 
     private allAutherizationRulesMap: any = {};
 
+    // name.role :{ role: string, accessmask: number, acl?: boolean }
+    private allSingleEmitterSettings: any = {}; // {repo.name} : Array<strings> roles
     constructor(server?: any) {
 
         if (this.allAutherizationRules && this.allAutherizationRules.length) {
@@ -74,27 +80,33 @@ export class InitializeScokets {
                 if (rule && rule.acl && rule.acl.length) {
                     rule.acl.forEach((acl) => {
                         insideRulMap[acl.role] = acl;
+                        if (acl.emitToSingleWorker) {
+                            if (!this.allSingleEmitterSettings[rule.name]) {
+                                this.allSingleEmitterSettings[rule.name] = [];
+                            }
+                            this.allSingleEmitterSettings[rule.name].push(acl.role);
+                        }
                     })
                 }
                 this.allAutherizationRulesMap[rule.name] = insideRulMap;
             });
         }
+        allAutherizationRulesMap = this.allAutherizationRulesMap;
 
-        
 
         this.initializeSocketServer(server);
     }
 
 
     private getProcessService(): any {
-       
+
         if (this.workerProcessService) {
             return this.workerProcessService;
         }
         var services = MetaUtils.getMetaDataForDecorators([Decorators.SERVICE]);
         var processService: any = Enumerable.from(services).where(x => x.metadata[0].params.serviceName == "workerprocessservice").select(x => x.metadata[0]).firstOrDefault();
         if (processService) {
-            this.workerProcessService =processService;
+            this.workerProcessService = processService;
         }
         return this.workerProcessService;;
     }
@@ -153,12 +165,12 @@ export class InitializeScokets {
         catch (ex) { console.log("error in on message", message); }
     }
 
-        private getRandomElementInArray = (collection: Array<any>): any => {
-            let high = collection.length - 1;
-            let low = 0;
-            let randomNo = Math.floor(Math.random() * (high - low + 1) + low);
-            return collection[randomNo];
-        }
+    private getRandomElementInArray = (collection: Array<any>): any => {
+        let high = collection.length - 1;
+        let low = 0;
+        let randomNo = Math.floor(Math.random() * (high - low + 1) + low);
+        return collection[randomNo];
+    }
 
     private checkIfRepoForMessenger = (meta: MetaData): boolean =>
         meta && (meta.params.exportType == ExportTypes.ALL ||
@@ -232,7 +244,9 @@ export class InitializeScokets {
                         if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                             let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                             if (channelArr && channelArr.length) {
-                                let newWorker = { serverId: self.serverId, workerId: socket.id, status: "connected", channels: channelArr };
+                                let newWorker: IWorkerProcess = {
+                                    serverId: self.serverId, workerId: socket.id,
+                                    status: "connected", channels: channelArr, sessionId:session.sessionId,role:session.role };
                                 self.getProcessService().target.createWorker(newWorker);
                             }
                         }
@@ -281,13 +295,13 @@ export class InitializeScokets {
                             var d = domain.create();
                             d.run(() => {
                                 try {
-                                    let parsedData = data;                                  
+                                    let parsedData = data;
 
                                     let executefun = () => {
                                         try {
                                             if (parsedData && parsedData.action && parsedData.message) {
-                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {                                                    
-                                                    repo[parsedData.action](parsedData.message)                                                   
+                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                    repo[parsedData.action](parsedData.message)
                                                 }
                                             }
                                         } catch (exceptio) {
@@ -318,6 +332,7 @@ export class InitializeScokets {
 
         messengerPool.push(messenger);
 
+
         for (let key in repoMap) {
             let repo = repoMap[key].repo;
             let meta: MetaData = repo.getMetaData();
@@ -330,8 +345,46 @@ export class InitializeScokets {
                 self.channleMessangerMap[key] = messenger;
                 repo.setMessanger(messenger);
                 messenger.subscribe(key, true);
+                if (self.allSingleEmitterSettings[key] && self.allSingleEmitterSettings[key].length) {
+                    console.log("over riding chekAndSend for ", key);
+                   
+                    messenger.chekAndSend = (path: string, message: any): Promise<any> => {
+                        return new Promise((resolve, reject) => {
+                            //message modification can be done here
+                            //example check connected workers as receipents and setting for single worker is set
+                            //get role which need to recive single worker
+                            let rolesForSinlgeEmitter: Array<string> = self.allSingleEmitterSettings[path];
+
+                            if (rolesForSinlgeEmitter && rolesForSinlgeEmitter.length) {
+                                //get random worker
+                                let singleWorkerOnRole: any = undefined;
+                                let singleRandomWorker: Array<{ role: string, serverId: any, workerId: any }> =
+                                    new Array<{ role: string, serverId: any, workerId: any }>();
+                                rolesForSinlgeEmitter.forEach((role1) => {
+                                    let singelWorker: IWorkerProcess = self.getProcessService().target.getSingleRandomWoker(path, role1);
+                                    if (singelWorker) {
+                                        singleRandomWorker.push({ role: role1, serverId: singelWorker.serverId, workerId: singelWorker.workerId });
+                                    }
+                                })
+                                if (singleRandomWorker.length) {
+                                    singleWorkerOnRole = {};
+                                    singleRandomWorker.forEach((singleWorker) => {
+                                        singleWorkerOnRole[singleWorker.role] = singleWorker;
+                                    });
+                                    message.singleWorkerOnRole = singleWorkerOnRole;
+                                }
+                            }
+                        
+                        messenger.send(path, message, function (err, data) {
+                                resolve(true);
+                                console.log('Sent message');
+                            });
+                    })
+                }
+                }
             }
         }
+
 
         //  messengerPool.forEach((messenger) => {
         // connect() begins "tailing" the collection 
@@ -419,6 +472,8 @@ export class InitializeScokets {
                             if (self.socketChannelGroups[key][channleGroup]) {
                                 isRealiableChannel = self.socketChannelGroups[key][channleGroup];
                                 //groupName += "_RC";
+
+                                
                             }
 
 
@@ -427,34 +482,54 @@ export class InitializeScokets {
                                 continue;
                             }
                             var roomclients = channelRoom.sockets;
+
+
                             let broadcastClients: Array<any> = new Array<any>();
 
 
+                            let addAllclientsInRoom = () => {
+                                for (let channelId in roomclients) {
 
-                            for (let channelId in roomclients) {
+
+                                    if (message.receiver && message.receiver != channelId) {
+                                        continue;
+                                    }
+
+                                    if (message.receiver) {
+                                        delete message.receiver;
+                                    }
 
 
-                                if (message.receiver && message.receiver != channelId) {
-                                    continue;
+                                    let client = io.sockets.connected[channelId];
+                                    if (!client) {
+                                        continue;
+                                    }
+                                    broadcastClients.push(client);
+                                    broadCastClients++
+                                    connectedClients++;
+                                    //under reliable channel
+
+                                    if (isRealiableChannel) {
+                                        updateReliableChannelSettings(client);
+                                    }
                                 }
 
-                                if (message.receiver) {
-                                    delete message.receiver;
-                                }
+                            }
 
-
-                                let client = io.sockets.connected[channelId];
-                                if (!client) {
-                                    continue;
-                                }
+                            if (isRealiableChannel &&
+                                message.singleWorkerOnRole && message.singleWorkerOnRole[channleGroup] &&
+                                message.singleWorkerOnRole[channleGroup].serverId == self.serverId &&
+                                roomclients[message.singleWorkerOnRole[channleGroup].workerId]) {
+                               
+                                let client = roomclients[message.singleWorkerOnRole[channleGroup].workerId];
+                                console.log("single emitter recieved on broadcasting", client.id)
                                 broadcastClients.push(client);
                                 broadCastClients++
                                 connectedClients++;
-                                //under reliable channel
-
-                                if (isRealiableChannel) {
-                                    updateReliableChannelSettings(client);
-                                }
+                                updateReliableChannelSettings(client);
+                            }
+                            else {
+                                addAllclientsInRoom();
                             }
                             if (broadcastClients && broadcastClients.length) {
                                 self.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
