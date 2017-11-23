@@ -35,6 +35,7 @@ export enum ExportTypes {
     WS = 2,
     WS_BROAD_CAST = 4,
     PUB_SUB = 8,
+    WS_WS_BROAD_CAST_PUB_SUB=14,
     ALL = 15,
 
 

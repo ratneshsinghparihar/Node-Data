@@ -13,23 +13,23 @@ export interface IWorkerProcess {
     processId?: string;
 
 
-    serverId: string;
+    serverId?: string;
 
 
-    workerId: number;  //possible VLAUES from 1 to N
+    workerId?: number;  //possible VLAUES from 1 to N
 
 
 
-    sessionId: string;  //possible VLAUES from 1 to N
+    sessionId?: string;  //possible VLAUES from 1 to N
 
 
-    role: string;  //possible VLAUES from 1 to N
+    role?: string;  //possible VLAUES from 1 to N
 
-    status: string; //active , idle , killed
+    status?: string; //active , idle , killed
 
 
     statistics?: { noOfTransactioSoFar: number, activeSince: Date, velocity: number }
-    channels: string[];
+    channels?: string[];
 
 }
 

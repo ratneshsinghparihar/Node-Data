@@ -174,9 +174,9 @@ export class InitializeScokets {
 
     private checkIfRepoForMessenger = (meta: MetaData): boolean =>
         meta && (meta.params.exportType == ExportTypes.ALL ||
-            (this.io && (meta.params.exportType == ExportTypes.WS ||
-                meta.params.exportType == ExportTypes.WS_BROAD_CAST)) ||
-            meta.params.exportType == ExportTypes.PUB_SUB
+            (this.io && (((meta.params.exportType & ExportTypes.WS) == ExportTypes.WS) || 
+            ((meta.params.exportType & ExportTypes.WS_BROAD_CAST) == ExportTypes.WS_BROAD_CAST) ||
+            ((meta.params.exportType & ExportTypes.PUB_SUB) == ExportTypes.PUB_SUB)))
         )
 
 
@@ -194,140 +194,148 @@ export class InitializeScokets {
         this.socketClientholder.socket = io;
         this.socketClientholder.messenger = messenger;
 
-        let socketConector = () => io.on('connection',
-            function (socket) {
-                // this.socketClientholder.clients.push(client);
+        let socketConector = () => {
+            io.on('connection',
+                function (socket) {
+                    // this.socketClientholder.clients.push(client);
 
 
 
-                console.log('client connected', socket.id);
+                    console.log('client connected', socket.id);
 
 
-                if (socket.handshake.query) {
-                    securityImpl.getSession(socket.handshake.query).then((session: Session) => {
+                    if (socket.handshake.query) {
+                        securityImpl.getSession(socket.handshake.query).then((session: Session) => {
 
 
 
-                        socket.handshake.query.curSession = session;
-                        self.sessionSocketIdMap[session.userId] = socket.id;
-                        if (socket.handshake.query && socket.handshake.query.applicableChannels
-                            && socket.handshake.query.applicableChannels.length) {
-                            socket.handshake.query.applicableChannels.forEach((room) => {
-                                if (room && room.name) {
-                                    console.log("joined room", room.name);
-                                    socket.join(room.name);
-                                    if (!self.socketChannelGroups[room.name]) { self.socketChannelGroups[room.name] = {} }
-                                }
-                            });
-                        }
-
-                        if (socket.handshake.query && socket.handshake.query.broadcastChannels
-                            && socket.handshake.query.broadcastChannels.length) {
-                            socket.handshake.query.broadcastChannels.forEach((room) => {
-                                if (room && room.name && room.group) {
-                                    if (socket.handshake.query && socket.handshake.query.reliableChannles) {
-                                        let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
-                                        if (channelArr.indexOf(room.name) > -1) {
-                                            console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
-                                            socket.join(room.name + "_" + room.group + "_RC");
-                                            if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
-                                            return;
-                                        }
+                            socket.handshake.query.curSession = session;
+                            self.sessionSocketIdMap[session.userId] = socket.id;
+                            if (socket.handshake.query && socket.handshake.query.applicableChannels
+                                && socket.handshake.query.applicableChannels.length) {
+                                socket.handshake.query.applicableChannels.forEach((room) => {
+                                    if (room && room.name) {
+                                        console.log("joined room", room.name);
+                                        socket.join(room.name);
+                                        if (!self.socketChannelGroups[room.name]) { self.socketChannelGroups[room.name] = {} }
                                     }
-                                    console.log("joined room group", room.name + "_" + room.group);
-                                    if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
-                                    socket.join(room.name + "_" + room.group);
+                                });
+                            }
+
+                            if (socket.handshake.query && socket.handshake.query.broadcastChannels
+                                && socket.handshake.query.broadcastChannels.length) {
+                                socket.handshake.query.broadcastChannels.forEach((room) => {
+                                    if (room && room.name && room.group) {
+                                        if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                                            let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+                                            if (channelArr.indexOf(room.name) > -1) {
+                                                console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
+                                                socket.join(room.name + "_" + room.group + "_RC");
+                                                if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
+                                                return;
+                                            }
+                                        }
+                                        console.log("joined room group", room.name + "_" + room.group);
+                                        if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
+                                        socket.join(room.name + "_" + room.group);
+                                    }
+                                });
+                            }
+
+                            if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                                let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+                                if (channelArr && channelArr.length) {
+                                    let newWorker: IWorkerProcess = {
+                                        serverId: self.serverId, workerId: socket.id,
+                                        status: "connected", channels: channelArr, sessionId: session.sessionId, role: session.role
+                                    };
+                                    self.getProcessService().target.createWorker(newWorker);
                                 }
+                            }
+
+                        }).catch((error) => {
+                            console.log("error in getSession", error);
+                        });
+                    }
+
+                    //emitt pending messages 
+                    //fetch last timestam of client for each reliable channel
+                    if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                        let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+
+                        channelArr.forEach((rechannel) => {
+                            securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
+                                if (lastemit && self.channleMessangerMap && self.channleMessangerMap[rechannel]) {
+                                    //for each chnnel ask messeger the send an array of pending message
+
+                                    self.channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
+
+                                    //use socket.emitt to send previous message
+                                }
+                            }).catch((error) => {
+                                console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
                             });
                         }
+                        )
+                    }
 
+
+                    socket.on('disconnect', function () {
+                        console.log('client disconnected', socket.id);
                         if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                             let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                             if (channelArr && channelArr.length) {
-                                let newWorker: IWorkerProcess = {
-                                    serverId: self.serverId, workerId: socket.id,
-                                    status: "connected", channels: channelArr, sessionId:session.sessionId,role:session.role };
-                                self.getProcessService().target.createWorker(newWorker);
+                                let newWorker: IWorkerProcess = { serverId: self.serverId, workerId: socket.id, status: "disconnected", channels: channelArr };
+                                self.getProcessService().target.updateWorker(newWorker);
                             }
                         }
-
-                    }).catch((error) => {
-                        console.log("error in getSession", error);
+                        if (socket.handshake.query.curSession) {
+                            delete self.sessionSocketIdMap[socket.handshake.query.curSession.userId];
+                        }
                     });
-                }
 
-                //emitt pending messages 
-                //fetch last timestam of client for each reliable channel
-                if (socket.handshake.query && socket.handshake.query.reliableChannles) {
-                    let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
+                    for (let key in repoMap) {
+                        let repo = repoMap[key].repo;
+                        let meta: MetaData = repo.getMetaData();
+                        if (meta && ((meta.params.exportType & ExportTypes.WS) == ExportTypes.WS)) {
+                            socket.on(key, function (data) {
+                                var d = domain.create();
+                                d.run(() => {
+                                    try {
+                                        let parsedData = data;
 
-                    channelArr.forEach((rechannel) => {
-                        securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
-                            if (lastemit && self.channleMessangerMap && self.channleMessangerMap[rechannel]) {
-                                //for each chnnel ask messeger the send an array of pending message
-
-                                self.channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
-
-                                //use socket.emitt to send previous message
-                            }
-                        }).catch((error) => {
-                            console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
-                        });
-                    }
-                    )
-                }
-
-
-                socket.on('disconnect', function () {
-                    console.log('client disconnected', socket.id);
-                    let newWorker = { serverId: self.serverId, workerId: socket.id, status: "disconnected" };
-                    self.getProcessService().target.updateWorker(newWorker);
-                    if (socket.handshake.query.curSession) {
-                        delete self.sessionSocketIdMap[socket.handshake.query.curSession.userId];
-                    }
-                });
-
-                for (let key in repoMap) {
-                    let repo = repoMap[key].repo;
-                    let meta: MetaData = repo.getMetaData();
-                    if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.WS)) {
-                        socket.on(key, function (data) {
-                            var d = domain.create();
-                            d.run(() => {
-                                try {
-                                    let parsedData = data;
-
-                                    let executefun = () => {
-                                        try {
-                                            if (parsedData && parsedData.action && parsedData.message) {
-                                                if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                                                    repo[parsedData.action](parsedData.message)
+                                        let executefun = () => {
+                                            try {
+                                                if (parsedData && parsedData.action && parsedData.message) {
+                                                    if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
+                                                        repo[parsedData.action](parsedData.message)
+                                                    }
                                                 }
+                                            } catch (exceptio) {
+                                                console.log(exceptio);
                                             }
-                                        } catch (exceptio) {
-                                            console.log(exceptio);
+                                        };
+
+                                        if (socket.handshake.query && socket.handshake.query.curSession) {
+                                            PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
+                                            executefun();
+                                            return
                                         }
-                                    };
 
-                                    if (socket.handshake.query && socket.handshake.query.curSession) {
-                                        PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
-                                        executefun();
-                                        return
+                                        (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
+
                                     }
-
-                                    (<any>(securityImpl.ensureLoggedIn()(parsedData, undefined, executefun))).catch((err) => { console.log(err); });
-
-                                }
-                                catch (exc) {
-                                    console.log(exc);
-                                }
+                                    catch (exc) {
+                                        console.log(exc);
+                                    }
+                                });
                             });
-                        });
-                    }
+                        }
 
+                    }
                 }
-            }
-        )
+            )
+        }
         let messengerPool: Array<Messenger> = new Array<Messenger>();
 
         messengerPool.push(messenger);
@@ -369,7 +377,7 @@ export class InitializeScokets {
                                 if (singleRandomWorker.length) {
                                     singleWorkerOnRole = {};
                                     singleRandomWorker.forEach((singleWorker) => {
-                                        singleWorkerOnRole[singleWorker.role] = singleWorker;
+                                        singleWorkerOnRole[singleWorker.role+"_RC"] = singleWorker; //assuming RC channel
                                     });
                                     message.singleWorkerOnRole = singleWorkerOnRole;
                                 }
@@ -386,9 +394,9 @@ export class InitializeScokets {
         }
 
 
-        //  messengerPool.forEach((messenger) => {
+        messengerPool.forEach((messenger) => {
         // connect() begins "tailing" the collection 
-        messenger.onConnect(function () {
+            messenger.onConnect(function () {
             // emits events for each new message on the channel 
 
             console.log("messenger connected  starting registering repositories");
@@ -454,6 +462,10 @@ export class InitializeScokets {
                         }
 
                         let updateReliableChannelSettings = (client) => {
+                            if (!client) { return; }
+                            if (!client.handshake) { return; }
+                            if (!client.handshake.query) { return; }
+                            if (!client.handshake.query.curSession) { return; }
                             reliableClients++;
                             let query = client.handshake.query;
                             let curSession = client.handshake.query.curSession;
@@ -508,7 +520,7 @@ export class InitializeScokets {
                                     broadCastClients++
                                     connectedClients++;
                                     //under reliable channel
-
+                                     
                                     if (isRealiableChannel) {
                                         updateReliableChannelSettings(client);
                                     }
@@ -521,7 +533,12 @@ export class InitializeScokets {
                                 message.singleWorkerOnRole[channleGroup].serverId == self.serverId &&
                                 roomclients[message.singleWorkerOnRole[channleGroup].workerId]) {
                                
-                                let client = roomclients[message.singleWorkerOnRole[channleGroup].workerId];
+                               
+                                let client = io.sockets.connected[message.singleWorkerOnRole[channleGroup].workerId];
+                                if (!client) {
+                                    continue;
+                                }
+
                                 console.log("single emitter recieved on broadcasting", client.id)
                                 broadcastClients.push(client);
                                 broadCastClients++
@@ -568,9 +585,11 @@ export class InitializeScokets {
             if (!io) {
                 return;
             }
-            socketConector();
+            if (messenger == self.messenger) {
+                socketConector();
+            }
         });
-        // })
+         })
 
         repositoryMap(repoMap);
     }

@@ -5,7 +5,7 @@ import events = require('events');
 var EventEmitter: any = require('events').EventEmitter;
 var getMessage = require('./model');
 var db: any = require('../db');
-var Message;
+
 var parentCallBack;
 export class Messenger extends events.EventEmitter {
 
@@ -15,6 +15,7 @@ export class Messenger extends events.EventEmitter {
     retryInterval;
     parentCallBack;
     collectionName;
+    Message;
     constructor(options) {
         super();
         //this.apply(this, arguments);
@@ -45,10 +46,10 @@ export class Messenger extends events.EventEmitter {
         if (typeof callback === 'function') {
             cb = callback;
         }
-        if (!Message) {
-            Message = getMessage(this.collectionName );
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName );
         }
-        var message = new Message({
+        var message = new this.Message({
             channel: channel,
             message: msg
         });
@@ -62,10 +63,10 @@ export class Messenger extends events.EventEmitter {
         var self = this;
         var query: any = { channel: rechannel, timestamp: { $gte: lastemit } };
 
-        if (!Message) {
-            Message = getMessage();
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName);
         }
-        var stream = Message.find(query).stream();
+        var stream = this.Message.find(query).stream();
 
         stream.on('data', function data(doc) {
             self.lastMessageTimestamp = doc.timestamp;
@@ -102,8 +103,8 @@ export class Messenger extends events.EventEmitter {
         if (self.lastMessageTimestamp) {
             query = { timestamp: { $gt: self.lastMessageTimestamp } };
         }
-        if (!Message) {
-            Message = getMessage();
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName);
         }
        // var stream = Message.find(query).setOptions({ tailable: true, tailableRetryInterval: self.retryInterval, numberOfRetries: Number.MAX_VALUE }).stream();
         //var stream = Message.find(query).setOptions({
@@ -113,7 +114,7 @@ export class Messenger extends events.EventEmitter {
         //}).stream();
 
         // major performance improvement
-        let stream = Message.find(query)
+        let stream = this.Message.find(query)
             .cursor()
             .addCursorFlag('tailable', true)
             .addCursorFlag('awaitData', true)
