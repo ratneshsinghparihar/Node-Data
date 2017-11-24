@@ -1,23 +1,27 @@
-﻿import { repository } from "../core/decorators";
-import { preauthorize } from "../core/decorators/preauthorize";
-import { entityAction, EntityActionParam } from "../core/decorators/entityAction";
-import { postfilter } from "../core/decorators/postfilter";
-import { authorize } from "../core/decorators/authorize";
-import { } from '../di/decorators/inject';
-import { DynamicRepository } from '../core/dynamic/dynamic-repository';
-import { inject } from '../di/decorators/inject';
+﻿import { repository } from "nodedata/core/decorators";
+import { preauthorize } from "nodedata/core/decorators/preauthorize";
+import { entityAction, EntityActionParam } from "nodedata/core/decorators/entityAction";
+import { postfilter } from "nodedata/core/decorators/postfilter";
+import { authorize } from "nodedata/core/decorators/authorize";
+import { } from 'nodedata/di/decorators/inject';
+import { DynamicRepository } from 'nodedata/core/dynamic/dynamic-repository';
+import { inject } from 'nodedata/di/decorators/inject';
 import Q = require('q');
-import * as mongooseHelper from '../mongoose/mongoose-model-helper';
+//import { logger } from "../logging";
+import * as logger from "../logging";
 
 
 export class AuthorizationRepository extends DynamicRepository {
 
+    logger = logger.winstonLog;
+
+    ///Entity action Mehods
     preCreate(params: EntityActionParam): Q.Promise<EntityActionParam> {
         return Q.resolve(params);
     }
 
-    postCreate(params: EntityActionParam): Q.Promise<any> {
-        return Q.when(params.newPersistentEntity);
+    postCreate(params: EntityActionParam): Q.Promise<EntityActionParam> {
+        return Q.when(params);
     }
 
     preUpdate(params: EntityActionParam): Q.Promise<EntityActionParam> {
@@ -38,9 +42,7 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     postBulkCreate(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
-        var updatedEntities = [];
-        params.forEach((input: EntityActionParam) => { updatedEntities.push(input.newPersistentEntity); })
-        return Q.when(updatedEntities);
+        return Q.resolve(params);
     }
 
     preBulkUpdate(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
@@ -48,9 +50,7 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     postBulkUpdate(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
-        var updatedEntities = [];
-        params.forEach((input: EntityActionParam) => { updatedEntities.push(input.newPersistentEntity); })
-        return Q.when(updatedEntities);
+        return Q.when(params);
     }
 
     preDelete(params: EntityActionParam): Q.Promise<EntityActionParam> {
@@ -58,13 +58,11 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
     postDelete(params: EntityActionParam): Q.Promise<EntityActionParam> {
-        return Q.when(params.newPersistentEntity);
+        return Q.when(params);
     }
 
     postBulkDelete(params: Array<EntityActionParam>): Q.Promise<Array<EntityActionParam>> {
-        var updatedEntities = [];
-        params.forEach((input: EntityActionParam) => { updatedEntities.push(input.newPersistentEntity); })
-        return Q.when(updatedEntities);
+        return Q.when(params);
     }
 
     preRead(params: EntityActionParam): Q.Promise<EntityActionParam> {
@@ -83,7 +81,7 @@ export class AuthorizationRepository extends DynamicRepository {
         return Q.when(params);
     }
 
-    @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntities" })
+    @entityAction({ serviceName: "authorizationService", methodName: "canCreateEntities" })
     bulkPost(objArr: Array<any>, batchSize?: number): Q.Promise<any> {
         let actionEntities: Array<EntityActionParam> = this.getEntityFromArgs.apply(this, arguments);
         if (!actionEntities) {
@@ -103,7 +101,10 @@ export class AuthorizationRepository extends DynamicRepository {
                         indexInMainCollection++;
                     })
 
-                    return this.postBulkCreate(actionEntities);
+                    return this.postBulkCreate(actionEntities).then((result) => {
+                        return result.map(x => x.newPersistentEntity)
+                    }
+                    );
                 }, (error) => {
                     return Q.reject(error);
                 })
@@ -124,18 +125,19 @@ export class AuthorizationRepository extends DynamicRepository {
         return this.preBulkUpdate(actionEntities)
             .then((params: Array<EntityActionParam>) => {
                 let entitiesToUpdate: Array<any> = new Array<any>();
-                let dbEntities: Array<any> = new Array<any>();
-                params.forEach((input: EntityActionParam) => { input.newPersistentEntity.__dbEntity = input.oldPersistentEntity; entitiesToUpdate.push(input.newPersistentEntity); })
-                batchSize = batchSize ? batchSize : undefined;
-                donotLoadChilds = donotLoadChilds ? donotLoadChilds : undefined;
-                return super.bulkPut(entitiesToUpdate, batchSize, donotLoadChilds).then((createdDbOEntites: Array<any>) => {
+                params.forEach((input: EntityActionParam) => { input.newPersistentEntity.__dbEntity = input.oldPersistentEntity; entitiesToUpdate.push(input.newPersistentEntity); });
+                arguments[0] = entitiesToUpdate;
+                arguments[arguments.length - 1] = undefined;
+                return super.bulkPut.apply(this, arguments).then((createdDbOEntites: Array<any>) => {
                     let indexInMainCollection: number = 0;
                     createdDbOEntites.forEach((createdEntity) => {
                         actionEntities[indexInMainCollection].newPersistentEntity = createdEntity;
                         indexInMainCollection++;
                     })
 
-                    return this.postBulkUpdate(actionEntities);
+                    return this.postBulkUpdate(actionEntities).then((result) =>
+                        result.map(x => x.newPersistentEntity)
+                    );
                 }, (error) => {
                     return Q.reject(error);
                 })
@@ -156,7 +158,9 @@ export class AuthorizationRepository extends DynamicRepository {
         return this.preBulkDelete(actionParams)
             .then((params: Array<EntityActionParam>) => {
                 return super.bulkDel(entitiesToDelete).then((updatedDbObj: Array<any>) => {
-                    return this.postBulkDelete(actionParams);
+                    return this.postBulkDelete(actionParams).then((result) =>
+                        result.map(x => x.newPersistentEntity)
+                    );
                 }, (error) => {
                     return Q.reject(error);
                 })
@@ -200,9 +204,11 @@ export class AuthorizationRepository extends DynamicRepository {
             return this.postBulkRead(results).then(newResults => {
                 return Q.when(newResults.map(entity => entity.newPersistentEntity));
             }).catch(exc => {
+                this.logger.logError(exc);
                 return Q.reject(exc);
             });
         }).catch(exc => {
+            this.logger.logError(exc);
             return Q.reject(exc);
         });
     }
@@ -221,9 +227,11 @@ export class AuthorizationRepository extends DynamicRepository {
             return this.postBulkRead(results).then(newResults => {
                 return Q.when(newResults.map(entity => entity.newPersistentEntity));
             }).catch(exc => {
+                this.logger.logError(exc);
                 return Q.reject(exc);
             });
         }).catch(exc => {
+            this.logger.logError(exc);
             return Q.reject(exc);
         });
     }
@@ -265,7 +273,7 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
 
-    @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntity" })
+    // @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntity" })
     post(obj: any): Q.Promise<any> {
         this.logEntityInfo("post", obj);
         let resultEntityActionObj: EntityActionParam = this.getEntityFromArgs.apply(this, arguments);
@@ -276,7 +284,7 @@ export class AuthorizationRepository extends DynamicRepository {
             .then((params: EntityActionParam) => {
                 return super.post(params.inputEntity).then((updatedDbObj: any) => {
                     resultEntityActionObj.newPersistentEntity = updatedDbObj;
-                    return this.postCreate(resultEntityActionObj);
+                    return this.postCreate(resultEntityActionObj).then((result) => result.newPersistentEntity);
                 }, (error) => {
                     return Q.reject(error);
                 })
@@ -296,7 +304,7 @@ export class AuthorizationRepository extends DynamicRepository {
             .then((params: EntityActionParam) => {
                 return super.delete(resultEntityActionObj.newPersistentEntity._id).then((updatedDbObj: any) => {
                     resultEntityActionObj.newPersistentEntity = updatedDbObj;
-                    return this.postDelete(resultEntityActionObj);
+                    return this.postDelete(resultEntityActionObj).then((result) => result.newPersistentEntity);
                 }, (error) => {
                     return Q.reject(error);
                 })
@@ -342,6 +350,7 @@ export class AuthorizationRepository extends DynamicRepository {
         return this.postBulkRead(actionEntities).then((newResults: Array<EntityActionParam>) => {
             return Q.when(newResults.map((x: EntityActionParam) => x.newPersistentEntity));
         }).catch(exc => {
+            this.logger.logError(exc);
             return Q.reject(exc);
         });
     }

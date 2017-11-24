@@ -17,6 +17,8 @@ import * as Enumerable from 'linq';
 import Q = require('q');
 import { Types } from "mongoose";
 import * as utils from '../../mongoose/utils';
+import * as configUtils from '../utils';
+import {allAutherizationRulesMap} from '../initialize/initialize-scokets'; // name.role :{ role: string, accessmask: number, acl?: boolean }
 
 /**
  * Provides you three states (new, old, merged) for an entity as parameters on which
@@ -64,6 +66,23 @@ export function entityAction(params: IPreauthorizeParams): any {
                 //if (originalMethod.name === RepoActions.findOne) {
                 //    var ret = service.target[preAuthParam.methodName].apply(service.target, params);
                 //}
+
+                let checkIfAClrequired = () => {
+                    let user: User = PrincipalContext.User;
+                    if (user && user.getAuthorities() && allAutherizationRulesMap && allAutherizationRulesMap[this.path]) {
+
+                        let isACL = true;
+                        user.getAuthorities().forEach((curRole: string) => {
+                            let aclRule = allAutherizationRulesMap[this.path][curRole];
+                            if (aclRule && aclRule.acl === false) {
+                                isACL = false;
+                            }
+                        })
+                        return isACL;
+                    }
+                    return true
+                }
+
                 let findActions = [RepoActions.findAll, RepoActions.findByField, RepoActions.findChild, RepoActions.findMany,
                     RepoActions.findOne, RepoActions.findWhere];
                     // Converting Repo method names into uppercase as check with original method name is in uppercase.
@@ -71,7 +90,12 @@ export function entityAction(params: IPreauthorizeParams): any {
                     findActions = findActions.map(methodName => methodName.toUpperCase());
                     if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
                         console.log("CanRead entity Security " + this.path);
-                        return PostFilterService.postFilter(fullyQualifiedEntities, params).then(result => {
+
+                        let promiseOfAuthServerice:any = Q.when(true);
+                        if (checkIfAClrequired()){
+                            promiseOfAuthServerice = PostFilterService.postFilter(fullyQualifiedEntities, params);
+                        }
+                        return promiseOfAuthServerice.then(result => {
                             console.log("CanRead entity Security End " + this.path);
                         if (!result) {
                             fullyQualifiedEntities = null;
@@ -109,23 +133,8 @@ export function entityAction(params: IPreauthorizeParams): any {
                             //}
                             return originalMethod.call(this, ...args);
                         }
-
-                        let user: User = PrincipalContext.User;
-                        if (user && user.getAuthorities() && configUtil.SecurityConfig) {
-                            let matchedConfigs = configUtil.SecurityConfig.ResourceAccess.filter((config) => { return config.name == this.path })
-                            if (matchedConfigs && matchedConfigs.length) {
-                                let matchedConfig = matchedConfigs[0].acl;
-                                let matchedRoleConfig;
-                                user.getAuthorities().forEach((curRole: string) => {
-                                    matchedRoleConfig = matchedConfig.filter((config) => { return config.role == curRole && config.acl ===false  })
-                                });
-
-                                if (matchedRoleConfig) {
-                                    //need to by pass acl , role is good enough to do everythingh on is own
-                                    return executeNextMethod();
-                                }
-                            }
-
+                        if (!checkIfAClrequired()) {
+                            return executeNextMethod();
                         }
 
                     return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {

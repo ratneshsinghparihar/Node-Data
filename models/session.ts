@@ -1,4 +1,4 @@
-﻿import {Types} from 'mongoose';
+﻿
 import {field, document} from '../mongoose/decorators';
 import {Strict} from '../mongoose/enums/';
 import {onetomany, manytoone, manytomany, onetoone} from '../core/decorators';

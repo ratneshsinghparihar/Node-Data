@@ -15,9 +15,9 @@ var Message = new mongoose.Schema({
     validateBeforeSave: false
 });
 
-export function getMessage()
+export function getMessage(collectionName?:string)
 {
-    return db.getDbSpecifcModel('Message1', Message);
+    return db.getDbSpecifcModel(collectionName ? collectionName :'Message1', Message);
 }
 
 module.exports = getMessage 

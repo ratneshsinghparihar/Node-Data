@@ -15,7 +15,7 @@ export class InitializeControllers {
         for (var path in repositoryMap()) {
             let repo = <any>repositoryMap()[path].repo;
             let meta: MetaData = repo.getMetaData();
-            if (meta && (meta.params.exportType == ExportTypes.ALL || meta.params.exportType == ExportTypes.REST)) {
+            if (meta && ((meta.params.exportType  & ExportTypes.REST) == ExportTypes.REST)) {
                 var controller = new DynamicController(<any>repositoryMap()[path].fn, repo);
             }
         }

@@ -5,7 +5,7 @@ import events = require('events');
 var EventEmitter: any = require('events').EventEmitter;
 var getMessage = require('./model');
 var db: any = require('../db');
-var Message;
+
 var parentCallBack;
 export class Messenger extends events.EventEmitter {
 
@@ -14,10 +14,13 @@ export class Messenger extends events.EventEmitter {
     startingMessageTimestamp = new Date();
     retryInterval;
     parentCallBack;
+    collectionName;
+    Message;
     constructor(options) {
         super();
         //this.apply(this, arguments);
         var o = options || {};
+        this.collectionName = options && options.collectionName;
         this.subscribed = {};
         this.lastMessageTimestamp = null;
         this.startingMessageTimestamp = new Date();
@@ -28,16 +31,25 @@ export class Messenger extends events.EventEmitter {
 
     //util.inherits(Messenger, EventEmitter);
 
+    public chekAndSend(path: string, message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.send(path, message, function (err, data) {
+                resolve(true);
+                console.log('Sent message');
+            });
+        })
+    }
+    
     send(channel, msg, callback) {
 
         var cb = function noop() { };
         if (typeof callback === 'function') {
             cb = callback;
         }
-        if (!Message) {
-            Message = getMessage();
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName );
         }
-        var message = new Message({
+        var message = new this.Message({
             channel: channel,
             message: msg
         });
@@ -49,12 +61,12 @@ export class Messenger extends events.EventEmitter {
 
     sendPendingMessage(rechannel, lastemit, receiver: any) {
         var self = this;
-        var query: any = { channel: rechannel, timestamp: { $gte: lastemit } };
+        var query: any = { channel: rechannel, timestamp: { $gt: lastemit } };
 
-        if (!Message) {
-            Message = getMessage();
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName);
         }
-        var stream = Message.find(query).stream();
+        var stream = this.Message.find(query).stream();
 
         stream.on('data', function data(doc) {
             self.lastMessageTimestamp = doc.timestamp;
@@ -91,10 +103,23 @@ export class Messenger extends events.EventEmitter {
         if (self.lastMessageTimestamp) {
             query = { timestamp: { $gt: self.lastMessageTimestamp } };
         }
-        if (!Message) {
-            Message = getMessage();
+        if (!this.Message) {
+            this.Message = getMessage(this.collectionName);
         }
-        var stream = Message.find(query).setOptions({ tailable: true, tailableRetryInterval: self.retryInterval, numberOfRetries: Number.MAX_VALUE }).stream();
+       // var stream = Message.find(query).setOptions({ tailable: true, tailableRetryInterval: self.retryInterval, numberOfRetries: Number.MAX_VALUE }).stream();
+        //var stream = Message.find(query).setOptions({
+        //    tailable: true, tailableRetryInterval: 200,
+        //    awaitdata: false,
+        //    numberOfRetries: -1
+        //}).stream();
+
+        // major performance improvement
+        let stream = this.Message.find(query)
+            .cursor()
+            .addCursorFlag('tailable', true)
+            .addCursorFlag('awaitData', true)
+            //.addCursorFlag('tailableRetryInterval', self.retryInterval)
+            //.addCursorFlag('numberOfRetries', Number.MAX_VALUE);
 
         stream.on('data', function data(doc) {
             self.lastMessageTimestamp = doc.timestamp;
@@ -103,12 +128,12 @@ export class Messenger extends events.EventEmitter {
             }
         });
 
-        // reconnect on error
+        //// reconnect on error
         stream.on('error', function streamError(error) {
             if (error && error.message) {
                 console.log(error.message);
             }
-            stream.destroy();
+            //stream.destroy();
             setTimeout(() => {
                 self.connect()
             }, 2000);

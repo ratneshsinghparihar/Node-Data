@@ -97,14 +97,14 @@ export function transformEmbeddedChildern1(value: any, meta: MetaData) {
         return;
     }
 
-    console.log("transform_overHead_start - ", meta.propertyKey);
+    //console.log("transform_overHead_start - ", meta.propertyKey);
     let transformedData = [];
     for (let key in value[relName]) {
         transformedData.push(value[relName][key]);
     }
     // delete value[relName];
     value[relName] = transformedData;
-    console.log("transform_overHead_start - ", meta.propertyKey);
+    //console.log("transform_overHead_start - ", meta.propertyKey);
 }
 
 export function transformAllEmbeddedChildern1(model: any, objs: Array<any>) {
@@ -343,7 +343,7 @@ export function updateWriteCount() {
 //        //queryCond[meta.propertyKey + '.parentId'] = { $in: ids };
 
 //       // updateWriteCount();
-//        console.log("updateParentDocument_start " + model.modelName );
+//        //console.log("updateParentDocument_start " + model.modelName );
 //        let parent = {};
 //        // parent._id = objs[0].parentId;
 //        parent[meta.propertyKey] = {};
@@ -360,7 +360,7 @@ export function updateWriteCount() {
 
 //        return Q.nbind(bulk.execute, bulk)().then(updatedParents => {
 //            // return mongooseModel.put(model, parent._id, parent).then((updatedParents) => {
-//            console.log("updateParentDocument_end " + model.modelName );
+//            //console.log("updateParentDocument_end " + model.modelName );
 //            return updatedParents;
 //        });
 
@@ -370,10 +370,10 @@ export function updateWriteCount() {
 //    var queryCond = {};
 //    var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
 //    queryCond[meta.propertyKey + '._id'] = { $in: ids };
-//    console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
+//    //console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
 //    updateWriteCount();
 //    return Q.nbind(model.find, model)(queryCond, { '_id': 1 }).then((result: Array<any>) => {
-//        console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
+//        //console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
 //        if (!result) {
 //            return Q.resolve([]);
 //        }
@@ -399,7 +399,7 @@ export function updateWriteCount() {
 //            }
 //            bulk.find(queryFindCond).update({ $set: updateSet });
 //        }
-//        console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
+//        //console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
 //        return Q.nbind(bulk.execute, bulk)().then(result => {
 //            return parentIds;
 //        });
@@ -411,7 +411,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     let parents = {};
     let isJsonMap = isJsonMapEnabled(meta.params);
     let parentObjectId;
-    console.log("updateParentWithParentId start" + model.modelName);
+    //console.log("updateParentWithParentId start" + model.modelName);
     for (var i = 0; i < objs.length; i++) {
         let parentId = objs[i][ConstantKeys.parent][ConstantKeys.parentId];
         let property = objs[i][ConstantKeys.parent][ConstantKeys.property].toString();
@@ -437,7 +437,7 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
     if (Object.keys(parents).length == 0)
         return Q.when([]);
 
-    // console.log("parents", parents);
+    // //console.log("parents", parents);
     //it has to be group by
     let newModel = getChangedModelForDynamicSchema(model, parentObjectId);
     var bulk = newModel.collection.initializeUnorderedBulkOp();
@@ -454,8 +454,8 @@ function updateParentWithParentId(model: Mongoose.Model<any>, meta: MetaData, ob
         }
     });
     return Q.nbind(bulk.execute, bulk)().then(result => {
-        console.log(JSON.stringify(result));
-        console.log("updateParentWithParentId end" + model.modelName);
+        //console.log(JSON.stringify(result));
+        //console.log("updateParentWithParentId end" + model.modelName);
         return Object.keys(parents);
     });
 }
@@ -477,11 +477,11 @@ function updateParentDocument1(model: Mongoose.Model<any>, meta: MetaData, objec
         var asyncCalls = [];
         var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
         if (isEmbedded && parentIds.length > 0) {
-            console.log("updateParentDocument1 isEmbedded" + model.modelName);
+            //console.log("updateParentDocument1 isEmbedded" + model.modelName);
             return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
-                console.log("updateParentDocument1 findMany end" + model.modelName);
+                //console.log("updateParentDocument1 findMany end" + model.modelName);
                 return updateParent(model, objects).then(res => {
-                    console.log("updateParentDocument1 updateParent end" + model.modelName);
+                    //console.log("updateParentDocument1 updateParent end" + model.modelName);
                     return objects;
                 });
             });
@@ -502,11 +502,11 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
     var queryCond = {};
     var ids = Enumerable.from(objs).select(x => x['_id']).toArray();
     queryCond[meta.propertyKey + '._id'] = { $in: ids };
-    console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
+    //console.log("updateParentDocument find start" + model.modelName + " count " + ids.length);
     updateWriteCount();
     //ToDo - For dynamic-schema (vertical sharding) , this will not work, it should try to search from all the shards
     return Q.nbind(model.find, model)(setShardCondition(model, queryCond), { '_id': 1 }).then((result: Array<any>) => {
-        console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
+        //console.log("updateParentDocument find end" + model.modelName + " count " + ids.length);
         if (!result) {
             return Q.resolve([]);
         }
@@ -533,24 +533,24 @@ function updateParentDocument(model: Mongoose.Model<any>, meta: MetaData, objs: 
             updateSet[meta.propertyKey + updateMongoOperator] = embedSelectedPropertiesOnly(meta.params, [objs[i]])[0];
             bulk.find(setShardCondition(model, queryFindCond)).update({ $set: updateSet });
         }
-        console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
+        //console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
         let asyncCalls = [];
         Object.keys(allBulkExecute).forEach(x => {
             let bulk = allBulkExecute[x];
             asyncCalls.push(Q.nbind(bulk.execute, bulk)());
         });
         return Q.allSettled(asyncCalls).then(result => {
-            console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
+            //console.log("updateParentDocument bulk execute start" + model.modelName + " count " + ids.length);
             var allReferencingEntities = CoreUtils.getAllRelationsForTarget(getEntity(model.modelName));
             var asyncCalls = [];
             var isEmbedded = Enumerable.from(allReferencingEntities).any(x => x.params && x.params.embedded);
             if (isEmbedded) {
-                console.log("updateParentDocument findmany start" + model.modelName + " count " + ids.length);
+                //console.log("updateParentDocument findmany start" + model.modelName + " count " + ids.length);
                 return mongooseModel.findMany(model, parentIds).then((objects: Array<any>) => {
-                    console.log("updateParentDocument findmany end" + model.modelName + " count " + ids.length);
-                    console.log("updateParentDocument updateParent start" + model.modelName + " count " + ids.length);
+                    //console.log("updateParentDocument findmany end" + model.modelName + " count " + ids.length);
+                    //console.log("updateParentDocument updateParent start" + model.modelName + " count " + ids.length);
                     return updateParent(model, objects).then(res => {
-                        console.log("updateParentDocument updateParent end" + model.modelName + " count " + ids.length);
+                        //console.log("updateParentDocument updateParent end" + model.modelName + " count " + ids.length);
                         return objects;
                     });
                 });
@@ -624,7 +624,7 @@ function patchAllEmbedded(model: Mongoose.Model<any>, prop: string, updateObjs: 
             if (!parents || !parents.length) return Q.when(true);
             parentIds = parents.map(x => x._id);
         }
-        console.log(prop);
+        //console.log(prop);
         let setCondition = {};
         setCondition['$unset'] = {};
         setCondition['$unset'][prop] = "";
