@@ -61,7 +61,7 @@ export class Messenger extends events.EventEmitter {
 
     sendPendingMessage(rechannel, lastemit, receiver: any) {
         var self = this;
-        var query: any = { channel: rechannel, timestamp: { $gte: lastemit } };
+        var query: any = { channel: rechannel, timestamp: { $gt: lastemit } };
 
         if (!this.Message) {
             this.Message = getMessage(this.collectionName);
