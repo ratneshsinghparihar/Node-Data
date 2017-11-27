@@ -39,6 +39,10 @@ export class Messenger extends events.EventEmitter {
             });
         })
     }
+
+    public sendMessageToclient(client, repo, message, multiClients?: any) { }
+    public getAllUsersForNotification(entity: any): Array<string> { return []; }
+    public sendMessageOnRepo = (repo: any, message: any) => { }
     
     send(channel, msg, callback) {
 

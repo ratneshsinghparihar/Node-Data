@@ -18,7 +18,7 @@ import Q = require('q');
 import { Types } from "mongoose";
 import * as utils from '../../mongoose/utils';
 import * as configUtils from '../utils';
-import {allAutherizationRulesMap} from '../initialize/initialize-scokets'; // name.role :{ role: string, accessmask: number, acl?: boolean }
+import {allAutherizationRulesMap} from '../initialize/initialize-messengers'; // name.role :{ role: string, accessmask: number, acl?: boolean }
 
 /**
  * Provides you three states (new, old, merged) for an entity as parameters on which
