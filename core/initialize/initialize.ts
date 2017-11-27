@@ -1,6 +1,7 @@
 ﻿/// <reference path="initialize-scokets.ts" />
 import {InitializeRepositories} from "./initialize-repositories";
 import {InitializeScokets} from "./initialize-scokets";
+import {InitializeMessengers} from "./initialize-messengers";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {router} from '../exports';
@@ -13,7 +14,8 @@ import {CrudEntity} from "../dynamic/crud.entity";
 
 export class Initalize {
     constructor(files: Array<String>, server?: any) {
-        new InitializeRepositories();
+        new InitializeRepositories();        
+        new InitializeMessengers();
         new InitializeScokets(server);
         new InitializeControllers();
        
