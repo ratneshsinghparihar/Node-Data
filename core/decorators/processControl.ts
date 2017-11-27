@@ -15,6 +15,7 @@ import Q = require('q');
 //process type=3 processstart and end
 function preProcessHandler(params: IProcessControlParams, target, propertyKey, descriptor, originalMethod, type: string) {
     return function () {
+        console.log("preProcessHandler", params);
         var meta = MetaUtils.getMetaData(target, type, propertyKey);
         var targetObjectId: any;
         if (params.indexofArgumentForTargetObjectId != undefined) {
@@ -64,21 +65,22 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                             console.log('process control In progress');
                             if (sucess) {
                                 //actual method of caller
-                                console.log('method execution started', originalMethod.name, argsObj);
+                                //console.log('method execution started', originalMethod.name, argsObj);
                                 var result = originalMethod.apply(this, arguments);
                                 if (Utils.isPromise(result)) {
                                     console.log('method executing...');
                                     return result.then((sucess) => {
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
-                                            return processControlService.completeProcess(result).then((result) => {
+                                            return processControlService.completeProcess(sucess).then((result) => {
                                                 console.log('method execution completed');
                                                 return sucess;
                                             });
                                         } else {
                                             return sucess;
                                         }
-                                    }, (error) => {
+                                    }).catch(error => {
+                                        console.log("throw>>>>>>>>>>>>>>>>>>>");
                                         if (type == Decorators.PROCESS_START_AND_END) {
                                             //return statement
                                             return processControlService.errorOutProcess(JSON.stringify(error)).then((result) => {
@@ -117,7 +119,7 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                 var result = originalMethod.apply(this, arguments);
                 if (Utils.isPromise(result)) {
                     return result.then((sucess) => {
-                        return processControlService.completeProcess(result).then((result) => {
+                        return processControlService.completeProcess(sucess).then((result) => {
                             return sucess;
                         });
                     }, (error) => {
