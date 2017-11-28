@@ -91,16 +91,16 @@ export class InitializeScokets {
 
 
         let joinNormalChannels = (socket):any => {
-            let session=socket.handshake.query.curSession;
+            let session = socket.handshake.query.curSession;
+            if (!session.userId) { return; }
             if (!self.sessionSocketIdMap[session.userId]) { self.sessionSocketIdMap[session.userId] = {}; }
             self.sessionSocketIdMap[session.userId][socket.id] = true;
             if (socket.handshake.query && socket.handshake.query.applicableChannels
                 && socket.handshake.query.applicableChannels.length) {
                 socket.handshake.query.applicableChannels.forEach((room) => {
                     if (room && room.name) {
-                        console.log("joined room", room.name);
-                        socket.join(room.name);
-                        if (!self.socketChannelGroups[room.name]) { self.socketChannelGroups[room.name] = {} }
+                        if (!self.socketChannelGroups[room.name]) { self.socketChannelGroups[room.name] = {}; }
+                       
                     }
                 });
             }
@@ -233,6 +233,7 @@ export class InitializeScokets {
         };
 
         let socketConector = () => {
+            if (!io) { return;}
             io.on('connection',
                 function (socket) {
                     // this.socketClientholder.clients.push(client);
@@ -278,7 +279,7 @@ export class InitializeScokets {
         {
 
             let key = repo.modelName();
-            let messenger = repo.getMessanger();
+            let messenger:Messenger = repo.getMessanger();
 
             let meta: MetaData = repo.getMetaData();
 
@@ -288,7 +289,7 @@ export class InitializeScokets {
             console.log("message received on ", key);
 
             if ((meta.params.exportType & ExportTypes.PUB_SUB) == ExportTypes.PUB_SUB) {
-                mainMessenger.sendMessageOnRepo(repo, message);
+                messenger.sendMessageOnRepo(repo, message);
             }
 
             if (!io) {
@@ -422,11 +423,11 @@ export class InitializeScokets {
                     addAllclientsInRoom();
                 }
                 if (broadcastClients && broadcastClients.length) {
-                    mainMessenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                    messenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
                 }
             }
             //individual messages
-            let individualUsers: Array<string> = mainMessenger.getAllUsersForNotification(message);
+            let individualUsers: Array<string> = messenger.getAllUsersForNotification(message);
             if (individualUsers && individualUsers.length) {
                 individualUsers.forEach((user: string) => {
                     if (self.sessionSocketIdMap[user]) {
@@ -437,7 +438,7 @@ export class InitializeScokets {
                                 return;
                             }
                             connectedClients++;
-                            mainMessenger.sendMessageToclient(client, repo, message);
+                            messenger.sendMessageToclient(client, repo, message);
                             if (client.handshake.query && client.handshake.query.reliableChannles) {
                                 let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
                                 if (channelArr.indexOf(key) > -1) {

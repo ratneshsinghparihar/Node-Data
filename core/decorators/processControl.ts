@@ -5,7 +5,7 @@ import { DecoratorType } from '../enums/decorator-type';
 import { IProcessControlParams } from './interfaces/IProcessControlParams';
 import { IProcessControlService, processControlServiceName, processControlContext } from './interfaces/IProcessControlService';
 import * as Enumerable from 'linq';
-import {executeWorkerHandler} from './workerAssociation';
+import {executeWorkerHandler,getWorkerParams} from './workerAssociation';
 import {Container} from '../../di';
 import Q = require('q');
 
@@ -39,14 +39,26 @@ function preProcessHandler(params: IProcessControlParams, target, propertyKey, d
                 //preprocess
                 let argsObj = Utils.getMethodArgs(originalMethod, arguments);
 
-                if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
+                if (params.executeInDistributedWorker ) {
                     // Parent - processcontrol management executing with worker 
                     console.log('process control initializing started');
-                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params, argsObj).then((sucess) => {
+                    let workerParams = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER,true).apply(this, arguments);
+                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params, workerParams).then((sucess) => {
 
-                        var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
+                       // var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
                         console.log('process control initialized successfully');
-                        return processControlService.sendResponse(sucess, taskInfo);
+                        return processControlService.sendResponse(sucess);
+                    });
+                }
+                else if (params.executeInWorker && !MetaUtils.childProcessId && Utils.config().Config.isMultiThreaded) {
+                    // Parent - processcontrol management executing with worker 
+                    console.log('process control initializing started');
+                    
+                    return processControlService.initialize(serviceName, propertyKey, targetObjectId, params).then((sucess) => {
+
+                         var taskInfo = executeWorkerHandler({}, target, propertyKey, originalMethod, Decorators.WORKER).apply(this, arguments);
+                        console.log('process control initialized successfully');
+                        return processControlService.sendResponse(sucess);
                     });
                 }
                 else {
