@@ -1,5 +1,4 @@
-﻿import Mongoose = require("mongoose");
-import Q = require('q');
+﻿import Q = require('q');
 import { EntityChange } from '../core/enums/entity-change';
 import { getEntity, repoFromModel } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
@@ -455,7 +454,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
  */
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     //console.log("findWhere " + model.modelName);
-
+    let lt: string, gt: string, lte: string, gte: string, lt_value: number, lte_value: number, gt_value: number, gte_value: number;
     var sel = {};
     let order = undefined;
     if (select instanceof Array) {
