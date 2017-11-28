@@ -150,7 +150,7 @@ function executeNextProcess(param: workerParamsDto) {
     return process;
 }
 
-export function executeWorkerHandler(params, target, propertyKey, originalMethod, type: string) {
+export function executeWorkerHandler(params, target, propertyKey, originalMethod, type: string,noExecution?:boolean) {
     return function () {
         if (MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded) {
             winstonLog.logInfo("Executing method from child Process with id: " + process.pid);
@@ -234,7 +234,9 @@ export function executeWorkerHandler(params, target, propertyKey, originalMethod
 
         if (workerParams.serviceName != null) {
             workerParams.id = uuid.v4();
-            var proc = executeNextProcess(workerParams);
+            if (!noExecution) {
+                var proc = executeNextProcess(workerParams);
+            }
             // console.log("Context at Worker: " + workerParams.principalContext);
             // console.log("PrincipalConext at Parent: " + PrincipalContext.getSession());
         }

@@ -72,7 +72,7 @@ export class InitializeMessengers {
     constructor(server?: any) {
         this.messenger.sendMessageToclient = this.sendMessageToclient;
         this.messenger.getAllUsersForNotification = this.getAllUsersForNotification;
-
+        this.getProcessService();
         allAutherizationRules = <Array<{
             name: string;
             acl: Array<IAutherizationParam>;
@@ -204,9 +204,7 @@ export class InitializeMessengers {
                     messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message" });
                     messengerPool.push(messenger);
                 }
-                self.channleMessangerMap[key] = messenger;
-                repo.setMessanger(messenger);
-                messenger.subscribe(key, true);
+                
                 if (self.allSingleEmitterSettings[key] && self.allSingleEmitterSettings[key].length) {
                     console.log("over riding chekAndSend for ", key);
 
@@ -244,6 +242,14 @@ export class InitializeMessengers {
                         })
                     }
                 }
+
+
+                self.channleMessangerMap[key] = messenger;
+                repo.setMessanger(messenger);
+                messenger.subscribe(key, true);
+
+                messenger.sendMessageOnRepo = this.sendMessageOnRepo;
+                
             }
         }
 
