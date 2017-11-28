@@ -1,4 +1,5 @@
-﻿import Q = require('q');
+﻿import Mongoose = require("mongoose");
+import Q = require('q');
 import { EntityChange } from '../core/enums/entity-change';
 import { getEntity, repoFromModel } from '../core/dynamic/model-entity';
 import * as Enumerable from 'linq';
