@@ -104,6 +104,15 @@ export class InitializeScokets {
                     }
                 });
             }
+            if (socket.handshake.query && socket.handshake.query.channels) {
+                let channelArr: Array<string> = socket.handshake.query.channels.split(",");
+                if (channelArr && channelArr.length) {
+                    channelArr.forEach((room) => {
+                        console.log("joined room ", room);
+                        socket.join(room);
+                    });
+                }
+            }
             return socket;
             
         }
@@ -125,6 +134,10 @@ export class InitializeScokets {
                         console.log("joined room group", room.name + "_" + room.group);
                         if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
                         socket.join(room.name + "_" + room.group);
+                    }
+                    else if (room) {
+                        console.log("joined room ", room);
+                        socket.join(room);
                     }
                 });
             }
