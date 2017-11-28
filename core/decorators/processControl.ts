@@ -5,7 +5,7 @@ import { DecoratorType } from '../enums/decorator-type';
 import { IProcessControlParams } from './interfaces/IProcessControlParams';
 import { IProcessControlService, processControlServiceName, processControlContext } from './interfaces/IProcessControlService';
 import * as Enumerable from 'linq';
-import {executeWorkerHandler,getWorkerParams} from './workerAssociation';
+import {executeWorkerHandler} from './workerAssociation';
 import {Container} from '../../di';
 import Q = require('q');
 
