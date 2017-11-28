@@ -455,7 +455,7 @@ export function distinctWhere(model: Mongoose.Model<any>, query: any): Q.Promise
  */
 export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array<string> | any, queryOptions?: QueryOptions, toLoadChilds?: boolean, sort?: any, skip?: number, limit?: number): Q.Promise<any> {
     //console.log("findWhere " + model.modelName);
-
+    let lt: string, gt: string, lte: string, gte: string, lt_value: number, lte_value: number, gt_value: number, gte_value: number;
     var sel = {};
     let order = undefined;
     if (select instanceof Array) {
@@ -473,6 +473,40 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
         if (queryOptions.skip != null)
             skip = Number.parseInt(queryOptions.skip.toString());
 
+		
+		  if (queryOptions.lt != null) {
+            lt = queryOptions.lt;
+        }
+
+        if (queryOptions.gt != null) {
+            gt = queryOptions.gt;
+        }
+
+        if (queryOptions.lt_value != null) {
+            lt_value = Number.parseInt(queryOptions.lt_value);
+        }
+
+        if (queryOptions.gt_value != null) {
+            gt_value = Number.parseInt(queryOptions.gt_value);
+        }
+
+        if (queryOptions.lt != null) {
+            lte = queryOptions.lte;
+        }
+
+        if (queryOptions.gt != null) {
+            gte = queryOptions.gte;
+        }
+
+        if (queryOptions.lt_value != null) {
+            lte_value = Number.parseInt(queryOptions.lte_value);
+        }
+
+        if (queryOptions.gt_value != null) {
+            gte_value = Number.parseInt(queryOptions.gte_value);
+        }
+		
+		
         if (queryOptions.sort != null) {
             sort = queryOptions.sort;
             if (queryOptions.order != null && queryOptions.order === 'desc') {
