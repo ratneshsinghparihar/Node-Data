@@ -888,16 +888,25 @@ Now just like rest end points from client side messages can be received and emit
 All security reules applied to rest api are still applicable for webscoket apis
 for authentication/autherization client need to send information like below
 ```typescript
-query: {
+const socket = io(ws://localhost:8080, 
+    {transports: ['websocket', 'polling'],
+    query: {
             name: "ui-test", netsessionid: "abc123", email: "ratneshp@talentica.com", phone: "+918600147266"
         }
+}); 
+
+
 ```
 if succeded then server will establise an uws session with client, client need to tell upfornt which channels (aka repo path) he want to listen
 ```typescript
-query: {
+const socket = io(ws://localhost:8080, 
+    {transports: ['websocket', 'polling'],
+    query: {
             name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
 			channels:"workerprocess"
         }
+}); 
+
 
 socketio.on('workerprocess', function (data) {
         
