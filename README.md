@@ -888,7 +888,7 @@ Now just like rest end points from client side messages can be received and emit
 All security reules applied to rest api are still applicable for webscoket apis
 for authentication/autherization client need to send information like below
 ```typescript
-const socket = io(ws://localhost:8080, 
+const socket = io('ws://localhost:8080', 
     {transports: ['websocket', 'polling'],
     query: {
             name: "ui-test", netsessionid: "abc123", email: "ratneshp@talentica.com", phone: "+918600147266"
@@ -899,7 +899,7 @@ const socket = io(ws://localhost:8080,
 ```
 if succeded then server will establise an uws session with client, client need to tell upfornt which channels (aka repo path) he want to listen
 ```typescript
-const socket = io(ws://localhost:8080, 
+const socket = io('ws://localhost:8080', 
     {transports: ['websocket', 'polling'],
     query: {
             name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
@@ -926,11 +926,46 @@ in order to send the messages back to server , action is repo's action ,heders w
 other microservices and workers in ecosystem can also use  mechnism to client to send and receve messages,
 for realiable messaging (like server restart or worker restart , pending messages should recieve again
 ```typescript
-query: {
-         netsessionid: "abc123",
-        reliableChannles: 
-            "worker"
-    }
+const socket = io('ws://localhost:8080', 
+    {transports: ['websocket', 'polling'],
+    query: {
+            name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
+			reliableChannles:"workerprocess"
+        }
+}); 
+```
+## websockets security server side changes
+security config file is responsible for telling the consumers what they can listen and what they can emit
+"acl": true will run acl code for each messages before sending to connected clients.
+"acl": false will broadcast to all connected client under the role.
+if there are multiple instance of worker(realiable channel) and only one should get message following settings helps
+"emitToSingleWorker": true
+```typescript
+export class SecurityConfig {
+    
+    public static ResourceAccess: Array<IResourceAccess> = [
+        {
+            name: "worker",
+            acl: [
+                {
+                    "role": "ROLE_USER",
+                    "accessmask": 5,
+                    "acl": true
+                },
+                {
+                    "role": "ROLE_PUBLIC",
+                    "accessmask": 1,
+                    "acl": false
+                },
+                {
+                    "role": "ROLE_WORKER",
+                    "accessmask": 15,
+                    "acl": false,
+                  	"emitToSingleWorker": true
+                }
+            ],
+            isRepoAuthorize: true
+        }
 ```
 
 
