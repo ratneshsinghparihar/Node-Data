@@ -966,6 +966,7 @@ export class SecurityConfig {
             ],
             isRepoAuthorize: true
         }
+      }
 ```
 
 
