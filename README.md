@@ -907,7 +907,7 @@ const socket = io('ws://localhost:8080',
     {transports: ['websocket', 'polling'],
     query: {
             name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
-			channels:"workerprocess"
+			channels:"workerprocess,order"
         }
 }); 
 
@@ -934,7 +934,7 @@ const socket = io('ws://localhost:8080',
     {transports: ['websocket', 'polling'],
     query: {
             name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
-			reliableChannles:"workerprocess"
+			reliableChannles:"workerprocess,payment"
         }
 }); 
 ```
