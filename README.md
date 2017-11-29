@@ -868,7 +868,8 @@ in a service class
 
 ## RealTime server using websockets
 Node-Data supports real time communication to server using websockets.
-first step is to tell server.js/app.js to create a socket server like below
+first step is to tell server.js/app.js to create a socket server like below .
+passing httpserver(express server or node native http server) (server like below) object in Main will turn the current http-server into socket server.
 ```typescript
 Main(Config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService,server);
 ```
