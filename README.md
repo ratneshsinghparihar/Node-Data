@@ -887,13 +887,13 @@ Now just like rest end points from client side messages can be received and emit
 ## websockets security client side changes
 All security reules applied to rest api are still applicable for webscoket apis
 for authentication/autherization client need to send information like below
-```javascript
+```typescript
 query: {
             name: "ui-test", netsessionid: "abc123", email: "ratneshp@talentica.com", phone: "+918600147266"
         }
 ```
 if succeded then server will establise an uws session with client, client need to tell upfornt which channels (aka repo path) he want to listen
-```javascript
+```typescript
 query: {
             name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
 			channels:"workerprocess"
@@ -906,7 +906,7 @@ socketio.on('workerprocess', function (data) {
 
 ```
 in order to send the messages back to server , action is repo's action ,heders will have security session token, message will have request body
-```javascript
+```typescript
  socket.emit('order', {
                 action: 'bulkPost',
                 headers: { netsessionid: 'abc123' },
@@ -916,7 +916,7 @@ in order to send the messages back to server , action is repo's action ,heders w
 ## websockets security for microservices and workers
 other microservices and workers in ecosystem can also use  mechnism to client to send and receve messages,
 for realiable messaging (like server restart or worker restart , pending messages should recieve again
-```javascript
+```typescript
 query: {
          netsessionid: "abc123",
         reliableChannles: 
