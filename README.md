@@ -866,6 +866,65 @@ in a service class
     }
 ```
 
+## RealTime server using websockets
+Node-Data supports real time communication to server using websockets.
+first step is to tell server.js/app.js to create a socket server like below
+```typescript
+Main(Config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService,server);
+```
+next is to tell a repository to expose websocket end point
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.WS})
+export class WorkerRepository extends DynamicRepository {}
+```
+If you need websocket and rest both on repo use it like below
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.WS | ExportTypes.REST})
+export class WorkerRepository extends DynamicRepository {}
+```
+Now just like rest end points from client side messages can be received and emitt real time using socket.io-client library (socket server will be hosted on web server  ws://localhost:8080 )
+
+## websockets security client side changes
+All security reules applied to rest api are still applicable for webscoket apis
+for authentication/autherization client need to send information like below
+```javascript
+query: {
+            name: "ui-test", netsessionid: "abc123", email: "ratneshp@talentica.com", phone: "+918600147266"
+        }
+```
+if succeded then server will establise an uws session with client, client need to tell upfornt which channels (aka repo path) he want to listen
+```javascript
+query: {
+            name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
+			channels:"workerprocess"
+        }
+
+socketio.on('workerprocess', function (data) {
+        
+        console.log("workerprocess message received-->", data);
+    });
+
+```
+in order to send the messages back to server , action is repo's action ,heders will have security session token, message will have request body
+```javascript
+ socket.emit('order', {
+                action: 'bulkPost',
+                headers: { netsessionid: 'abc123' },
+                message: [{ }]
+            });
+```
+## websockets security for microservices and workers
+other microservices and workers in ecosystem can also use  mechnism to client to send and receve messages,
+for realiable messaging (like server restart or worker restart , pending messages should recieve again
+```javascript
+query: {
+         netsessionid: "abc123",
+        reliableChannles: 
+            "worker"
+    }
+```
+
+
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
