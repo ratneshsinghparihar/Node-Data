@@ -885,6 +885,9 @@ export class WorkerRepository extends DynamicRepository {}
 ```
 Now just like rest end points from client side messages can be received and emitt real time using socket.io-client library (socket server will be hosted on web server  ws://localhost:8080 )
 
+if repo is WS then every changes in the repo will be send to connected clients automatically.
+security and acl will applied obiviously before sending.
+
 ## websockets security client side changes
 All security reules applied to rest api are still applicable for webscoket apis
 for authentication/autherization client need to send information like below
