@@ -942,6 +942,7 @@ const socket = io('ws://localhost:8080',
 security config file is responsible for telling the consumers what they can listen and what they can emit.
 
 "acl": true will run acl code for each messages before sending to connected clients.
+
 "acl": false will broadcast to all connected client under the role.
 
 if there are multiple instance of worker(realiable channel) and only one should get message following settings helps
