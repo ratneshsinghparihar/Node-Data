@@ -981,3 +981,5 @@ export class SecurityConfig {
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200"><img src="https://www.gep.com/sites/default/files/mediakit/GEP-Logo-SVG.svg" width="200">
 <img src="http://aimed-mi3.com/wp-content/uploads/2016/11/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
 <img src="http://gyanprakash.org/wp-content/uploads/2017/10/logo.png" height="100" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/zebpay.jpg" height="100" width="200">
+
