@@ -975,7 +975,8 @@ export class SecurityConfig {
         }
       }
 ```
-
+## why node-data coulde be a best fit for your next no-sql design
+no-sql designs are continous process and node-data has been design to help developers to build right no-sql design and allow them to easily refactor the current modeling to next design . In most of the cases data migration don't create bottleneck on design changes , its the transaction code which stop the developer to rewrite them again , here node-data helps developers to refactor the code easily and allow them to build new experinces out of existing experinces with out so many breaking changes. 
 
 
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
