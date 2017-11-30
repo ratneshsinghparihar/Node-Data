@@ -558,6 +558,21 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
         if (limit) {
             queryObj = queryObj.limit(limit);
         }
+		
+        if (gt && gt_value) {
+            queryObj = queryObj.gt(gt, gt_value);
+        }
+        if (lt && lt_value) {
+            queryObj = queryObj.lt(lt, lt_value);
+        }
+
+        if (gte && gte_value) {
+            queryObj = queryObj.gte(gte, gte_value);
+        }
+        if (lte && lte_value) {
+            queryObj = queryObj.lte(lte, lte_value);
+        }
+		
         asyncCalls.push(Q.nbind(queryObj.exec, queryObj)());
     });
     return Q.allSettled(asyncCalls).then(res => {

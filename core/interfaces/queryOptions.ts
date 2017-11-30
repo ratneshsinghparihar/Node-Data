@@ -18,4 +18,4 @@
     gte_value?: any;
 }
 
-export var filterProps: Array<string> = ['rows', 'start', 'from', 'until', 'order', 'fields', 'skip', 'limit', 'sort'];
+export var filterProps: Array<string> = ['rows', 'start', 'from', 'until', 'order', 'fields', 'skip', 'limit', 'sort','lt','gt','lte','gte','lt_value','gt_value','lte_value','gte_value'];
