@@ -979,5 +979,5 @@ export class SecurityConfig {
 
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200"><img src="https://www.gep.com/sites/default/files/mediakit/GEP-Logo-SVG.svg" width="200">
-<img src="http://aimed-mi3.com/wp-content/uploads/2016/11/datalogai.png" width="200"><img src="http://2016.aiworld.com/wp-content/uploads/2016/09/verve-360x280e-360x280.jpg" width="200">
+<img src="http://aimed-mi3.com/wp-content/uploads/2016/11/datalogai.png" width="200"><img src="http://verve.ai/assets/images/logo.png" width="200">
 <img src="http://gyanprakash.org/wp-content/uploads/2017/10/logo.png" width="200">
