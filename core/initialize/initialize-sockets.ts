@@ -82,10 +82,7 @@ export class InitializeScokets {
 
 
         let io:any = self.io;
-        if (server) {
-            self.io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
-            io = self.io;
-        }
+        
 
         this.socketClientholder.socket = io;
 
@@ -246,6 +243,11 @@ export class InitializeScokets {
         };
 
         let socketConector = () => {
+            if (!io && server) {
+                    self.io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
+                    io = self.io;
+            }
+
             if (!io) { return;}
             io.on('connection',
                 function (socket) {

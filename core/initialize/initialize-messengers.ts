@@ -46,7 +46,7 @@ export var allAutherizationRules: Array<{
 export var workerProcessService: IWorkerProcessService;
 export var mainMessenger: Messenger;
 
-import {messageBraodcastOnMessenger,socketConnector} from "./initialize-scokets"
+import {messageBraodcastOnMessenger,socketConnector} from "./initialize-sockets"
 
 export class InitializeMessengers {
 
