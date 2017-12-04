@@ -801,6 +801,47 @@ Node-data now is fully supported inside a normal js project , no typescript depe
 
 ## bulk and performance improvements
 ## Entity Manager
+Entity action manager will help you to write your business logic codes in a controlled environment. By controlled environment we mean that developer should have the control on before and after of any transcation to the system. Let take an example for our better understanding.
+
+Suppose we are doing a transcation to add a new student in the system and we are maintaing a total count of students in the class. So in this case, we would have written a code to update total student count after creating a new student.
+```
+function addAndUpdate(){
+  studentRepo.post(newStudentObj).then(success => {
+	 // update total students cont in school
+     classRepo.put({_id: "5a24fc4d485fcd66084863e2", totalStudentCount: curTotalStudentCount + 1});
+   });
+}
+```
+So problem with this code is we have to call addAndUpdate() method manually to work correctly. But imagine a new developer came and created a new student by simply calling studentRepo.post(newStudentObj); and he might forget/(dont know) to update the total student count in class.
+
+In this scenario Entity Manager will make sure that a common business functionality should always execute on a transcation by overriding its postCreate() method. postCreate() method will always execute after any create (post) on the system. 
+
+```
+postCreate(params: EntityActionParam){
+	classRepo.put({_id: "5a24fc4d485fcd66084863e2", totalStudentCount: curTotalStudentCount + 1});
+    return super.postUpdate(params);
+}
+```
+
+How to enable Entity Manager feature in your project:
+1. extend/inherit your repository class from AuthorizationRepository and override the entity action methods
+Entity Action methods:-
+preUpdate
+
+postUpdate
+
+preBulkUpdate
+
+postBulkUpdate
+
+preRead
+
+postRead
+
+preBulkRead
+
+postBulkRead
+
 ```typescript
 preUpdate(params: EntityActionParam): Q.Promise<EntityActionParam> {
         return Q.resolve(params);
