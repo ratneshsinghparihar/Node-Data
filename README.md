@@ -853,17 +853,28 @@ quick response with
 } 
 ```
 
-## Messageing
-in a service class
+## PUB-SUB using Messageing 
+to define a repository to act like an pub-sub 
 ```typescript
-    @producer(topic,partition)
-    public read(filePath: string, projectId, toDelete?) {
-    }
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.PUB_SUB})
+export class WorkerRepository extends DynamicRepository {}
 ```
+This will create a database queue (persistent) for the repository and on evey transaction it will emit the messages to whoever is connected to database.
+
+This pub-sub is reliable and persistent (not like pusher,redis pub-sub). 
+
+To consume the message create a onMessage method on repo , insise this method you can receive all output to repo.
 ```typescript
-    @consumer(topic,partition,instances)
-    public read(filePath: string, projectId, toDelete?) {
+export class WorkerRepository extends DynamicRepository {
+     public onMessage(message: WorkerProcess) {
+        if (message.status == "connected") {
+            this.wps.addWorker(message);
+        }
+        if (message.status == "disconnected") {
+            this.wps.deleteWorker(message);
+        }
     }
+}
 ```
 
 ## RealTime server using websockets
@@ -986,4 +997,3 @@ no-sql designs are continous process and node-data has been design to help devel
 <img src="http://aimed-mi3.com/wp-content/uploads/2016/11/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
 <img src="http://gyanprakash.org/wp-content/uploads/2017/10/logo.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/zebpay.png" height="100" width="200">
-
