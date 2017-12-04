@@ -859,7 +859,7 @@ to define a repository to act like an pub-sub
 @repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.PUB_SUB})
 export class WorkerRepository extends DynamicRepository {}
 ```
-This will create a database queue (persistent) for the repository and on evey transaction it will emit the messages to whoever is connected to database.
+This will use a database queue (persistent) for the repository and on evey transaction it will emit the messages to whoever is connected to database.
 
 This pub-sub is reliable and persistent (not like pusher,redis pub-sub). 
 
@@ -874,6 +874,13 @@ export class WorkerRepository extends DynamicRepository {
             this.wps.deleteWorker(message);
         }
     }
+}
+```
+In cases where high write operations are expected a dedicated queue might required for that set 
+edicatedMessenger:true
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.PUB_SUB, dedicatedMessenger:true})
+export class WorkerRepository extends DynamicRepository {
 }
 ```
 
