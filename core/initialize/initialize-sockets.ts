@@ -341,7 +341,8 @@ export class InitializeScokets {
             let connectedClients = 0;
             let broadCastClients = 0;
             let reliableClients = 0;
-
+            let individualClients = 0;
+            let singelEmittClients = 0;
 
 
             //handle broad cast group ..acl ==false
@@ -389,6 +390,11 @@ export class InitializeScokets {
 
 
                 let addAllclientsInRoom = () => {
+                    if (isRealiableChannel &&
+                        message.singleWorkerOnRole) {
+                        return;
+                    }
+
                     for (let channelId in roomclients) {
 
 
@@ -432,6 +438,7 @@ export class InitializeScokets {
                     broadcastClients.push(client);
                     broadCastClients++
                     connectedClients++;
+                    singelEmittClients++;
                     updateReliableChannelSettings(client);
                 }
                 else {
@@ -450,9 +457,19 @@ export class InitializeScokets {
 
                             let client = io.sockets.connected[channelId];
                             if (!client) {
-                                return;
+                                continue;
                             }
+
+                            //check if already broadcasted
+                            if (client.handshake.query && client.handshake.query.broadcastChannels) {
+                                let channelArr: Array<string> = client.handshake.query.broadcastChannels.filter((x) => { return x.name==key });
+                                if (channelArr && channelArr.length) {
+                                    continue;
+                                }
+                            }
+
                             connectedClients++;
+                            individualClients++;
                             messenger.sendMessageToclient(client, repo, message);
                             if (client.handshake.query && client.handshake.query.reliableChannles) {
                                 let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
@@ -467,6 +484,8 @@ export class InitializeScokets {
             messageSendStatistics.connectedClients = connectedClients;
             messageSendStatistics.broadCastClients = broadCastClients;
             messageSendStatistics.reliableClients = reliableClients;
+            messageSendStatistics.individualClients = individualClients;
+            messageSendStatistics.singelEmittClients = singelEmittClients;
             messageSendStatistics.channel = key;
             messageSendStatistics.id = message._id && message._id.toString();
             console.log("pub-sub message sent ", messageSendStatistics);
