@@ -57,9 +57,8 @@ export function entityAction(params: IPreauthorizeParams): any {
 
         descriptor.value = function () {
             var anonymous = MetaUtils.getMetaData(target, Decorators.ALLOWANONYMOUS, propertyKey);
-            if (anonymous) return originalMethod.call(this, ...arguments);
-            let args = [];
-            args = Array.apply(null, arguments);
+            if (anonymous) return originalMethod.call(this, ...arguments);         
+            let args = Array.prototype.slice.call(arguments);
 
             // merge logic
             return mergeTask.apply(this, [args, originalMethod]).then(fullyQualifiedEntities => {

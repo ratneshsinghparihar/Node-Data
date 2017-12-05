@@ -229,12 +229,16 @@ export class InitializeScokets {
             var d = domain.create();
             d.run(() => {
                 try {
-                    if (socket.handshake.query && socket.handshake.query.curSession) {
+
+                    //check if current session can be used
+                    if (data && data.headers && data.headers.netsessionid &&
+                        socket.handshake.query.curSession && socket.handshake.query.curSession.sessionId && 
+                        data.headers.netsessionid == socket.handshake.query.curSession.sessionId) {
                         PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
                         executefun(data, repo);
                         return
                     }
-
+                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { console.log(err); });
                 }
                 catch (exc) {
                     console.log(exc);
