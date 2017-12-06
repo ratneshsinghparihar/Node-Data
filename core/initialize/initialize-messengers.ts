@@ -201,7 +201,7 @@ export class InitializeMessengers {
             if (self.checkIfRepoForMessenger(meta)) {
                 let messenger = self.messenger;
                 if (meta.params.dedicatedMessenger) {
-                    messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message" });
+                    messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message", cappedSize: meta.params.cappedSize });
                     messengerPool.push(messenger);
                 }
                 
