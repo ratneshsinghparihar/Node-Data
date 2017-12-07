@@ -454,6 +454,31 @@ Provision is made to search using elasticsearch by changing the settings in the 
 Search on elasticsearch is currently done only on fields that are indexed in the elasticsearch. 
 All the search methods are needed to be exposed on the Repository. 
 Currently only the "And" search operations are supported. 
+
+Search on all documens can done using following
+
+
+http://localhost:999/data/repository_name/searchAll?limit=10& skip=10&sort=fieldname&order=desc&gt=fieldname&gt_value=1510823040
+
+limit= for top or bottom no of records
+skip= no of dcouments to skip
+
+sort= field upon which sorting needs to be done
+order= ascending ot descending
+
+lt=fieldname for less than comparision
+lt-value=value-to-be-compared
+
+
+gt=fieldname for greater than comparision
+gt-value=value-to-be-compared (Number)
+
+lte=fieldname for less than equal comparision
+lte-value=value-to-be-compared (Number)
+
+
+gte=fieldname for greater than comparision
+gte-value=value-to-be-compared (Number)
  
 ### Configuring ElasticSearch: 
 
