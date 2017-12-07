@@ -45,6 +45,7 @@ export var allAutherizationRules: Array<{
 
 export var workerProcessService: IWorkerProcessService;
 export var mainMessenger: Messenger;
+export var channleMessangerMap: any = {};
 
 import {messageBraodcastOnMessenger,socketConnector} from "./initialize-sockets"
 
@@ -57,7 +58,7 @@ export class InitializeMessengers {
 
     private messenger = new Messenger({ retryInterval: 3000 });
 
-    private channleMessangerMap: any = {};
+   
 
     private serverId = uuidv4();
 
@@ -244,7 +245,7 @@ export class InitializeMessengers {
                 }
 
 
-                self.channleMessangerMap[key] = messenger;
+                channleMessangerMap[key] = messenger;
                 repo.setMessanger(messenger);
                 messenger.subscribe(key, true);
 

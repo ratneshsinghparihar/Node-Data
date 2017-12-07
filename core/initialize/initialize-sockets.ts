@@ -35,7 +35,7 @@ const uuidv4 = require('uuid/v4');
 import {IWorkerProcessService} from "../services/workerProcessService";
 import {IWorkerProcess} from "../../models/IWorkerProcess";
 import {IAutherizationParam} from "../../security/auth/autherizationParam";
-import {allAutherizationRules, allAutherizationRulesMap, workerProcessService, mainMessenger} from "./initialize-messengers";
+import {allAutherizationRules, allAutherizationRulesMap, workerProcessService, mainMessenger, channleMessangerMap} from "./initialize-messengers";
 export var messageBraodcastOnMessenger: (repo: IDynamicRepository, message: any) => void;
 export var socketConnector: () => void;
 export class InitializeScokets {
@@ -50,7 +50,7 @@ export class InitializeScokets {
 
 
     private io:any = undefined;
-    private channleMessangerMap: any = {};
+    
 
     private serverId = uuidv4();
     // name.role :{ role: string, accessmask: number, acl?: boolean }
@@ -162,10 +162,10 @@ export class InitializeScokets {
 
                 channelArr.forEach((rechannel) => {
                     securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
-                        if (lastemit && self.channleMessangerMap && self.channleMessangerMap[rechannel]) {
+                        if (lastemit && channleMessangerMap && channleMessangerMap[rechannel]) {
                             //for each chnnel ask messeger the send an array of pending message
 
-                            self.channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
+                            channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
 
                             //use socket.emitt to send previous message
                         }
