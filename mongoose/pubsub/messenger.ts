@@ -15,12 +15,14 @@ export class Messenger extends events.EventEmitter {
     retryInterval;
     parentCallBack;
     collectionName;
+    cappedSize;
     Message;
     constructor(options) {
         super();
         //this.apply(this, arguments);
         var o = options || {};
         this.collectionName = options && options.collectionName;
+        this.cappedSize = options && options.cappedSize;
         this.subscribed = {};
         this.lastMessageTimestamp = null;
         this.startingMessageTimestamp = new Date();
@@ -51,7 +53,7 @@ export class Messenger extends events.EventEmitter {
             cb = callback;
         }
         if (!this.Message) {
-            this.Message = getMessage(this.collectionName );
+            this.Message = getMessage(this.collectionName,this.cappedSize );
         }
         var message = new this.Message({
             channel: channel,

@@ -54,11 +54,14 @@ function getConnection(connectionString, connectionOption): Q.IPromise<any> {
 }
 
 const emitMesseageToALL = (event, message) => {
-    if (emitters && emitters.length) {
-        emitters.forEach((emitter) => {
-            emitter.emit(event, message);
-        })
+    try {
+        if (emitters && emitters.length) {
+            emitters.forEach((emitter) => {
+                emitter.emit(event, message);
+            })
+        }
     }
+    catch (ex) { }
 };
 
 function connectDataBase(conn, connectionString): Q.IPromise<any> {
