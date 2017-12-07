@@ -455,7 +455,7 @@ Search on elasticsearch is currently done only on fields that are indexed in the
 All the search methods are needed to be exposed on the Repository. 
 Currently only the "And" search operations are supported. 
 
-Search on all documens can done using following
+Search on all documents can done using following
 
 
 http://localhost:999/data/repository_name/searchAll?limit=10& skip=10&sort=fieldname&order=desc&gt=fieldname&gt_value=1510823040
