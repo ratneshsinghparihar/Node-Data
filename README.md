@@ -71,7 +71,7 @@ Elastic search | 10.1.3 | Search and aggregation
 Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
-## How To Use without security
+## Quick Start
 
 Assumptions - 
 1. mongodb is installed and server is running.
