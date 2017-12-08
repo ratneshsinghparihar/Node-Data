@@ -73,16 +73,19 @@ redis | unknown | Rest middleware
 
 ## How To Use without security
 
-1. Git clone https://github.com/hariadk/demo-sample.git
-2. cd demo-sample/Demo-Sample
-3. npm install
-4. tsd install
-5. Mongodb running on 27017(default port).
-6. Goto config.ts and make isAutheticationEnabled = 'disabled'
-7. open cmd, run 'gulp compile-ts' then run gulp.
-8. Post a JSON {"name":"john","":"john"} to http://localhost:9999/data/users.
-8. Hit the api to get data(http://localhost:9999/data/users)
-9. Ensure node version is 5.7.0
+Assumptions - 
+1. mongodb is installed and server is running.
+2. Node 6.9.0 is installed.
+
+Please follow belos steps to check CRUD operations with nodedata
+1. git clone https://github.com/sureshdube14/nodedata-demo-sample.git
+2. cd nodedata-demo-sample/Demo-Sample
+3. npm install 
+4. npm start
+5. Post a JSON {"name": "testBlog"} to http://localhost:9999/data/blogs
+6. Hit the api to get data(http://localhost:9999/data/blogs)
+7. Hit the api with put method http://localhost:9999/data/blogs/{{blogId}}  with body {"name": "testBlog1"}
+8. Hit the api with delete method http://localhost:9999/data/blogs/{{blogId}}
 
 ## How To Use with security
 
