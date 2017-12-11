@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1459/badge)](https://bestpractices.coreinfrastructure.org/projects/1459)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_shield)
 ## What is Node-Data <img src="node-data1.png" height="200" width="200">
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
@@ -1073,3 +1074,7 @@ no-sql designs are continous process and node-data has been design to help devel
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/gyanprakash.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/zebpay.png" height="100" width="200">
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_large)
