@@ -2,6 +2,7 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1459/badge)](https://bestpractices.coreinfrastructure.org/projects/1459)
 [![Dependency Status](https://beta.gemnasium.com/badges/github.com/ratneshsinghparihar/Node-Data.svg)](https://beta.gemnasium.com/projects/github.com/ratneshsinghparihar/Node-Data)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_shield)
+[![npm version](https://badge.fury.io/js/nodedata.svg)](https://badge.fury.io/js/nodedata)
 ## What is Node-Data <img src="node-data1.png" height="200" width="200">
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
