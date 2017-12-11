@@ -89,7 +89,7 @@
     "recursive-readdir-synchronous": "0.0.2",
     "reflect-metadata": "0.1.3",
     "request": "2.69.0",
-    "sequelize": "3.23.2",
+    "sequelize": "3.23.5",
     "socket.io": "2.0.4",
     "stack-trace": "0.0.10",
     "tedious": "1.14.0",
