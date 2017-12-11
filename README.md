@@ -1070,6 +1070,6 @@ no-sql designs are continous process and node-data has been design to help devel
 
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200"><img src="https://www.gep.com/sites/default/files/mediakit/GEP-Logo-SVG.svg" width="200">
-<img src="https://aimed-mi3.com/wp-content/uploads/2016/11/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
-<img src="https://gyanprakash.org/wp-content/uploads/2017/10/logo.png" height="100" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/gyanprakash.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/zebpay.png" height="100" width="200">
