@@ -4,6 +4,7 @@
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_shield)
 [![npm version](https://badge.fury.io/js/nodedata.svg)](https://badge.fury.io/js/nodedata)
 [![npm version](https://img.shields.io/npm/dw/nodedata.svg)](https://www.npmjs.com/package/nodedata)
+[![npm version](https://img.shields.io/npm/dm/nodedata.svg)](https://www.npmjs.com/package/nodedata)
 ## What is Node-Data <img src="node-data1.png" height="200" width="200">
 
 
