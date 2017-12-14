@@ -1073,6 +1073,7 @@ no-sql designs are continous process and node-data has been design to help devel
 
 for online support use gitter
 https://gitter.im/node-data/node-data-support
+
 for raising a ticket use jira
 [JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
 
