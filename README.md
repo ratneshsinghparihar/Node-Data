@@ -84,7 +84,7 @@ Assumptions -
 2. Node 6.9.0 is installed.
 
 Please follow belos steps to check CRUD operations with nodedata
-1. git clone https://github.com/sureshdube14/nodedata-demo-sample.git
+1. git clone https://github.com/ratneshsinghparihar/nodedata-demo-sample.git
 2. cd nodedata-demo-sample/Demo-Sample
 3. npm install 
 4. npm start
