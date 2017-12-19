@@ -559,17 +559,17 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
             queryObj = queryObj.limit(limit);
         }
 		
-        if (gt && gt_value) {
+        if (gt && gt_value!=undefined) {
             queryObj = queryObj.gt(gt, gt_value);
         }
-        if (lt && lt_value) {
+        if (lt && lt_value != undefined) {
             queryObj = queryObj.lt(lt, lt_value);
         }
 
-        if (gte && gte_value) {
+        if (gte && gte_value != undefined) {
             queryObj = queryObj.gte(gte, gte_value);
         }
-        if (lte && lte_value) {
+        if (lte && lte_value != undefined) {
             queryObj = queryObj.lte(lte, lte_value);
         }
 		
