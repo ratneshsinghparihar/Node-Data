@@ -15,7 +15,7 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
-import {filterProps} from '../interfaces/queryOptions';
+import {getQueryOptionsFromQuery} from '../interfaces/queryOptions';
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -530,35 +530,10 @@ export class DynamicController {
 
     private searchFromDb(req, res, propertyKey) {
         var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-        var queryObj = req.query;
-        var options = {};
-        Enumerable.from(queryObj).forEach((x: any) => {
-            if (filterProps.indexOf(x.key) >= 0) {
-                options[x.key] = x.value;
-                delete queryObj[x.key];
-            }
-            else {
-                var val = queryObj[x.key];
-                var i = val.indexOf('%LIKE%');
-                if (i == 0) {
-                    // contains
-                    val = val.replace('%LIKE%', '');
-                    queryObj[x.key] = {
-                        $regex: '.*' + val + '.*'
-                    }
-                }
-                else {
-                    i = val.indexOf('%START%');
-                    if (i == 0) {
-                        // starts with
-                        val = val.replace('%START%', '');
-                        queryObj[x.key] = {
-                            $regex: '^' + val + '.*'
-                        }
-                    }
-                }
-            }
-        });
+        let resultquerydata = getQueryOptionsFromQuery(req.query);
+        var queryObj = resultquerydata.queryObj;
+        var options = resultquerydata.options;
+       
         console.log("Querying Database");
         return this.repository
             .findWhere(queryObj, null, options)

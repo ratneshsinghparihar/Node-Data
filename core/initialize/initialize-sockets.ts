@@ -29,7 +29,7 @@ import {PrincipalContext} from '../../security/auth/principalContext';
 import {Session} from  '../../models/session';
 import * as configUtils from '../utils';
 import {repoMap} from './initialize-repositories';
-
+import {getQueryOptionsFromQuery} from '../interfaces/queryOptions';
 import * as Q from 'q';
 const uuidv4 = require('uuid/v4');
 import {IWorkerProcessService} from "../services/workerProcessService";
@@ -212,12 +212,28 @@ export class InitializeScokets {
         //let onSocketDisConnection = (socket) => compose(updateWorkerService , updateSocketServer)
         let onSocketDisConnection = (socket) => { updateWorkerService(updateSocketServer(socket)) }
 
-        
-        let executefun = (parsedData, repo) => {
+        let arrOfReadAction = ["findAll", "findWhere", "countWhere", "distinctWhere", "findOne","searchAll","count"];
+        let executefun = (parsedData, repo,socket) => {
             try {
                 if (parsedData && parsedData.action && parsedData.message) {
                     if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                        repo[parsedData.action](parsedData.message)
+                        let resultpromise: any;
+                        if (parsedData.action == "searchAll") {
+                            parsedData.action = "findWhere";
+                        }
+                        if (parsedData.action == "count") {
+                            parsedData.action = "countWhere";
+                        }
+                        if (parsedData.action == "findWhere" || parsedData.action == "countWhere") {
+                            let resultquerydata = getQueryOptionsFromQuery(parsedData.message);
+                            resultpromise = repo[parsedData.action](resultquerydata.queryObj, null, resultquerydata.options);
+                        } else {
+                             resultpromise = repo[parsedData.action](parsedData.message);
+                        }
+                        
+                        if (arrOfReadAction.indexOf(parsedData.action) > -1) {
+                            resultpromise.then((result) => socket.emit(repo.modelname(), result));
+                        }
                     }
                 }
             } catch (exceptio) {
@@ -235,7 +251,7 @@ export class InitializeScokets {
                         socket.handshake.query.curSession && socket.handshake.query.curSession.sessionId && 
                         data.headers.netsessionid == socket.handshake.query.curSession.sessionId) {
                         PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
-                        executefun(data, repo);
+                        executefun(data, repo,socket);
                         return
                     }
                     (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { console.log(err); });
