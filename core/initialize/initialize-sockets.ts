@@ -1,5 +1,4 @@
-﻿
-import {MetaUtils} from "../metadata/utils";
+﻿import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
@@ -232,7 +231,7 @@ export class InitializeScokets {
                         }
                         
                         if (arrOfReadAction.indexOf(parsedData.action) > -1) {
-                            resultpromise.then((result) => socket.emit(repo.modelname(), result));
+                            resultpromise.then((result) => socket.emit(repo.modelName(), result));
                         }
                     }
                 }
