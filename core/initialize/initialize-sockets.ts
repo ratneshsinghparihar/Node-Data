@@ -1,5 +1,4 @@
-﻿
-import {MetaUtils} from "../metadata/utils";
+﻿import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
@@ -8,7 +7,7 @@ import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-reposito
 import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
-var Config = Utils.config();
+//var Config = Utils.config();
 import {Decorators} from '../constants';
 
 import {IRepositoryParams} from '../decorators/interfaces';
@@ -144,6 +143,18 @@ export class InitializeScokets {
         let createWorkerOnConnect = (socket) => {
             let session = socket.handshake.query.curSession;
             if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                var Config = Utils.config();
+                if (Config.Path && Config.Path.ackChannelName) {
+                    socket.on(Config.Path.ackChannelName, function (data) {
+                        console.log("acknowledgement recieved", data);
+                        // update last ask in session
+                        securityImpl.updateSession({
+                            netsessionid: socket.handshake.query.netsessionid,
+                            channelName: data.message.channel,
+                            lastack: new Date(data.message.timestamp),
+                        }, session);
+                    })
+                }
                 let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                 if (channelArr && channelArr.length) {
                     let newWorker: IWorkerProcess = {
@@ -157,30 +168,37 @@ export class InitializeScokets {
         }
 
         let sendPendingMesagesOnConnect = (socket) => {
-            let session = socket.handshake.query.curSession;
             if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                 let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
 
                 channelArr.forEach((rechannel) => {
 
+                    if (socket.handshake.query.isAckRequired === "true" || socket.handshake.query.isAckRequired === true) {
+                        securityImpl.getSessionLastAckForChannel(socket.handshake.query, rechannel).then((lastack) => {
+                            if (lastack && channleMessangerMap && channleMessangerMap[rechannel]) {
+                                //for each chnnel ask messeger the send an array of pending message
 
-                    let workerCount: number = workerProcessService.getActiveWorkerCountForSessionAndRole(rechannel, session.role);
-                    if (workerCount > 0) {
-                        console.log("on worker sendPendingMesagesOnConnect , no return since already a worker on role and channel")
-                        return;
+                                channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastack, socket.id);
+
+                                //use socket.emitt to send previous message
+                            }
+                        }).catch((error) => {
+                            console.log("error in securityImpl.getSessionLastAckForChannel", error);
+                        });
                     }
+                    else {
+                        securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
+                            if (lastemit && channleMessangerMap && channleMessangerMap[rechannel]) {
+                                //for each chnnel ask messeger the send an array of pending message
 
-                    securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
-                        if (lastemit && channleMessangerMap && channleMessangerMap[rechannel]) {
-                            //for each chnnel ask messeger the send an array of pending message
+                                channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
 
-                            channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
-
-                            //use socket.emitt to send previous message
-                        }
-                    }).catch((error) => {
-                        console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
-                    });
+                                //use socket.emitt to send previous message
+                            }
+                        }).catch((error) => {
+                            console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
+                        });
+                    }
                 }
                 )
             }
@@ -314,6 +332,7 @@ export class InitializeScokets {
                         }
 
                     }
+                   
                 }
             )
         }
