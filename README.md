@@ -584,10 +584,19 @@ You need to add version property in your model like below
     __v: any;
 ```
 Once above field is added in model then you can apply optimistic locking in below way on repository methods like put,patch etc ..
+First Developer need to import below mentioned decorator and constant file.
+
+```typescript
+import { OptimisticLocking } from "nodedata/core/decorators/optimisticlocking";
+import { OptimisticLockType } from "nodedata/core/enums/optimisticlock-type";
+```
+Apply optimistic locking in below way.
+
 ```typescript
 @OptimisticLocking(type = OptimisticLockType.VERSION)
 put()
 ```
+
 in other to support it the corresponding model should have a column decorated with @version attribute
 ```typescript
 @Version
