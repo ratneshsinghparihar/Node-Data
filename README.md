@@ -577,9 +577,16 @@ If appllied over repository then all write opertation will be audited in a dedic
 
 ## Optimistic Locking
 The docuement databases are infamous for concurrent updates . in high concurrency the situation multifolds itself. we are proposing a simple mechanism of optimatic locking by decorating the suspected method on repository by
+You need to add version property in your model like below
+```typescript
+@jsonignore()
+    @field()
+    __v: any;
+```
+Once above field is added in model then you can apply optimistic locking in below way on repository methods like put,patch etc ..
 ```typescript
 @OptimisticLocking(type = OptimisticLockType.VERSION)
-save()
+put()
 ```
 in other to support it the corresponding model should have a column decorated with @version attribute
 ```typescript
