@@ -60,6 +60,19 @@ var getMessengerOfSize = (size) => new mongoose.Schema({
 
 
 export function getMessage(collectionName?: string, size?: number) {
+	
+    if (CoreUtils.config().mainMessagerName) {
+        mainMessagerName = CoreUtils.config().mainMessagerName;
+    }
+
+    if (CoreUtils.config().mainMessengerSize) {
+        mainMessengerSize = CoreUtils.config().mainMessengerSize;
+    }
+
+    if (CoreUtils.config().defaultMessengerSize) {
+        defaultMessengerSize = CoreUtils.config().defaultMessengerSize;
+    }
+
     let schemaName = mainMessagerName;
     let schema = MessageForMainMessengerSize;
     if (collectionName) {
