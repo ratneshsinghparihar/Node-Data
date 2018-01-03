@@ -203,6 +203,8 @@ export class InitializeMessengers {
                 let messenger = self.messenger;
                 if (meta.params.dedicatedMessenger) {
                     messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message", cappedSize: meta.params.cappedSize });
+                    messenger.sendMessageToclient = self.sendMessageToclient;
+                    messenger.getAllUsersForNotification = self.getAllUsersForNotification;
                     messengerPool.push(messenger);
                 }
                 
