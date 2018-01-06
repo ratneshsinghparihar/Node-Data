@@ -5,6 +5,8 @@ import events = require('events');
 var EventEmitter: any = require('events').EventEmitter;
 var getMessage = require('./model');
 var db: any = require('../db');
+import Mongoose = require('mongoose');
+import Q = require('q');
 
 var parentCallBack;
 export class Messenger extends events.EventEmitter {
@@ -16,7 +18,7 @@ export class Messenger extends events.EventEmitter {
     parentCallBack;
     collectionName;
     cappedSize;
-    Message;
+    Message:Mongoose.Model<any>;
     constructor(options) {
         super();
         //this.apply(this, arguments);
@@ -55,13 +57,23 @@ export class Messenger extends events.EventEmitter {
         if (!this.Message) {
             this.Message = getMessage(this.collectionName,this.cappedSize );
         }
-        var message = new this.Message({
-            channel: channel,
-            message: msg
-        });
-        message.save(function (err) {
-            return true;
-        });
+
+        if (msg instanceof Array) {
+            Q.nbind(this.Message.collection.insertMany, this.Message.collection)(msg.map((x) => {
+                return new this.Message({
+                    channel: channel,
+                    message: x
+                }) }))
+        }
+        else {
+            var message = new this.Message({
+                channel: channel,
+                message: msg
+            });
+            message.save(function (err) {
+                return true;
+            });
+        }
 
     };
 

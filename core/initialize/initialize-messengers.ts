@@ -234,7 +234,12 @@ export class InitializeMessengers {
                                     singleRandomWorker.forEach((singleWorker) => {
                                         singleWorkerOnRole[singleWorker.role + "_RC"] = singleWorker; //assuming RC channel
                                     });
-                                    message.singleWorkerOnRole = singleWorkerOnRole;
+                                    if (message instanceof Array) {
+                                        message.forEach((msg) => { msg.singleWorkerOnRole = singleWorkerOnRole;});
+                                    }
+                                    else {
+                                        message.singleWorkerOnRole = singleWorkerOnRole;
+                                    }
                                 }
                             }
 

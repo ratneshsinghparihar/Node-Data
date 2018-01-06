@@ -1,11 +1,11 @@
-'use strict';
+
 import * as CoreUtils from '../../core/utils';
-var mongoose = require('mongoose');
+import Mongoose = require('mongoose');
 var db = require("../db");
 
-var defaultMessengerSize = 1024 * 16 * 25;
+var defaultMessengerSize = 1024 * 1024 * 100;
 var mainMessagerName = 'Message1';
-var mainMessengerSize = 1024 * 16 * 25;
+var mainMessengerSize = 1024 * 1024 * 100;
 
 if (CoreUtils.config().mainMessagerName) {
     mainMessagerName = CoreUtils.config().mainMessagerName;
@@ -19,7 +19,7 @@ if (CoreUtils.config().defaultMessengerSize) {
     defaultMessengerSize = CoreUtils.config().defaultMessengerSize;
 }
 
-var MessageFordefaultMessengerSize = new mongoose.Schema({
+var MessageFordefaultMessengerSize = new Mongoose.Schema({
     channel: String,
     timestamp: { type: Date, default: Date.now },
     message: {}
@@ -32,7 +32,7 @@ var MessageFordefaultMessengerSize = new mongoose.Schema({
         validateBeforeSave: false
     });
 
-var MessageForMainMessengerSize = new mongoose.Schema({
+var MessageForMainMessengerSize = new Mongoose.Schema({
     channel: String,
     timestamp: { type: Date, default: Date.now },
     message: {}
@@ -45,7 +45,7 @@ var MessageForMainMessengerSize = new mongoose.Schema({
         validateBeforeSave: false
     });
 
-var getMessengerOfSize = (size) => new mongoose.Schema({
+var getMessengerOfSize = (size) => new Mongoose.Schema({
     channel: String,
     timestamp: { type: Date, default: Date.now },
     message: {}
@@ -59,7 +59,7 @@ var getMessengerOfSize = (size) => new mongoose.Schema({
     });
 
 
-export function getMessage(collectionName?: string, size?: number) {
+export function getMessage(collectionName?: string, size?: number): Mongoose.Model<any>{
 	
     if (CoreUtils.config().mainMessagerName) {
         mainMessagerName = CoreUtils.config().mainMessagerName;

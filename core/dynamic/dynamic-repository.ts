@@ -95,6 +95,9 @@ export class DynamicRepository implements IDynamicRepository {
 
     public setMessanger(msgner?: any) {
         this.messenger = msgner;
+        if (this.rootLevelRep) {
+            this.rootLevelRep.setMessanger(msgner)
+        }
     }
 
     public getMessanger() {
@@ -158,15 +161,18 @@ export class DynamicRepository implements IDynamicRepository {
             return;
         }
         let messagesToSend = [];
-        entities.forEach(x => {           
-            if (this.messenger) {
-                messagesToSend.push(this.messenger.chekAndSend(this.path, x));
-            }
-        })
-        if (this.messenger && messagesToSend.length) {
-            Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
-                .catch((err) => { console.log("error in sending message bulkPost", err) });
-        }
+
+        this.messenger.chekAndSend(this.path, entities);
+
+        //entities.forEach(x => {           
+        //    if (this.messenger) {
+        //        messagesToSend.push();
+        //    }
+        //})
+        //if (this.messenger && messagesToSend.length) {
+        //    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+        //        .catch((err) => { console.log("error in sending message bulkPost", err) });
+        //}
     }
 
     public bulkPatch(objArr: Array<any>) {
