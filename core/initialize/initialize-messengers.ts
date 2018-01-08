@@ -178,7 +178,7 @@ export class InitializeMessengers {
                 repo.onMessage(message);
             }
         }
-        catch (ex) { //console.log("error in on message", message); }
+        catch (ex) { console.log("error in on message", message); }
     }
 
 

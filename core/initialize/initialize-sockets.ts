@@ -183,7 +183,7 @@ export class InitializeScokets {
                                 //use socket.emitt to send previous message
                             }
                         }).catch((error) => {
-                            //console.log("error in securityImpl.getSessionLastAckForChannel", error);
+                            console.log("error in securityImpl.getSessionLastAckForChannel", error);
                         });
                     }
                     else {
@@ -196,7 +196,7 @@ export class InitializeScokets {
                                 //use socket.emitt to send previous message
                             }
                         }).catch((error) => {
-                            //console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
+                            console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
                         });
                     }
                 }
@@ -271,7 +271,7 @@ export class InitializeScokets {
         let onRepoMessageReceoved1 =  (socket,data,repo)=> {
             var d = domain.create();
             d.run(() => {
-                try {
+                
 
                     //check if current session can be used
                     if (data && data.headers && data.headers.netsessionid &&
@@ -281,11 +281,8 @@ export class InitializeScokets {
                         executefun(data, repo,socket);
                         return
                     }
-                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { //console.log(err); });
-                }
-                catch (exc) {
-                    //console.log(exc);
-                }
+                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { console.log(err); });
+                
             });
         };
 
