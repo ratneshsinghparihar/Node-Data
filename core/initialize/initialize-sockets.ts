@@ -104,7 +104,7 @@ export class InitializeScokets {
                 let channelArr: Array<string> = socket.handshake.query.channels.split(",");
                 if (channelArr && channelArr.length) {
                     channelArr.forEach((room) => {
-                        console.log("joined room ", room);
+                        //console.log("joined room ", room);
                         socket.join(room);
                     });
                 }
@@ -121,18 +121,18 @@ export class InitializeScokets {
                         if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                             let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                             if (channelArr.indexOf(room.name) > -1) {
-                                console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
+                                //console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
                                 socket.join(room.name + "_" + room.group + "_RC");
                                 if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
                                 return;
                             }
                         }
-                        console.log("joined room group", room.name + "_" + room.group);
+                        //console.log("joined room group", room.name + "_" + room.group);
                         if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
                         socket.join(room.name + "_" + room.group);
                     }
                     else if (room) {
-                        console.log("joined room ", room);
+                        //console.log("joined room ", room);
                         socket.join(room);
                     }
                 });
@@ -146,7 +146,7 @@ export class InitializeScokets {
                 var Config = Utils.config();
                 if (Config.Path && Config.Path.ackChannelName) {
                     socket.on(Config.Path.ackChannelName, function (data) {
-                        console.log("acknowledgement recieved", data);
+                        //console.log("acknowledgement recieved", data);
                         // update last ask in session
                         securityImpl.updateSession({
                             netsessionid: socket.handshake.query.netsessionid,
@@ -183,7 +183,7 @@ export class InitializeScokets {
                                 //use socket.emitt to send previous message
                             }
                         }).catch((error) => {
-                            console.log("error in securityImpl.getSessionLastAckForChannel", error);
+                            //console.log("error in securityImpl.getSessionLastAckForChannel", error);
                         });
                     }
                     else {
@@ -196,7 +196,7 @@ export class InitializeScokets {
                                 //use socket.emitt to send previous message
                             }
                         }).catch((error) => {
-                            console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
+                            //console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
                         });
                     }
                 }
@@ -264,7 +264,7 @@ export class InitializeScokets {
                     }
                 }
             } catch (exceptio) {
-                console.log(exceptio);
+                //console.log(exceptio);
             }
         };
 
@@ -281,10 +281,10 @@ export class InitializeScokets {
                         executefun(data, repo,socket);
                         return
                     }
-                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { console.log(err); });
+                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { //console.log(err); });
                 }
                 catch (exc) {
-                    console.log(exc);
+                    //console.log(exc);
                 }
             });
         };
@@ -299,7 +299,7 @@ export class InitializeScokets {
             io.on('connection',
                 function (socket) {
                     // this.socketClientholder.clients.push(client);
-                    console.log('client connected', socket.id);
+                    //console.log('client connected', socket.id);
                     if (socket.handshake.query) {
                         securityImpl.getSession(socket.handshake.query).then((session: Session) => {
                             socket.handshake.query.curSession = session;
@@ -307,7 +307,7 @@ export class InitializeScokets {
                             onSocketConnection(socket);
 
                         }).catch((error) => {
-                            console.log("error in getSession", error);
+                            //console.log("error in getSession", error);
                         });
                     }
 
@@ -317,7 +317,7 @@ export class InitializeScokets {
 
 
                     socket.on('disconnect', function () {
-                        console.log('client disconnected', socket.id);
+                        //console.log('client disconnected', socket.id);
                         onSocketDisConnection(socket);
                     });
 
@@ -349,7 +349,7 @@ export class InitializeScokets {
             if (!messenger) {
                 return;
             }
-            console.log("message received on ", key);
+            //console.log("message received on ", key);
 
             if ((meta.params.exportType & ExportTypes.PUB_SUB) == ExportTypes.PUB_SUB) {
                 messenger.sendMessageOnRepo(repo, message);
@@ -368,7 +368,7 @@ export class InitializeScokets {
                     io.to(key).emit(key, message);
                     //io.broadcast.to(key).emit(key, message);
 
-                    console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
+                    //console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
                 }
             }
 
@@ -407,7 +407,7 @@ export class InitializeScokets {
                 reliableClients++;
                 let query = client.handshake.query;
                 let curSession = client.handshake.query.curSession;
-                console.log("updating session timstamp for ", query && query.name);
+                //console.log("updating session timstamp for ", query && query.name);
                 securityImpl.updateSession({
                     netsessionid: query.netsessionid,
                     channelName: key,
@@ -482,7 +482,7 @@ export class InitializeScokets {
                         continue;
                     }
 
-                    console.log("single emitter recieved on broadcasting", client.id)
+                    //console.log("single emitter recieved on broadcasting", client.id)
                     broadcastClients.push(client);
                     broadCastClients++
                     connectedClients++;
@@ -536,7 +536,7 @@ export class InitializeScokets {
             messageSendStatistics.singelEmittClients = singelEmittClients;
             messageSendStatistics.channel = key;
             messageSendStatistics.id = message._id && message._id.toString();
-            console.log("pub-sub message sent ", messageSendStatistics);
+            //console.log("pub-sub message sent ", messageSendStatistics);
         };
 
         messageBraodcastOnMessenger = messageOnMessenger;
