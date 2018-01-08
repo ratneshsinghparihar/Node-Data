@@ -18,7 +18,7 @@ export class Messenger extends events.EventEmitter {
     parentCallBack;
     collectionName;
     cappedSize;
-    Message:Mongoose.Model<any>;
+    Message:any;
     constructor(options) {
         super();
         //this.apply(this, arguments);

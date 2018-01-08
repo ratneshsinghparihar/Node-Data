@@ -1,6 +1,6 @@
 
 import * as CoreUtils from '../../core/utils';
-import Mongoose = require('mongoose');
+var Mongoose:any = require('mongoose');
 var db = require("../db");
 
 var defaultMessengerSize = 1024 * 1024 * 100;
@@ -59,7 +59,7 @@ var getMessengerOfSize = (size) => new Mongoose.Schema({
     });
 
 
-export function getMessage(collectionName?: string, size?: number): Mongoose.Model<any>{
+export function getMessage(collectionName?: string, size?: number):any{
 	
     if (CoreUtils.config().mainMessagerName) {
         mainMessagerName = CoreUtils.config().mainMessagerName;
