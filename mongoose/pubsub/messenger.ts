@@ -117,6 +117,7 @@ export class Messenger extends events.EventEmitter {
         var self = this;
         //console.log("messenger started on ", new Date());
         //console.log("messenger last time stamp is", self.startingMessageTimestamp);
+
         var query: any = { timestamp: { $gte: self.startingMessageTimestamp } };
         if (self.lastMessageTimestamp) {
             query = { timestamp: { $gt: self.lastMessageTimestamp } };
@@ -141,7 +142,7 @@ export class Messenger extends events.EventEmitter {
         let receivedCount = 0;
         stream.on('data', function data(doc) {
             receivedCount++;
-            //console.log("########### messenger receivedCount ######### ", receivedCount);
+            console.log("########### messenger receivedCount ######### ", receivedCount);
             self.lastMessageTimestamp = doc.timestamp;
             if (self.subscribed[doc.channel]) {
                 self.emit(doc.channel, doc.message);

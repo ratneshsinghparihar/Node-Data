@@ -322,8 +322,11 @@ export class InitializeScokets {
                         let repo = repoMap[key].repo;
                         let meta: MetaData = repo.getMetaData();
                         if (meta && ((meta.params.exportType & ExportTypes.WS) == ExportTypes.WS)) {
-                            socket.on(key, function (data) {
-                                onRepoMessageReceoved1(socket, data, repo)
+                             socket.on(key, function (data, callback) {
+                                if (callback) {
+                                    callback("success");
+                                }
+                                onRepoMessageReceoved1(socket, data, repo);
                             })
                                
                         }
