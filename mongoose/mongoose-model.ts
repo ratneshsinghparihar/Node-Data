@@ -414,6 +414,12 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  */
 export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
 
+  if (Object.keys(query).length == 0) {
+        return Q.nbind(model.collection.stats, model.collection)().then((result: any) => {
+            return Q.resolve(result.count);
+        })
+    }
+	
     let queryObj = model.find(mongooseHelper.setShardCondition(model, query)).count();
     //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
