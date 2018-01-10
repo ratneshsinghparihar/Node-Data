@@ -243,6 +243,40 @@ export class DynamicController {
                     });
             });
 
+        router.patch(this.path,
+            this.ensureLoggedIn(this.entity, RepoActions.patch),
+            (req, res) => {
+                if (!this.isAuthorize(req, res, RepoActions.patch)) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
+                console.log("hal model conversion start " + this.path);
+
+                //let entity = req.body[0];
+                //var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity) || [];
+                //var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
+                let cacheForModelFromHalModel: any = {};
+                //cacheForModelFromHalModel.relations = relations
+                //cacheForModelFromHalModel.decFields = decFields;
+
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x, req, res);
+                });
+                console.log("hal model conversion end " + this.path);
+                return this.repository.bulkPatch(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
+            });
+
         router.delete(this.path + "/:id",
             this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {

@@ -112,11 +112,17 @@ export class InitializeMessengers {
         this._schemaGenerator = schemaGenerator;
     }
 
+    private clientSendCount = 0;
     private executeFindMany = (client, repo, message, multiClients?: any) => {
+        let self = this;
         return repo.findMany([message]).then((data: Array<any>) => {
             if (data && data.length) {
                 if (multiClients && multiClients.length) {
-                    multiClients.forEach((client) => { client.emit(repo.modelName(), data[0]); });
+                    multiClients.forEach((client) => {
+                        self.clientSendCount++;
+                        //console.log("########### socket send Count ######### ", self.clientSendCount++);
+                        client.emit(repo.modelName(), data[0]);
+                    });
                 }
                 else {
                     client.emit(repo.modelName(), data[0]);
@@ -125,7 +131,7 @@ export class InitializeMessengers {
             }
             return undefined
         }).catch((error) => {
-            console.log("error in findmany socket emmitter", error);
+            //console.log("error in findmany socket emmitter", error);
             throw error;
         });
     }
@@ -209,7 +215,7 @@ export class InitializeMessengers {
                 }
                 
                 if (self.allSingleEmitterSettings[key] && self.allSingleEmitterSettings[key].length) {
-                    console.log("over riding chekAndSend for ", key);
+                    //console.log("over riding chekAndSend for ", key);
 
                     messenger.chekAndSend = (path: string, message: any): Promise<any> => {
                         return new Promise((resolve, reject) => {
@@ -234,13 +240,18 @@ export class InitializeMessengers {
                                     singleRandomWorker.forEach((singleWorker) => {
                                         singleWorkerOnRole[singleWorker.role + "_RC"] = singleWorker; //assuming RC channel
                                     });
-                                    message.singleWorkerOnRole = singleWorkerOnRole;
+                                    if (message instanceof Array) {
+                                        message.forEach((msg) => { msg.singleWorkerOnRole = singleWorkerOnRole;});
+                                    }
+                                    else {
+                                        message.singleWorkerOnRole = singleWorkerOnRole;
+                                    }
                                 }
                             }
 
                             messenger.send(path, message, function (err, data) {
                                 resolve(true);
-                                console.log('Sent message');
+                                //console.log('Sent message');
                             });
                         })
                     }
@@ -262,7 +273,7 @@ export class InitializeMessengers {
             messenger.onConnect(function () {
                 // emits events for each new message on the channel 
 
-                console.log("messenger connected  starting registering repositories");
+                //console.log("messenger connected  starting registering repositories");
 
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
@@ -275,7 +286,7 @@ export class InitializeMessengers {
                     if (self.checkIfRepoForMessenger(meta)) {
                         messenger.on(key, function (message) {
 
-                            console.log("message received on ", key);
+                            //console.log("message received on ", key);
 
                             messageBraodcastOnMessenger(repo, message);
 
