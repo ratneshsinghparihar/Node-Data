@@ -36,7 +36,7 @@ export class PostFilterService {
                 });
             }
             else {
-                console.timeEnd("postFilter_" + preAuthParam.serviceName);
+                //console.timeEnd("postFilter_" + preAuthParam.serviceName);
                 return Q.when(ret);
             }
         }
