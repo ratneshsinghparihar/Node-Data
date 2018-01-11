@@ -35,7 +35,7 @@ import {IWorkerProcessService} from "../services/workerProcessService";
 import {IWorkerProcess} from "../../models/IWorkerProcess";
 import {IAutherizationParam} from "../../security/auth/autherizationParam";
 import {allAutherizationRules, allAutherizationRulesMap, workerProcessService, mainMessenger, channleMessangerMap} from "./initialize-messengers";
-export var messageBraodcastOnMessenger: (repo: IDynamicRepository, message: any) => void;
+export var messageBraodcastOnMessenger: (repo: IDynamicRepository, message: any,collection?:any) => void;
 export var socketConnector: () => void;
 export class InitializeScokets {
 
@@ -338,7 +338,7 @@ export class InitializeScokets {
         }
         socketConnector = socketConector;
 
-        let messageOnMessenger = (repo: IDynamicRepository, message: any) =>
+        let messageOnMessenger = (repo: IDynamicRepository, message: any,collection?:any) =>
         {
 
             let key = repo.modelName();
@@ -368,7 +368,7 @@ export class InitializeScokets {
                     io.to(key).emit(key, message);
                     //io.broadcast.to(key).emit(key, message);
 
-                    //console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
+                    console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
                 }
             }
 
@@ -407,7 +407,7 @@ export class InitializeScokets {
                 reliableClients++;
                 let query = client.handshake.query;
                 let curSession = client.handshake.query.curSession;
-                //console.log("updating session timstamp for ", query && query.name);
+                console.log("updating session timstamp for ", query && query.name);
                 securityImpl.updateSession({
                     netsessionid: query.netsessionid,
                     channelName: key,
@@ -493,7 +493,7 @@ export class InitializeScokets {
                     addAllclientsInRoom();
                 }
                 if (broadcastClients && broadcastClients.length) {
-                    messenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                    messenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients,collection);
                 }
             }
             //individual messages
@@ -518,7 +518,7 @@ export class InitializeScokets {
 
                             connectedClients++;
                             individualClients++;
-                            messenger.sendMessageToclient(client, repo, message);
+                            messenger.sendMessageToclient(client, repo, message,undefined,collection);
                             if (client.handshake.query && client.handshake.query.reliableChannles) {
                                 let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
                                 if (channelArr.indexOf(key) > -1) {
