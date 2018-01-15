@@ -60,6 +60,10 @@
   "author": {
     "name": "pratikv"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ratneshsinghparihar/Node-Data"
+  },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "1.18.2",
