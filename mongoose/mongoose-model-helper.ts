@@ -154,11 +154,24 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
                 if (!val[m.propertyKey] || (val[m.propertyKey] instanceof Array && !val[m.propertyKey].length))
                     return;
 
+                let idsStr = ids.map(id => id.toString());
                 if (m.propertyType.isArray) {
-                    ids = ids.concat(val[m.propertyKey]);
+                    // get unique ids from ids array, in case of manyToOne relationship it might happen 2 children have same parent id so this case of duplicate ids
+                    // for example- student has one school, so it the case of manyToOne, in student-school relationship, so considering this case, if we going to find many two students
+                    // simultenously then their parent school id are same and that is the case of duplicate ids.
+                    val[m.propertyKey].forEach(id => {
+                        if (idsStr.indexOf(id.toString()) === -1) {
+                            ids.push(id);
+                        }
+                    });
                 }
                 else {
-                    ids.push(val[m.propertyKey]);
+                    // get unique ids from ids array, in case of manyToOne relationship it might happen 2 children have same parent id so this case of duplicate ids
+                    // for example- student has one school, so it the case of manyToOne, in student-school relationship, so considering this case, if we going to find many two students
+                    // simultenously then their parent school id are same and that is the case of duplicate ids.
+                    if (idsStr.indexOf(val[m.propertyKey].toString()) === -1) {
+                        ids.push(val[m.propertyKey]);
+                    }
                 }
             });
             if (ids.length == 0)
