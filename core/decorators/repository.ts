@@ -4,7 +4,7 @@ import {ExportTypes} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
 
 //export function repository(path: string, model: Function) {
-export function repository(params: { path: string, model: any, exportType?: ExportTypes, sharded?: boolean,dedicatedMessenger?:boolean }) {
+export function repository(params: { path: string, model: any, exportType?: ExportTypes, sharded?: boolean, dedicatedMessenger?: boolean,bufferBatchSize?:number }) {
     //params = params || <any>{};
 
     return function (target: Function) {
