@@ -60,7 +60,7 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.ENTITY);
-        if (meta.length > 0) {
+        if (meta && meta.length > 0) {
             let entityMeta = meta[0];
             if (entityMeta) {
                 let schemaName = (<IEntityParams>entityMeta.params).tableName;
