@@ -123,7 +123,7 @@ export class InitializeMessengers {
         else {
             data = [message];
         }
-        //return repo.findMany(message).then((data: Array<any>) => {
+        return repo.findMany(data).then((data: Array<any>) => {
             if (data && data.length) {
                 if (!self.startDateTime) { self.startDateTime = new Date(); }
                 if (multiClients && multiClients.length) {
@@ -153,10 +153,10 @@ export class InitializeMessengers {
                 return data
             }
             return undefined
-        //}).catch((error) => {
-        //    //console.log("error in findmany socket emmitter", error);
-        //    throw error;
-        //});
+        }).catch((error) => {
+            //console.log("error in findmany socket emmitter", error);
+            throw error;
+        });
     }
 
     private sendMessageToclient = (client, repo, message, multiClients?: any,collection?:any) => {

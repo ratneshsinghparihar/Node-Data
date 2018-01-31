@@ -352,7 +352,14 @@ export class InitializeScokets {
             //console.log("message received on ", key);
 
             if ((meta.params.exportType & ExportTypes.PUB_SUB) == ExportTypes.PUB_SUB) {
-                messenger.sendMessageOnRepo(repo, message);
+                // messenger.sendMessageOnRepo(repo, message);
+                if (collection && collection.length) {
+                    collection.forEach((msg) => {
+                        messenger.sendMessageOnRepo(repo, msg);
+                    });
+                } else {
+                    messenger.sendMessageOnRepo(repo, message);
+                }
             }
 
             if (!io) {
