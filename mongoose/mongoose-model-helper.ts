@@ -911,12 +911,29 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                     else {
                         val[i]['_id'] = Utils.getCastObjectId(relModel, val[i]['_id']);
                         if (params.embedded) {
-                            // newVal.push(val[i]);
-                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i], newVal, isJsonMap);
+                            // for partial embedding, fetch the object from db and set that object
+                            if (params.properties && params.properties.length > 0) {
+                                searchResult[val[i]['_id']] = obj;
+                                searchObj.push(val[i]['_id']);
+                            }
+                            else {
+                                // newVal.push(val[i]);
+                                Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i], newVal, isJsonMap);
+                            }
                         }
                         else {
-                            // newVal.push(val[i]['_id']);
-                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i]['_id'], newVal, isJsonMap);
+                             // newVal.push(val[i]);
+                             let dbEntities = [];
+                             // in case of partial data in embedded object get that object from db entity and if db entity is not present then fetch from db
+                             if (obj.__dbEntity && obj.__dbEntity[prop]) {
+                                 dbEntities = obj.__dbEntity && obj.__dbEntity[prop];
+                                 let curDbEntity = dbEntities.find(x => x._id && x._id.toString() == val[i]._id.toString());
+                                 Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), curDbEntity ? curDbEntity : val[i], newVal, isJsonMap);
+                             }
+                             else {
+                                 searchResult[val[i]['_id']] = obj;
+                                 searchObj.push(val[i]['_id']);
+                             }
                         }
                     }
                 }
