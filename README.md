@@ -2,7 +2,7 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1459/badge)](https://bestpractices.coreinfrastructure.org/projects/1459)
 [![Dependency Status](https://beta.gemnasium.com/badges/github.com/ratneshsinghparihar/Node-Data.svg)](https://beta.gemnasium.com/projects/github.com/ratneshsinghparihar/Node-Data)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_shield)
-[![npm version](https://badge.fury.io/js/nodedata.svg)](https://badge.fury.io/js/nodedata)
+[![Backers on Open Collective](https://opencollective.com/Node-Data/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/Node-Data/sponsors/badge.svg)](#sponsors) [![npm version](https://badge.fury.io/js/nodedata.svg)](https://badge.fury.io/js/nodedata)
 [![npm version](https://img.shields.io/npm/dw/nodedata.svg)](https://www.npmjs.com/package/nodedata)
 [![npm version](https://img.shields.io/npm/dm/nodedata.svg)](https://www.npmjs.com/package/nodedata)
 ## What is Node-Data <img src="node-data1.png" height="200" width="200">
@@ -1056,6 +1056,7 @@ security config file is responsible for telling the consumers what they can list
 
 if there are multiple instance of worker(realiable channel) and only one should get message following settings helps
 "emitToSingleWorker": true
+
 ```typescript
 export class SecurityConfig {
     
@@ -1084,6 +1085,7 @@ export class SecurityConfig {
         }
       }
 ```
+
 ## why node-data coulde be a best fit for your next no-sql design
 no-sql designs are continous process and node-data has been design to help developers to build right no-sql design and allow them to easily refactor the current modeling to next design . In most of the cases data migration don't create bottleneck on design changes , its the transaction code which stop the developer to rewrite them again , here node-data helps developers to refactor the code easily and allow them to build new experinces out of existing experinces with out so many breaking changes. 
 
@@ -1098,3 +1100,33 @@ for raising a ticket use jira
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/datalogai.png" height="100" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/verve.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/gyanprakash.png" height="100" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/zebpay.png" height="100" width="200">
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="graphs/contributors"><img src="https://opencollective.com/Node-Data/contributors.svg?width=890" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/Node-Data#backer)]
+
+<a href="https://opencollective.com/Node-Data#backers" target="_blank"><img src="https://opencollective.com/Node-Data/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/Node-Data#sponsor)]
+
+<a href="https://opencollective.com/Node-Data/sponsor/0/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/1/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/2/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/3/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/4/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/5/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/6/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/7/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/8/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/Node-Data/sponsor/9/website" target="_blank"><img src="https://opencollective.com/Node-Data/sponsor/9/avatar.svg"></a>
+
+
