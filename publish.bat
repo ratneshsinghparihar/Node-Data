@@ -1,3 +1,3 @@
 call gulp compile-ts
-call gulp ci-dev
+call npm version patch
 call npm publish
