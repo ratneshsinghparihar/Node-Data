@@ -148,7 +148,7 @@ export class AuthController {
         req.token = jwt.sign(
             req.user
             , configUtil.securityConfig().SecurityConfig.tokenSecretkey, {
-                expiresInMinutes: configUtil.securityConfig().SecurityConfig.tokenExpiresInMinutes
+                expiresIn: configUtil.securityConfig().SecurityConfig.tokenExpiresInMinutes
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
