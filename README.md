@@ -1091,5 +1091,13 @@ for online support use gitter
 https://gitter.im/node-data/node-data-support
 
 for raising a ticket use jira
-[JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
+[JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail)
+
+
+## Our sponsers
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/browserstack-logo-600x315.png" width="200">
+
+## Our customers
 
