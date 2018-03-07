@@ -1095,7 +1095,6 @@ for raising a ticket use jira
 
 
 ## Our sponsers
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200">
+<a href="https://www.browserstack.com"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"></a>
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/browserstack-logo-600x315.png" width="200">
-
+<a href="https://www.taletnica.com"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/browserstack-logo-600x315.png" width="200"></a>
