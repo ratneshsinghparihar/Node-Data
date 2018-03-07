@@ -1099,5 +1099,3 @@ for raising a ticket use jira
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
 <img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/browserstack-logo-600x315.png" width="200">
 
-## Our customers
-
