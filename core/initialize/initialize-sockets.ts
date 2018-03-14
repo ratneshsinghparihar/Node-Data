@@ -281,7 +281,12 @@ export class InitializeScokets {
                         executefun(data, repo,socket);
                         return
                     }
-                    (<any>(securityImpl.ensureLoggedIn()(data, undefined, executefun))).catch((err) => { console.log(err); });
+                     let curExecuteFun = () => { executefun(data, repo, socket); };
+                    let result = (<any>(securityImpl.ensureLoggedIn()(data, undefined, curExecuteFun)));
+                    if (result && result.catch) {
+                        result.catch((err) => { console.log(err); });
+                    }
+                
                 
             });
         };
@@ -367,12 +372,13 @@ export class InitializeScokets {
             }
             //handle if repo is completly broadcast
             let broadcastToAll = (castType: string) => {
+                io.sockets.emit(key, message);
                 let channelRoom:any = io.sockets.adapter.rooms[key];
                 if (channelRoom) {
                     var roomclients = channelRoom.length;
 
                     //io.sockets.emit(key, message);
-                    io.to(key).emit(key, message);
+                    //io.to(key).emit(key, message);
                     //io.broadcast.to(key).emit(key, message);
 
                     console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
