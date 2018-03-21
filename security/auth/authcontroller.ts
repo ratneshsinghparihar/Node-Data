@@ -124,6 +124,26 @@ export class AuthController {
         router.post('/register', (req, res) => {
             this.userDetailService.getNewUser(req, res);
         });
+
+        router.post('/verifyUser/:token', (req, res) => {
+            this.userDetailService.verifyUser(req, res);
+        });
+
+        router.post('/resendToken', (req, res) => {
+            this.userDetailService.resendToken(req, res);
+        });
+
+        router.post('/forgotPassword', (req, res) => {
+            this.userDetailService.forgotPasswordRequest(req, res);
+        });
+
+        router.post('/forgotPassword/:token', (req, res) => {
+            this.userDetailService.forgotPassword(req, res);
+        });
+
+        router.post('/resetPassword', (req, res) => {
+            this.userDetailService.resetPassword(req, res);
+        });
     }
 
     serialize(req, res, next) {

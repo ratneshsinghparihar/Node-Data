@@ -8,4 +8,9 @@ export interface UserDetailService {
     updateExistingUser(id, userObject): Q.Promise<any>;
     getNewUser(req, res);
     getCurrentUser(sessionId): Q.Promise<any>;
+    verifyUser(req, res);
+    resendToken(req, res);
+    forgotPasswordRequest(req, res);
+    forgotPassword(req, res);
+    resetPassword(req, res);
 }
