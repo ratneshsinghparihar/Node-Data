@@ -1,7 +1,7 @@
 import {UserDetails} from './user-details';
 export class User implements UserDetails {
     private password: string;
-    private username: string;
+    username: string;
     private authorities: Array<any>;
     private accountNonExpired: boolean;
     private accountNonLocked: boolean;
