@@ -1,4 +1,4 @@
-import {WorkerAssociation} from './interfaces/workerAssociation-params';
+import {WorkerAssociation} from './interfaces/workerassociation-params';
 import {MetaUtils } from "../metadata/utils";
 import {Decorators} from '../constants/decorators';
 import {DecoratorType} from '../enums/decorator-type';
