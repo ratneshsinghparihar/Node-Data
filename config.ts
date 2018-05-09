@@ -1,11 +1,16 @@
+
+let DbConnectionOptions = { server: { poolSize: 20, domainsEnabled: true, socketOptions: { keepAlive: 1 } } };
+
 export class Config {
     public static DbConnection: string = "mongodb://localhost:27017/test_nodedata";
+    public static DbConnectionOptions = DbConnectionOptions;
     public static basePath: string = "data";
     public static apiversion: string = "v1";
 
     public static ElasticSearchConnection : string  = "http://localhost:9200";
     public static ApplyElasticSearch : boolean = false; 
-    public static ignorePaths = [];
+    public static ignorePaths = ['server.js'];
+    public static internalIgnorePaths = ['gulpfile.js'];
     public static isMultiThreaded = true; // This param is for configuring multi process using worker/ process control attribute..
     public static worker = 'worker.js';
     public static process = 1;

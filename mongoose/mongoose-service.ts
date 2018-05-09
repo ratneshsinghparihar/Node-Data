@@ -2,7 +2,7 @@
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
 import * as MongooseModel from './mongoose-model';
-import {pathRepoMap, getModel} from '../core/dynamic/model-entity';
+import {pathRepoMap, getModel, getEntity} from '../core/dynamic/model-entity';
 import {winstonLog} from '../logging/winstonLog';
 import * as Utils from './utils';
 import {QueryOptions} from '../core/interfaces/queryOptions';
@@ -11,6 +11,8 @@ import * as utils from '../mongoose/utils';
 import { PrincipalContext } from '../security/auth/principalContext';
 import * as configUtil from '../core/utils';
 import {IUser} from '../tests/models/user';
+import {getDbSpecifcModel} from './db';
+import {Decorators} from '../core/constants';
 var hash = require('object-hash');
 
 export class MongooseService implements IEntityService {
@@ -42,7 +44,12 @@ export class MongooseService implements IEntityService {
 
     bulkPut(repoPath: string, objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean): Q.Promise<any> {
         return MongooseModel.bulkPut(this.getModel(repoPath), objArr, batchSize, donotLoadChilds).then(results => {
-            results.forEach(x => this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x));
+            results.forEach((x: BaseModel) => {
+                if (donotLoadChilds) {
+                    x.__partialLoaded = true;
+                }
+                this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x)
+            });
             return results;
         });
     }
@@ -56,11 +63,11 @@ export class MongooseService implements IEntityService {
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
         return MongooseModel.bulkPutMany(this.getModel(repoPath), objIds, obj).then(results => {
-            results && results.forEach((x: BaseModel) => {
-                // in bulkPutMany we do not load egarLoading properties (children objects) so its partially loaded
-                x.__partialLoaded = true;
-                this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x);
-            });
+            //results && results.forEach((x: BaseModel) => {
+            //    // in bulkPutMany we do not load egarLoading properties (children objects) so its partially loaded
+            //    x.__partialLoaded = true;
+            //    this.setEntityIntoCache(repoPath, CacheConstants.idCache, x._id, x);
+            //});
             return results;
         });
     }
@@ -115,7 +122,10 @@ export class MongooseService implements IEntityService {
             this.updateWriteCount();
             return Q.when(cacheValue);
         }
-        return MongooseModel.findOne(this.getModel(repoPath), id, donotLoadChilds).then(result => {
+        return MongooseModel.findOne(this.getModel(repoPath), id, donotLoadChilds).then((result: BaseModel) => {
+            if (donotLoadChilds) {
+                result.__partialLoaded = true;
+            }
             this.setEntityIntoCache(repoPath, CacheConstants.idCache, id, result);
             return result;
         });
@@ -203,9 +213,16 @@ export class MongooseService implements IEntityService {
         });
     }
 
-    getModel(repoPath: string) {
+    getModel(repoPath: string, dynamicName?: string) {
         try {
-            return Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
+            let model = Utils.getCurrentDBModel(pathRepoMap[repoPath].schemaName);
+            if (model && dynamicName) {
+                var meta = MetaUtils.getMetaData(getEntity(model.modelName), Decorators.DOCUMENT);
+                if (meta && meta[0] && meta[0].params.dynamicName) {
+                    model = getDbSpecifcModel(dynamicName, model.schema);
+                }
+            }
+            return model;
         } catch (e) {
             winstonLog.logError(`Error in getMongooseModel ${e}`);
             throw e;

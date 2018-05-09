@@ -1,19 +1,24 @@
-﻿import {InitializeRepositories} from "./initialize-repositories";
+﻿/// <reference path="initialize-scokets.ts" />
+import {InitializeRepositories} from "./initialize-repositories";
+import {InitializeScokets} from "./initialize-scokets";
+import {InitializeMessengers} from "./initialize-messengers";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {router} from '../exports';
 import path = require('path');
 import * as Enumerable from 'linq';
-
+import Q = require('q');
 import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import {CrudEntity} from "../dynamic/crud.entity";
 
 export class Initalize {
-    constructor(files: Array<String>) {
-        new InitializeRepositories();
+    constructor(files: Array<String>, server?: any) {
+        new InitializeRepositories();        
+        new InitializeMessengers();
+        new InitializeScokets(server);
         new InitializeControllers();
-        //this.configureAcl();
+       
         this.configureBase();
         ['bulkPost', 'bulkPut', 'bulkPatch', 'bulkDel'].forEach(x => {
             Object.defineProperty(Array.prototype, x, {
@@ -27,13 +32,14 @@ export class Initalize {
     getExtendedArrayMethod(action: string): () => Q.Promise<any> {
         return (function () {
             let curArr = this;
-            if (curArr[0]) {
-                let repo = (<CrudEntity>(curArr[0])).getRepo();
-                if (repo) {
-                    return repo[action]([].concat(curArr));
-                }
+            if (!curArr[0]) {
+                return Q.when([]);
             }
-            return Q.reject("repository not found");
+            let repo = (<CrudEntity>(curArr[0])).getRepo();
+            if (!repo) {
+                return Q.reject("repository not found");
+            }
+            return repo[action]([].concat(curArr));
         });
     }
 
@@ -59,33 +65,7 @@ export class Initalize {
         )
     }
 
-    configureAcl() {
-        var acl = require('acl');
-        acl = new acl(new acl.mongodbBackend(Utils.config().Config.DbConnection, "acl"));        
-
-        Utils.securityConfig().SecurityConfig.ResourceAccess.forEach(resource => {
-            resource.acl.forEach(access => {
-                var aclString: Array<string> = this.aclStringFromMask(access["accessmask"]);
-                acl.allow(access["role"], resource["name"], aclString, function (err, res) {
-                    if (res) {
-                        console.log("User joed is allowed to view blogs")
-                    }
-                    if (err) {
-                        //console.log("error in acl " + err);
-                    }
-                })
-            });
-
-        });
-    }
-
-    aclStringFromMask(mask: number): Array<string> {
-        var aclString: Array<string> = new Array<string>();
-        if ((mask & 1) == 1) aclString.push("view");
-        if ((mask & 2) == 2) aclString.push("edit");
-        if ((mask & 4) == 4) aclString.push("delete");
-        return aclString;
-    }
+    
 
     private getProtocol(req) : string{
         if(req.headers && req.headers["x-arr-ssl"]){

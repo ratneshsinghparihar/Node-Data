@@ -182,6 +182,7 @@
     <TypeScriptCompile Include="tests\models\B.ts" />
     <TypeScriptCompile Include="tests\models\baseModel.ts" />
     <TypeScriptCompile Include="tests\models\city.ts" />
+    <TypeScriptCompile Include="tests\models\topic.ts" />
     <TypeScriptCompile Include="tests\models\school.ts" />
     <TypeScriptCompile Include="tests\models\subject.ts" />
     <TypeScriptCompile Include="tests\models\role.ts" />
@@ -192,6 +193,7 @@
     <TypeScriptCompile Include="tests\preauth-service.ts" />
     <TypeScriptCompile Include="tests\repositories\BRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\promisibleTestRepository.ts" />
+    <TypeScriptCompile Include="tests\repositories\topicRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\schoolRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\cityRepository.ts" />
     <TypeScriptCompile Include="tests\repositories\teacherRepository.ts" />

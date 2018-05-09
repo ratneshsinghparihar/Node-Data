@@ -1,6 +1,12 @@
 [![Build Status](https://travis-ci.org/ratneshsinghparihar/Node-Data.svg?branch=master)](https://travis-ci.org/ratneshsinghparihar/Node-Data)
-
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1459/badge)](https://bestpractices.coreinfrastructure.org/projects/1459)
+[![Dependency Status](https://beta.gemnasium.com/badges/github.com/ratneshsinghparihar/Node-Data.svg)](https://beta.gemnasium.com/projects/github.com/ratneshsinghparihar/Node-Data)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fratneshsinghparihar%2FNode-Data?ref=badge_shield)
+[![npm version](https://badge.fury.io/js/nodedata.svg)](https://badge.fury.io/js/nodedata)
+[![npm version](https://img.shields.io/npm/dw/nodedata.svg)](https://www.npmjs.com/package/nodedata)
+[![npm version](https://img.shields.io/npm/dm/nodedata.svg)](https://www.npmjs.com/package/nodedata)
 ## What is Node-Data <img src="node-data1.png" height="200" width="200">
+
 
 Node-Data is unique backend framework which provides a generic interface for sql , NoSQL and graph entities and creates generic rest level 3 endpoints along with data repositories . 
 
@@ -71,18 +77,21 @@ Elastic search | 10.1.3 | Search and aggregation
 Mongosastic | 4.0.2 | Library for integrating Mongoose with ElasticSearch
 redis | unknown | Rest middleware
 
-## How To Use without security
+## Quick Start
 
-1. Git clone https://github.com/hariadk/demo-sample.git
-2. cd demo-sample/Demo-Sample
-3. npm install
-4. tsd install
-5. Mongodb running on 27017(default port).
-6. Goto config.ts and make isAutheticationEnabled = 'disabled'
-7. open cmd, run 'gulp compile-ts' then run gulp.
-8. Post a JSON {"name":"john","":"john"} to http://localhost:9999/data/users.
-8. Hit the api to get data(http://localhost:9999/data/users)
-9. Ensure node version is 5.7.0
+Assumptions - 
+1. mongodb is installed and server is running on default port.
+2. Node 6.9.0 is installed.
+
+Please follow belos steps to check CRUD operations with nodedata
+1. git clone https://github.com/ratneshsinghparihar/nodedata-demo-sample.git
+2. cd nodedata-demo-sample/Demo-Sample
+3. npm install 
+4. npm start
+5. Post a JSON {"name": "testBlog"} to http://localhost:9999/data/blogs
+6. Hit the api to get data(http://localhost:9999/data/blogs)
+7. Hit the api with put method http://localhost:9999/data/blogs/{{blogId}}  with body {"name": "testBlog1"}
+8. Hit the api with delete method http://localhost:9999/data/blogs/{{blogId}}
 
 ## How To Use with security
 
@@ -454,6 +463,31 @@ Provision is made to search using elasticsearch by changing the settings in the 
 Search on elasticsearch is currently done only on fields that are indexed in the elasticsearch. 
 All the search methods are needed to be exposed on the Repository. 
 Currently only the "And" search operations are supported. 
+
+Search on all documents can done using following
+
+
+http://localhost:999/data/repository_name/searchAll?limit=10& skip=10&sort=fieldname&order=desc&gt=fieldname&gt_value=1510823040
+
+limit= for top or bottom no of records
+skip= no of dcouments to skip
+
+sort= field upon which sorting needs to be done
+order= ascending ot descending
+
+lt=fieldname for less than comparision
+lt-value=value-to-be-compared
+
+
+gt=fieldname for greater than comparision
+gt-value=value-to-be-compared (Number)
+
+lte=fieldname for less than equal comparision
+lte-value=value-to-be-compared (Number)
+
+
+gte=fieldname for greater than comparision
+gte-value=value-to-be-compared (Number)
  
 ### Configuring ElasticSearch: 
 
@@ -543,10 +577,26 @@ If appllied over repository then all write opertation will be audited in a dedic
 
 ## Optimistic Locking
 The docuement databases are infamous for concurrent updates . in high concurrency the situation multifolds itself. we are proposing a simple mechanism of optimatic locking by decorating the suspected method on repository by
+You need to add version property in your model like below
+```typescript
+@jsonignore()
+    @field()
+    __v: any;
+```
+Once above field is added in model then you can apply optimistic locking in below way on repository methods like put,patch etc ..
+First Developer need to import below mentioned decorator and constant file.
+
+```typescript
+import { OptimisticLocking } from "nodedata/core/decorators/optimisticlocking";
+import { OptimisticLockType } from "nodedata/core/enums/optimisticlock-type";
+```
+Apply optimistic locking in below way.
+
 ```typescript
 @OptimisticLocking(type = OptimisticLockType.VERSION)
-save()
+put()
 ```
+
 in other to support it the corresponding model should have a column decorated with @version attribute
 ```typescript
 @Version
@@ -801,6 +851,47 @@ Node-data now is fully supported inside a normal js project , no typescript depe
 
 ## bulk and performance improvements
 ## Entity Manager
+Entity action manager will help you to write your business logic codes in a controlled environment. By controlled environment we mean that developer should have the control on before and after of any transcation to the system. Let take an example for our better understanding.
+
+Suppose we are doing a transcation to add a new student in the system and we are maintaing a total count of students in the class. So in this case, we would have written a code to update total student count after creating a new student.
+```
+function addAndUpdate(){
+  studentRepo.post(newStudentObj).then(success => {
+	 // update total students cont in school
+     classRepo.put({_id: "5a24fc4d485fcd66084863e2", totalStudentCount: curTotalStudentCount + 1});
+   });
+}
+```
+So problem with this code is we have to call addAndUpdate() method manually to work correctly. But imagine a new developer came and created a new student by simply calling studentRepo.post(newStudentObj); and he might forget/(dont know) to update the total student count in class.
+
+In this scenario Entity Manager will make sure that a common business functionality should always execute on a transcation by overriding its postCreate() method. postCreate() method will always execute after any create (post) on the system. 
+
+```
+postCreate(params: EntityActionParam){
+	classRepo.put({_id: "5a24fc4d485fcd66084863e2", totalStudentCount: curTotalStudentCount + 1});
+    return super.postUpdate(params);
+}
+```
+
+How to enable Entity Manager feature in your project:
+1. extend/inherit your repository class from AuthorizationRepository and override the entity action methods
+Entity Action methods:-
+preUpdate
+
+postUpdate
+
+preBulkUpdate
+
+postBulkUpdate
+
+preRead
+
+postRead
+
+preBulkRead
+
+postBulkRead
+
 ```typescript
 preUpdate(params: EntityActionParam): Q.Promise<EntityActionParam> {
         return Q.resolve(params);
@@ -853,23 +944,157 @@ quick response with
 } 
 ```
 
-## Messageing
-in a service class
+## PUB-SUB using Messageing 
+to define a repository to act like an pub-sub 
 ```typescript
-    @producer(topic,partition)
-    public read(filePath: string, projectId, toDelete?) {
-    }
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.PUB_SUB})
+export class WorkerRepository extends DynamicRepository {}
 ```
+This will use a database queue (persistent) for the repository and on evey transaction it will emit the messages to whoever is connected to database.
+
+This pub-sub is reliable and persistent (not like pusher,redis pub-sub). 
+
+To consume the message create a onMessage method on repo , insise this method you can receive all output to repo.
 ```typescript
-    @consumer(topic,partition,instances)
-    public read(filePath: string, projectId, toDelete?) {
+export class WorkerRepository extends DynamicRepository {
+     public onMessage(message: WorkerProcess) {
+        if (message.status == "connected") {
+            this.wps.addWorker(message);
+        }
+        if (message.status == "disconnected") {
+            this.wps.deleteWorker(message);
+        }
     }
+}
+```
+In cases where high write operations are expected a dedicated queue might required for that set 
+edicatedMessenger:true
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.PUB_SUB, dedicatedMessenger:true})
+export class WorkerRepository extends DynamicRepository {
+}
 ```
 
+## RealTime server using websockets
+Node-Data supports real time communication to server using websockets.
+first step is to tell server.js/app.js to create a socket server like below .
+passing httpserver(express server or node native http server) (server like below) object in Main will turn the current http-server into socket server.
+```typescript
+Main(Config, securityConfig, __dirname, data.entityServiceInst, seqData.sequelizeService,server);
+```
+next is to tell a repository to expose websocket end point
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.WS})
+export class WorkerRepository extends DynamicRepository {}
+```
+If you need websocket and rest both on repo use it like below
+```typescript
+@repository({ path: 'workerprocess', model: WorkerProcess, exportType: ExportTypes.WS | ExportTypes.REST})
+export class WorkerRepository extends DynamicRepository {}
+```
+Now just like rest end points from client side messages can be received and emitt real time using socket.io-client library (socket server will be hosted on web server  ws://localhost:8080 )
 
-[JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail) 
+if repo is WS then every changes in the repo will be send to connected clients automatically.
+security and acl will applied obiviously before sending.
 
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
-<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/realsociable.png" width="200"><img src="https://www.gep.com/sites/default/files/mediakit/GEP-Logo-SVG.svg" width="200">
-<img src="http://2016.aiworld.com/wp-content/uploads/2013/12/datalogai360x280.jpg" width="200"><img src="http://2016.aiworld.com/wp-content/uploads/2016/09/verve-360x280e-360x280.jpg" width="200">
-<img src="http://gyanprakash.org/Images/logo.png" width="200">
+## websockets security client side changes
+All security reules applied to rest api are still applicable for webscoket apis
+for authentication/autherization client need to send information like below
+```typescript
+const socket = io('ws://localhost:8080', 
+    {transports: ['websocket', 'polling'],
+    query: {
+            name: "ui-test", netsessionid: "abc123", email: "ratneshp@talentica.com", phone: "+918600147266"
+        }
+}); 
+
+
+```
+if succeded then server will establise an uws session with client, client need to tell upfornt which channels (aka repo path) he want to listen
+```typescript
+const socket = io('ws://localhost:8080', 
+    {transports: ['websocket', 'polling'],
+    query: {
+            name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
+			channels:"workerprocess,order"
+        }
+}); 
+
+
+socketio.on('workerprocess', function (data) {
+        
+        console.log("workerprocess message received-->", data);
+    });
+
+```
+in order to send the messages back to server , action is repo's action ,heders will have security session token, message will have request body
+```typescript
+ socket.emit('order', {
+                action: 'bulkPost',
+                headers: { netsessionid: 'abc123' },
+                message: [{ }]
+            });
+```
+## websockets security for microservices and workers
+other microservices and workers in ecosystem can also use  mechnism to client to send and receve messages,
+for realiable messaging (like server restart or worker restart , pending messages should recieve again
+```typescript
+const socket = io('ws://localhost:8080', 
+    {transports: ['websocket', 'polling'],
+    query: {
+            name: "ui-test", netsessionid: "public", email: "ratneshp@talentica.com", phone: "+918600147266",
+			reliableChannles:"workerprocess,payment"
+        }
+}); 
+```
+## websockets security server side changes
+security config file is responsible for telling the consumers what they can listen and what they can emit.
+
+"acl": true will run acl code for each messages before sending to connected clients.
+
+"acl": false will broadcast to all connected client under the role.
+
+if there are multiple instance of worker(realiable channel) and only one should get message following settings helps
+"emitToSingleWorker": true
+```typescript
+export class SecurityConfig {
+    
+    public static ResourceAccess: Array<IResourceAccess> = [
+        {
+            name: "worker",
+            acl: [
+                {
+                    "role": "ROLE_USER",
+                    "accessmask": 5,
+                    "acl": true
+                },
+                {
+                    "role": "ROLE_PUBLIC",
+                    "accessmask": 1,
+                    "acl": false
+                },
+                {
+                    "role": "ROLE_WORKER",
+                    "accessmask": 15,
+                    "acl": false,
+                  	"emitToSingleWorker": true
+                }
+            ],
+            isRepoAuthorize: true
+        }
+      }
+```
+## why node-data coulde be a best fit for your next no-sql design
+no-sql designs are continous process and node-data has been design to help developers to build right no-sql design and allow them to easily refactor the current modeling to next design . In most of the cases data migration don't create bottleneck on design changes , its the transaction code which stop the developer to rewrite them again , here node-data helps developers to refactor the code easily and allow them to build new experinces out of existing experinces with out so many breaking changes. 
+
+for online support use gitter
+https://gitter.im/node-data/node-data-support
+
+for raising a ticket use jira
+[JIRA URL] (https://node-data.atlassian.net/secure/RapidBoard.jspa?rapidView=2&view=detail)
+
+
+## Our sponsers
+<a href="https://www.taletnica.com"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/talentica.png" width="200"></a>
+<img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/atlassian.png" width="200">
+<a href="https://www.browserstack.com"><img src="https://raw.githubusercontent.com/ratneshsinghparihar/Node-Data/master/images/browserstack-logo-600x315.png" width="200"></a>

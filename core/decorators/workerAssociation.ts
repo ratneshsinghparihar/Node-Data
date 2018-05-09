@@ -35,7 +35,7 @@ export function Worker(params?: WorkerAssociation): any {
     var session = PrincipalContext.getSession();
 
     return function (target: any, propertyKey: string, descriptor: any) {
-        winstonLog.logDebug("target is: " + JSON.stringify(target) + " propertyKey " + JSON.stringify(propertyKey) + " descriptor is:  " + JSON.stringify(descriptor));
+        console.log("target is: " + target + " propertyKey " + propertyKey + " descriptor is:  " + descriptor);
         MetaUtils.addMetaData(target,
             {
                 decorator: Decorators.WORKER,
@@ -44,7 +44,7 @@ export function Worker(params?: WorkerAssociation): any {
                 propertyKey: propertyKey
             });
         var originalMethod = descriptor.value;
-        winstonLog.logDebug("Input params for worker:  " + JSON.stringify(params.workerParams));
+        winstonLog.logDebug("Input params for worker:  " + params.workerParams);
 
         descriptor.value = executeWorkerHandler(params, target, propertyKey, originalMethod,
             Decorators.WORKER);
@@ -71,7 +71,7 @@ function getDebugOption(offset: number) {
 
 function sendNextMessage(process: WorkerProcess, received: workerParamsDto) {
     if (received) {
-        winstonLog.logInfo('success message from Child Process: ' + JSON.stringify(received));
+        console.log('success message from Child Process: ' + received);
     }
     process.initialized = true;
     process.executing = null;
@@ -115,7 +115,8 @@ function executeNextProcess(param: workerParamsDto) {
                         }
                     }
                     catch (exc) {
-                        winstonLog.logInfo('failed message from Child Process:' + message);
+                        console.log("failed message from Child Process: ");
+                        console.log(exc);
                     }
                 });
 
@@ -149,7 +150,7 @@ function executeNextProcess(param: workerParamsDto) {
     return process;
 }
 
-export function executeWorkerHandler(params, target, propertyKey, originalMethod, type: string) {
+export function executeWorkerHandler(params, target, propertyKey, originalMethod, type: string,noExecution?:boolean) {
     return function () {
         if (MetaUtils.childProcessId || !configUtil.config().Config.isMultiThreaded) {
             winstonLog.logInfo("Executing method from child Process with id: " + process.pid);
@@ -215,24 +216,29 @@ export function executeWorkerHandler(params, target, propertyKey, originalMethod
 
         workerParams.arguments = Array.prototype.slice.call(workerParams.arguments);
         workerParams.arguments = <any>workerParams.arguments.slice(0, originalMethod.length);
-        winstonLog.logInfo("Worker Params: " + JSON.stringify(workerParams));
+        //winstonLog.logInfo("Worker Params: " + workerParams);
 
-        PrincipalContext.save('workerParams', JSON.stringify(workerParams));
+        //PrincipalContext.save('workerParams', JSON.stringify(workerParams));
         workerParams.principalContext = PrincipalContext.getAllKeyValues();
+        let reqHeaders = workerParams.principalContext['req'].headers;
         if (workerParams.principalContext['req']) {
             delete workerParams.principalContext['req'];
+            workerParams.principalContext['req'] = {};
+            workerParams.principalContext['req'].headers = reqHeaders;
         }
         if (workerParams.principalContext['res']) {
             delete workerParams.principalContext['res'];
         }
 
-        console.log(`task will execute: Service Name ${workerParams.serviceName}, Method Name ${workerParams.servicemethodName}, Args ${workerParams.arguments}`);
+        //console.log(`task will execute: Service Name ${workerParams.serviceName}, Method Name ${workerParams.servicemethodName}, Args ${workerParams.arguments}`);
 
         if (workerParams.serviceName != null) {
             workerParams.id = uuid.v4();
-            var proc = executeNextProcess(workerParams);
-            winstonLog.logDebug("Context at Worker: " + JSON.stringify(workerParams.principalContext));
-            winstonLog.logInfo("PrincipalConext at Parent: " + JSON.stringify(PrincipalContext.getSession()));
+            if (!noExecution) {
+                var proc = executeNextProcess(workerParams);
+            }
+            // console.log("Context at Worker: " + workerParams.principalContext);
+            // console.log("PrincipalConext at Parent: " + PrincipalContext.getSession());
         }
         return workerParams;
     };

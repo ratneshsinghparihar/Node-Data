@@ -6,6 +6,7 @@ import * as ReflectUtils from '../reflect/reflect-utils';
 export interface IMetaOptions {
     decorator: string;
     decoratorType: DecoratorType;
+    modelType?: DecoratorType;
     params?: any;
     propertyKey?: string;
     paramIndex?: number;
@@ -39,6 +40,7 @@ export class MetaData {
     paramTypes: Array<ParamTypeCustom>
     params: any;
     decoratorType: DecoratorType;
+    modelType: DecoratorType;
     paramIndex: number;
 
     constructor(target: Object, isStatic: boolean, metaOptions: IMetaOptions) {
@@ -48,6 +50,7 @@ export class MetaData {
         this.paramIndex = metaOptions.paramIndex;
         this.decorator = metaOptions.decorator;
         this.decoratorType = metaOptions.decoratorType;
+        this.modelType = metaOptions.modelType;
         this.params = metaOptions.params;
         this.propertyType = metaOptions.type || ReflectUtils.getDesignType(target, metaOptions.propertyKey);
         this.returnType = metaOptions.returnType || ReflectUtils.getReturnType(target, metaOptions.propertyKey);

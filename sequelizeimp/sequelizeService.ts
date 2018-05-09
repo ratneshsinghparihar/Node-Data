@@ -72,7 +72,7 @@ class SequelizeService implements IEntityService {
         this._relationCollection.push(relationToDictionary);
     }
 
-    getModel(repoPath: string) {
+    getModel(repoPath: string, dynamicName?: string) {
         try {
             var schemaNamefromPathRepomap = pathRepoMap[repoPath].schemaName;
             return this._schemaCollection[schemaNamefromPathRepomap];

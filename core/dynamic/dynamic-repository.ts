@@ -13,17 +13,18 @@ import {MetaUtils} from "../metadata/utils";
 import {Decorators} from '../constants';
 import {QueryOptions} from '../interfaces/queryOptions';
 import * as utils from '../../mongoose/utils';
+import {MetaData} from '../metadata/metadata';
 
 
 var modelNameRepoModelMap: { [key: string]: IDynamicRepository } = {};
- 
+
 export function GetRepositoryForName(name: string): IDynamicRepository {
     return modelNameRepoModelMap[name]
 }
 
 export interface IDynamicRepository {
     getEntity();
-    getModel();
+    getModel(dynamicName?: string);
     modelName();
     getEntityType(): any;
     getRootRepo(): IDynamicRepository;
@@ -49,15 +50,24 @@ export interface IDynamicRepository {
     delete(id: any);
     patch(id: any, obj);
     setRestResponse(obj: any);
+    getShardCondition();
+    setMessanger(obj: any);
+    getMessanger(): any;
+    setMetaData(meta: MetaData);
+    getMetaData(): MetaData;
+    castToPrimaryKey(id): any;
+
+    onMessage(message: any);
 }
 
 export class DynamicRepository implements IDynamicRepository {
     private path: string;
     private model: any;
-    private metaModel: any;
+    private metaModel: MetaData;
     private entity: any;
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
+    private messenger: any;
     //private modelRepo: any;
 
     public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
@@ -65,18 +75,38 @@ export class DynamicRepository implements IDynamicRepository {
         this.path = repositoryPath;
         this.entity = target;
         this.rootLevelRep = rootRepo;
+
+
+
+
         if (target instanceof DynamicRepository) {
             target.rootLevelRep = rootRepo;
         }
         modelNameRepoModelMap[this.path] = this;
     }
 
+    public setMetaData(meta: MetaData) {
+        this.metaModel = meta;
+    }
+
+    public getMetaData(): MetaData {
+        return this.metaModel;
+    }
+
+    public setMessanger(msgner?: any) {
+        this.messenger = msgner;
+    }
+
+    public getMessanger() {
+        return this.messenger;
+    }
+
     public getEntity() {
         return getEntity(pathRepoMap[this.path].schemaName);
     }
 
-    public getModel() {
-        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path);
+    public getModel(dynamicName?: string) {
+        return Utils.entityService(pathRepoMap[this.path].modelType).getModel(this.path, dynamicName);
     }
 
     public getRootRepo() {
@@ -91,14 +121,24 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                });
+                    if (this.messenger) {
+                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
+                    }
+                })
+                if (this.messenger && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess"); })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
         });
     }
+
+    
 
     public bulkPut(objArr: Array<any>, batchSize?: number, donotLoadChilds?: boolean) {
         var objs = [];
@@ -108,9 +148,21 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize, donotLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
+                let messagesToSend = [];
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                });
+                    if (this.messenger) {
+
+                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
+
+                        // this.socket.socket.sockets.emit(this.path, x);
+                    }
+                })
+
+                if (this.messenger && messagesToSend.length) {
+                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+                        .catch((err) => { console.log("error in sending message bulkPost", err) });
+                }
                 return res;
             }
             return result;
@@ -189,7 +241,7 @@ export class DynamicRepository implements IDynamicRepository {
     // }
 
     public findWhere(query, selectedFields?: Array<any>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields,queryOptions, toLoadChilds).then(result => {
+        return Utils.entityService(pathRepoMap[this.path].modelType).findWhere(this.path, query, selectedFields, queryOptions, toLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
                 result.forEach(x => {
@@ -220,8 +272,10 @@ export class DynamicRepository implements IDynamicRepository {
             return Q.when(InstanceService.getObjectFromJson(this.getEntity(), result));
         }
         else {
-            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id,donotLoadChilds).then(result => {
-                return InstanceService.getObjectFromJson(this.getEntity(), result);
+            return Utils.entityService(pathRepoMap[this.path].modelType).findOne(this.path, id, donotLoadChilds).then(result => {
+                if (result)
+                    return InstanceService.getObjectFromJson(this.getEntity(), result);
+                return result;
             });
         }
     }
@@ -284,16 +338,29 @@ export class DynamicRepository implements IDynamicRepository {
      */
     public post(obj: any): Q.Promise<any> {
         obj = InstanceService.getInstance(this.getEntity(), null, obj);
-        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj);
+        return Utils.entityService(pathRepoMap[this.path].modelType).post(this.path, obj).then(result => {
+            if (result) {
+                if (this.messenger) {
+                    this.messenger.chekAndSend(this.path, result);
+                }
+            }
+            return result;
+        });
     }
 
     public put(id: any, obj: any) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).put(this.path, id, obj).then(result => {
-            return InstanceService.getObjectFromJson(this.getEntity(), result);
+            let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);
+            if (retVal) {
+                if (this.messenger) {
+                    this.messenger.chekAndSend(this.path, retVal);
+                }
+            }
+            return retVal;
         });
     }
-        
+
     public delete(id: any) {
         return Utils.entityService(pathRepoMap[this.path].modelType).del(this.path, id);
     }
@@ -312,4 +379,22 @@ export class DynamicRepository implements IDynamicRepository {
 
     }
 
+    // This function should return the additional shard condition which will be added in all the query to avoid the queries for cross sharding
+    public getShardCondition() {
+        return null;
+    }
+
+    public castToPrimaryKey(id) {
+        let primaryKey = '_id';
+        let modelRepo = this.getEntityType();
+        let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD, primaryKey);
+        if (decoratorFields.params.primary && decoratorFields.getType() == Number) {
+            return Number.parseInt(id);
+        }
+        return id;
+    }
+
+    public onMessage(message: any) {
+        return;
+    }
 }

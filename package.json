@@ -1,57 +1,107 @@
 {
-  "name": "nodedata",
-  "version": "1.0.0-dev.170905063712",
-  "description": "Node Data",
-  "main": "server.js",
-  "scripts": {
-    "cover": "node_modules/.bin/istanbul cover node_modules/jasmine/bin/jasmine.js -x *.spec.js",
-    "ci": "gulp ts && gulp ci-dev && npm test && npm publish",
-    "pub": "gulp ts && npm publish",
-    "start": "node server.js",
-    "test": "jasmine",
-    "testone": "jasmine ",
-    "tsd": ""
+  "_args": [
+    [
+      {
+        "raw": "nodedata@https://github.com/ratneshsinghparihar/Node-Data/tarball/feature/wstesting",
+        "scope": null,
+        "escapedName": "nodedata",
+        "name": "nodedata",
+        "rawSpec": "https://github.com/ratneshsinghparihar/Node-Data/tarball/feature/wstesting",
+        "spec": "https://github.com/ratneshsinghparihar/Node-Data/tarball/feature/wstesting",
+        "type": "remote"
+      },
+      "D:\\zebpay\\node-sample-websocket"
+    ],
+    [
+      {
+        "raw": "nodedata@3.0.10",
+        "scope": null,
+        "escapedName": "nodedata",
+        "name": "nodedata",
+        "rawSpec": "3.0.10",
+        "spec": "3.0.10",
+        "type": "version"
+      },
+      "D:\\zebpay\\zebbex-tradeserver"
+    ]
+  ],
+  "_from": "nodedata@3.0.10",
+  "_id": "nodedata@3.0.10",
+  "_inCache": true,
+  "_location": "/nodedata",
+  "_nodeVersion": "6.12.0",
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/nodedata-3.0.10.tgz_1511868397611_0.35629469621926546"
   },
-  "author": "pratikv",
-  "license": "MIT",
+  "_npmUser": {
+    "name": "ratneshsinghparihar",
+    "email": "ratneshsinghparihar@gmail.com"
+  },
+  "_npmVersion": "3.10.10",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "nodedata@3.0.10",
+    "scope": null,
+    "escapedName": "nodedata",
+    "name": "nodedata",
+    "rawSpec": "3.0.10",
+    "spec": "3.0.10",
+    "type": "version"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/nodedata/-/nodedata-3.0.10.tgz",
+  "_shasum": "f589dc0d806f09972fb350ff7b072ed1ea757159",
+  "_shrinkwrap": null,
+  "_spec": "nodedata@3.0.10",
+  "_where": "D:\\zebpay\\zebbex-tradeserver",
+  "author": {
+    "name": "pratikv"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ratneshsinghparihar/Node-Data"
+  },
   "dependencies": {
-    "acl": "0.4.9",
     "bcrypt-nodejs": "0.0.3",
-    "body-parser": "1.14.2",
+    "body-parser": "1.18.2",
     "connect-ensure-login": "0.1.1",
     "continuation-local-storage": "^3.2.0",
-    "cookie-parser": "1.3.5",
-    "ejs": "2.3.3",
-    "elasticsearch": "10.1.3",
-    "express": "4.13.3",
-    "express-jwt": "3.3.0",
-    "express-session": "1.13.0",
-    "gulp": "3.9.0",
-    "jsonwebtoken": "5.7.0",
-    "linq": "3.0.5",
-    "mongodb": "2.1.3",
-    "mongoosastic": "4.0.2",
-    "mongoose": "4.0.6",
-    "morgan": "1.6.1",
+    "cookie-parser": "1.4.3",
+    "ejs": "2.5.7",
+    "elasticsearch": "14.0.0",
+    "express": "4.16.2",
+    "express-jwt": "5.3.0",
+    "express-session": "1.15.0",
+    "gulp": "3.9.1",
+    "jsonwebtoken": "8.1",
+    "linq": "3.0.9",
+    "mongodb": "https://github.com/Anujarya300/node-mongodb-native/tarball/2.2",
+    "mongoosastic": "4.3.0",
+    "mongoose": "https://github.com/ratneshsinghparihar/mongoose/tarball/4.12",
+    "morgan": "1.9.0",
     "multer": "^1.2.0",
-    "noogger": "0.1.3",
     "object-hash": "1.1.8",
     "passport": "0.2.2",
     "passport-facebook": "2.1.0",
     "passport-jwt": "2.0.0",
     "passport-local": "1.0.0",
     "q": "1.4.1",
+    "random-number": "0.0.9",
     "recursive-readdir-synchronous": "0.0.2",
     "reflect-metadata": "0.1.3",
     "request": "2.69.0",
-    "sequelize": "3.23.2",
+    "sequelize": "3.23.5",
+    "socket.io": "2.0.4",
     "stack-trace": "0.0.10",
-    "tedious": "1.14.0",
     "tslint": "3.6.0",
     "typescript": "2.2.1",
     "uuid": "3.1.0",
     "winston": "2.2.0"
   },
+  "description": "Node Data",
   "devDependencies": {
     "gulp-ignore": "2.0.1",
     "gulp-livereload": "3.8.1",
@@ -65,5 +115,50 @@
     "jasmine-node": "1.14.5",
     "supertest": "1.2.0",
     "tslint-microsoft-contrib": "2.0.2"
-  }
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "f589dc0d806f09972fb350ff7b072ed1ea757159",
+    "tarball": "https://registry.npmjs.org/nodedata/-/nodedata-3.0.10.tgz"
+  },
+  "gitHead": "41db26b963171ed7fab6a50d7cf140fe28854f24",
+  "license": "MIT",
+  "main": "server.js",
+  "maintainers": [
+    {
+      "name": "anuj.npm.user",
+      "email": "anujrana300@gmail.com"
+    },
+    {
+      "name": "asish.nitr",
+      "email": "asish.nitr@gmail.com"
+    },
+    {
+      "name": "delta-xz",
+      "email": "hariadh11@gmail.com"
+    },
+    {
+      "name": "mayank.agrawal",
+      "email": "mynkgrwl22@gmail.com"
+    },
+    {
+      "name": "pratikv",
+      "email": "vakilpratik@gmail.com"
+    },
+    {
+      "name": "ratneshsinghparihar",
+      "email": "ratneshsinghparihar@gmail.com"
+    }
+  ],
+  "name": "nodedata",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "scripts": {
+    "cover": "istanbul cover node_modules/jasmine/bin/jasmine.js -x *.spec.js",
+    "start": "node server.js",
+    "test": "jasmine",
+    "testone": "jasmine ",
+    "tsd": ""
+  },
+  "version": "4.0.7"
 }

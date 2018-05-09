@@ -95,7 +95,7 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-                return this.repository.findOne(req.params.id)
+                return this.repository.findOne(this.repository.castToPrimaryKey(req.params.id))
                     .then((result) => {
                         this.repository.setRestResponse(result);
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
@@ -114,7 +114,7 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.findChild(req.params.id, req.params.prop)
+                return this.repository.findChild(this.repository.castToPrimaryKey(req.params.id), req.params.prop)
                     .then((result) => {
                         var parentObj = {};
                         parentObj[req.params.prop] = result;
@@ -177,7 +177,7 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.delete(req.params.id)
+                return this.repository.delete(this.repository.castToPrimaryKey(req.params.id))
                     .then(result => {
                         this.sendresult(req, res, result);
                     }).catch(error => {
@@ -194,9 +194,10 @@ export class DynamicController {
                     this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
                     return;
                 }
-
+                console.log("hal model conversion start " + this.path);
                 this.getModelFromHalModel(req.body, req, res);
-                return this.repository.put(req.params.id, req.body)
+                console.log("hal model conversion end " + this.path);
+                return this.repository.put(this.repository.castToPrimaryKey(req.params.id), req.body)
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result, resourceName, req, this.repository);
@@ -220,10 +221,19 @@ export class DynamicController {
                     this.sendError(res, 'Invalid data.');
                     return;
                 }
+                console.log("hal model conversion start " + this.path);
 
+                //let entity = req.body[0];
+                //var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity) || [];
+                //var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
+                let cacheForModelFromHalModel:any = {};
+                //cacheForModelFromHalModel.relations = relations
+                //cacheForModelFromHalModel.decFields = decFields;
+                
                 Enumerable.from(req.body).forEach(x => {
                     this.getModelFromHalModel(x, req, res);
                 });
+                console.log("hal model conversion end " + this.path);
                 return this.repository.bulkPut(req.body as Array<any>)
                     .then((result) => {
                         this.sendresult(req, res, result);
@@ -241,7 +251,7 @@ export class DynamicController {
                     return;
                 }
 
-                return this.repository.delete(req.params.id)
+                return this.repository.delete(this.repository.castToPrimaryKey(req.params.id))
                     .then((result) => {
                         this.sendresult(req, res, result);
                     }).catch(error => {
@@ -288,7 +298,7 @@ export class DynamicController {
                 }
 
                 this.getModelFromHalModel(req.body, req, res);
-                return this.repository.patch(req.params.id, req.body)
+                return this.repository.patch(this.repository.castToPrimaryKey(req.params.id), req.body)
                     .then((result) => {
                         var resourceName = this.getFullBaseUrl(req);// + this.repository.modelName();
                         this.getHalModel1(result, resourceName, req, this.repository);
@@ -311,7 +321,7 @@ export class DynamicController {
                         && meta
                         && meta.params
                         && (<any>meta.params).searchIndex;
-                }).toArray();
+                }).select(x => x.propertyKey).toArray();
 
         let searchPropMap = GetAllFindBySearchFromPrototype(modelRepo);
 
@@ -620,9 +630,9 @@ export class DynamicController {
         this.removeJSONIgnore(modelRepo.model.prototype, model, req);
 
         //code to change url to id, for relations.
-        if (req.method != "GET") {
-            this.changeUrlToId(model, modelRepo.model.prototype);
-        }
+        //if (req.method != "GET") {
+        //    this.changeUrlToId(model, modelRepo.model.prototype);
+        //}
     }
 
     private changeUrlToId(model: any, entity: any) {
@@ -731,6 +741,7 @@ export class DynamicController {
             });
         }
     }
+
 
     private removePropertyFromModel(model: any, field: any, req: any) {
         if (!model) return;

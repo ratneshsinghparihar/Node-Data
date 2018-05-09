@@ -13,6 +13,7 @@ import {pathRepoMap} from '../dynamic/model-entity';
 let _config: any = {};
 let _securityConfig: any = {};
 let _entityService: Map<String, IEntityService> = new Map<String, IEntityService>();
+let _relationsCache: any = {};
 
 export var workerResponse = '__worker';
 
@@ -108,6 +109,11 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
     if (!target) {
         throw TypeError;
     }
+    let targerKey = typeof target === 'function' ? (<Function>target).prototype : target;
+    if (_relationsCache[targerKey.constructor.name]) {
+        return _relationsCache[targerKey.constructor.name];
+    }
+
     //global.models.CourseModel.decorator.manytomany.students
     var meta = MetaUtils.getMetaData(target);
 
@@ -115,11 +121,14 @@ export function getAllRelationsForTargetInternal(target: Object): Array<MetaData
         return null;
     }
 
-    return Enumerable.from(meta)
+    let relations = Enumerable.from(meta)
         .where((x: any) => {
             return RelationDecorators.indexOf((<MetaData>x).decorator) !== -1;
         })
         .toArray();
+
+    _relationsCache[targerKey.constructor.name] = relations;
+    return relations;
 }
 
 export function getRepoPathForChildIfDifferent(target: Object, prop: string) {

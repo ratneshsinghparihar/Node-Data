@@ -7,7 +7,7 @@ export interface IProcessControlService {
     startProcess(): Q.Promise<boolean>;
     completeProcess(responseData: any): Q.Promise<boolean>;
     errorOutProcess(errorMessage: string): Q.Promise<boolean>;
-    sendResponse(processModel: any, workerDetails: workerParamsDto): Q.IPromise<any>;
+    sendResponse(processModel: any, workerDetails?: workerParamsDto): Q.IPromise<any>;
 }
 
 export const processControlServiceName = 'ProcessControlService';
