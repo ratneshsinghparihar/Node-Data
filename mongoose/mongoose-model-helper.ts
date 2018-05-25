@@ -852,8 +852,6 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     var searchObj = [];
     let params: IAssociationParams = <any>relMetadata.params;
     let isJsonMap = isJsonMapEnabled(params);
-    let relModel = Utils.getCurrentDBModel(params.rel);
-    let manyToone = {};
     objects.forEach((obj, index) => {
         if (!obj[prop])
             return;
@@ -869,10 +867,27 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                         objs.push(val[i]);
                     }
                     else {
-                        val[i]['_id'] = Utils.getCastObjectId(relModel, val[i]['_id']);
+                        val[i]['_id'] = Utils.castToMongooseType(val[i]['_id'].toString(), Mongoose.Types.ObjectId);
                         if (params.embedded) {
-                            // newVal.push(val[i]);
-                            Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), val[i], newVal, isJsonMap);
+                            // for partial embedding, fetch the object from db and set that object
+                            if (params.properties && params.properties.length > 0) {
+                                searchResult[val[i]['_id']] = obj;
+                                searchObj.push(val[i]['_id']);
+                            }
+                            else {
+                                // newVal.push(val[i]);
+                                let dbEntities = [];
+                                // in case of partial data in embedded object get that object from db entity and if db entity is not present then fetch from db
+                                if (obj.__dbEntity && obj.__dbEntity[prop]) {
+                                    dbEntities = obj.__dbEntity && obj.__dbEntity[prop];
+                                    let curDbEntity = dbEntities.find(x => x._id && x._id.toString() == val[i]._id.toString());
+                                    Utils.pushPropToArrayOrObject(val[i]['_id'].toString(), curDbEntity ? curDbEntity : val[i], newVal, isJsonMap);
+                                }
+                                else {
+                                    searchResult[val[i]['_id']] = obj;
+                                    searchObj.push(val[i]['_id']);
+                                }
+                            }
                         }
                         else {
                             // newVal.push(val[i]['_id']);
@@ -882,7 +897,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 }
                 else {
                     if (!params.embedded) {
-                        newVal.push(Utils.getCastObjectId(relModel, val[i]));
+                        newVal.push(Utils.castToMongooseType(val[i].toString(), Mongoose.Types.ObjectId));
                     }
                     else {
                         // find object
@@ -901,9 +916,16 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                     objs.push(val);
                 }
                 else {
-                    val['_id'] = Utils.getCastObjectId(relModel, val['_id']);
+                    val['_id'] = Utils.castToMongooseType(val['_id'].toString(), Mongoose.Types.ObjectId);
                     if (params.embedded) {
-                        newVal = val;
+                        // for partial embedding, fetch the object from db and set that object
+                        if (params.properties && params.properties.length > 0) {
+                            searchResult[val['_id']] = obj;
+                            searchObj.push(val['_id']);
+                        }
+                        else {
+                            newVal = val;
+                        }
                     }
                     else {
                         newVal = val['_id'];
@@ -912,20 +934,13 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
             }
             else {
                 if (!params.embedded) {
-                    newVal = Utils.getCastObjectId(relModel, val);
+                    newVal = Utils.castToMongooseType(val.toString(), Mongoose.Types.ObjectId);
                 }
                 else {
-                    if (relMetadata.decorator == Decorators.MANYTOONE) {
-                        manyToone[val] = manyToone[val] ? manyToone[val] : [];
-                        if (manyToone[val].length == 0)
-                            searchObj.push(val);
-                        manyToone[val].push(obj);
-                    }
-                    else {
-                        // find object
-                        searchResult[val] = obj;
-                        searchObj.push(val);
-                    }
+                    // find object
+                    searchResult[val] = obj;
+                    searchObj.push(val);
+                    //newVal = searchResult[val];
                 }
             }
         }
@@ -933,6 +948,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     });
 
     let queryCalls = [];
+    let relModel = Utils.getCurrentDBModel(params.rel);
     if (objs.length > 0) {
         let repo: DynamicRepository = repoFromModel[relModel.modelName];
         queryCalls.push(repo.bulkPost(objs).then(res => {
@@ -954,18 +970,10 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
             res.forEach(obj => {
                 var val = params.embedded ? obj : obj['_id'];
                 if (relMetadata.propertyType.isArray) {
-                    Utils.pushPropToArrayOrObject(prop, val, searchResult[obj['_id']][prop], isJsonMap);
-                    //searchResult[obj['_id']][prop].push(val);
+                    Utils.pushPropToArrayOrObject(val['_id'].toString(), val, searchResult[obj['_id']][prop], isJsonMap);
                 }
                 else {
-                    if (relMetadata.decorator == Decorators.MANYTOONE) {
-                        manyToone[obj['_id']].forEach(x => {
-                            x[prop] = val;
-                        });
-                    }
-                    else {
-                        searchResult[obj['_id']][prop] = val;
-                    }
+                    searchResult[obj['_id']][prop] = val;
                 }
             });
         }));
@@ -974,7 +982,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     return Q.allSettled(queryCalls).then(res => {
         objects.forEach(obj => {
             if (obj[prop]) {
-                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop], true);
+                obj[prop] = embedSelectedPropertiesOnly(params, obj[prop]);
             }
         });
     });
