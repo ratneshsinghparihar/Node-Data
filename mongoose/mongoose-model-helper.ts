@@ -852,6 +852,7 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
     var searchObj = [];
     let params: IAssociationParams = <any>relMetadata.params;
     let isJsonMap = isJsonMapEnabled(params);
+    let manyToone = {};
     objects.forEach((obj, index) => {
         if (!obj[prop])
             return;
@@ -918,14 +919,24 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                 else {
                     val['_id'] = Utils.castToMongooseType(val['_id'].toString(), Mongoose.Types.ObjectId);
                     if (params.embedded) {
-                        // for partial embedding, fetch the object from db and set that object
-                        if (params.properties && params.properties.length > 0) {
-                            searchResult[val['_id']] = obj;
-                            searchObj.push(val['_id']);
+                        if (relMetadata.decorator == Decorators.MANYTOONE) {
+                            if (val && val._id) {
+                                let tempVal = val._id.toString();
+                                manyToone[tempVal] = manyToone[tempVal] ? manyToone[tempVal] : [];
+                                if (manyToone[tempVal].length == 0)
+                                    searchObj.push(val['_id']);
+                                manyToone[tempVal].push(obj);
+                            }
                         }
-                        else {
-                            newVal = val;
-                        }
+                        else
+                            // for partial embedding, fetch the object from db and set that object
+                            if (params.properties && params.properties.length > 0) {
+                                searchResult[val['_id']] = obj;
+                                searchObj.push(val['_id']);
+                            }
+                            else {
+                                newVal = val;
+                            }
                     }
                     else {
                         newVal = val['_id'];
@@ -937,10 +948,17 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                     newVal = Utils.castToMongooseType(val.toString(), Mongoose.Types.ObjectId);
                 }
                 else {
-                    // find object
-                    searchResult[val] = obj;
-                    searchObj.push(val);
-                    //newVal = searchResult[val];
+                    if (relMetadata.decorator == Decorators.MANYTOONE) {
+                        manyToone[val] = manyToone[val] ? manyToone[val] : [];
+                        if (manyToone[val].length == 0)
+                            searchObj.push(val);
+                        manyToone[val].push(obj);
+                    }
+                    else {
+                        // find object
+                        searchResult[val] = obj;
+                        searchObj.push(val);
+                    }
                 }
             }
         }
@@ -973,7 +991,14 @@ function embedChild(objects: Array<any>, prop, relMetadata: MetaData, parentMode
                     Utils.pushPropToArrayOrObject(val['_id'].toString(), val, searchResult[obj['_id']][prop], isJsonMap);
                 }
                 else {
-                    searchResult[obj['_id']][prop] = val;
+                    if (relMetadata.decorator == Decorators.MANYTOONE) {
+                        manyToone[obj['_id']].forEach(x => {
+                            x[prop] = val;
+                        });
+                    }
+                    else {
+                        searchResult[obj['_id']][prop] = val;
+                    }
                 }
             });
         }));
