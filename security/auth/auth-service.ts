@@ -1,6 +1,6 @@
 import * as configUtil from '../../core/utils';
 
-var passport = require('passport');
+var passport;
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 import {service} from '../../di/decorators/service';
@@ -19,6 +19,7 @@ export class AuthService {
     private userDetailService: UserDetailService;
 
     constructor() {
+        passport = configUtil.config().passportSet.getPassport();
         if (configUtil.config().Security.useFaceBookAuth == true) {
             this.addRoutes();
         }
@@ -27,7 +28,7 @@ export class AuthService {
     authenticate() {
         this.authenticateByPasswordorToken();
         if (configUtil.config().Security.useFaceBookAuth == true) {
-            this.facebookAuthentication();
+            //this.facebookAuthentication();
         }
     }
 
@@ -88,7 +89,8 @@ export class AuthService {
             // pull in our app id and secret from our Config.ts file
             clientID: configUtil.config().facebookAuth.clientID,
             clientSecret: configUtil.config().facebookAuth.clientSecret,
-            callbackURL: configUtil.config().facebookAuth.callbackURL
+            callbackURL: configUtil.config().facebookAuth.callbackURL,
+            'profileFields': ['id', 'email', 'name']
 
         },
 
@@ -100,8 +102,10 @@ export class AuthService {
                         if (!user) {
                             // if there is no user found with that facebook id, create them
                             var newUser = {};
+                            newUser['isFacebook'] = true;
+                            newUser['profile'] = profile; //set full user profile into profile object
                             // set all of the facebook information in our user model
-                            newUser['facebookId'] = profile.id; // set the users facebook id                   
+                            //newUser['facebookId'] = profile.id; // set the users facebook id                   
                             newUser['facebookToken'] = token; // we will save the token that facebook provides to the user  
                             this.userDetailService.createNewUser(newUser).then((finalUser) => {
                                 return done(null, finalUser.getUserObject());
