@@ -33,6 +33,21 @@ export class DynamicController {
         this.repository = repository;
         this.entity = entity;
         this.path = "/" + Utils.config().Config.basePath + "/" + entity.path;
+        if(repository.isOnlyCustomActions){
+            this.addActionPaths();
+            return;
+        }
+
+        if(repository.isOnlySeachMethods){
+            this.addSearchPaths();
+            return;
+        }
+
+        if(repository.isOnlyBasicRoutes){
+            this.addRoutes();
+            return;
+        }
+
         this.addSearchPaths();
         this.addActionPaths();
         this.addRoutes();

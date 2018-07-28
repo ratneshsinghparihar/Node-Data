@@ -58,6 +58,10 @@ export interface IDynamicRepository {
     castToPrimaryKey(id): any;
 
     onMessage(message: any);
+
+    isOnlyCustomActions:boolean;
+    isOnlySeachMethods:boolean;
+    isOnlyBasicRoutes:boolean;
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -68,6 +72,11 @@ export class DynamicRepository implements IDynamicRepository {
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
     private messenger: any;
+
+    isOnlyCustomActions:boolean;
+    isOnlySeachMethods:boolean;
+    isOnlyBasicRoutes:boolean;
+
     //private modelRepo: any;
 
     public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
