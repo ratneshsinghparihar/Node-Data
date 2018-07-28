@@ -4,8 +4,7 @@ var express = require('express');
 import * as configUtil from '../../core/utils';
 var crypto = require('crypto');
 //Passport
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+var passport;
 var FacebookStrategy = require('passport-facebook').Strategy;
 
 var jwt = require('jsonwebtoken');
@@ -34,6 +33,7 @@ export class AuthController {
         this.path = path;
         this.addRoutes();
         this.createAuthStrategy();
+        passport = configUtil.config().passportSet.getPassport();
     }
 
     private createAuthStrategy() {
@@ -47,6 +47,7 @@ export class AuthController {
     }
 
     private addRoutes() {
+        passport = configUtil.config().passportSet.getPassport();
         router.get('/',
             securityUtils.ensureLoggedIn(),
             (req, res) => {
