@@ -27,27 +27,39 @@ export var getQueryOptionsFromQuery = (query): { queryObj: any, options: any }=>
             options[x.key] = x.value;
             delete queryObj[x.key];
         }
-        else {
-            var val = queryObj[x.key];
-            var i = val.indexOf('%LIKE%');
-            if (i == 0) {
-                // contains
-                val = val.replace('%LIKE%', '');
-                queryObj[x.key] = {
-                    $regex: '.*' + val + '.*'
+        else
+            if (x.key == "_id" && x.key) {
+                let valStr = queryObj[x.key]; //Incoming Comma Separated String Values
+                let valArray;
+                if (valStr == "" || valStr == null || valStr == "null" || valStr == '""' || valStr == "''" || valStr == undefined || valStr == "undefined") {
+                    valArray = [];
                 }
+                else {
+                    valArray = valStr.split(","); //Convert Comma Separated Values to Array
+                }
+                queryObj[x.key] = { $in: valArray };
             }
             else {
-                i = val.indexOf('%START%');
+                var val = queryObj[x.key];
+                var i = val.indexOf('%LIKE%');
                 if (i == 0) {
-                    // starts with
-                    val = val.replace('%START%', '');
+                    // contains
+                    val = val.replace('%LIKE%', '');
                     queryObj[x.key] = {
-                        $regex: '^' + val + '.*'
+                        $regex: '.*' + val + '.*'
+                    }
+                }
+                else {
+                    i = val.indexOf('%START%');
+                    if (i == 0) {
+                        // starts with
+                        val = val.replace('%START%', '');
+                        queryObj[x.key] = {
+                            $regex: '^' + val + '.*'
+                        }
                     }
                 }
             }
-        }
     });
     return { queryObj: queryObj, options: options}
 }
