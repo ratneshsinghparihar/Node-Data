@@ -411,7 +411,11 @@ export class DynamicRepository implements IDynamicRepository {
         let primaryKey = '_id';
         let modelRepo = this.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD, primaryKey);
-        if (decoratorFields.params.primary && decoratorFields.getType() == Number) {
+
+        if(decoratorFields==null){
+            decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.COLUMN, primaryKey);
+        }
+        if (decoratorFields && decoratorFields.params &&  decoratorFields.params.primaryKey && decoratorFields.getType() == Number) {
             return Number.parseInt(id);
         }
         return id;
