@@ -116,15 +116,15 @@ class SequelizeService implements IEntityService {
     }
 
     findWhere(repoPath: string, query, selectedFields?: Array<string>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        return this.getModel(repoPath).findAll(query).then(result => {
-            return result.dataValues;
+        return this.getModel(repoPath).findAll({ where: query }).then(result => {
+            return result;
         });
     }
 
     //This is not testest yet
     //TODO: add test case for this
     countWhere(repoPath: string, query): Q.Promise<any> {
-        return this.getModel(repoPath).findAndCountAll(query).then(result => {
+        return this.getModel(repoPath).findAndCountAll({ where: query }).then(result => {
             return result;
         });
     }
