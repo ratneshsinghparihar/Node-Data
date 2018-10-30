@@ -264,7 +264,9 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
                         newObjectsMap[x._id.toString()] = x;
                     });
                     updateParentRequired.forEach(x => {
-                        updateObject.push(newObjectsMap[x]);
+                        if (newObjectsMap[x]) {
+                            updateObject.push(newObjectsMap[x]);
+                        }    
                     });
                     updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
