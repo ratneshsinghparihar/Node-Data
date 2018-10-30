@@ -250,10 +250,21 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
+                // if (updateParentRequired.length > 0) {
+                //     let updateObject = [];
+                //     updateParentRequired.forEach(x => {
+                //         updateObject.push(objects.find(obj => obj._id.toString() == x));
+                //     });
+                //     updateParentProm = mongooseHelper.updateParent(model, updateObject);
+                // }
                 if (updateParentRequired.length > 0) {
                     let updateObject = [];
+                    let newObjectsMap = {};
+                    objects.forEach(x => {
+                        newObjectsMap[x._id.toString()] = x;
+                    });
                     updateParentRequired.forEach(x => {
-                        updateObject.push(objects.find(obj => obj._id.toString() == x));
+                        updateObject.push(newObjectsMap[x]);
                     });
                     updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
