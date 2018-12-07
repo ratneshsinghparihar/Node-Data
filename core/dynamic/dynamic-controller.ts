@@ -469,9 +469,9 @@ export class DynamicController {
             return;
         }
 
-        if (req.method == "POST") {
-            this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
-        }
+        // if (req.method == "POST") {
+        //     this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
+        // }
         this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
         this.invokeModelFunction(map, req, res, actions, hasFiles);
     }
