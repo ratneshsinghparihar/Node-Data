@@ -834,6 +834,7 @@ export class DynamicController {
         winstonLog.logError('[DynamicController: sendBadRequest]: bad request ' + error);
         res.set("Content-Type", "application/json");
         res.send(400, JSON.stringify(error, null, 4));
+        throw null;
     }
 
     private sendresult(req, res, result) {
