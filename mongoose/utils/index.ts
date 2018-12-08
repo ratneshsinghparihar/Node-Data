@@ -265,3 +265,14 @@ export function getCastObjectId(model: any, id: any): any {
         return id;
     }
 }
+
+export function getObjectIdToCompare(model: any, id: any) {
+    let primaryKey = '_id';
+    let type = model.schema.paths[primaryKey].instance;
+    if (type == 'ObjectID') {
+        return id.toString();
+    }
+    else {
+        return id;
+    }
+}

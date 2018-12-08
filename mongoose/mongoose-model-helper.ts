@@ -155,10 +155,18 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
                     return;
 
                 if (m.propertyType.isArray) {
-                    ids = ids.concat(val[m.propertyKey]);
+                    val[m.propertyKey].forEach(x => {
+                        let idToCompare = Utils.getObjectIdToCompare(relModel, x)
+                        if (ids.indexOf(idToCompare) < 0) {
+                            ids.push(idToCompare);
+                        }
+                    })
                 }
                 else {
-                    ids.push(val[m.propertyKey]);
+                    let idToCompare = Utils.getObjectIdToCompare(relModel, val[m.propertyKey])
+                    if (ids.indexOf(idToCompare)<0) {
+                        ids.push(idToCompare);
+                    }
                 }
             });
             if (ids.length == 0)
