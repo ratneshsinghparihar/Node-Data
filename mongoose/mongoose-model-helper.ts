@@ -156,16 +156,26 @@ export function embeddedChildren1(model: Mongoose.Model<any>, values: Array<any>
 
                 if (m.propertyType.isArray) {
                     val[m.propertyKey].forEach(x => {
-                        let idToCompare = Utils.getObjectIdToCompare(relModel, x)
-                        if (ids.indexOf(idToCompare) < 0) {
-                            ids.push(idToCompare);
+                        if (!param.embedded) {
+                            let idToCompare = Utils.getObjectIdToCompare(relModel, x)
+                            if (ids.indexOf(idToCompare) < 0) {
+                                ids.push(idToCompare);
+                            }
+                        }
+                        else {
+                            ids.push(x);
                         }
                     })
                 }
                 else {
-                    let idToCompare = Utils.getObjectIdToCompare(relModel, val[m.propertyKey])
-                    if (ids.indexOf(idToCompare)<0) {
-                        ids.push(idToCompare);
+                    if (!param.embedded) {
+                        let idToCompare = Utils.getObjectIdToCompare(relModel, val[m.propertyKey])
+                        if (ids.indexOf(idToCompare) < 0) {
+                            ids.push(idToCompare);
+                        }
+                    }
+                    else {
+                        ids.push(val[m.propertyKey]);
                     }
                 }
             });
