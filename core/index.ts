@@ -9,6 +9,7 @@ import {IEntityService} from './interfaces/entity-service';
 //import {PrincipalContext} from '../security/auth/principalContext';
 //var ns = PrincipalContext.getSession();
 var domain = require('../security/auth/domain');
+import {Decorators} from './constants';
 
 //import linq = require('../typings/linq/linq');
 import * as Enumerable from 'linq';
@@ -82,7 +83,8 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     //Utils.entityService(entityServiceInst);
     //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig,server);
-    MetaUtils.refreshDerivedObjectsMetadata();
+    MetaUtils.refreshDerivedObjectsMetadata(Decorators.DOCUMENT);
+    MetaUtils.refreshDerivedObjectsMetadata(Decorators.ENTITY);
 }
 
 let components: Array<any> = [];
