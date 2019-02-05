@@ -12,6 +12,7 @@ var domain = require('../security/auth/domain');
 
 //import linq = require('../typings/linq/linq');
 import * as Enumerable from 'linq';
+import { Decorators } from './constants';
 
 // Ignore .d.ts and all other non .ts files
 function ignoreFile(file: string) {
@@ -82,7 +83,8 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     //Utils.entityService(entityServiceInst);
     //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig,server);
-    MetaUtils.refreshDerivedObjectsMetadata();
+    MetaUtils.refreshDerivedObjectsMetadata(Decorators.DOCUMENT);
+    MetaUtils.refreshDerivedObjectsMetadata(Decorators.ENTITY);
 }
 
 let components: Array<any> = [];
