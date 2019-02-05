@@ -6,7 +6,6 @@ import Q = require("q");
 import * as Utils from './utils';
 import {MetaUtils} from './metadata/utils'
 import {IEntityService} from './interfaces/entity-service';
-import { Decorators } from '../core/constants/decorators';
 //import {PrincipalContext} from '../security/auth/principalContext';
 //var ns = PrincipalContext.getSession();
 var domain = require('../security/auth/domain');
@@ -83,8 +82,7 @@ module.exports = function (config: any, securityConfig: any, appRoot?: string,
     //Utils.entityService(entityServiceInst);
     //Utils.sqlEntityService(sqlServerInst);
     new Dynamic(config, securityConfig,server);
-    MetaUtils.refreshDerivedObjectsMetadata(Decorators.DOCUMENT);
-    MetaUtils.refreshDerivedObjectsMetadata(Decorators.ENTITY);
+    MetaUtils.refreshDerivedObjectsMetadata();
 }
 
 let components: Array<any> = [];

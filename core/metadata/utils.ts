@@ -60,7 +60,7 @@ interface IMetadataHelper {
     getMetaDataForPropKey(target: Object, propertyKey?: string, paramIndex?: number): Array<MetaData>;
     getMetaDataFromName(modelName: string): Array<any>;
     getMetaDataFromDecoratorType(target: Object, type: DecoratorType): Array<any>;
-    refreshDerivedObjectsMetadata(type: string);
+    refreshDerivedObjectsMetadata();
     getDescriptiveMetadata(type, baseRelMeta, recursionLevel?: number): any;
 }
 
@@ -192,8 +192,8 @@ class MetadataHelper {
             .toArray();
     }
 
-    public static refreshDerivedObjectsMetadata(type) {
-        var documents = MetadataHelper.getMetaDataForDecorators([type]);
+    public static refreshDerivedObjectsMetadata() {
+        var documents = MetadataHelper.getMetaDataForDecorators([Decorators.DOCUMENT]);
         var proto = '__proto__';
         Enumerable.from(documents).forEach(x => {
             var tar = x.metadata[0].target;
