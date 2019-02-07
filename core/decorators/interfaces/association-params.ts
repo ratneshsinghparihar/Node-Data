@@ -1,10 +1,12 @@
 export interface IAssociationParams {
     rel: string,
     itemType: Object,
-    embedded: boolean,
+    embedded?: boolean,
     eagerLoading: boolean,
     deleteCascade?: boolean,
-    properties?: [string],
+    properties?: Array<string>,
     persist?: boolean,
-    storageType?:string
+    storageType?:string,
+    propertyKey?:string,
+    alias?:string
 }

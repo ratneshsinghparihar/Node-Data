@@ -3,14 +3,14 @@ import * as Sequelize from "sequelize";
 import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';
 import {MetaUtils} from "../core/metadata/utils";
-import {pathRepoMap} from '../core/dynamic/model-entity';
+import {pathRepoMap, getEntity} from '../core/dynamic/model-entity';
 import {QueryOptions} from '../core/interfaces/queryOptions';
-
-
-import {Decorators as CoreDecorators} from '../core/constants';
+import {Decorators as CoreDecorators, Decorators} from '../core/constants';
 //import {pathRepoMap} from './schema';
 import * as schema  from "./schema";
 import * as Enumerable from 'linq';
+import { MetaData } from '../core/metadata/metadata';
+import { IAssociationParams } from '../core/decorators/interfaces';
 
 class SequelizeService implements IEntityService {
     private sequelize: any;
@@ -55,16 +55,31 @@ class SequelizeService implements IEntityService {
         return newSchema;
     }
 
-    addRelationInSchema(fromSchema: any, toSchema: any, relationType: string, relationName: string, path: string) {
+    getAssociationName(relationType, metaData:IAssociationParams, path){
+        if (relationType == CoreDecorators.MANYTOONE){
+            if(metaData.alias){
+                return metaData.alias;
+            }
+            else{
+                return path + '_detail';
+            }
+        }
+        return path;
+    }
+
+    addRelationInSchema(fromSchema: any, toSchema: any, relationType:string, metaData:IAssociationParams) {
+        let path = metaData.propertyKey;
         if (relationType == CoreDecorators.ONETOMANY)
-            fromSchema.hasMany(toSchema, { as: path });
+            fromSchema.hasMany(toSchema, { as: this.getAssociationName(relationType, metaData, path)});
         if (relationType == CoreDecorators.MANYTOONE)
-            fromSchema.belongsTo(toSchema, { as: path });
+            fromSchema.belongsTo(toSchema, { as: this.getAssociationName(relationType, metaData, path) , foreignKey:path});
         if (relationType == CoreDecorators.ONETOONE)
-            fromSchema.has(toSchema, { as: path });
+            fromSchema.has(toSchema, { as: this.getAssociationName(relationType, metaData, path)});
 
         let relationToDictionary: any = {};
-        relationToDictionary["relation"] = relationName;
+        relationToDictionary.metaData = metaData;
+        relationToDictionary.type = relationType;
+        relationToDictionary["relation"] = metaData.rel;
         relationToDictionary.fromSchema = fromSchema;
         relationToDictionary.toSchema = toSchema;
         relationToDictionary.path = path;
@@ -108,16 +123,23 @@ class SequelizeService implements IEntityService {
     }
 
     findAll(repoPath: string): Q.Promise<any> {
-        return this.getModel(repoPath).findAll().then(result => {
+        return this.getModel(repoPath).findAll({raw: true}).then(result => {
             if (!result) return null;
-            var finalOutput = Enumerable.from(result).select((x:any) => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
-            return finalOutput;
+            //var finalOutput = Enumerable.from(result).select((x:any) => x.dataValues).toArray();// result.forEach(x => x.dataValues).toArray();
+            return result;
         });
     }
 
     findWhere(repoPath: string, query, selectedFields?: Array<string>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        return this.getModel(repoPath).findAll({ where: query }).then(result => {
-            return result;
+        let schemaModel = this.getModel(repoPath)
+        let cond = {where: query}
+        if(selectedFields && selectedFields.length>0){
+            cond['attributes'] = selectedFields
+        }
+        cond['include'] = this.getAllForeignKeyAssocations(schemaModel, selectedFields);
+        return schemaModel.findAll(cond).then(result => {
+            if (!result) return null;
+            return result.map(x=>x.dataValues);
         });
     }
 
@@ -142,16 +164,35 @@ class SequelizeService implements IEntityService {
         });
     }
 
-    findOne(repoPath: string, id): Q.Promise<any> {
+    getAllForeignKeyAssocations(schemaModel, properties:Array<string>){
+        let includes = [];
+        let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && (x.type == Decorators.MANYTOONE));
+        if(relSchemas.length){
+            relSchemas.forEach(x=>{
+                if(!properties || !properties.length || properties.indexOf(x.path)>=0){
+                    let model = {model:x.toSchema, as:this.getAssociationName(Decorators.MANYTOONE,x.metaData,x.path)};
+                    if(x.metaData.properties){
+                        model['attributes'] = x.metaData.properties;
+                    }
+                    let childModel = this.getAllForeignKeyAssocations(x.toSchema, x.metaData.properties);
+                    if(childModel.length){
+                        model['include']= childModel;
+                    }
+                    includes.push(model);
+                }
+            });            
+        }
+        return includes;
+    }
 
+    findOne(repoPath: string, id): Q.Promise<any> {
         let schemaModel = this.getModel(repoPath);
         let primaryKey = schemaModel.primaryKeyAttribute;
         var cond = {};
         cond[primaryKey] = id;
         var self = this;
-        return schemaModel.find({ include: [{ all: true }], where: cond }).then(result => {
-            let model = result.dataValues;
-            self.getAssociationForSchema(result, schemaModel);
+        let include = this.getAllForeignKeyAssocations(schemaModel, null);
+        return schemaModel.find({ include: include, where: cond }).then(result => {
             return result.dataValues;
         }
         );
@@ -162,7 +203,7 @@ class SequelizeService implements IEntityService {
     }
 
     findMany(repoPath: string, ids: Array<any>) {
-        return this.getModel(repoPath).findAll({ where: { id: ids } });
+        return this.findWhere(repoPath,{ id: ids });
     }
 
     findChild(repoPath: string, id, prop): Q.Promise<any> {
@@ -199,14 +240,10 @@ class SequelizeService implements IEntityService {
     }
 
     private getAssociationForSchema(model: any, schema: any) {
-        var asyncCalls = [];
         Enumerable.from(this._relationCollection)
             .where(relationSchema => relationSchema.fromSchema == schema).forEach(relation1 => {
                 model.dataValues[relation1.path] = model[relation1.toSchema.name + "s"];
             });
-        //return Q.allSettled(asyncCalls).then(res => {
-        //    return model.dataValues;
-        //});
     }
 
 }
