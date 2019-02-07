@@ -78,6 +78,10 @@ export class DynamicSchema {
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
+            if(!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
+            else if(!schema[params.foreignKey])
+                throw 'Please choose a valid foreign key from the defined properties for ' + this.schemaName + ' -> ' + params.propertyKey;
             manytoonerels.push(params);
         }
         this._relations[Decorators.MANYTOONE] = manytoonerels;

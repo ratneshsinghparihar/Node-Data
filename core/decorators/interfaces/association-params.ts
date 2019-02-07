@@ -8,5 +8,5 @@ export interface IAssociationParams {
     persist?: boolean,
     storageType?:string,
     propertyKey?:string,
-    alias?:string
+    foreignKey?:string
 }

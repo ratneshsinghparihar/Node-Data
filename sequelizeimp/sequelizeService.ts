@@ -55,26 +55,14 @@ class SequelizeService implements IEntityService {
         return newSchema;
     }
 
-    getAssociationName(relationType, metaData:IAssociationParams, path){
-        if (relationType == CoreDecorators.MANYTOONE){
-            if(metaData.alias){
-                return metaData.alias;
-            }
-            else{
-                return path + '_detail';
-            }
-        }
-        return path;
-    }
-
     addRelationInSchema(fromSchema: any, toSchema: any, relationType:string, metaData:IAssociationParams) {
         let path = metaData.propertyKey;
         if (relationType == CoreDecorators.ONETOMANY)
-            fromSchema.hasMany(toSchema, { as: this.getAssociationName(relationType, metaData, path)});
+            fromSchema.hasMany(toSchema, { as: path});
         if (relationType == CoreDecorators.MANYTOONE)
-            fromSchema.belongsTo(toSchema, { as: this.getAssociationName(relationType, metaData, path) , foreignKey:path});
+            fromSchema.belongsTo(toSchema, { as: path, foreignKey:metaData.foreignKey});
         if (relationType == CoreDecorators.ONETOONE)
-            fromSchema.has(toSchema, { as: this.getAssociationName(relationType, metaData, path)});
+            fromSchema.has(toSchema, { as: path});
 
         let relationToDictionary: any = {};
         relationToDictionary.metaData = metaData;
@@ -170,7 +158,7 @@ class SequelizeService implements IEntityService {
         if(relSchemas.length){
             relSchemas.forEach(x=>{
                 if(!properties || !properties.length || properties.indexOf(x.path)>=0){
-                    let model = {model:x.toSchema, as:this.getAssociationName(Decorators.MANYTOONE,x.metaData,x.path)};
+                    let model = {model:x.toSchema, as:x.path};
                     if(x.metaData.properties){
                         model['attributes'] = x.metaData.properties;
                     }
