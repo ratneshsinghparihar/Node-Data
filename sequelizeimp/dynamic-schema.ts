@@ -51,10 +51,13 @@ export class DynamicSchema {
         var metaDataMap = MetaUtils.getMetaData(this.target, Decorators.COLUMN);
         for (var field in metaDataMap) {
             var fieldMetadata: MetaData = <MetaData>metaDataMap[field];
-            var name = fieldMetadata.params.name;
-            var params = fieldMetadata.params;
-            delete params.name;
-            schema[name] = params;
+            let newParam = {}
+            Object.keys(fieldMetadata.params).forEach(x=>{
+                if(x!='name'){
+                    newParam[x] = fieldMetadata.params[x]    
+                }
+            })
+            schema[fieldMetadata.params.name] = newParam;
         }
 
         var metaDataMap1 = MetaUtils.getMetaData(this.target, Decorators.ONETOMANY);
@@ -75,6 +78,10 @@ export class DynamicSchema {
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
+            if(!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
+            else if(!schema[params.foreignKey])
+                throw 'Please choose a valid foreign key from the defined properties for ' + this.schemaName + ' -> ' + params.propertyKey;
             manytoonerels.push(params);
         }
         this._relations[Decorators.MANYTOONE] = manytoonerels;
