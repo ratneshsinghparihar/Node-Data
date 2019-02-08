@@ -75,6 +75,29 @@ class SequelizeService implements IEntityService {
         this._relationCollection.push(relationToDictionary);
     }
 
+    getAllForeignKeyAssocations(schemaModel, properties:Array<string>){
+        let includes = [];
+        let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && (x.type == Decorators.MANYTOONE));
+        if(relSchemas.length){
+            relSchemas.forEach(x=>{
+                if(!properties || !properties.length || properties.indexOf(x.path)>=0){
+                    if(x.metaData.eagerLoading){
+                        let model = {model:x.toSchema, as:x.path};
+                        if(x.metaData.properties){
+                            model['attributes'] = x.metaData.properties;
+                        }
+                        let childModel = this.getAllForeignKeyAssocations(x.toSchema, x.metaData.properties);
+                        if(childModel.length){
+                            model['include']= childModel;
+                        }
+                        includes.push(model);
+                    }
+                }
+            });            
+        }
+        return includes;
+    }
+
     getModel(repoPath: string, dynamicName?: string) {
         try {
             var schemaNamefromPathRepomap = pathRepoMap[repoPath].schemaName;
@@ -85,29 +108,47 @@ class SequelizeService implements IEntityService {
     }
 
     bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
-        return this.getModel(repoPath).bulkCreate(objArr, batchSize);
+        return this.getModel(repoPath).bulkCreate(objArr, {individualHooks: true});
     }
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
-        return null;
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {}
+        cond[primaryKey] = objIds
+        return this.getModel(repoPath).update(obj, { where: cond }).then(result=>{
+            if(result[0]){
+                return this.findMany(repoPath, objIds);
+            }
+            else{
+                throw 'failed to update';
+            }
+        });
     }
 
     bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return this.getModel(repoPath).destroy({ where: { id: objArr } });
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {}
+        cond[primaryKey] = objArr.map(x=>x[primaryKey]);
+        return this.getModel(repoPath).destroy({ where: cond }).then(result=>{
+            return {success:result};
+        })
     }
 
     bulkPut(repoPath: string, objArr: Array<any>,batchSize?: number): Q.Promise<any> {
         let asyncalls=[];
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         objArr.forEach(obj=>{
-            asyncalls.push(this.getModel(repoPath).update(obj, { where: { id: obj.id } }));
+            let cond = {}
+            cond[primaryKey] = obj[primaryKey];
+            asyncalls.push(this.getModel(repoPath).update(obj, { where: cond }));
         });
-        return Q.allSettled(asyncalls);
+        return Q.allSettled(asyncalls).then(result=>{
+            return this.findMany(repoPath, objArr.map(x=>x[primaryKey]));
+        });
     }
 
-    
-
     bulkPatch(repoPath: string, objArr: Array<any>): Q.Promise<any> {
-        return this.getModel(repoPath).bulkUpdate(objArr);
+        return this.bulkPut(repoPath, objArr);
     }
 
     findAll(repoPath: string): Q.Promise<any> {
@@ -152,27 +193,6 @@ class SequelizeService implements IEntityService {
         });
     }
 
-    getAllForeignKeyAssocations(schemaModel, properties:Array<string>){
-        let includes = [];
-        let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && (x.type == Decorators.MANYTOONE));
-        if(relSchemas.length){
-            relSchemas.forEach(x=>{
-                if(!properties || !properties.length || properties.indexOf(x.path)>=0){
-                    let model = {model:x.toSchema, as:x.path};
-                    if(x.metaData.properties){
-                        model['attributes'] = x.metaData.properties;
-                    }
-                    let childModel = this.getAllForeignKeyAssocations(x.toSchema, x.metaData.properties);
-                    if(childModel.length){
-                        model['include']= childModel;
-                    }
-                    includes.push(model);
-                }
-            });            
-        }
-        return includes;
-    }
-
     findOne(repoPath: string, id): Q.Promise<any> {
         let schemaModel = this.getModel(repoPath);
         let primaryKey = schemaModel.primaryKeyAttribute;
@@ -182,8 +202,7 @@ class SequelizeService implements IEntityService {
         let include = this.getAllForeignKeyAssocations(schemaModel, null);
         return schemaModel.find({ include: include, where: cond }).then(result => {
             return result.dataValues;
-        }
-        );
+        });
     }
 
     findByField(repoPath: string, fieldName, value): Q.Promise<any> {
@@ -191,12 +210,18 @@ class SequelizeService implements IEntityService {
     }
 
     findMany(repoPath: string, ids: Array<any>) {
-        return this.findWhere(repoPath,{ id: ids });
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {};
+        cond[primaryKey] = ids;
+        return this.findWhere(repoPath,cond);
     }
 
     findChild(repoPath: string, id, prop): Q.Promise<any> {
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {};
+        cond[primaryKey] = id;
         return this.getModel(repoPath).find({
-            where: { id: id },
+            where: cond,
             include: [
                 { model: this.getModel(prop), as: prop }
             ]
@@ -216,15 +241,30 @@ class SequelizeService implements IEntityService {
     }
 
     put(repoPath: string, id: any, obj: any): Q.Promise<any> {
-        return this.getModel(repoPath).update(obj, { where: { id: id } });
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {};
+        cond[primaryKey] = id;
+        return this.getModel(repoPath).update(obj, { where: cond }).then(result=>{
+            if(result[0]){
+                return this.findOne(repoPath, id);
+            }
+            else{
+                throw 'Failed to update';
+            }
+        })
     }
 
     del(repoPath: string, id: any): Q.Promise<any> {
-        return this.getModel(repoPath).destroy({ where: { id: id } });
+        let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
+        let cond = {};
+        cond[primaryKey] = id;
+        return this.getModel(repoPath).destroy({ where: cond }).then(result=>{
+            return {success:result};
+        })
     }
 
     patch(repoPath: string, id: any, obj): Q.Promise<any> {
-        return this.getModel(repoPath).update(obj, { where: { id: id } });
+        return this.put(repoPath, id, obj)
     }
 
     private getAssociationForSchema(model: any, schema: any) {
