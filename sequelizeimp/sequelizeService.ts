@@ -11,6 +11,8 @@ import * as schema  from "./schema";
 import * as Enumerable from 'linq';
 import { MetaData } from '../core/metadata/metadata';
 import { IAssociationParams } from '../core/decorators/interfaces';
+import { PrincipalContext } from '../security/auth/principalContext';
+import {ConstantKeys} from '../core/constants/constantKeys';
 
 class SequelizeService implements IEntityService {
     private sequelize: any;
@@ -38,6 +40,17 @@ class SequelizeService implements IEntityService {
         return this.sequelize;
     }
 
+    startTransaction(param?:any):Q.Promise<any>{
+        return this.sequelize.transaction();
+    }
+
+    commitTransaction(param?:any):Q.Promise<any>{
+        return param.commit();
+    }
+
+    rollbackTransaction(param?:any):Q.Promise<any>{
+        return param.rollback();
+    }
 
     getCustomResult(databaseName: string, query) {
         if (config().SqlConfig.isSqlEnabled == false)
@@ -107,15 +120,27 @@ class SequelizeService implements IEntityService {
         }
     }
 
+    appendTransaction(options){
+        let trans = PrincipalContext.get(ConstantKeys.transaction);
+        if(trans){
+            options['transaction'] = trans;
+        }
+        return options;
+    }
+
     bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
-        return this.getModel(repoPath).bulkCreate(objArr, {individualHooks: true});
+        let options = {individualHooks: true}
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).bulkCreate(objArr, options);
     }
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {}
         cond[primaryKey] = objIds
-        return this.getModel(repoPath).update(obj, { where: cond }).then(result=>{
+        let options = { where: cond };
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).update(obj, options).then(result=>{
             if(result[0]){
                 return this.findMany(repoPath, objIds);
             }
@@ -129,7 +154,9 @@ class SequelizeService implements IEntityService {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {}
         cond[primaryKey] = objArr.map(x=>x[primaryKey]);
-        return this.getModel(repoPath).destroy({ where: cond }).then(result=>{
+        let options = { where: cond }
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).destroy(options).then(result=>{
             return {success:result};
         })
     }
@@ -140,7 +167,9 @@ class SequelizeService implements IEntityService {
         objArr.forEach(obj=>{
             let cond = {}
             cond[primaryKey] = obj[primaryKey];
-            asyncalls.push(this.getModel(repoPath).update(obj, { where: cond }));
+            let options = { where: cond }
+            options = this.appendTransaction(options);
+            asyncalls.push(this.getModel(repoPath).update(obj, options));
         });
         return Q.allSettled(asyncalls).then(result=>{
             return this.findMany(repoPath, objArr.map(x=>x[primaryKey]));
@@ -237,14 +266,18 @@ class SequelizeService implements IEntityService {
      * @param obj
      */
     post(repoPath: string, obj: any): Q.Promise<any> {
-        return this.getModel(repoPath).create(obj);
+        let options = {};
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).create(obj, options);
     }
 
     put(repoPath: string, id: any, obj: any): Q.Promise<any> {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {};
         cond[primaryKey] = id;
-        return this.getModel(repoPath).update(obj, { where: cond }).then(result=>{
+        let options = { where: cond }
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).update(obj, options).then(result=>{
             if(result[0]){
                 return this.findOne(repoPath, id);
             }
@@ -258,7 +291,9 @@ class SequelizeService implements IEntityService {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {};
         cond[primaryKey] = id;
-        return this.getModel(repoPath).destroy({ where: cond }).then(result=>{
+        let options = { where: cond };
+        options = this.appendTransaction(options);
+        return this.getModel(repoPath).destroy(options).then(result=>{
             return {success:result};
         })
     }
