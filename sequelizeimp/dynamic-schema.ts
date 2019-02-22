@@ -20,6 +20,8 @@ export class DynamicSchema {
     private _tablespecs: any;
     private _schema: any;
     private _relations: any = {};
+    private _defaultPrimaryKey = null;
+    private _removeColumnProperties = ['name','defaultValue'];
 
     constructor(target: Object, name: string,tableSpecs:any) {
         this.target = target;
@@ -27,6 +29,13 @@ export class DynamicSchema {
         this.parsedSchema = this.parse(target);
         this._tablespecs = tableSpecs;
         this._schema = sequelizeService.addScheam(this.schemaName, this.parsedSchema, this._tablespecs);
+        if(this._defaultPrimaryKey){
+            this._schema.beforeCreate((user, _ ) => {
+                let id = this['_defaultPrimaryKey'](user);
+                user[this._schema.primaryKeyField] =id;
+                return user;
+            });
+        }
     }
 
     public getSchema() {
@@ -53,10 +62,13 @@ export class DynamicSchema {
             var fieldMetadata: MetaData = <MetaData>metaDataMap[field];
             let newParam = {}
             Object.keys(fieldMetadata.params).forEach(x=>{
-                if(x!='name'){
-                    newParam[x] = fieldMetadata.params[x]    
+                if(this._removeColumnProperties.indexOf(x)<0){
+                    newParam[x] = fieldMetadata.params[x]
                 }
             })
+            if(fieldMetadata.params.primaryKey && fieldMetadata.params.defaultValue){
+                this._defaultPrimaryKey = fieldMetadata.params.defaultValue;
+            }
             schema[fieldMetadata.params.name] = newParam;
         }
 

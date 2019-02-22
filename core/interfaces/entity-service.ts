@@ -2,6 +2,9 @@
 import {QueryOptions} from '../interfaces/queryOptions';
 
 export interface IEntityService {
+    startTransaction(param?:any):Q.Promise<any>;
+    commitTransaction(param?:any):Q.Promise<any>;
+    rollbackTransaction(param?:any):Q.Promise<any>;
     findAll(model: any): Q.Promise<any>;
     findWhere(model: any, query, selectedFields?: Array<string>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any>;
     countWhere(model: any, query): Q.Promise<any>;
