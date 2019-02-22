@@ -26,6 +26,7 @@ export class Decorators {
     public static PROCESS_START = 'processStart';
     public static PROCESS_END = 'processEnd';
     public static PROCESS_START_AND_END = 'processStartEnd';
+    public static TRANSACTION = 'transaction';
 }
 
 export enum ExportTypes {
