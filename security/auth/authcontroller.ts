@@ -31,6 +31,9 @@ export class AuthController {
 
     constructor(path: string) {
         this.path = path;
+        if(!configUtil.config().passportSet){
+            return;
+        }
         this.addRoutes();
         this.createAuthStrategy();
         passport = configUtil.config().passportSet.getPassport();
