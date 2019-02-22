@@ -252,7 +252,7 @@ export class InitializeScokets {
                             parsedData.action = "countWhere";
                         }
                         if (parsedData.action == "findWhere" || parsedData.action == "countWhere") {
-                            let resultquerydata = getQueryOptionsFromQuery(parsedData.message);
+                            let resultquerydata = getQueryOptionsFromQuery(repo,parsedData.message);
                             resultpromise = repo[parsedData.action](resultquerydata.queryObj, null, resultquerydata.options);
                         } else {
                              resultpromise = repo[parsedData.action](parsedData.message);

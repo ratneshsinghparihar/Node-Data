@@ -142,7 +142,7 @@ class SequelizeService implements IEntityService {
         options = this.appendTransaction(options);
         return this.getModel(repoPath).update(obj, options).then(result=>{
             if(result[0]){
-                return this.findMany(repoPath, objIds);
+                return this.findMany(repoPath, objIds, false);
             }
             else{
                 throw 'failed to update';
@@ -172,7 +172,7 @@ class SequelizeService implements IEntityService {
             asyncalls.push(this.getModel(repoPath).update(obj, options));
         });
         return Q.allSettled(asyncalls).then(result=>{
-            return this.findMany(repoPath, objArr.map(x=>x[primaryKey]));
+            return this.findMany(repoPath, objArr.map(x=>x[primaryKey]), false);
         });
     }
 
@@ -194,7 +194,9 @@ class SequelizeService implements IEntityService {
         if(selectedFields && selectedFields.length>0){
             cond['attributes'] = selectedFields
         }
-        cond['include'] = this.getAllForeignKeyAssocations(schemaModel, selectedFields);
+        if(toLoadChilds){
+            cond['include'] = this.getAllForeignKeyAssocations(schemaModel, selectedFields);
+        }
         return schemaModel.findAll(cond).then(result => {
             if (!result) return null;
             return result.map(x=>x.dataValues);
@@ -222,13 +224,12 @@ class SequelizeService implements IEntityService {
         });
     }
 
-    findOne(repoPath: string, id): Q.Promise<any> {
+    findOne(repoPath: string, id, donotLoadChilds?: boolean): Q.Promise<any> {
         let schemaModel = this.getModel(repoPath);
         let primaryKey = schemaModel.primaryKeyAttribute;
         var cond = {};
         cond[primaryKey] = id;
-        var self = this;
-        let include = this.getAllForeignKeyAssocations(schemaModel, null);
+        let include = donotLoadChilds? [] : this.getAllForeignKeyAssocations(schemaModel, null);
         return schemaModel.find({ include: include, where: cond }).then(result => {
             return result.dataValues;
         });
@@ -238,11 +239,11 @@ class SequelizeService implements IEntityService {
         return this.getModel(repoPath).find({ where: { fieldName: value } });
     }
 
-    findMany(repoPath: string, ids: Array<any>) {
+    findMany(repoPath: string, ids: Array<any>, toLoadEmbeddedChilds?: boolean) {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {};
         cond[primaryKey] = ids;
-        return this.findWhere(repoPath,cond);
+        return this.findWhere(repoPath,cond, [], null, toLoadEmbeddedChilds);
     }
 
     findChild(repoPath: string, id, prop): Q.Promise<any> {

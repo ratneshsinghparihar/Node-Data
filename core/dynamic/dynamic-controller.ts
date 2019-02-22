@@ -579,7 +579,7 @@ export class DynamicController {
 
     private searchFromDb(req, res, propertyKey) {
         var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-        let resultquerydata = getQueryOptionsFromQuery(req.query);
+        let resultquerydata = getQueryOptionsFromQuery(this.repository,req.query);
         var queryObj = resultquerydata.queryObj;
         var options = resultquerydata.options;
        
