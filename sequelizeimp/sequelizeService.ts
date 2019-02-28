@@ -88,6 +88,59 @@ class SequelizeService implements IEntityService {
         this._relationCollection.push(relationToDictionary);
     }
 
+    parseProperties(props,schemaModel){
+        let config = {}
+        props.forEach(prop=>{
+            if(prop.indexOf('.')<0){
+                config['attributes']=config['attributes']?config['attributes']:[];
+                config['attributes'].push(prop);
+            }
+            else{
+                let foreignKeys = prop.split('.');
+                this.insertForeignKey(config, foreignKeys,schemaModel);
+            }
+        })
+        return config;
+    }
+
+    insertForeignKey(config, foreignKeys,schemaModel){
+        let modelConfig = config;
+        foreignKeys.forEach((x, i)=>{
+            if(foreignKeys.length-1 == i){
+                modelConfig['attributes']=modelConfig['attributes']?modelConfig['attributes']:[];
+                let relSchemas = this._relationCollection.filter(schema => (schema.relation == schemaModel.name));
+                if(relSchemas.length >0 && relSchemas[0].toSchema.primaryKeyAttribute!=x){
+                    modelConfig['attributes'].push(x);
+                }
+            }
+            else{
+                modelConfig['include']=modelConfig['include']?modelConfig['include']:[];
+                let filterConfig = modelConfig.include.filter(p=>p.as==x);
+                if(!filterConfig.length){
+                    let relSchemas = this._relationCollection.filter(schema => (schema.fromSchema.name == schemaModel.name) && (schema.type == Decorators.MANYTOONE) && (schema.path == x));
+                    if(relSchemas.length>0){
+                    schemaModel = relSchemas[0].toSchema;
+                    let tempConfig = { model: relSchemas[0].toSchema, as :relSchemas[0].path,attributes:[relSchemas[0].toSchema.primaryKeyAttribute]}
+                    modelConfig.include.push(tempConfig);
+                    modelConfig = tempConfig;
+                    }
+                }
+                else{
+                    let relSchemas = this._relationCollection.filter(schema => (schema.fromSchema.name == schemaModel.name) && (schema.type == Decorators.MANYTOONE) && (schema.path == x));
+                    if(relSchemas.length>0){
+                    schemaModel = relSchemas[0].toSchema;
+                    }
+                    modelConfig = filterConfig[0];
+                }
+            }
+        })
+    }
+
+    getAllForeignKeyAssocationsForFindWhere(inputArr, schemaModel) {
+        let parseProperties = this.parseProperties(inputArr,schemaModel);
+        return parseProperties;
+    }
+
     getAllForeignKeyAssocations(schemaModel, properties:Array<string>){
         let includes = [];
         let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && (x.type == Decorators.MANYTOONE));
@@ -95,9 +148,15 @@ class SequelizeService implements IEntityService {
             relSchemas.forEach(x=>{
                 if(!properties || !properties.length || properties.indexOf(x.path)>=0){
                     if(x.metaData.eagerLoading){
-                        let model = {model:x.toSchema, as:x.path};
-                        if(x.metaData.properties){
+                        let model = { model: x.toSchema, as: x.path, attributes:[x.toSchema.primaryKeyAttribute] };
+                        if (x.metaData.properties) {
                             model['attributes'] = x.metaData.properties;
+                            let properties=x.metaData.properties;
+                            let indexofPrimaryKey=properties.indexOf(x.toSchema.primaryKeyAttribute);
+                            if(indexofPrimaryKey>-1){
+                                properties.splice(indexofPrimaryKey,1) 
+                            }
+                            model['attributes'] = properties;
                         }
                         let childModel = this.getAllForeignKeyAssocations(x.toSchema, x.metaData.properties);
                         if(childModel.length){
@@ -189,17 +248,19 @@ class SequelizeService implements IEntityService {
     }
 
     findWhere(repoPath: string, query, selectedFields?: Array<string>, queryOptions?: QueryOptions, toLoadChilds?: boolean): Q.Promise<any> {
-        let schemaModel = this.getModel(repoPath)
-        let cond = {where: query}
-        if(selectedFields && selectedFields.length>0){
-            cond['attributes'] = selectedFields
+        let schemaModel = this.getModel(repoPath);
+        let cond = {};
+        if (selectedFields && selectedFields.length > 0) {
+             cond = this.getAllForeignKeyAssocationsForFindWhere(selectedFields, schemaModel);
         }
-        if(toLoadChilds){
-            cond['include'] = this.getAllForeignKeyAssocations(schemaModel, selectedFields);
+        else {
+            cond['include'] = this.getAllForeignKeyAssocations(schemaModel, []);
         }
+        cond["where"] = query
+
         return schemaModel.findAll(cond).then(result => {
             if (!result) return null;
-            return result.map(x=>x.dataValues);
+            return result.map(x => x.dataValues);
         });
     }
 

@@ -7,6 +7,9 @@ export class SequelizeStudent extends BaseSequelize {
 
     @column({ name: "Id", type: Sequelize.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true })
     Id: number;
+
+    @column({ name: "name", type: Sequelize.STRING, allowNull: false })
+    name: string;
 }
 
 export default SequelizeStudent;
