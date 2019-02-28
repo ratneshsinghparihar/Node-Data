@@ -3,5 +3,5 @@ import {school} from '../models/school';
 import {DynamicRepository} from '../../core/dynamic/dynamic-repository';
 
 @repository({ path: 'school', model: school })
-export default class SchoolRepository extends DynamicRepository {
+export default class SchoolRepository1 extends DynamicRepository {
 }

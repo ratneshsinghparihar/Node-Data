@@ -10,6 +10,9 @@ export class SequelizeTeacher extends BaseSequelize {
     @column({ name: "Id", type: Sequelize.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true })
     Id: number;
 
+    @column({ name: "name", type: Sequelize.STRING, allowNull: false })
+    name: string;
+    
     // by default it will choose primary key of the table
     @manytoone({ rel: 'sequelize_student', itemType: SequelizeStudent, eagerLoading: true,foreignKey:'StudentID' })
     Student: SequelizeStudent;
