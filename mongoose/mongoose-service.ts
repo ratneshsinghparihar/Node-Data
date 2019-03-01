@@ -241,6 +241,18 @@ export class MongooseService implements IEntityService {
         }
     }
 
+    getLikeCondition(val){
+        return {
+            $regex: '.*' + val + '.*'
+        }
+    }
+
+    getStartsWithCondition(val){
+        return {
+            $regex: '^' + val + '.*'
+        }
+    }
+
     private getEntityFromCache(repoPath: string, param: string, id: any) {
         // entityCache->modelName_path->hashEntity->{key: valueObj}
         //                            ->idEntity->{key: valueObj}

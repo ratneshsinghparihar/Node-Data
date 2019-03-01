@@ -6,10 +6,7 @@ import {MetaUtils} from "../core/metadata/utils";
 import {pathRepoMap, getEntity} from '../core/dynamic/model-entity';
 import {QueryOptions} from '../core/interfaces/queryOptions';
 import {Decorators as CoreDecorators, Decorators} from '../core/constants';
-//import {pathRepoMap} from './schema';
-import * as schema  from "./schema";
 import * as Enumerable from 'linq';
-import { MetaData } from '../core/metadata/metadata';
 import { IAssociationParams } from '../core/decorators/interfaces';
 import { PrincipalContext } from '../security/auth/principalContext';
 import {ConstantKeys} from '../core/constants/constantKeys';
@@ -362,6 +359,18 @@ class SequelizeService implements IEntityService {
 
     patch(repoPath: string, id: any, obj): Q.Promise<any> {
         return this.put(repoPath, id, obj)
+    }
+
+    getLikeCondition(val){
+        return {
+            [this.sequelize.Op.like]: '%'+val+'%'
+        }
+    }
+
+    getStartsWithCondition(val){
+        return {
+            [this.sequelize.Op.like]: val+'%'
+        }
     }
 
     private getAssociationForSchema(model: any, schema: any) {
