@@ -145,7 +145,7 @@ class SequelizeService implements IEntityService {
             relSchemas.forEach(x=>{
                 if(!properties || !properties.length || properties.indexOf(x.path)>=0){
                     if(x.metaData.eagerLoading){
-                        let model = { model: x.toSchema, as: x.path, attributes:[] };
+                        let model = { model: x.toSchema, as: x.path};
                         if (x.metaData.properties) {
                             model['attributes'] = x.metaData.properties;
                         }
