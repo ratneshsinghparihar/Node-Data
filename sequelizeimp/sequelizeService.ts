@@ -145,15 +145,9 @@ class SequelizeService implements IEntityService {
             relSchemas.forEach(x=>{
                 if(!properties || !properties.length || properties.indexOf(x.path)>=0){
                     if(x.metaData.eagerLoading){
-                        let model = { model: x.toSchema, as: x.path, attributes:[x.toSchema.primaryKeyAttribute] };
+                        let model = { model: x.toSchema, as: x.path, attributes:[] };
                         if (x.metaData.properties) {
                             model['attributes'] = x.metaData.properties;
-                            let properties=x.metaData.properties;
-                            let indexofPrimaryKey=properties.indexOf(x.toSchema.primaryKeyAttribute);
-                            if(indexofPrimaryKey>-1){
-                                properties.splice(indexofPrimaryKey,1) 
-                            }
-                            model['attributes'] = properties;
                         }
                         let childModel = this.getAllForeignKeyAssocations(x.toSchema, x.metaData.properties);
                         if(childModel.length){
@@ -187,7 +181,9 @@ class SequelizeService implements IEntityService {
     bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
         let options = {individualHooks: true}
         options = this.appendTransaction(options);
-        return this.getModel(repoPath).bulkCreate(objArr, options);
+        return this.getModel(repoPath).bulkCreate(objArr, options).then(result=>{
+            return result.map(x=>x.dataValues);
+        });
     }
 
     bulkPutMany(repoPath: string, objIds: Array<any>, obj: any): Q.Promise<any> {
@@ -254,7 +250,14 @@ class SequelizeService implements IEntityService {
             cond['include'] = this.getAllForeignKeyAssocations(schemaModel, []);
         }
         cond["where"] = query
-
+        if(queryOptions){
+            if(queryOptions.skip){
+                cond['offset'] = parseInt(queryOptions.skip.toString());
+            }
+            if(queryOptions.limit){
+                cond['limit'] = parseInt(queryOptions.limit.toString());
+            }
+        }
         return schemaModel.findAll(cond).then(result => {
             if (!result) return null;
             return result.map(x => x.dataValues);

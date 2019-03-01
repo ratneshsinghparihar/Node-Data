@@ -43,8 +43,13 @@ export function generateSchema() {
     allDynamicSchemas.forEach(schema => {
         schema.getRelations()[CoreDecorators.MANYTOONE].forEach(manyToOne => {
             let sourceDynamicSchema = schema;
-            let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
+            let targetDynamicSchema:any = Enumerable.from(allDynamicSchemas)
                 .where(dynamicSchema => dynamicSchema.schemaName == manyToOne.rel).first();
+            if(manyToOne.properties){
+                if(manyToOne.properties.indexOf(targetDynamicSchema.primaryKeyAttribute)<0){
+                    manyToOne.properties.push(targetDynamicSchema.primaryKeyAttribute);
+                }
+            }
             sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.MANYTOONE, manyToOne);
 
         });
