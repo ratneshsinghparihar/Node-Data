@@ -33,9 +33,17 @@ export function generateSchema() {
 
     allDynamicSchemas.forEach(schema => {
         schema.getRelations()[CoreDecorators.ONETOMANY].forEach(oneToManyRelation => {
+            if(!oneToManyRelation.itemType){
+                oneToManyRelation.itemType = getModel(oneToManyRelation.rel);
+            }
             let sourceDynamicSchema = schema;
             let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
                 .where(dynamicSchema => dynamicSchema.schemaName == oneToManyRelation.rel).first();
+                if(oneToManyRelation.properties){
+                    if(oneToManyRelation.properties.indexOf(targetDynamicSchema.getSchema().primaryKeyAttribute)<0){
+                        oneToManyRelation.properties.push(targetDynamicSchema.getSchema().primaryKeyAttribute);
+                    }
+                }
             sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.ONETOMANY, oneToManyRelation);
         });
     })
@@ -43,6 +51,9 @@ export function generateSchema() {
     allDynamicSchemas.forEach(schema => {
         schema.getRelations()[CoreDecorators.MANYTOONE].forEach(manyToOne => {
             let sourceDynamicSchema = schema;
+            if(!manyToOne.itemType){
+                manyToOne.itemType = getModel(manyToOne.rel);
+            }
             let targetDynamicSchema:any = Enumerable.from(allDynamicSchemas)
                 .where(dynamicSchema => dynamicSchema.schemaName == manyToOne.rel).first();
             if(manyToOne.properties){

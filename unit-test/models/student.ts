@@ -5,7 +5,7 @@ import {field, document} from '../../mongoose/decorators';
 import {Strict} from '../../mongoose/enums/';
 import {onetomany, manytoone, manytomany, onetoone} from '../../core/decorators';
 
-@document({ name: 'student', strict: Strict.throw })
+@document({ name: 'student1', strict: Strict.throw })
 export class student {
     schema(): {} {
         return {

@@ -80,6 +80,8 @@ export class DynamicSchema {
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
+            if (!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
             oneTomanyrels.push(params);
         }
         this._relations[Decorators.ONETOMANY] = oneTomanyrels;
