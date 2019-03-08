@@ -1,4 +1,4 @@
-﻿import {config} from '../core/utils';
+﻿import {config,isJSON} from '../core/utils';
 import * as Sequelize from "sequelize";
 import Q = require('q');
 import {IEntityService} from '../core/interfaces/entity-service';
@@ -239,19 +239,19 @@ class SequelizeService implements IEntityService {
         let options = { where: cond };
         options = this.appendTransaction(options);
         return this.getModel(repoPath).update(obj, options).then(result=>{
-            if(result[0]){
-                return this.findMany(repoPath, objIds, false);
-            }
-            else{
-                throw 'failed to update';
-            }
+            return this.findMany(repoPath, objIds, false);
         });
     }
 
     bulkDel(repoPath: string, objArr: Array<any>): Q.Promise<any> {
         let primaryKey = this.getModel(repoPath).primaryKeyAttribute;
         let cond = {}
-        cond[primaryKey] = objArr.map(x=>x[primaryKey]);
+        if(isJSON(objArr[0])){
+            cond[primaryKey] = objArr.map(x => x[primaryKey]);
+        }
+        else{
+            cond[primaryKey] = objArr;
+        }
         let options = { where: cond }
         options = this.appendTransaction(options);
         return this.getModel(repoPath).destroy(options).then(result=>{
@@ -392,12 +392,7 @@ class SequelizeService implements IEntityService {
         let options = { where: cond }
         options = this.appendTransaction(options);
         return this.getModel(repoPath).update(obj, options).then(result=>{
-            if(result[0]){
-                return this.findOne(repoPath, id);
-            }
-            else{
-                throw 'Failed to update';
-            }
+            return this.findOne(repoPath, id);
         })
     }
 
