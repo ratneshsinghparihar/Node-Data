@@ -47,7 +47,7 @@ class courseRepository{
     }
 }
 
-class studentRepository{
+class studentRepository1{
     find(param: any): Q.Promise<any> {
         return MongoDbMock.find(param, database[ModelNames.student]);
     }
@@ -236,7 +236,7 @@ export function AddAllFakeFunctions() {
 
     database[ModelNames.student] = [];
     _mongooseModel[ModelNames.student] = Mongoose.model(ModelNames.student, new Mongoose.Schema(student.prototype.schema()));
-    _databaseCalls[ModelNames.student] = new studentRepository();
+    _databaseCalls[ModelNames.student] = new studentRepository1();
 
     console.log('added all faked function');
 }

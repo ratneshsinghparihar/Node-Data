@@ -2,8 +2,9 @@ import { column, entity } from '../sequelizeimp/decorators';
 import * as Sequelize from "sequelize";
 import {BaseSequelize} from './baseSequelizeModel';
 import {SequelizeTeacher} from './sequelizeTeacher';
-import {manytoone} from '../core/decorators';
-
+import {manytoone,onetomany} from '../core/decorators';
+import SequelizeStudent from './sequelizeStudent';
+ 
 @entity({ name: 'school', tableName: 'sequelize_school', timestamps: false, freezeTableName: true })
 export class SequelizeSchool extends BaseSequelize {
 
@@ -12,14 +13,9 @@ export class SequelizeSchool extends BaseSequelize {
 
     @column({ name: "name", type: Sequelize.STRING, allowNull: false })
     name: string;
-    
-    // by default it will choose primary key of the table
-    @manytoone({ rel: 'sequelize_teacher', itemType: SequelizeTeacher, eagerLoading: true, properties:['name'], foreignKey:'TeacherID'})
-    Teacher: SequelizeTeacher;
 
-    // foreign key should not be assigned as a column
-    @column({name: "TeacherID", type:Sequelize.INTEGER, allowNull:true})
-    TeacherID:number;
+    @onetomany({ rel: 'sequelize_teacher', itemType: SequelizeTeacher, eagerLoading: true, foreignKey:'SchoolID'})
+    Teachers: Array<SequelizeTeacher>;
 }
 
 export default SequelizeTeacher;

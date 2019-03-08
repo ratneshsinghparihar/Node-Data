@@ -8,7 +8,7 @@ import Q = require('q');
 @service({ singleton: true, serviceName: 'teacherService' })
 export class TeacherService {
     @inject(teacherRepository)
-    private _teacherRepository: teacherRepository.TeacherRepository;
+    private _teacherRepository: teacherRepository.TeacherRepository1;
 
     @Worker()
     addTeacherWorker(obj: teacher) {
