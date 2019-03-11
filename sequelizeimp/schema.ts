@@ -66,6 +66,24 @@ export function generateSchema() {
         });
     })
 
+    allDynamicSchemas.forEach(schema => {
+        schema.getRelations()[CoreDecorators.ONETOONE].forEach(onetoone => {
+            let sourceDynamicSchema = schema;
+            if(!onetoone.itemType){
+                onetoone.itemType = getModel(onetoone.rel);
+            }
+            let targetDynamicSchema:any = Enumerable.from(allDynamicSchemas)
+                .where(dynamicSchema => dynamicSchema.schemaName == onetoone.rel).first();
+            if(onetoone.properties){
+                if(onetoone.properties.indexOf(targetDynamicSchema.getSchema().primaryKeyAttribute)<0){
+                    onetoone.properties.push(targetDynamicSchema.getSchema().primaryKeyAttribute);
+                }
+            }
+            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.ONETOONE, onetoone);
+
+        });
+    })
+
 
     var repositoryMetadata = MetaUtils.getMetaDataForDecorators([CoreDecorators.REPOSITORY]);
     repositoryMetadata.forEach(x => {

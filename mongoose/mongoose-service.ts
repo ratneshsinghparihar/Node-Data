@@ -311,6 +311,10 @@ export class MongooseService implements IEntityService {
             delete currentUser.entityCache[repoPath][param][id];
         }
     }
+
+    getPrimaryKey(repoPath){
+        return '_id';
+    }
 }
 
 export class CacheConstants {

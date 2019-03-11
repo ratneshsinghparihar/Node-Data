@@ -68,11 +68,11 @@ class SequelizeService implements IEntityService {
     addRelationInSchema(fromSchema: any, toSchema: any, relationType:string, metaData:IAssociationParams) {
         let path = metaData.propertyKey;
         if (relationType == CoreDecorators.ONETOMANY)
-            fromSchema.hasMany(toSchema, { as: path,sourceKey: path,foreignKey:metaData.foreignKey});
+            fromSchema.hasMany(toSchema, { as: path,sourceKey: path, foreignKey:metaData.foreignKey});
         if (relationType == CoreDecorators.MANYTOONE)
             fromSchema.belongsTo(toSchema, { as: path, foreignKey:metaData.foreignKey});
         if (relationType == CoreDecorators.ONETOONE)
-            fromSchema.has(toSchema, { as: path});
+            fromSchema.hasOne(toSchema, { as: path, sourceKey: path, foreignKey:metaData.foreignKey});
 
         let relationToDictionary: any = {};
         relationToDictionary.metaData = metaData;
@@ -184,9 +184,9 @@ class SequelizeService implements IEntityService {
         return includes;
     }
 
-    getAllForeignKeyAssocationsOneToMany(schemaModel, properties:Array<string>){
+    getAllForeignKeyAssocationsOneToMany(type, schemaModel, properties:Array<string>){
         let includes = [];
-        let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && ( x.type == Decorators.ONETOMANY));
+        let relSchemas = this._relationCollection.filter(x=>(x.fromSchema.name == schemaModel.name) && ( x.type == type));
         if(relSchemas.length){
             relSchemas.forEach(x=>{
                 if(!properties || !properties.length || properties.indexOf(x.path)>=0){
@@ -195,7 +195,7 @@ class SequelizeService implements IEntityService {
                         if (x.metaData.properties) {
                             model['attributes'] = x.metaData.properties;
                         }
-                        let childModel = this.getAllForeignKeyAssocationsOneToMany(x.toSchema, x.metaData.properties);
+                        let childModel = this.getAllForeignKeyAssocationsOneToMany(type, x.toSchema, x.metaData.properties);
                         if(childModel.length){
                             model['include']= childModel;
                         }
@@ -337,8 +337,9 @@ class SequelizeService implements IEntityService {
         var cond = {};
         cond[primaryKey] = id;
         let include1 = donotLoadChilds? [] : this.getAllForeignKeyAssocationsForManyToOne(schemaModel, null);
-        let include2 = donotLoadChilds? [] : this.getAllForeignKeyAssocationsOneToMany(schemaModel, null);
-        let include = include1.concat(include2);
+        let include2 = donotLoadChilds? [] : this.getAllForeignKeyAssocationsOneToMany(Decorators.ONETOMANY, schemaModel, null);
+        let include3 = donotLoadChilds? [] : this.getAllForeignKeyAssocationsOneToMany(Decorators.ONETOONE, schemaModel, null);
+        let include = include1.concat(include2).concat(include3);
         console.log('%%%%%%%%%%%%%%%%%%%%'+include);
         return schemaModel.find({ include: include, where: cond }).then(result => {
             return result.dataValues;
@@ -421,6 +422,10 @@ class SequelizeService implements IEntityService {
         return {
             [this.sequelize.Op.like]: val+'%'
         }
+    }
+
+    getPrimaryKey(repoPath){
+        return this.getModel(repoPath).primaryKeyAttribute;
     }
 
     private getAssociationForSchema(model: any, schema: any) {

@@ -86,23 +86,24 @@ export function entityAction(params: IPreauthorizeParams): any {
                     RepoActions.findOne, RepoActions.findWhere];
                     // Converting Repo method names into uppercase as check with original method name is in uppercase.
                     // This is require othewise it will go in else condition and some of the entities will visible user without access e.g. questionnaire not assigned ot user.
-                    findActions = findActions.map(methodName => methodName.toUpperCase());
-                    if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
-                        //console.log("CanRead entity Security " + this.path);
+                findActions = findActions.map(methodName => methodName.toUpperCase());
+                if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
+                    //console.log("CanRead entity Security " + this.path);
 
-                        let promiseOfAuthServerice:any = Q.when(true);
-                        if (checkIfAClrequired()){
-                            promiseOfAuthServerice = PostFilterService.postFilter(fullyQualifiedEntities, params);
-                        }
-                        return promiseOfAuthServerice.then(result => {
-                            //console.log("CanRead entity Security End " + this.path);
+                    let promiseOfAuthServerice:any = Q.when(true);
+                    if (checkIfAClrequired()){
+                        promiseOfAuthServerice = PostFilterService.postFilter(fullyQualifiedEntities, params);
+                    }
+                    return promiseOfAuthServerice.then(result => {
+                        //console.log("CanRead entity Security End " + this.path);
+                        let primaryKey = this.getPrimarykey();
                         if (!result) {
                             fullyQualifiedEntities = null;
                         }
                         if (result instanceof Array) {
-                            let ids = result.map(x => x._id.toString());
+                            let ids = result.map(x => x[primaryKey].toString());
                             // select only entities which have access
-                            fullyQualifiedEntities = Enumerable.from(fullyQualifiedEntities).where((x: EntityActionParam) => ids.indexOf(x.newPersistentEntity._id.toString()) != -1).toArray();
+                            fullyQualifiedEntities = Enumerable.from(fullyQualifiedEntities).where((x: EntityActionParam) => ids.indexOf(x.newPersistentEntity[primaryKey].toString()) != -1).toArray();
                         }
 
                         if (args.length) {
@@ -164,6 +165,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
     var response = [];
     let repo: IDynamicRepository = this;
     let rootRepo = repo.getRootRepo();
+    let primaryKey = this.getPrimarykey();
     switch (method.name.toUpperCase()) {
 
         case RepoActions.findOne.toUpperCase():
@@ -175,19 +177,19 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.findAll.toUpperCase():
             prom = rootRepo.findAll().then((dbEntities: Array<any>) => {
                 let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
-                return mergeEntities(dbEntities, undefined, mergedEntities);
+                return mergeEntities(primaryKey, dbEntities, undefined, mergedEntities);
             });
             break;
         case RepoActions.findWhere.toUpperCase():
             prom = rootRepo.findWhere.apply(rootRepo, args).then((dbEntities: Array<any>) => {
                 let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
-                return mergeEntities(dbEntities, undefined, mergedEntities);
+                return mergeEntities(primaryKey, dbEntities, undefined, mergedEntities);
             });
             break;
         case RepoActions.findMany.toLocaleUpperCase():
             prom = rootRepo.findMany(args[0]).then((dbEntities: Array<any>) => {
                 let mergedEntities = dbEntities.map(x => InstanceService.getInstance(this.getEntity(), null, x));
-                return mergeEntities(dbEntities, undefined, mergedEntities);
+                return mergeEntities(primaryKey, dbEntities, undefined, mergedEntities);
             });
             break;
         // TODO: Need to write code for all remaining get entity(s) actions
@@ -202,7 +204,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             // fetch single object
             let entityIdToUpdate = args[0];
             let entityToUpdate = args[1];
-            entityToUpdate._id = entityIdToUpdate;
+            entityToUpdate[primaryKey] = entityIdToUpdate;
             let mergedEntity = InstanceService.getInstance(this.getEntity(), null, args[1]);
             prom = rootRepo.findOne(args[0]).then(res => {
                 return mergeProperties(res, args[1], mergedEntity);
@@ -223,7 +225,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             prom = Q.when(response);
             break;
         case RepoActions.bulkPut.toUpperCase():
-            var ids = Enumerable.from(args[0]).select(x => x['_id'].toString()).toArray();
+            var ids = Enumerable.from(args[0]).select(x => x[primaryKey].toString()).toArray();
             let mergeEntities1 = [];
             //console.log("entity action findmany instance service start " + this.path);
             args[0].forEach(x => {
@@ -232,7 +234,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
             //console.log("entity action findmany start " + this.path);
             prom = rootRepo.findMany(ids, true).then(dbEntities => {
                 //console.log("entity action merge entity start " + this.path);
-                let retval = mergeEntities(dbEntities, args[0], mergeEntities1);
+                let retval = mergeEntities(primaryKey, dbEntities, args[0], mergeEntities1);
                 //console.log("entity action merge entity end " + this.path);
                 return retval;
             });
@@ -242,14 +244,14 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
                 var ids = [];
                 Enumerable.from(args[0]).forEach(x => {
                     if (Utils.isJSON(x)) {
-                        ids.push(x['_id']);
+                        ids.push(x[primaryKey]);
                     }
                     else {
                         ids.push(x);
                     }
                 });
                 prom = rootRepo.findMany(ids).then(dbEntities => {
-                    return mergeEntities(undefined, dbEntities, dbEntities);
+                    return mergeEntities(primaryKey, undefined, dbEntities, dbEntities);
                 });
             }
             else {
@@ -278,7 +280,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
     });
 }
 
-function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
+function mergeEntities(primaryKey, dbEntities, entities?, mergeEntities1?: Array<any>) {
     var res = [];
     if (!entities && dbEntities) {
         dbEntities.forEach(x => {
@@ -289,21 +291,21 @@ function mergeEntities(dbEntities, entities?, mergeEntities1?: Array<any>) {
     let dbEntityKeyVal = {};
     let megredEntityKeyVal = {};
     if (dbEntities) {
-        dbEntities.forEach(dbE => dbEntityKeyVal[dbE._id] = dbE);
+        dbEntities.forEach(dbE => dbEntityKeyVal[dbE[primaryKey]] = dbE);
     }
 
     if (mergeEntities1) {
-        mergeEntities1.forEach(mgE => megredEntityKeyVal[mgE._id] = mgE);
+        mergeEntities1.forEach(mgE => megredEntityKeyVal[mgE[primaryKey]] = mgE);
     }
 
     entities.forEach(entity => {
 
         var dbEntity, mergeEntity;
         if (dbEntities) {
-            dbEntity = dbEntityKeyVal[entity['_id']];
+            dbEntity = dbEntityKeyVal[entity[primaryKey]];
         }
         if (mergeEntities1) {
-            mergeEntity = megredEntityKeyVal[entity['_id']];
+            mergeEntity = megredEntityKeyVal[entity[primaryKey]];
         }
 
         res.push(mergeProperties(dbEntity, entity, mergeEntity));

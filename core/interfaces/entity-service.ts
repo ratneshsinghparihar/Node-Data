@@ -25,4 +25,5 @@ export interface IEntityService {
     getModel(repoPath: string, dynamicName?: string);
     getLikeCondition(string):any;
     getStartsWithCondition(string):any;
+    getPrimaryKey(repoPath):string;
 }
