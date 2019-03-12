@@ -68,11 +68,11 @@ class SequelizeService implements IEntityService {
     addRelationInSchema(fromSchema: any, toSchema: any, relationType:string, metaData:IAssociationParams) {
         let path = metaData.propertyKey;
         if (relationType == CoreDecorators.ONETOMANY)
-            fromSchema.hasMany(toSchema, { as: path,sourceKey: path, foreignKey:metaData.foreignKey});
+            fromSchema.hasMany(toSchema, { as: path, foreignKey:metaData.foreignKey});
         if (relationType == CoreDecorators.MANYTOONE)
             fromSchema.belongsTo(toSchema, { as: path, foreignKey:metaData.foreignKey});
         if (relationType == CoreDecorators.ONETOONE)
-            fromSchema.hasOne(toSchema, { as: path, sourceKey: path, foreignKey:metaData.foreignKey});
+            fromSchema.hasOne(toSchema, { as: path, foreignKey:metaData.foreignKey});
 
         let relationToDictionary: any = {};
         relationToDictionary.metaData = metaData;
