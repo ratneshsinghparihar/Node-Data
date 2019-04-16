@@ -21,7 +21,7 @@ export class DynamicSchema {
     private _schema: any;
     private _relations: any = {};
     private _defaultPrimaryKey = null;
-    private _removeColumnProperties = ['name'];
+    private _removeColumnProperties = ['name','otherProperties'];
 
     constructor(target: Object, name: string, tableSpecs: any) {
         this.target = target;
@@ -64,6 +64,11 @@ export class DynamicSchema {
             Object.keys(fieldMetadata.params).forEach(x => {
                 if(this._removeColumnProperties.indexOf(x)<0){
                     newParam[x] = fieldMetadata.params[x]
+                }
+                else if(x == 'otherProperties'){
+                    Object.keys(fieldMetadata.params[x]).forEach(subProp=>{
+                        newParam[subProp] = fieldMetadata.params[x][subProp];
+                    });
                 }
             })
             if(fieldMetadata.params.primaryKey && typeof fieldMetadata.params.defaultValue=="function"){
