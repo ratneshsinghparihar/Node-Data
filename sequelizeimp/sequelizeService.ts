@@ -303,6 +303,9 @@ class SequelizeService implements IEntityService {
             if(queryOptions.limit){
                 cond['limit'] = parseInt(queryOptions.limit.toString());
             }
+            if(queryOptions.sort){
+                cond['order'] = queryOptions.sort
+            }
         }
         return schemaModel.findAll(cond).then(result => {
             if (!result) return null;
