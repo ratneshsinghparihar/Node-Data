@@ -241,6 +241,10 @@ export class MongooseService implements IEntityService {
         }
     }
 
+    getSortCondition(val){
+        return val;
+    }
+
     getLikeCondition(val){
         return {
             $regex: '.*' + val + '.*'

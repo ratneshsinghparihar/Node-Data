@@ -40,6 +40,12 @@ export var getQueryOptionsFromQuery = (repository: any, query: { queryObj: any, 
     Enumerable.from(queryObj).forEach((x: any) => {
         if (filterProps.indexOf(x.key) >= 0) {
             options[x.key] = x.value;
+            if(x.key == 'sort'){
+                options[x.key] = entityService.getSortCondition(x.value);
+            }
+            else{
+                options[x.key] = x.value;
+            }
             delete queryObj[x.key];
         }
         else

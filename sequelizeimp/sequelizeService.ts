@@ -415,6 +415,10 @@ class SequelizeService implements IEntityService {
         return this.put(repoPath, id, obj)
     }
 
+    getSortCondition(val){
+        return JSON.parse(val);
+    }
+
     getLikeCondition(val){
         return {
             [this.sequelize.Op.like]: '%'+val+'%'
