@@ -85,6 +85,7 @@
     "passport-jwt": "2.0.0",
     "passport-local": "1.0.0",
     "q": "1.4.1",
+    "qs": "^6.7.0",
     "random-number": "0.0.9",
     "recursive-readdir-synchronous": "0.0.2",
     "reflect-metadata": "0.1.3",
