@@ -10,6 +10,7 @@ import * as Enumerable from 'linq';
 import { IAssociationParams } from '../core/decorators/interfaces';
 import { PrincipalContext } from '../security/auth/principalContext';
 import {ConstantKeys} from '../core/constants/constantKeys';
+var queryString = require('qs');
 
 class SequelizeService implements IEntityService {
     private sequelize: any;
@@ -420,12 +421,14 @@ class SequelizeService implements IEntityService {
     }
 
     getLikeCondition(val){
+        val = queryString.parse('key='+val)['key'];
         return {
             [this.sequelize.Op.like]: '%'+val+'%'
         }
     }
 
     getStartsWithCondition(val){
+        val = queryString.parse('key='+val)['key'];
         return {
             [this.sequelize.Op.like]: val+'%'
         }
