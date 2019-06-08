@@ -16,6 +16,7 @@ import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
 import {getQueryOptionsFromQuery} from '../interfaces/queryOptions';
+var queryString = require('qs');
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -579,7 +580,8 @@ export class DynamicController {
 
     private searchFromDb(req, res, propertyKey) {
         var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-        let resultquerydata = getQueryOptionsFromQuery(this.repository,req.query);
+        let queryParams = queryString.parse(req.query);
+        let resultquerydata = getQueryOptionsFromQuery(this.repository,queryParams);
         var queryObj = resultquerydata.queryObj;
         var options = resultquerydata.options;
        
