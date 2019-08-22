@@ -5,4 +5,5 @@
     public static property = 'property';
     public static parentId = 'parentId';
     public static parent = 'parent';
+    public static transaction = 'TRANSACTION';
 }

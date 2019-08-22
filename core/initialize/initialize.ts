@@ -1,6 +1,6 @@
-﻿/// <reference path="initialize-scokets.ts" />
+﻿
 import {InitializeRepositories} from "./initialize-repositories";
-import {InitializeScokets} from "./initialize-scokets";
+import {InitializeScokets} from "./initialize-sockets";
 import {InitializeMessengers} from "./initialize-messengers";
 import {InitializeControllers} from "./initialize-controllers";
 import {ParamTypeCustom} from '../metadata/param-type-custom';
@@ -14,9 +14,11 @@ import {CrudEntity} from "../dynamic/crud.entity";
 
 export class Initalize {
     constructor(files: Array<String>, server?: any) {
-        new InitializeRepositories();        
-        new InitializeMessengers();
-        new InitializeScokets(server);
+        new InitializeRepositories();
+        if (server) {
+            new InitializeMessengers();
+            new InitializeScokets(server);
+        }
         new InitializeControllers();
        
         this.configureBase();

@@ -1,5 +1,4 @@
-﻿
-import {MetaUtils} from "../metadata/utils";
+﻿import {MetaUtils} from "../metadata/utils";
 import * as Utils from "../utils";
 import * as mongooseUtils from '../../mongoose/utils';
 import {MetaData} from '../metadata/metadata';
@@ -8,7 +7,7 @@ import {IDynamicRepository, DynamicRepository} from '../dynamic/dynamic-reposito
 import {InstanceService} from '../services/instance-service';
 import {ParamTypeCustom} from '../metadata/param-type-custom';
 import {searchUtils} from "../../search/elasticSearchUtils";
-var Config = Utils.config();
+//var Config = Utils.config();
 import {Decorators} from '../constants';
 
 import {IRepositoryParams} from '../decorators/interfaces';
@@ -29,14 +28,14 @@ import {PrincipalContext} from '../../security/auth/principalContext';
 import {Session} from  '../../models/session';
 import * as configUtils from '../utils';
 import {repoMap} from './initialize-repositories';
-
+import {getQueryOptionsFromQuery} from '../interfaces/queryOptions';
 import * as Q from 'q';
 const uuidv4 = require('uuid/v4');
 import {IWorkerProcessService} from "../services/workerProcessService";
 import {IWorkerProcess} from "../../models/IWorkerProcess";
 import {IAutherizationParam} from "../../security/auth/autherizationParam";
-import {allAutherizationRules, allAutherizationRulesMap, workerProcessService, mainMessenger} from "./initialize-messengers";
-export var messageBraodcastOnMessenger: (repo: IDynamicRepository, message: any) => void;
+import {allAutherizationRules, allAutherizationRulesMap, workerProcessService, mainMessenger, channleMessangerMap} from "./initialize-messengers";
+export var messageBraodcastOnMessenger: (repo: IDynamicRepository, message: any,collection?:any) => void;
 export var socketConnector: () => void;
 export class InitializeScokets {
 
@@ -50,7 +49,7 @@ export class InitializeScokets {
 
 
     private io:any = undefined;
-    private channleMessangerMap: any = {};
+    
 
     private serverId = uuidv4();
     // name.role :{ role: string, accessmask: number, acl?: boolean }
@@ -82,10 +81,7 @@ export class InitializeScokets {
 
 
         let io:any = self.io;
-        if (server) {
-            self.io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
-            io = self.io;
-        }
+        
 
         this.socketClientholder.socket = io;
 
@@ -108,7 +104,7 @@ export class InitializeScokets {
                 let channelArr: Array<string> = socket.handshake.query.channels.split(",");
                 if (channelArr && channelArr.length) {
                     channelArr.forEach((room) => {
-                        console.log("joined room ", room);
+                        //console.log("joined room ", room);
                         socket.join(room);
                     });
                 }
@@ -125,18 +121,18 @@ export class InitializeScokets {
                         if (socket.handshake.query && socket.handshake.query.reliableChannles) {
                             let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                             if (channelArr.indexOf(room.name) > -1) {
-                                console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
+                                //console.log("joined room group with reliable session", room.name + "_" + room.group + "_RC");
                                 socket.join(room.name + "_" + room.group + "_RC");
                                 if (!self.socketChannelGroups[room.name][room.group + "_RC"]) { self.socketChannelGroups[room.name][room.group + "_RC"] = true }
                                 return;
                             }
                         }
-                        console.log("joined room group", room.name + "_" + room.group);
+                        //console.log("joined room group", room.name + "_" + room.group);
                         if (!self.socketChannelGroups[room.name][room.group]) { self.socketChannelGroups[room.name][room.group] = false }
                         socket.join(room.name + "_" + room.group);
                     }
                     else if (room) {
-                        console.log("joined room ", room);
+                        //console.log("joined room ", room);
                         socket.join(room);
                     }
                 });
@@ -147,6 +143,18 @@ export class InitializeScokets {
         let createWorkerOnConnect = (socket) => {
             let session = socket.handshake.query.curSession;
             if (socket.handshake.query && socket.handshake.query.reliableChannles) {
+                var Config = Utils.config();
+                if (Config.Path && Config.Path.ackChannelName) {
+                    socket.on(Config.Path.ackChannelName, function (data) {
+                        //console.log("acknowledgement recieved", data);
+                        // update last ask in session
+                        securityImpl.updateSession({
+                            netsessionid: socket.handshake.query.netsessionid,
+                            channelName: data.message.channel,
+                            lastack: new Date(data.message.timestamp),
+                        }, session);
+                    })
+                }
                 let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
                 if (channelArr && channelArr.length) {
                     let newWorker: IWorkerProcess = {
@@ -164,17 +172,33 @@ export class InitializeScokets {
                 let channelArr: Array<string> = socket.handshake.query.reliableChannles.split(",");
 
                 channelArr.forEach((rechannel) => {
-                    securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
-                        if (lastemit && self.channleMessangerMap && self.channleMessangerMap[rechannel]) {
-                            //for each chnnel ask messeger the send an array of pending message
 
-                            self.channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
+                    if (socket.handshake.query.isAckRequired === "true" || socket.handshake.query.isAckRequired === true) {
+                        securityImpl.getSessionLastAckForChannel(socket.handshake.query, rechannel).then((lastack) => {
+                            if (lastack && channleMessangerMap && channleMessangerMap[rechannel]) {
+                                //for each chnnel ask messeger the send an array of pending message
 
-                            //use socket.emitt to send previous message
-                        }
-                    }).catch((error) => {
-                        console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
-                    });
+                                channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastack, socket.id);
+
+                                //use socket.emitt to send previous message
+                            }
+                        }).catch((error) => {
+                            console.log("error in securityImpl.getSessionLastAckForChannel", error);
+                        });
+                    }
+                    else {
+                        securityImpl.getSessionLastTimeStampForChannel(socket.handshake.query, rechannel).then((lastemit) => {
+                            if (lastemit && channleMessangerMap && channleMessangerMap[rechannel]) {
+                                //for each chnnel ask messeger the send an array of pending message
+
+                                channleMessangerMap[rechannel].sendPendingMessage(rechannel, lastemit, socket.id);
+
+                                //use socket.emitt to send previous message
+                            }
+                        }).catch((error) => {
+                            console.log("error in securityImpl.getSessionLastTimeStampForChannel", error);
+                        });
+                    }
                 }
                 )
             }
@@ -215,42 +239,69 @@ export class InitializeScokets {
         //let onSocketDisConnection = (socket) => compose(updateWorkerService , updateSocketServer)
         let onSocketDisConnection = (socket) => { updateWorkerService(updateSocketServer(socket)) }
 
-        
-        let executefun = (parsedData, repo) => {
+        let arrOfReadAction = ["findAll", "findWhere", "countWhere", "distinctWhere", "findOne","searchAll","count"];
+        let executefun = (parsedData, repo,socket) => {
             try {
                 if (parsedData && parsedData.action && parsedData.message) {
                     if (securityImpl.isAuthorize(parsedData, repo, parsedData.action)) {
-                        repo[parsedData.action](parsedData.message)
+                        let resultpromise: any;
+                        if (parsedData.action == "searchAll") {
+                            parsedData.action = "findWhere";
+                        }
+                        if (parsedData.action == "count") {
+                            parsedData.action = "countWhere";
+                        }
+                        if (parsedData.action == "findWhere" || parsedData.action == "countWhere") {
+                            let resultquerydata = getQueryOptionsFromQuery(repo,parsedData.message);
+                            resultpromise = repo[parsedData.action](resultquerydata.queryObj, null, resultquerydata.options);
+                        } else {
+                             resultpromise = repo[parsedData.action](parsedData.message);
+                        }
+                        
+                        if (arrOfReadAction.indexOf(parsedData.action) > -1) {
+                            resultpromise.then((result) => socket.emit(repo.modelName(), result));
+                        }
                     }
                 }
             } catch (exceptio) {
-                console.log(exceptio);
+                //console.log(exceptio);
             }
         };
 
         let onRepoMessageReceoved1 =  (socket,data,repo)=> {
             var d = domain.create();
             d.run(() => {
-                try {
-                    if (socket.handshake.query && socket.handshake.query.curSession) {
+                
+
+                    //check if current session can be used
+                    if (data && data.headers && data.headers.netsessionid &&
+                        socket.handshake.query.curSession && socket.handshake.query.curSession.sessionId && 
+                        data.headers.netsessionid == socket.handshake.query.curSession.sessionId) {
                         PrincipalContext.User = securityImpl.getContextObjectFromSession(socket.handshake.query.curSession);
-                        executefun(data, repo);
+                        executefun(data, repo,socket);
                         return
                     }
-
-                }
-                catch (exc) {
-                    console.log(exc);
-                }
+                     let curExecuteFun = () => { executefun(data, repo, socket); };
+                    let result = (<any>(securityImpl.ensureLoggedIn()(data, undefined, curExecuteFun)));
+                    if (result && result.catch) {
+                        result.catch((err) => { console.log(err); });
+                    }
+                
+                
             });
         };
 
         let socketConector = () => {
+            if (!io && server) {
+                    self.io = require('socket.io')(server, { 'transports': ['websocket', 'polling'] });
+                    io = self.io;
+            }
+
             if (!io) { return;}
             io.on('connection',
                 function (socket) {
                     // this.socketClientholder.clients.push(client);
-                    console.log('client connected', socket.id);
+                    //console.log('client connected', socket.id);
                     if (socket.handshake.query) {
                         securityImpl.getSession(socket.handshake.query).then((session: Session) => {
                             socket.handshake.query.curSession = session;
@@ -258,7 +309,7 @@ export class InitializeScokets {
                             onSocketConnection(socket);
 
                         }).catch((error) => {
-                            console.log("error in getSession", error);
+                            //console.log("error in getSession", error);
                         });
                     }
 
@@ -268,7 +319,7 @@ export class InitializeScokets {
 
 
                     socket.on('disconnect', function () {
-                        console.log('client disconnected', socket.id);
+                        //console.log('client disconnected', socket.id);
                         onSocketDisConnection(socket);
                     });
 
@@ -276,19 +327,23 @@ export class InitializeScokets {
                         let repo = repoMap[key].repo;
                         let meta: MetaData = repo.getMetaData();
                         if (meta && ((meta.params.exportType & ExportTypes.WS) == ExportTypes.WS)) {
-                            socket.on(key, function (data) {
-                                onRepoMessageReceoved1(socket, data, repo)
+                             socket.on(key, function (data, callback) {
+                                if (callback) {
+                                    callback("success");
+                                }
+                                onRepoMessageReceoved1(socket, data, repo);
                             })
                                
                         }
 
                     }
+                   
                 }
             )
         }
         socketConnector = socketConector;
 
-        let messageOnMessenger = (repo: IDynamicRepository, message: any) =>
+        let messageOnMessenger = (repo: IDynamicRepository, message: any,collection?:any) =>
         {
 
             let key = repo.modelName();
@@ -299,10 +354,17 @@ export class InitializeScokets {
             if (!messenger) {
                 return;
             }
-            console.log("message received on ", key);
+            //console.log("message received on ", key);
 
             if ((meta.params.exportType & ExportTypes.PUB_SUB) == ExportTypes.PUB_SUB) {
-                messenger.sendMessageOnRepo(repo, message);
+                // messenger.sendMessageOnRepo(repo, message);
+                if (collection && collection.length) {
+                    collection.forEach((msg) => {
+                        messenger.sendMessageOnRepo(repo, msg);
+                    });
+                } else {
+                    messenger.sendMessageOnRepo(repo, message);
+                }
             }
 
             if (!io) {
@@ -310,12 +372,13 @@ export class InitializeScokets {
             }
             //handle if repo is completly broadcast
             let broadcastToAll = (castType: string) => {
+                io.sockets.emit(key, message);
                 let channelRoom:any = io.sockets.adapter.rooms[key];
                 if (channelRoom) {
                     var roomclients = channelRoom.length;
 
                     //io.sockets.emit(key, message);
-                    io.to(key).emit(key, message);
+                    //io.to(key).emit(key, message);
                     //io.broadcast.to(key).emit(key, message);
 
                     console.log("WS_BROAD_CAST", { "channel": key, "no_of_broadcasts": roomclients });
@@ -339,7 +402,8 @@ export class InitializeScokets {
             let connectedClients = 0;
             let broadCastClients = 0;
             let reliableClients = 0;
-
+            let individualClients = 0;
+            let singelEmittClients = 0;
 
 
             //handle broad cast group ..acl ==false
@@ -387,6 +451,11 @@ export class InitializeScokets {
 
 
                 let addAllclientsInRoom = () => {
+                    if (isRealiableChannel &&
+                        message.singleWorkerOnRole) {
+                        return;
+                    }
+
                     for (let channelId in roomclients) {
 
 
@@ -426,17 +495,18 @@ export class InitializeScokets {
                         continue;
                     }
 
-                    console.log("single emitter recieved on broadcasting", client.id)
+                    //console.log("single emitter recieved on broadcasting", client.id)
                     broadcastClients.push(client);
                     broadCastClients++
                     connectedClients++;
+                    singelEmittClients++;
                     updateReliableChannelSettings(client);
                 }
                 else {
                     addAllclientsInRoom();
                 }
                 if (broadcastClients && broadcastClients.length) {
-                    messenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients);
+                    messenger.sendMessageToclient(broadcastClients[0], repo, message, broadcastClients,collection);
                 }
             }
             //individual messages
@@ -448,10 +518,20 @@ export class InitializeScokets {
 
                             let client = io.sockets.connected[channelId];
                             if (!client) {
-                                return;
+                                continue;
                             }
+
+                            //check if already broadcasted
+                            if (client.handshake.query && client.handshake.query.broadcastChannels) {
+                                let channelArr: Array<string> = client.handshake.query.broadcastChannels.filter((x) => { return x.name==key });
+                                if (channelArr && channelArr.length) {
+                                    continue;
+                                }
+                            }
+
                             connectedClients++;
-                            messenger.sendMessageToclient(client, repo, message);
+                            individualClients++;
+                            messenger.sendMessageToclient(client, repo, message,undefined,collection);
                             if (client.handshake.query && client.handshake.query.reliableChannles) {
                                 let channelArr: Array<string> = client.handshake.query.reliableChannles.split(",");
                                 if (channelArr.indexOf(key) > -1) {
@@ -465,9 +545,11 @@ export class InitializeScokets {
             messageSendStatistics.connectedClients = connectedClients;
             messageSendStatistics.broadCastClients = broadCastClients;
             messageSendStatistics.reliableClients = reliableClients;
+            messageSendStatistics.individualClients = individualClients;
+            messageSendStatistics.singelEmittClients = singelEmittClients;
             messageSendStatistics.channel = key;
             messageSendStatistics.id = message._id && message._id.toString();
-            console.log("pub-sub message sent ", messageSendStatistics);
+            //console.log("pub-sub message sent ", messageSendStatistics);
         };
 
         messageBraodcastOnMessenger = messageOnMessenger;

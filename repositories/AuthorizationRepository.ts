@@ -273,7 +273,7 @@ export class AuthorizationRepository extends DynamicRepository {
     }
 
 
-    // @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntity" })
+    @entityAction({ serviceName: "authorizationService", methodName: "canSaveEntity" })
     post(obj: any): Q.Promise<any> {
         this.logEntityInfo("post", obj);
         let resultEntityActionObj: EntityActionParam = this.getEntityFromArgs.apply(this, arguments);

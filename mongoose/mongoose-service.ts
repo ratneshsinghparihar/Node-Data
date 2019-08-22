@@ -31,6 +31,18 @@ export class MongooseService implements IEntityService {
 
     }
 
+    startTransaction(param?:any):Q.Promise<any>{
+        return Q.when(true);
+    }
+
+    commitTransaction(param?:any):Q.Promise<any>{
+        return Q.when(true);
+    }
+
+    rollbackTransaction(param?:any):Q.Promise<any>{
+        return Q.when(true);
+    }
+
     bulkPost(repoPath: string, objArr: Array<any>, batchSize?: number): Q.Promise<any> {
         return MongooseModel.bulkPost(this.getModel(repoPath), objArr, batchSize);
     }

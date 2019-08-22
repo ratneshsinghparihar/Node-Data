@@ -58,6 +58,10 @@ export interface IDynamicRepository {
     castToPrimaryKey(id): any;
 
     onMessage(message: any);
+
+    isOnlyCustomActions:boolean;
+    isOnlySeachMethods:boolean;
+    isOnlyBasicRoutes:boolean;
 }
 
 export class DynamicRepository implements IDynamicRepository {
@@ -68,6 +72,11 @@ export class DynamicRepository implements IDynamicRepository {
     private entityService: IEntityService;
     private rootLevelRep: IDynamicRepository;
     private messenger: any;
+
+    isOnlyCustomActions:boolean;
+    isOnlySeachMethods:boolean;
+    isOnlyBasicRoutes:boolean;
+
     //private modelRepo: any;
 
     public initialize(repositoryPath: string, target: Function | Object, model?: any, rootRepo?: IDynamicRepository) {
@@ -95,6 +104,9 @@ export class DynamicRepository implements IDynamicRepository {
 
     public setMessanger(msgner?: any) {
         this.messenger = msgner;
+        if (this.rootLevelRep) {
+            this.rootLevelRep.setMessanger(msgner)
+        }
     }
 
     public getMessanger() {
@@ -121,17 +133,11 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPost(this.path, objs, batchSize).then(result => {
             if (result && result.length > 0) {
                 var res = [];
-                let messagesToSend = [];
+               
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                    if (this.messenger) {
-                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
-                    }
-                })
-                if (this.messenger && messagesToSend.length) {
-                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess"); })
-                        .catch((err) => { console.log("error in sending message bulkPost", err) });
-                }
+                });
+                this.sendAllMessagesUsingMessenger(result);
                 return res;
             }
             return result;
@@ -148,25 +154,34 @@ export class DynamicRepository implements IDynamicRepository {
         return Utils.entityService(pathRepoMap[this.path].modelType).bulkPut(this.path, objs, batchSize, donotLoadChilds).then(result => {
             if (result && result.length > 0) {
                 var res = [];
-                let messagesToSend = [];
+               
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
-                    if (this.messenger) {
-
-                        messagesToSend.push(this.messenger.chekAndSend(this.path, x));
-
-                        // this.socket.socket.sockets.emit(this.path, x);
-                    }
-                })
-
-                if (this.messenger && messagesToSend.length) {
-                    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
-                        .catch((err) => { console.log("error in sending message bulkPost", err) });
-                }
+                });
+                this.sendAllMessagesUsingMessenger(result);
                 return res;
             }
             return result;
         });
+    }
+
+    private sendAllMessagesUsingMessenger(entities: Array<any>) {
+        if (!this.messenger) {
+            return;
+        }
+        let messagesToSend = [];
+
+        this.messenger.chekAndSend(this.path, entities);
+
+        //entities.forEach(x => {           
+        //    if (this.messenger) {
+        //        messagesToSend.push();
+        //    }
+        //})
+        //if (this.messenger && messagesToSend.length) {
+        //    Q.allSettled(messagesToSend).then((sucess) => { console.log("send sucess") })
+        //        .catch((err) => { console.log("error in sending message bulkPost", err) });
+        //}
     }
 
     public bulkPatch(objArr: Array<any>) {
@@ -180,6 +195,7 @@ export class DynamicRepository implements IDynamicRepository {
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                 });
+                this.sendAllMessagesUsingMessenger(result);
                 return res;
             }
             return result;
@@ -193,6 +209,7 @@ export class DynamicRepository implements IDynamicRepository {
                 result.forEach(x => {
                     res.push(InstanceService.getObjectFromJson(this.getEntity(), x));
                 });
+                this.sendAllMessagesUsingMessenger(result);
                 return res;
             }
             return result;
@@ -368,7 +385,13 @@ export class DynamicRepository implements IDynamicRepository {
     public patch(id: any, obj) {
         obj = InstanceService.getInstance(this.getEntity(), id, obj);
         return Utils.entityService(pathRepoMap[this.path].modelType).patch(this.path, id, obj).then(result => {
-            return InstanceService.getObjectFromJson(this.getEntity(), result);
+            let retVal = InstanceService.getObjectFromJson(this.getEntity(), result);
+            if (retVal) {
+                if (this.messenger) {
+                    this.messenger.chekAndSend(this.path, retVal);
+                }
+            }
+            return retVal;
         });
     }
     /**
@@ -388,7 +411,11 @@ export class DynamicRepository implements IDynamicRepository {
         let primaryKey = '_id';
         let modelRepo = this.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD, primaryKey);
-        if (decoratorFields.params.primary && decoratorFields.getType() == Number) {
+
+        if(decoratorFields==null){
+            decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.COLUMN, primaryKey);
+        }
+        if (decoratorFields && decoratorFields.params &&  decoratorFields.params.primaryKey && decoratorFields.getType() == Number) {
             return Number.parseInt(id);
         }
         return id;

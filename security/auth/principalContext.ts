@@ -22,8 +22,13 @@ export class PrincipalContext {
     }
 
     static set User(user: any) {
-        domain.set('context:user', user);
-        PrincipalContext.setKeys('user');
+        try {
+            domain.set('context:user', user);
+            PrincipalContext.setKeys('user');
+        }
+        catch (exception) {
+            console.log("no active context found");
+        }
         //PrincipalContext.getSession().set('user', user);
     }
 

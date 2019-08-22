@@ -15,7 +15,7 @@ import {PreAuthService} from '../services/pre-auth-service';
 import {RepoActions} from '../enums/repo-actions-enum';
 import {PrincipalContext} from '../../security/auth/principalContext';
 import {PostFilterService} from '../services/post-filter-service';
-import {filterProps} from '../interfaces/queryOptions';
+import {getQueryOptionsFromQuery} from '../interfaces/queryOptions';
 var multer = require('multer');
 
 import * as securityImpl from './security-impl';
@@ -33,6 +33,21 @@ export class DynamicController {
         this.repository = repository;
         this.entity = entity;
         this.path = "/" + Utils.config().Config.basePath + "/" + entity.path;
+        if(repository.isOnlyCustomActions){
+            this.addActionPaths();
+            return;
+        }
+
+        if(repository.isOnlySeachMethods){
+            this.addSearchPaths();
+            return;
+        }
+
+        if(repository.isOnlyBasicRoutes){
+            this.addRoutes();
+            return;
+        }
+
         this.addSearchPaths();
         this.addActionPaths();
         this.addRoutes();
@@ -243,6 +258,40 @@ export class DynamicController {
                     });
             });
 
+        router.patch(this.path,
+            this.ensureLoggedIn(this.entity, RepoActions.patch),
+            (req, res) => {
+                if (!this.isAuthorize(req, res, RepoActions.patch)) {
+                    this.sendUnauthorizeError(res, 'unauthorize access for resource ' + this.path);
+                    return;
+                }
+
+                if (!Array.isArray(req.body)) {
+                    this.sendError(res, 'Invalid data.');
+                    return;
+                }
+                console.log("hal model conversion start " + this.path);
+
+                //let entity = req.body[0];
+                //var relations: Array<MetaData> = Utils.getAllRelationsForTargetInternal(entity) || [];
+                //var decFields = MetaUtils.getMetaData(entity, Decorators.JSONIGNORE);
+                let cacheForModelFromHalModel: any = {};
+                //cacheForModelFromHalModel.relations = relations
+                //cacheForModelFromHalModel.decFields = decFields;
+
+                Enumerable.from(req.body).forEach(x => {
+                    this.getModelFromHalModel(x, req, res);
+                });
+                console.log("hal model conversion end " + this.path);
+                return this.repository.bulkPatch(req.body as Array<any>)
+                    .then((result) => {
+                        this.sendresult(req, res, result);
+                    }).catch(error => {
+                        console.log(error);
+                        this.sendError(res, error);
+                    });
+            });
+
         router.delete(this.path + "/:id",
             this.ensureLoggedIn(this.entity, RepoActions.delete),
             (req, res) => {
@@ -420,9 +469,9 @@ export class DynamicController {
             return;
         }
 
-        if (req.method == "POST") {
-            this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
-        }
+        // if (req.method == "POST") {
+        //     this.ensureALLRequiredPresent(modelRepo.model.prototype, req.body, req, res);
+        // }
         this.removeJSONIgnore(modelRepo.model.prototype, req.body, req);
         this.invokeModelFunction(map, req, res, actions, hasFiles);
     }
@@ -530,35 +579,10 @@ export class DynamicController {
 
     private searchFromDb(req, res, propertyKey) {
         var resourceName = this.getFullBaseUrlUsingRepo(req, this.repository.modelName());
-        var queryObj = req.query;
-        var options = {};
-        Enumerable.from(queryObj).forEach((x: any) => {
-            if (filterProps.indexOf(x.key) >= 0) {
-                options[x.key] = x.value;
-                delete queryObj[x.key];
-            }
-            else {
-                var val = queryObj[x.key];
-                var i = val.indexOf('%LIKE%');
-                if (i == 0) {
-                    // contains
-                    val = val.replace('%LIKE%', '');
-                    queryObj[x.key] = {
-                        $regex: '.*' + val + '.*'
-                    }
-                }
-                else {
-                    i = val.indexOf('%START%');
-                    if (i == 0) {
-                        // starts with
-                        val = val.replace('%START%', '');
-                        queryObj[x.key] = {
-                            $regex: '^' + val + '.*'
-                        }
-                    }
-                }
-            }
-        });
+        let resultquerydata = getQueryOptionsFromQuery(this.repository,req.query);
+        var queryObj = resultquerydata.queryObj;
+        var options = resultquerydata.options;
+       
         console.log("Querying Database");
         return this.repository
             .findWhere(queryObj, null, options)
@@ -810,6 +834,7 @@ export class DynamicController {
         winstonLog.logError('[DynamicController: sendBadRequest]: bad request ' + error);
         res.set("Content-Type", "application/json");
         res.send(400, JSON.stringify(error, null, 4));
+        throw null;
     }
 
     private sendresult(req, res, result) {

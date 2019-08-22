@@ -19,7 +19,6 @@ export function generateSchema() {
 
     // register entity service
     Utils.entityService(Decorators.ENTITY, sequelizeService);
-
     var entities = MetaUtils.getMetaDataForDecorators([CoreDecorators.ENTITY]);
     var allDynamicSchemas: Array<DynamicSchema> = new Array<DynamicSchema>();
     entities.forEach(x => {
@@ -37,7 +36,7 @@ export function generateSchema() {
             let sourceDynamicSchema = schema;
             let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
                 .where(dynamicSchema => dynamicSchema.schemaName == oneToManyRelation.rel).first();
-            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.ONETOMANY, oneToManyRelation.rel, oneToManyRelation.propertyKey);
+            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.ONETOMANY, oneToManyRelation);
         });
     })
 
@@ -46,7 +45,7 @@ export function generateSchema() {
             let sourceDynamicSchema = schema;
             let targetDynamicSchema = Enumerable.from(allDynamicSchemas)
                 .where(dynamicSchema => dynamicSchema.schemaName == manyToOne.rel).first();
-            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.MANYTOONE, manyToOne.rel, manyToOne.propertyKey);
+            sequelizeService.addRelationInSchema(sourceDynamicSchema.getSchema(), targetDynamicSchema.getSchema(), CoreDecorators.MANYTOONE, manyToOne);
 
         });
     })
@@ -60,7 +59,7 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.ENTITY);
-        if (meta.length > 0) {
+        if (meta && meta.length > 0) {
             let entityMeta = meta[0];
             if (entityMeta) {
                 let schemaName = (<IEntityParams>entityMeta.params).tableName;

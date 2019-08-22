@@ -15,7 +15,7 @@ import * as Enumerable from 'linq';
 import {workerParamsDto} from "./core/decorators/interfaces/workerParamsDto";
 var Main = require("./core");
 var domain = require('domain');
-const test = require('./unit-test/services/blogServiceImpl'); // Test Service i.e. BlogService required for testing in Jasmine.
+//const test = require('./unit-test/services/blogServiceImpl'); // Test Service i.e. BlogService required for testing in Jasmine.
 
 function intiliaze(params: workerParamsDto) {
     try {

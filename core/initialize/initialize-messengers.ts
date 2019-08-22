@@ -45,8 +45,9 @@ export var allAutherizationRules: Array<{
 
 export var workerProcessService: IWorkerProcessService;
 export var mainMessenger: Messenger;
+export var channleMessangerMap: any = {};
 
-import {messageBraodcastOnMessenger,socketConnector} from "./initialize-scokets"
+import {messageBraodcastOnMessenger,socketConnector} from "./initialize-sockets"
 
 export class InitializeMessengers {
 
@@ -57,7 +58,7 @@ export class InitializeMessengers {
 
     private messenger = new Messenger({ retryInterval: 3000 });
 
-    private channleMessangerMap: any = {};
+   
 
     private serverId = uuidv4();
 
@@ -111,32 +112,61 @@ export class InitializeMessengers {
         this._schemaGenerator = schemaGenerator;
     }
 
-    private executeFindMany = (client, repo, message, multiClients?: any) => {
-        return repo.findMany([message]).then((data: Array<any>) => {
+    private clientSendCount = 0;
+    private startDateTime = undefined;
+    private executeFindMany = (client, repo, message, multiClients?: any,collection?:any) => {
+        let self = this;
+        let data = undefined;
+        if (collection) {
+            data = collection;
+        }
+        else {
+            data = [message];
+        }
+        return repo.findMany(data).then((data: Array<any>) => {
             if (data && data.length) {
+                if (!self.startDateTime) { self.startDateTime = new Date(); }
                 if (multiClients && multiClients.length) {
-                    multiClients.forEach((client) => { client.emit(repo.modelName(), data[0]); });
+                    multiClients.forEach((client) => {
+                        self.clientSendCount += data.length;
+                        // console.log("########### socket send Count ######### ", self.clientSendCount++);
+                        if ((self.clientSendCount % 1000) == 0) {
+                            let recalcDateTime = new Date();
+                            console.log("########### socket send Count ######### ", self.clientSendCount);
+                            console.log("########### socket time taken ######### ", recalcDateTime.getTime() - self.startDateTime.getTime());
+                        }
+                        //client.emit(repo.modelName(), message)
+                        data.forEach((subdata) => { client.emit(repo.modelName(), subdata) });
+                    });
                 }
                 else {
-                    client.emit(repo.modelName(), data[0]);
+                    self.clientSendCount += data.length;
+                    // console.log("########### socket send Count ######### ", self.clientSendCount++);
+                    if ((self.clientSendCount % 1000) == 0) {
+                        console.log("########### socket send Count ######### ", self.clientSendCount);
+                        let recalcDateTime = new Date();
+                        console.log("########### socket time taken ######### ", recalcDateTime.getTime() - self.startDateTime.getTime());
+                    }
+                    //client.emit(repo.modelName(), message)
+                    data.forEach((subdata) => { client.emit(repo.modelName(), subdata) });
                 }
                 return data
             }
             return undefined
         }).catch((error) => {
-            console.log("error in findmany socket emmitter", error);
+            //console.log("error in findmany socket emmitter", error);
             throw error;
         });
     }
 
-    private sendMessageToclient = (client, repo, message, multiClients?: any) => {
+    private sendMessageToclient = (client, repo, message, multiClients?: any,collection?:any) => {
         if (client.handshake.query && client.handshake.query.curSession) {
             var d = domain.create();
             d.run(() => {
                 PrincipalContext.User = securityImpl.getContextObjectFromSession(client.handshake.query.curSession);
                 //move to above 
                 if (securityImpl.isAuthorize({ headers: client.handshake.query }, repo, "findMany")) {
-                    this.executeFindMany(client, repo, message, multiClients);
+                    this.executeFindMany(client, repo, message, multiClients, collection);
                 }
 
             });
@@ -201,12 +231,20 @@ export class InitializeMessengers {
             if (self.checkIfRepoForMessenger(meta)) {
                 let messenger = self.messenger;
                 if (meta.params.dedicatedMessenger) {
-                    messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message" });
+                    messenger = new Messenger({ retryInterval: 3000, collectionName: key + "_message", cappedSize: meta.params.cappedSize });
+                    messenger.sendMessageToclient = self.sendMessageToclient;
+                    messenger.getAllUsersForNotification = self.getAllUsersForNotification;
+                    if (meta.params.bufferBatchSize) {
+                        messenger.batchSize = meta.params.bufferBatchSize;
+                        messenger.run();                       
+                        
+                    }
+
                     messengerPool.push(messenger);
                 }
                 
                 if (self.allSingleEmitterSettings[key] && self.allSingleEmitterSettings[key].length) {
-                    console.log("over riding chekAndSend for ", key);
+                    //console.log("over riding chekAndSend for ", key);
 
                     messenger.chekAndSend = (path: string, message: any): Promise<any> => {
                         return new Promise((resolve, reject) => {
@@ -231,20 +269,25 @@ export class InitializeMessengers {
                                     singleRandomWorker.forEach((singleWorker) => {
                                         singleWorkerOnRole[singleWorker.role + "_RC"] = singleWorker; //assuming RC channel
                                     });
-                                    message.singleWorkerOnRole = singleWorkerOnRole;
+                                    if (message instanceof Array) {
+                                        message.forEach((msg) => { msg.singleWorkerOnRole = singleWorkerOnRole;});
+                                    }
+                                    else {
+                                        message.singleWorkerOnRole = singleWorkerOnRole;
+                                    }
                                 }
                             }
 
                             messenger.send(path, message, function (err, data) {
                                 resolve(true);
-                                console.log('Sent message');
+                                //console.log('Sent message');
                             });
                         })
                     }
                 }
 
 
-                self.channleMessangerMap[key] = messenger;
+                channleMessangerMap[key] = messenger;
                 repo.setMessanger(messenger);
                 messenger.subscribe(key, true);
 
@@ -259,7 +302,7 @@ export class InitializeMessengers {
             messenger.onConnect(function () {
                 // emits events for each new message on the channel 
 
-                console.log("messenger connected  starting registering repositories");
+                //console.log("messenger connected  starting registering repositories");
 
                 for (let key in repoMap) {
                     let repo = repoMap[key].repo;
@@ -270,12 +313,15 @@ export class InitializeMessengers {
                     }
 
                     if (self.checkIfRepoForMessenger(meta)) {
-                        messenger.on(key, function (message) {
+                        messenger.on(key, function (data) {
 
-                            console.log("message received on ", key);
-
-                            messageBraodcastOnMessenger(repo, message);
-
+                            //console.log("message received on ", key);
+                            if (data.collection) {
+                                messageBraodcastOnMessenger(repo, data.message, data.collection);
+                            }
+                            else {
+                                messageBraodcastOnMessenger(repo, data);
+                            }
                         })
                     }
                 }

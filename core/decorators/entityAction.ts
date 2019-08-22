@@ -57,9 +57,8 @@ export function entityAction(params: IPreauthorizeParams): any {
 
         descriptor.value = function () {
             var anonymous = MetaUtils.getMetaData(target, Decorators.ALLOWANONYMOUS, propertyKey);
-            if (anonymous) return originalMethod.call(this, ...arguments);
-            let args = [];
-            args = Array.apply(null, arguments);
+            if (anonymous) return originalMethod.call(this, ...arguments);         
+            let args = Array.prototype.slice.call(arguments);
 
             // merge logic
             return mergeTask.apply(this, [args, originalMethod]).then(fullyQualifiedEntities => {
@@ -89,14 +88,14 @@ export function entityAction(params: IPreauthorizeParams): any {
                     // This is require othewise it will go in else condition and some of the entities will visible user without access e.g. questionnaire not assigned ot user.
                     findActions = findActions.map(methodName => methodName.toUpperCase());
                     if (findActions.indexOf(originalMethod.name.toUpperCase()) >= 0) {
-                        console.log("CanRead entity Security " + this.path);
+                        //console.log("CanRead entity Security " + this.path);
 
                         let promiseOfAuthServerice:any = Q.when(true);
                         if (checkIfAClrequired()){
                             promiseOfAuthServerice = PostFilterService.postFilter(fullyQualifiedEntities, params);
                         }
                         return promiseOfAuthServerice.then(result => {
-                            console.log("CanRead entity Security End " + this.path);
+                            //console.log("CanRead entity Security End " + this.path);
                         if (!result) {
                             fullyQualifiedEntities = null;
                         }
@@ -116,7 +115,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                     });
                 }
                 else {
-                        console.log("CanSave entity Security" + this.path);
+                        //console.log("CanSave entity Security" + this.path);
                         
                         //read security config
                         //check for this.path if acl is false then execute 
@@ -138,7 +137,7 @@ export function entityAction(params: IPreauthorizeParams): any {
                         }
 
                     return PreAuthService.isPreAuthenticated([fullyQualifiedEntities], params, propertyKey).then(isAllowed => {
-                        console.log("CanSave entity Security End" + this.path);
+                        //console.log("CanSave entity Security End" + this.path);
                         //req.body = fullyQualifiedEntities;
                         if (isAllowed) {
                             return executeNextMethod();
@@ -226,15 +225,15 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         case RepoActions.bulkPut.toUpperCase():
             var ids = Enumerable.from(args[0]).select(x => x['_id'].toString()).toArray();
             let mergeEntities1 = [];
-            console.log("entity action findmany instance service start " + this.path);
+            //console.log("entity action findmany instance service start " + this.path);
             args[0].forEach(x => {
                 mergeEntities1.push(InstanceService.getInstance(this.getEntity(), null, x));
             });
-            console.log("entity action findmany start " + this.path);
+            //console.log("entity action findmany start " + this.path);
             prom = rootRepo.findMany(ids, true).then(dbEntities => {
-                console.log("entity action merge entity start " + this.path);
+                //console.log("entity action merge entity start " + this.path);
                 let retval = mergeEntities(dbEntities, args[0], mergeEntities1);
-                console.log("entity action merge entity end " + this.path);
+                //console.log("entity action merge entity end " + this.path);
                 return retval;
             });
             break;
@@ -274,7 +273,7 @@ function mergeTask(args: any, method: any): Q.Promise<any> {
         }
         return res;
     }).catch(exc => {
-        console.log(exc);
+        //console.log(exc);
         throw exc;
     });
 }

@@ -31,3 +31,9 @@ export function getSessionLastTimeStampForChannel(query: any, channel: string, c
         resolve(new Date());
     })
 }
+
+export function getSessionLastAckForChannel(query: any, channel: string, curSession?: any) {
+    return new Promise((resolve, reject) => {
+        resolve(new Date());
+    })
+}

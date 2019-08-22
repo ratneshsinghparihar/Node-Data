@@ -27,7 +27,7 @@ export class PostFilterService {
             param.push(result);
             let ret = service.target[preAuthParam.methodName].call(service.target, ...param);
             if (Utils.isPromise(ret)) {
-                console.timeEnd("postFilter_" + preAuthParam.serviceName);
+                //console.timeEnd("postFilter_" + preAuthParam.serviceName);
                 return ret.then(result => {
                     return result;
                 }).catch((err) => {
@@ -36,7 +36,7 @@ export class PostFilterService {
                 });
             }
             else {
-                console.timeEnd("postFilter_" + preAuthParam.serviceName);
+                //console.timeEnd("postFilter_" + preAuthParam.serviceName);
                 return Q.when(ret);
             }
         }

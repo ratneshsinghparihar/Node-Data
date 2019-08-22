@@ -105,4 +105,10 @@ export class CurrentUserDetailService implements UserDetailService {
     getCurrentUser(sessionsId): Q.Promise<any> {
         return 
     }
+
+    verifyUser(req, res) { }
+    resendToken(req, res) { }
+    forgotPasswordRequest(req, res) { }
+    forgotPassword(req, res) { }
+    resetPassword(req, res) { }
 }

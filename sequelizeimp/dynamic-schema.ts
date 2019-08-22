@@ -3,15 +3,15 @@ import * as Sequelize from "sequelize";
 //import aa = require('mongoose');
 import * as Enumerable from 'linq';
 import * as Types from './datatype';
-import {Strict} from './enums/entity-strict';
-import {Decorators} from '../core/constants/decorators';
-import {MetadataConstants} from '../core/constants';
+import { Strict } from './enums/entity-strict';
+import { Decorators } from '../core/constants/decorators';
+import { MetadataConstants } from '../core/constants';
 
-import {DecoratorType} from '../core/enums/decorator-type';
-import {MetaUtils} from "../core/metadata/utils";
-import {MetaData} from '../core/metadata/metadata';
-import {IEntityParams} from './decorators/interfaces/entity-params';
-import {sequelizeService} from './sequelizeService';
+import { DecoratorType } from '../core/enums/decorator-type';
+import { MetaUtils } from "../core/metadata/utils";
+import { MetaData } from '../core/metadata/metadata';
+import { IEntityParams } from './decorators/interfaces/entity-params';
+import { sequelizeService } from './sequelizeService';
 
 export class DynamicSchema {
     parsedSchema: any;
@@ -20,13 +20,22 @@ export class DynamicSchema {
     private _tablespecs: any;
     private _schema: any;
     private _relations: any = {};
+    private _defaultPrimaryKey = null;
+    private _removeColumnProperties = ['name'];
 
-    constructor(target: Object, name: string,tableSpecs:any) {
+    constructor(target: Object, name: string, tableSpecs: any) {
         this.target = target;
         this.schemaName = name;
         this.parsedSchema = this.parse(target);
         this._tablespecs = tableSpecs;
         this._schema = sequelizeService.addScheam(this.schemaName, this.parsedSchema, this._tablespecs);
+        if(this._defaultPrimaryKey){
+            this._schema.beforeCreate((user, _ ) => {
+                let id = this['_defaultPrimaryKey'](user);
+                user[this._schema.primaryKeyField] =id;
+                return user;
+            });
+        }
     }
 
     public getSchema() {
@@ -51,16 +60,23 @@ export class DynamicSchema {
         var metaDataMap = MetaUtils.getMetaData(this.target, Decorators.COLUMN);
         for (var field in metaDataMap) {
             var fieldMetadata: MetaData = <MetaData>metaDataMap[field];
-            var name = fieldMetadata.params.name;
-            var params = fieldMetadata.params;
-            delete params.name;
-            schema[name] = params;
+            let newParam = {}
+            Object.keys(fieldMetadata.params).forEach(x => {
+                if(this._removeColumnProperties.indexOf(x)<0){
+                    newParam[x] = fieldMetadata.params[x]
+                }
+            })
+            if(fieldMetadata.params.primaryKey && typeof fieldMetadata.params.defaultValue=="function"){
+                this._defaultPrimaryKey = fieldMetadata.params.defaultValue;
+                delete newParam['defaultValue'];
+            }
+            schema[fieldMetadata.params.name] = newParam;
         }
 
         var metaDataMap1 = MetaUtils.getMetaData(this.target, Decorators.ONETOMANY);
         var oneTomanyrels = [];
         for (var field in metaDataMap1) {
-            var fieldMetadata: MetaData = <MetaData>metaDataMap1[field];           
+            var fieldMetadata: MetaData = <MetaData>metaDataMap1[field];
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
@@ -75,6 +91,10 @@ export class DynamicSchema {
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
+            if (!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
+            else if (!schema[params.foreignKey])
+                throw 'Please choose a valid foreign key from the defined properties for ' + this.schemaName + ' -> ' + params.propertyKey;
             manytoonerels.push(params);
         }
         this._relations[Decorators.MANYTOONE] = manytoonerels;
@@ -83,7 +103,7 @@ export class DynamicSchema {
         return schema;
     }
 
-    private getSearchSchemaTypeForParam(fieldMetadata: MetaData):any {
+    private getSearchSchemaTypeForParam(fieldMetadata: MetaData): any {
         var schemaType = this.getSchemaTypeForType(fieldMetadata.getType());
         if (fieldMetadata.params && fieldMetadata.params.rel) {
             return fieldMetadata.propertyType.isArray ? [schemaType] : schemaType;
@@ -128,7 +148,7 @@ export class DynamicSchema {
         //return paramType.isArray ? [schemaType] : schemaType;
     }
 
-    private getSchemaTypeForType(type?):any {
+    private getSchemaTypeForType(type?): any {
         switch (type) {
             case Mongoose.Types.ObjectId: return Mongoose.Schema.Types.ObjectId;
             case String: return Sequelize.STRING(128);

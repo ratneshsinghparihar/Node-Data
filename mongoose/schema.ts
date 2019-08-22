@@ -33,7 +33,7 @@ export function generateSchema() {
         let repositoryParams = <IRepositoryParams>x.metadata[0].params;
         let entity = (<IRepositoryParams>x.metadata[0].params).model;
         let meta = MetaUtils.getMetaData(entity, Decorators.DOCUMENT);
-        if (meta.length > 0) {
+        if (meta && meta.length > 0) {
             let documentMeta = meta[0];
             if (documentMeta) {
                 let schemaName = (<IDocumentParams>documentMeta.params).name;

@@ -250,10 +250,23 @@ function executeBulkPut(model: Mongoose.Model<any>, objArr: Array<any>, donotLoa
             }
             return prom.then((objects: Array<any>) => {
                 let updateParentProm = Q.when([]);
+                // if (updateParentRequired.length > 0) {
+                //     let updateObject = [];
+                //     updateParentRequired.forEach(x => {
+                //         updateObject.push(objects.find(obj => obj._id.toString() == x));
+                //     });
+                //     updateParentProm = mongooseHelper.updateParent(model, updateObject);
+                // }
                 if (updateParentRequired.length > 0) {
                     let updateObject = [];
+                    let newObjectsMap = {};
+                    objects.forEach(x => {
+                        newObjectsMap[x._id.toString()] = x;
+                    });
                     updateParentRequired.forEach(x => {
-                        updateObject.push(objects.find(obj => obj._id.toString() == x));
+                        if (newObjectsMap[x]) {
+                            updateObject.push(newObjectsMap[x]);
+                        }    
                     });
                     updateParentProm = mongooseHelper.updateParent(model, updateObject);
                 }
@@ -414,6 +427,12 @@ export function findAll(model: Mongoose.Model<any>): Q.Promise<any> {
  */
 export function countWhere(model: Mongoose.Model<any>, query: any): Q.Promise<any> {
 
+  if (Object.keys(query).length == 0) {
+        return Q.nbind(model.collection.stats, model.collection)().then((result: any) => {
+            return Q.resolve(result.count);
+        })
+    }
+	
     let queryObj = model.find(mongooseHelper.setShardCondition(model, query)).count();
     //winstonLog.logInfo(`findWhere query is ${query}`);
     return Q.nbind(queryObj.exec, queryObj)()
@@ -558,6 +577,21 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
         if (limit) {
             queryObj = queryObj.limit(limit);
         }
+		
+        if (gt && gt_value!=undefined) {
+            queryObj = queryObj.gt(gt, gt_value);
+        }
+        if (lt && lt_value != undefined) {
+            queryObj = queryObj.lt(lt, lt_value);
+        }
+
+        if (gte && gte_value != undefined) {
+            queryObj = queryObj.gte(gte, gte_value);
+        }
+        if (lte && lte_value != undefined) {
+            queryObj = queryObj.lte(lte, lte_value);
+        }
+		
         asyncCalls.push(Q.nbind(queryObj.exec, queryObj)());
     });
     return Q.allSettled(asyncCalls).then(res => {

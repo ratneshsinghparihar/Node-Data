@@ -4,8 +4,7 @@ var express = require('express');
 import * as configUtil from '../../core/utils';
 var crypto = require('crypto');
 //Passport
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+var passport;
 var FacebookStrategy = require('passport-facebook').Strategy;
 
 var jwt = require('jsonwebtoken');
@@ -32,8 +31,12 @@ export class AuthController {
 
     constructor(path: string) {
         this.path = path;
+        if(!configUtil.config().passportSet){
+            return;
+        }
         this.addRoutes();
         this.createAuthStrategy();
+        passport = configUtil.config().passportSet.getPassport();
     }
 
     private createAuthStrategy() {
@@ -47,6 +50,7 @@ export class AuthController {
     }
 
     private addRoutes() {
+        passport = configUtil.config().passportSet.getPassport();
         router.get('/',
             securityUtils.ensureLoggedIn(),
             (req, res) => {
@@ -124,6 +128,26 @@ export class AuthController {
         router.post('/register', (req, res) => {
             this.userDetailService.getNewUser(req, res);
         });
+
+        router.post('/verifyUser/:token', (req, res) => {
+            this.userDetailService.verifyUser(req, res);
+        });
+
+        router.post('/resendToken', (req, res) => {
+            this.userDetailService.resendToken(req, res);
+        });
+
+        router.post('/forgotPassword', (req, res) => {
+            this.userDetailService.forgotPasswordRequest(req, res);
+        });
+
+        router.post('/forgotPassword/:token', (req, res) => {
+            this.userDetailService.forgotPassword(req, res);
+        });
+
+        router.post('/resetPassword', (req, res) => {
+            this.userDetailService.resetPassword(req, res);
+        });
     }
 
     serialize(req, res, next) {
@@ -148,7 +172,7 @@ export class AuthController {
         req.token = jwt.sign(
             req.user
             , configUtil.securityConfig().SecurityConfig.tokenSecretkey, {
-                expiresInMinutes: configUtil.securityConfig().SecurityConfig.tokenExpiresInMinutes
+                expiresIn: configUtil.securityConfig().SecurityConfig.tokenExpiresInMinutes
             });
         //TODO dont put it in user object in db
         req.user.accessToken = req.token;
