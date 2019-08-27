@@ -58,6 +58,7 @@ export interface IDynamicRepository {
     castToPrimaryKey(id): any;
 
     onMessage(message: any);
+    getPrimarykey();
 
     isOnlyCustomActions:boolean;
     isOnlySeachMethods:boolean;
@@ -408,7 +409,7 @@ export class DynamicRepository implements IDynamicRepository {
     }
 
     public castToPrimaryKey(id) {
-        let primaryKey = '_id';
+        let primaryKey = this.getPrimarykey();
         let modelRepo = this.getEntityType();
         let decoratorFields = MetaUtils.getMetaData(modelRepo.model.prototype, Decorators.FIELD, primaryKey);
 
@@ -419,6 +420,10 @@ export class DynamicRepository implements IDynamicRepository {
             return Number.parseInt(id);
         }
         return id;
+    }
+
+    public getPrimarykey(){
+        return Utils.entityService(pathRepoMap[this.path].modelType).getPrimaryKey(this.path);
     }
 
     public onMessage(message: any) {

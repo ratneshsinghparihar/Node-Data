@@ -21,7 +21,7 @@ export class DynamicSchema {
     private _schema: any;
     private _relations: any = {};
     private _defaultPrimaryKey = null;
-    private _removeColumnProperties = ['name'];
+    private _removeColumnProperties = ['name','otherProperties'];
 
     constructor(target: Object, name: string, tableSpecs: any) {
         this.target = target;
@@ -65,6 +65,11 @@ export class DynamicSchema {
                 if(this._removeColumnProperties.indexOf(x)<0){
                     newParam[x] = fieldMetadata.params[x]
                 }
+                else if(x == 'otherProperties'){
+                    Object.keys(fieldMetadata.params[x]).forEach(subProp=>{
+                        newParam[subProp] = fieldMetadata.params[x][subProp];
+                    });
+                }
             })
             if(fieldMetadata.params.primaryKey && typeof fieldMetadata.params.defaultValue=="function"){
                 this._defaultPrimaryKey = fieldMetadata.params.defaultValue;
@@ -80,6 +85,8 @@ export class DynamicSchema {
 
             var params = fieldMetadata.params;
             params.propertyKey = fieldMetadata.propertyKey;
+            if (!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
             oneTomanyrels.push(params);
         }
         this._relations[Decorators.ONETOMANY] = oneTomanyrels;
@@ -99,6 +106,18 @@ export class DynamicSchema {
         }
         this._relations[Decorators.MANYTOONE] = manytoonerels;
 
+        var metaDataMap3 = MetaUtils.getMetaData(this.target, Decorators.ONETOONE);
+        var onetoonerels = [];
+        for (var field in metaDataMap3) {
+            var fieldMetadata: MetaData = <MetaData>metaDataMap3[field];
+
+            var params = fieldMetadata.params;
+            params.propertyKey = fieldMetadata.propertyKey;
+            if (!params.foreignKey)
+                throw 'Please add foreign key for association ' + this.schemaName + ' -> ' + params.propertyKey;
+            onetoonerels.push(params);
+        }
+        this._relations[Decorators.ONETOONE] = onetoonerels;
 
         return schema;
     }

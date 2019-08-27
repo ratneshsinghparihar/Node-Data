@@ -12,8 +12,11 @@ export class BlogPostSqlModel {
     @column({ name: "name", type: Sequelize.STRING(128), defaultValue:"defaultBlog" })
     name: string;   
 
-    @manytoone({ rel: 'tbl_blog2', itemType: BlogSqlModel, embedded: false, persist: true, eagerLoading: true })
+    @manytoone({ rel: 'tbl_blog2', itemType: BlogSqlModel, eagerLoading: true, foreignKey:'blogId' })
     blog: BlogSqlModel;
+
+    @column({ name: "blogId", type: Sequelize.INTEGER, allowNull:true })
+    blogId:number
 }
 
 export default BlogPostSqlModel;

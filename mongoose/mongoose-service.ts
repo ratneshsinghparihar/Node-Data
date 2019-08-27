@@ -241,6 +241,22 @@ export class MongooseService implements IEntityService {
         }
     }
 
+    getSortCondition(val){
+        return val;
+    }
+
+    getLikeCondition(val){
+        return {
+            $regex: '.*' + val + '.*'
+        }
+    }
+
+    getStartsWithCondition(val){
+        return {
+            $regex: '^' + val + '.*'
+        }
+    }
+
     private getEntityFromCache(repoPath: string, param: string, id: any) {
         // entityCache->modelName_path->hashEntity->{key: valueObj}
         //                            ->idEntity->{key: valueObj}
@@ -298,6 +314,10 @@ export class MongooseService implements IEntityService {
             currentUser.entityCache[repoPath][param][id]) {
             delete currentUser.entityCache[repoPath][param][id];
         }
+    }
+
+    getPrimaryKey(repoPath){
+        return '_id';
     }
 }
 

@@ -9,7 +9,7 @@ import {Types} from 'mongoose';
 import Q = require('q');
 
 @repository({ path: 'teacher', model: teacher })
-export class TeacherRepository extends DynamicRepository {
+export class TeacherRepository1 extends DynamicRepository {
 
     @inject(TeacherService)
     private _teacherService: TeacherService.TeacherService;
@@ -89,4 +89,4 @@ export class TeacherRepository extends DynamicRepository {
     }
 
 }
-export default TeacherRepository;
+export default TeacherRepository1;

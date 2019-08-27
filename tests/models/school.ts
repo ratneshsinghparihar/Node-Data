@@ -7,7 +7,7 @@ import {teacher} from './teacher';
 import {onetomany, manytoone, manytomany, onetoone} from '../../core/decorators';
 import {StorageType} from '../../core/enums/index';
 
-@document({ name: 'school', strict: Strict.true })
+@document({ name: 'school1', strict: Strict.true })
 export class school extends baseModel {
     @field()
     age: string;

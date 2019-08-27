@@ -23,4 +23,8 @@ export interface IEntityService {
     del(model: any, id: any): Q.Promise<any>;
     patch(model: any, id: any, obj): Q.Promise<any>;
     getModel(repoPath: string, dynamicName?: string);
+    getSortCondition(string):any;
+    getLikeCondition(string):any;
+    getStartsWithCondition(string):any;
+    getPrimaryKey(repoPath):string;
 }
