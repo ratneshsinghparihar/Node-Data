@@ -33,24 +33,25 @@ export class DynamicController {
         this.repository = repository;
         this.entity = entity;
         this.path = "/" + Utils.config().Config.basePath + "/" + entity.path;
+        let loadAllRoutes = true;
         if(repository.isOnlyCustomActions){
+            loadAllRoutes = false;
             this.addActionPaths();
-            return;
         }
-
         if(repository.isOnlySeachMethods){
+            loadAllRoutes = false;
             this.addSearchPaths();
-            return;
         }
 
         if(repository.isOnlyBasicRoutes){
+            loadAllRoutes = false;
             this.addRoutes();
-            return;
         }
-
-        this.addSearchPaths();
-        this.addActionPaths();
-        this.addRoutes();
+        if(loadAllRoutes){
+            this.addSearchPaths();
+            this.addActionPaths();
+            this.addRoutes();
+        }
     }
 
     ensureLoggedIn(entity: any, action: any) {
