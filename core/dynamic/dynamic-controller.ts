@@ -71,11 +71,11 @@ export class DynamicController {
     }
 
     isAuthorize(req, res, action: any) {
+        PrincipalContext.save('req', req);
+        PrincipalContext.save('res', res);
         var meta = MetaUtils.getMetaData(this.entity, Decorators.ALLOWANONYMOUS, action);
         if (meta) return true;
         if (securityImpl.isAuthorize(req, this.repository, action)) {
-            PrincipalContext.save('req', req);
-            PrincipalContext.save('res', res);
             return true;
         }
         return false;
