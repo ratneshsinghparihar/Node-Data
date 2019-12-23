@@ -49,7 +49,7 @@ export function updateParent(model: Mongoose.Model<any>, objs: Array<any>) {
  * @param obj
  */
 export function removeTransientProperties(model: Mongoose.Model<any>, obj: any): any {
-    var clonedObj = {};
+    var clonedObj = Object.create(obj.__proto__); // this is done to create a same clone object
     Object.assign(clonedObj, obj);
     var transientProps = Enumerable.from(MetaUtils.getMetaData(getEntity(model.modelName))).where((ele: MetaData, idx) => {
         if (ele.decorator === Decorators.TRANSIENT) {
