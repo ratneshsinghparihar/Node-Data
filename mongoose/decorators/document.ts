@@ -4,7 +4,7 @@ import {DecoratorType} from '../../core/enums/decorator-type';
 import {Strict} from '../enums/document-strict';
 
 var _dcoumentDecoratorCache={};
-export function document(params: { name: string, strict?: Strict, dynamicName?: boolean, disablePlurize?: boolean }) {
+export function document(params: { name: string, strict?: Strict, dynamicName?: boolean, pluralization?: boolean }) {
 
     params = params || <any>{};
     return function(target: Object){

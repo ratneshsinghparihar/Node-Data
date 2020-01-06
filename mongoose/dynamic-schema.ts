@@ -150,7 +150,7 @@ export class DynamicSchema {
             case Strict.throw: options.strict = "throw"; break;
             default: options.strict = true; break;
         }
-        if(params.disablePlurize){
+        if (params.pluralization == false) {
             options.pluralization = false;
         }
         return options;

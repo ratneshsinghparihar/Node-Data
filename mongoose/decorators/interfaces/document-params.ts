@@ -4,6 +4,11 @@ import {IDecoratorParams} from '../../../core/decorators/interfaces/decorator-pa
 export interface IDocumentParams extends IDecoratorParams {
     name: string;
     strict: Strict;
-    dynamicName: boolean;
-    disablePlurize: boolean
+    dynamicName?: boolean;
+    /**
+     * Set false if you want to use same name as the collection name
+     * (means letter case conversion and pluralization 
+     * )
+     */
+    pluralization?: boolean;
 }
