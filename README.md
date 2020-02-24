@@ -944,6 +944,15 @@ quick response with
 } 
 ```
 
+## upload files into server
+```
+@upload({destination:"../report-all/"})
+    douploadreport(filePath) {
+        var path = filePath[0].path;
+        console.log("report uploaded successfully for " + path);
+    }
+```
+
 ## PUB-SUB using Messageing 
 to define a repository to act like an pub-sub 
 ```typescript
