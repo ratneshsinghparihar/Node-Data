@@ -241,7 +241,7 @@ function getListOfObjectsTobeDeleted(props, isJsonMap: boolean) {
     } else {
         listOfAllSameObjects = props.reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
     }
     return listOfAllSameObjects;
 }

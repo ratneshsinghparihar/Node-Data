@@ -66,7 +66,7 @@ export function bulkPost(model: Mongoose.Model<any>, objArr: Array<any>, batchSi
                 let values = [];
                 values = suces.map(x => x.value).reduce((prev, current) => {
                     return prev.concat(current);
-                });
+                }, []);
                 //console.log("bulkPost end" + model.modelName);
                 return values;
             }).catch(er => {
@@ -111,7 +111,7 @@ function executeBulk(model, arrayOfDbModels: Array<any>) {
         let values = [];
         values = result.map(x => x.value.ops).reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
         return values;
     }).catch(err => {
         throw err;
@@ -145,7 +145,7 @@ export function bulkPut(model: Mongoose.Model<any>, objArr: Array<any>, batchSiz
         let values = [];
         values = suces.map(x => x.value).reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
         //console.log("bulkPut end" + model.modelName);
         return values;
     }).catch(er => {
@@ -598,7 +598,7 @@ export function findWhere(model: Mongoose.Model<any>, query: any, select?: Array
         let result = [];
         result = res.map(x => x.value).reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
         //winstonLog.logInfo(`findWhere query is ${query}`);
         // update embedded property, if any
         if (toLoadChilds != undefined && toLoadChilds == false) {
@@ -693,7 +693,7 @@ export function findMany(model: Mongoose.Model<any>, ids: Array<any>, toLoadEmbe
         let result = [];
         result = res.map(x => x.value).reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
         if (result.length !== ids.length) {
             let oneId = "";
             if (ids && ids.length) {
@@ -855,7 +855,7 @@ export function bulkDel(model: Mongoose.Model<any>, objs: Array<any>): Q.Promise
         let parents = [];
         parents = res.map(x => x.value).reduce((prev, current) => {
             return prev.concat(current);
-        });
+        }, []);
         asyncCalls = [];
         Object.keys(newModels).forEach(x => {
             asyncCalls.push(Q.nbind(newModels[x].remove, newModels[x])(mongooseHelper.setShardCondition(model, {
