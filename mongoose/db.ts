@@ -17,6 +17,10 @@ export function connect() {
     mainConnection = allConnections[dbLoc];
 }
 
+export function getMongooseContext(){
+    return mainConnection;
+}
+
 export function getDbSpecifcModel(schemaName: any, schema: any): any {
     var database = PrincipalContext.get(CoreUtils.resources.userDatabase);
     if (database && allConnections[database]) {
