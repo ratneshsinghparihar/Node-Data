@@ -72,7 +72,7 @@
     "express-jwt": "3.3.0",
     "express-session": "1.13.0",
     "gulp": "3.9.0",
-    "jsonwebtoken": "5.7.0",
+    "jsonwebtoken": "9.0.0",
     "linq": "3.0.5",
     "mongodb": "https://github.com/Anujarya300/node-mongodb-native/tarball/2.2",
     "mongoosastic": "4.0.2",
